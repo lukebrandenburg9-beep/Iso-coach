@@ -252,13 +252,19 @@ const DEFAULT_REST     = {A:7, B:7, C:7};
    Laut Handoff 4.2 lernt die echte App diese Werte aus der Population.
    Ein einzelner Nutzer kann das nicht — deshalb hier feste, editierbare
    Startwerte. Grobe Schätzungen, von Luke zu überschreiben. */
-/* group = Muskelgruppe. Uebungen mit derselben Gruppe sperren sich
+/* sides = Seiten mit EIGENER Kurve. Der Ausfallschritt belastet beide Beine
+   gleichzeitig (grob 60 % vorne, 40 % hinten), und die Beschwerden der Zielgruppe
+   sind meist einseitig — links und rechts sind deshalb zwei Messreihen, nicht eine.
+   Wer beide in eine Kurve wirft, mittelt genau den Seitenunterschied weg, der
+   klinisch am meisten sagt.
+
+   group = Muskelgruppe. Uebungen mit derselben Gruppe sperren sich
    gegenseitig; ueberschneidungsfreie duerfen am selben Tag getestet
    werden. Lukes Kriterium: "wichtig ist keine ueberlappenden
    Muskelgruppen". Liegestuetz und Ausfallschritt gehen also zusammen. */
 const DEFAULT_EX = {
   push: {
-    name:"Liegestütz", region:"Schulter", group:"push",
+    name:"Liegestütz", region:"Schulter", group:"push", sides:null,
     hint:"Position halten, Körper auf einer Linie, Schulterblätter stabil.",
     levels:[
       {name:"an der Wand, aufrecht",        load:1.00},
@@ -272,7 +278,7 @@ const DEFAULT_EX = {
     ]
   },
   lunge: {
-    name:"Ausfallschritt", region:"Knie", group:"legs",
+    name:"Ausfallschritt", region:"Knie", group:"legs", sides:["links","rechts"],
     hint:"Unteren Punkt halten, vorderes Knie über dem Mittelfuß, Rumpf aufrecht.",
     levels:[
       {name:"beide Hände abgestützt, flach", load:1.00},
@@ -300,19 +306,28 @@ const RED_FLAGS = [
 /* Stand der ausgelieferten Fassung. Steht unten in der App und beim Start in der
    Konsole — daran erkennst du am Handy, ob das Update schon angekommen ist.
    Wird bei jeder Änderung hochgezählt. */
-const BUILD = "2026-09-14 e";
+const BUILD = "2026-09-14 f";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
    Update alte Levels kleben. Sessions bleiben dabei immer erhalten. */
-const EX_VERSION = 3;
+const EX_VERSION = 4;
 let S = load();
+/* Muss nach load() laufen: sidesOf() braucht S.sessions. */
+(function(){ const sd = S.ex[S.exercise] ? sidesOf(S.exercise) : [null];
+             if(!sd.includes(S.side || null)) S.side = sd[0]; })();
 
 function fresh(){
   return {
     onboarded:false, exercise:"push", ex:structuredClone(DEFAULT_EX),
     exVersion:EX_VERSION,
-    level:0, sessions:[], plan:null, painStreak:0, missStreak:0, redflag:false,
+    side:null, nextSide:"links",
+    /* Level und Fehlserien haengen an der KURVE, nicht am Nutzer: Liegestuetz,
+       Ausfallschritt links und Ausfallschritt rechts sind drei Messreihen mit
+       eigenem Stand. Vorher war das global — eine Schmerzserie am Knie stufte
+       die Schulter mit zurueck. */
+    levels:{}, streak:{},
+    sessions:[], plan:null, redflag:false,
     rest:{...DEFAULT_REST}, planDay:null
   };
 }
@@ -324,7 +339,9 @@ function normalize(d){
   return Object.assign(fresh(), d, {ex, exVersion:EX_VERSION,
                                     rest: stale ? {...DEFAULT_REST}
                                                 : Object.assign({...DEFAULT_REST}, d.rest||{}),
-                                    level: stale ? 0 : (d.level||0), plan:null, planDay:null});
+                                    levels: stale ? {} : (d.levels || {}),
+                                    streak: stale ? {} : (d.streak || {}),
+                                    plan:null, planDay:null});
 }
 function load(){
   try{
@@ -381,8 +398,7 @@ function dbBadge(){
   n.style.color = /gesichert|geladen/.test(dbState) ? "var(--ok)"
                 : /fehl|nicht erreichbar/.test(dbState) ? "var(--bad)" : "var(--tx3)";
 }
-const curEx    = () => S.ex[S.exercise];
-const curLevel = () => curEx().levels[Math.min(S.level, curEx().levels.length-1)];
+const curEx = () => S.ex[S.exercise];
 
 /* ═══════════ Das Modell (Handoff 4.1) ═══════════
    t(P) = W' / (P − CP)
@@ -418,17 +434,51 @@ const predictLoad = (f,t)    => f.cp + f.wprime/t;
    Nur der ERSTE Satz jeder Session ist eine maximale Haltezeit —
    Satz 2 und 3 sind durch die 20-Sekunden-Pause vorermüdet und
    gehören nicht in denselben Fit. */
-function points(){
+/* Ein Kurvenschluessel ist Uebung plus Seite: "push", "lunge|links", "lunge|rechts". */
+function keyOf(ex, side){ return ex + (side ? "|" + side : ""); }
+function curKey(){ return keyOf(S.exercise, S.side); }
+function sidesOf(ex){
+  const e = S.ex[ex];
+  if(!e || !e.sides) return [null];
+  /* Altdaten aus der Zeit vor der Seitentrennung haben keine Seite. Sie werden
+     NICHT auf eine Seite geraten — sie bekommen einen eigenen Eintrag, solange
+     es sie gibt, und verschwinden von selbst, sobald keine mehr da sind. */
+  const ohne = S.sessions.some(x => x.exercise === ex && !x.side);
+  return ohne ? e.sides.concat([null]) : e.sides.slice();
+}
+/* Alle Kurven der App, in Anzeigereihenfolge. */
+function allKeys(){
+  const out = [];
+  for(const ex of Object.keys(S.ex)) for(const sd of sidesOf(ex)) out.push({ex, side:sd, key:keyOf(ex,sd)});
+  return out;
+}
+function labelOf(ex, side){
+  const e = S.ex[ex], n = e ? e.name : ex;
+  if(side) return `${n} · ${side}`;
+  return (e && e.sides) ? `${n} · ohne Seite (Altdaten)` : n;
+}
+const curLevel  = () => (S.levels && S.levels[curKey()]) || 0;
+const setLevel  = v  => { S.levels[curKey()] = v; };
+const curStreak = () => (S.streak[curKey()] = S.streak[curKey()] || {pain:0, miss:0});
+
+/* Messpunkte einer Kurve. Vorermuedete Saetze — die zweite Seite im Workout —
+   bleiben im Verlauf sichtbar, gehen aber NICHT in den Fit: Sie messen die
+   Ermuedung aus dem ersten Block mit, nicht die Belastbarkeit der Seite. */
+function points(ex, side){
+  ex = ex === undefined ? S.exercise : ex;
+  side = side === undefined ? S.side : side;
   const out = [];
   for(const s of S.sessions){
-    if(s.exercise !== S.exercise) continue;
+    if(s.exercise !== ex) continue;
+    if((s.side || null) !== (side || null)) continue;
+    if(s.fresh === false) continue;
     const first = s.sets[0];
     if(!first || !first.time) continue;
     out.push({load: s.load, time: first.time, pain: !!first.pain, date: s.date, level: s.level});
   }
   return out;
 }
-const curFit = () => fit(points());
+const curFit = (ex, side) => fit(points(ex, side));
 
 /* Deckt die Datenlage alle drei Zonen ab? (Handoff 4.4) */
 function zoneOf(t){
@@ -437,14 +487,14 @@ function zoneOf(t){
   if(t >= ZONES[1].lo) return ZONES[1];
   return ZONES[0];
 }
-function zoneCoverage(){
+function zoneCoverage(ex, side){
   const cov = {A:0, B:0, C:0};
-  for(const p of points()) cov[zoneOf(p.time).id]++;
+  for(const p of points(ex, side)) cov[zoneOf(p.time).id]++;
   return cov;
 }
-function profileReady(){
-  const c = zoneCoverage();
-  return points().length>=4 && c.A>0 && c.B>0 && c.C>0;
+function profileReady(ex, side){
+  const c = zoneCoverage(ex, side);
+  return points(ex, side).length>=4 && c.A>0 && c.B>0 && c.C>0;
 }
 
 /* ═══════════ Erholung ═══════════
@@ -459,50 +509,52 @@ function dayNum(d){
 const today = () => dayNum(new Date());
 const restOf = id => (S.rest && S.rest[id] != null) ? S.rest[id] : DEFAULT_REST[id];
 
-/* Muskelgruppe einer Uebung. Faellt auf den Uebungsschluessel zurueck,
-   wenn eine Uebung aus aelteren Daten kein group-Feld hat. */
+/* ═══════════ Erholung, jetzt auf Workout-Ebene ═══════════
+   Ein Workout enthaelt beide Muskelgruppen (drei Bloecke). Die alte Trennung
+   nach Gruppen ist damit gegenstandslos: gezaehlt wird der Abstand zwischen
+   zwei WORKOUTS und die Wartezeit, bis eine Zone wiederkommt. Das Feld group
+   bleibt in den Uebungsdaten stehen, falls spaeter Uebungen dazukommen, die
+   sich ueberschneiden. */
 function groupOf(key){
   const e = S.ex && S.ex[key];
   return (e && e.group) ? e.group : key;
 }
-const sameGroup = ses => groupOf(ses.exercise) === groupOf(S.exercise);
-
-/* Letzte Einheit derselben Muskelgruppe. Eine ueberschneidungsfreie
-   Uebung — Knie neben Schulter — zaehlt bewusst nicht mit. */
-function lastDayGroup(){
+/* Wie viele Workouts sind bisher gelaufen? */
+function workoutCount(){
+  const ids = new Set();
+  for(const ses of S.sessions) if(ses.workout) ids.add(ses.workout);
+  return ids.size;
+}
+function lastWorkoutDay(){
   let best = null;
   for(const ses of S.sessions){
-    if(!sameGroup(ses)) continue;
     const d = dayNum(ses.date);
     if(d != null && (best === null || d > best)) best = d;
   }
   return best;
 }
-/* Letzter Tag je Zone, ebenfalls pro Muskelgruppe. */
+/* Letzter Tag je Zone — nach der ZIELZONE des Workouts, nicht nach der
+   erreichten Zeit eines einzelnen Satzes. Die Rotation steuert, was das
+   Workout anfordert. */
 function zoneLastDay(){
   const last = {A:null, B:null, C:null};
   for(const ses of S.sessions){
-    if(!sameGroup(ses)) continue;
-    const first = ses.sets && ses.sets[0];
-    if(!first || !first.time) continue;
-    const z = (ses.zone && last[ses.zone] !== undefined) ? ses.zone : zoneOf(first.time).id;
+    const z = ses.workoutZone || ses.zone;
+    if(!z || last[z] === undefined) continue;
     const d = dayNum(ses.date);
     if(d != null && (last[z] === null || d > last[z])) last[z] = d;
   }
   return last;
 }
-/* Seit wie vielen Tagen ist diese Zone frei? Nie trainiert = sofort faellig. */
 function zoneAge(){
   const t = today(), zl = zoneLastDay(), out = {};
   for(const z of ZONES) out[z.id] = zl[z.id] === null ? Infinity : t - zl[z.id];
   return out;
 }
-/* Darf heute trainiert werden?
-   Waehrend der drei Einstiegstests gilt nur der 24-Stunden-Abstand — die
-   Wochenpause je Zone wuerde das Onboarding sonst ueber drei Wochen ziehen. */
+/* Darf heute ein Workout stattfinden? */
 function gate(){
-  const t = today(), la = lastDayGroup();
-  const onboarding = points().length < 3;
+  const t = today(), la = lastWorkoutDay();
+  const onboarding = workoutCount() < 3;
   const gap = onboarding ? ONBOARD_GAP_DAYS : MIN_GAP_DAYS;
   if(la !== null && (t - la) < gap)
     return {ok:false, kind:"day", wait: gap - (t - la), lastDay: la, onboarding};
@@ -513,64 +565,60 @@ function gate(){
   if(wait > 0) return {ok:false, kind:"zone", wait, age};
   return {ok:true};
 }
-/* Gleiche Rechnung fuer eine andere Uebung — fuer den Hinweis am Pausentag,
-   welche Muskelgruppe heute noch frei ist. */
-function gateFor(key){
-  const prev = S.exercise;
-  S.exercise = key;
-  try { return gate(); } finally { S.exercise = prev; }
-}
-function freieUebungen(){
-  return Object.keys(S.ex)
-    .filter(k => groupOf(k) !== groupOf(S.exercise) && gateFor(k).ok)
-    .map(k => S.ex[k].name);
-}
 
-/* ═══════════ Planung der nächsten Session ═══════════
-   Regel 5: Es wird die Zone angefordert, die am längsten zurückliegt.
-   Dazu die Stufe, die für diese Zielzeit am besten passt. */
-function planNext(){
-  const pts = points(), f = curFit(), lv = curEx().levels;
-
-  /* Onboarding: drei bewusst gespreizte Tests (M7) */
-  if(pts.length < 3){
-    const n = lv.length;
-    const order = [
-      {zone:"C", t:120, lvl:0},
-      {zone:"B", t:70,  lvl:Math.min(n-1, Math.round((n-1)*0.45))},
-      {zone:"A", t:35,  lvl:Math.min(n-1, Math.round((n-1)*0.72))}
-    ];
-    const step = order[pts.length];
-    return {benchmark:true, zone:step.zone, target:step.t, level:step.lvl,
-            why:`Test ${pts.length+1} von 3 — ${pts.length===0?"leicht":pts.length===1?"mittel":"schwer"}. `
-              + `Halte so lange du kannst. Die drei Tests gehören an drei verschiedene Tage.`};
-  }
-
-  /* Danach: unter den erholten Zonen die, die am längsten zurückliegt.
-     Gerechnet nach Datum, nicht nach Reihenfolge — sonst würde eine Zone
-     als "dran" gelten, die gestern belastet wurde. */
-  const age = zoneAge();
-  const erholt = ZONES.filter(z => age[z.id] >= restOf(z.id));
-  const pool = erholt.length ? erholt : ZONES;   /* nichts frei: planen trotzdem, gate() blockt */
-  const zone = pool.slice().sort((a,b)=> age[b.id]-age[a.id])[0];
-  const target = Math.round((zone.lo+zone.hi)/2);
-
-  /* Stufe wählen: die, deren vorhergesagte Zeit am nächsten am Ziel liegt */
-  let level = S.level, bestD = Infinity;
+/* ═══════════ Planung eines Workouts ═══════════
+   Drei Bloecke. Der Liegestuetz steht bewusst in der Mitte: Er gibt dem
+   zuerst belasteten Bein fuenf bis acht Minuten Erholung, bevor die zweite
+   Seite drankommt (PCr ~96 % nach 10 min, W' 86 % nach 15 min — der Puffer
+   deckt also rund eine Zeitkonstante ab, nicht die volle Erholung).
+   Gemessen wird nur die FRISCHE Seite; die zweite wird trainiert und
+   aufgezeichnet, geht aber nicht in den Fit. Die Startseite wechselt je
+   Workout, damit beide Seiten gleich oft frisch gemessen werden. */
+function mkBlock(ex, side, zone, target, fresh){
+  const f   = fit(points(ex, side));
+  const lv  = S.ex[ex].levels;
+  const key = keyOf(ex, side);
+  let level = (S.levels && S.levels[key]) || 0, best = Infinity;
   if(f){
     lv.forEach((L,i)=>{
       const t = predictTime(f, L.load);
       if(!isFinite(t)) return;
       const d = Math.abs(Math.log(t/target));
-      if(d < bestD){ bestD = d; level = i; }
+      if(d < best){ best = d; level = i; }
     });
   }
   const tt = f ? predictTime(f, lv[level].load) : target;
+  return {exercise:ex, side, zone, fresh, level, levelVorschlag:level,
+          target: Math.max(15, Math.round(isFinite(tt) ? tt : target))};
+}
+
+function planWorkout(){
+  const n = workoutCount();
+  const onboarding = n < 3;
+  let zone, target, why;
+  if(onboarding){
+    /* Drei bewusst gespreizte Einstiegs-Workouts (M7, Abschnitt 4.4). */
+    const order = [{z:"C", t:120}, {z:"B", t:75}, {z:"A", t:35}];
+    zone = order[n].z; target = order[n].t;
+    why = `Einstiegs-Workout ${n+1} von 3 — bewusst ${n===0?"leicht":n===1?"mittel":"schwer"}. `
+        + `Halte in jedem Block so lange du kannst.`;
+  } else {
+    const age = zoneAge();
+    const erholt = ZONES.filter(z => age[z.id] >= restOf(z.id));
+    const pool = erholt.length ? erholt : ZONES;
+    const z = pool.slice().sort((a,b)=> age[b.id]-age[a.id])[0];
+    zone = z.id; target = Math.round((z.lo + z.hi)/2);
+    why = `Zone ${zone} liegt am längsten zurück${isFinite(age[zone])?` (${age[zone]} Tag${age[zone]===1?"":"e"})`:""} und ist erholt.`;
+  }
+  const erste  = S.nextSide === "rechts" ? "rechts" : "links";
+  const zweite = erste === "links" ? "rechts" : "links";
   return {
-    benchmark:false, zone:zone.id, level,
-    target: Math.max(15, Math.round(isFinite(tt) ? tt : target)),
-    why:`Zone ${zone.id} liegt am längsten zurück${isFinite(age[zone.id])?` (${age[zone.id]} Tag${age[zone.id]===1?"":"e"})`:""} und ist erholt. `
-       + `${f?"Die Vorgabe kommt aus deiner Kurve.":""}`
+    zone, target, why, onboarding,
+    blocks: [
+      mkBlock("lunge", erste,  zone, target, true),
+      mkBlock("push",  null,   zone, target, true),
+      mkBlock("lunge", zweite, zone, target, false)
+    ]
   };
 }
 
@@ -578,52 +626,67 @@ function planNext(){
 function applyRules(session){
   const msgs = [];
   const first = session.sets[0];
-  const lv = curEx().levels;
+  const ex = S.ex[session.exercise];
+  const lv = ex.levels;
+  const key = keyOf(session.exercise, session.side);
+  const st = (S.streak[key] = S.streak[key] || {pain:0, miss:0});
+  const lvNow = () => (S.levels[key] || 0);
+  const stufeRunter = () => { if(lvNow() > 0) S.levels[key] = lvNow() - 1; };
+
+  /* Die zweite, vorermuedete Seite wird trainiert, nicht bewertet. Ihre Zahlen
+     sagen nichts ueber die Belastbarkeit dieser Seite — nur die Schmerzregel
+     gilt weiter, die ist eine Sicherheitsregel. */
+  if(session.fresh === false && !first.pain){
+    msgs.push({t:"ok", x:`${labelOf(session.exercise, session.side)}: ${fmt(first.time)} als zweite Seite — trainiert, nicht gewertet.`});
+    return msgs;
+  }
 
   if(first.pain){                                   /* Regel 1 */
-    S.painStreak++; S.missStreak = 0;
-    msgs.push({t:"warn", x:`Satz bei Schmerz beendet. Deine neue Vorgabe ist ${fmt(first.time)} — nicht mehr.`});
-    if(S.painStreak >= PAIN_BACK && S.level > 0){
-      S.level--; S.painStreak = 0;
-      msgs.push({t:"bad", x:`Zweimal hintereinander Schmerzabbruch → eine Stufe zurück auf „${lv[S.level].name}".`});
+    st.pain++; st.miss = 0;
+    msgs.push({t:"warn", x:`${labelOf(session.exercise, session.side)}: Satz bei Schmerz beendet. Neue Vorgabe ist ${fmt(first.time)} — nicht mehr.`});
+    if(st.pain >= PAIN_BACK && lvNow() > 0){
+      stufeRunter(); st.pain = 0;
+      msgs.push({t:"bad", x:`Zweimal hintereinander Schmerzabbruch → eine Stufe zurück auf „${lv[lvNow()].name}".`});
     }
   } else if(first.time > session.target){           /* Regel 2 */
-    S.painStreak = 0; S.missStreak = 0;
+    st.pain = 0; st.miss = 0;
     msgs.push({t:"ok", x:`Vorgabe übertroffen (${fmt(first.time)} statt ${fmt(session.target)}). Die Kurve zieht nach oben.`});
   } else if(first.time < session.target*MISS_RATIO){/* Regel 3 */
-    S.painStreak = 0;
+    st.pain = 0;
     if(session.userPicked){
       /* Die Stufe hat der Nutzer selbst gewaehlt. Den Richtwert zu verfehlen ist
          dann keine Verfehlung, sondern eine Schaetzung, die danebenlag — und
          genau so ein Messpunkt wie jeder andere. Kein Rueckstufen. */
-      S.missStreak = 0;
-      msgs.push({t:"ok", x:`Unter dem Richtwert — bei selbst gewählter Stufe ist das kein Fehlschlag. Der Messpunkt zählt voll.`});
+      st.miss = 0;
+      msgs.push({t:"ok", x:`${labelOf(session.exercise, session.side)}: unter dem Richtwert — bei selbst gewählter Stufe kein Fehlschlag. Der Messpunkt zählt voll.`});
     } else {
-      S.missStreak++;
-      msgs.push({t:"warn", x:`Deutlich unter der Vorgabe. Zählt trotzdem — auch schwache Sessions gehören in die Kurve.`});
-      if(S.missStreak >= MISS_BACK && S.level > 0){
-        S.level--; S.missStreak = 0;
-        msgs.push({t:"bad", x:`Dreimal in Folge verfehlt → eine Stufe zurück auf „${lv[S.level].name}".`});
+      st.miss++;
+      msgs.push({t:"warn", x:`${labelOf(session.exercise, session.side)}: deutlich unter der Vorgabe. Zählt trotzdem — auch schwache Sätze gehören in die Kurve.`});
+      if(st.miss >= MISS_BACK && lvNow() > 0){
+        stufeRunter(); st.miss = 0;
+        msgs.push({t:"bad", x:`Dreimal in Folge verfehlt → eine Stufe zurück auf „${lv[lvNow()].name}".`});
       }
     }
   } else {
-    S.painStreak = 0; S.missStreak = 0;
-    msgs.push({t:"ok", x:"Vorgabe getroffen."});
+    st.pain = 0; st.miss = 0;
+    msgs.push({t:"ok", x:`${labelOf(session.exercise, session.side)}: Vorgabe getroffen.`});
   }
 
   /* Regel 4 — Level rauf, wenn die Stufe die Obergrenze von Zone C erreicht */
-  const f = curFit();
-  if(f && !first.pain && S.level < lv.length-1){
-    const t = predictTime(f, lv[S.level].load);
+  const f = curFit(session.exercise, session.side);
+  if(f && !first.pain && lvNow() < lv.length-1){
+    const t = predictTime(f, lv[lvNow()].load);
     if(isFinite(t) && t > 150){
-      S.level++;
-      msgs.push({t:"ok", x:`Diese Stufe trägt über 150 Sekunden → eine Stufe höher auf „${lv[S.level].name}".`});
+      S.levels[key] = lvNow() + 1;
+      msgs.push({t:"ok", x:`${labelOf(session.exercise, session.side)}: Diese Stufe trägt über 150 Sekunden → eine Stufe höher auf „${lv[lvNow()].name}".`});
     }
   }
 
-  /* Sicherheitsregel Abschnitt 7 */
-  const recent = S.sessions.filter(s=>s.exercise===S.exercise).slice(-3);
-  if(recent.length===3 && recent.every(s=>s.painEnd>=6)){
+  /* Sicherheitsregel Abschnitt 7 — Schmerzwert gilt fuers ganze Workout,
+     deshalb ueber alle Sessions hinweg gezaehlt, nicht je Kurve. */
+  const recent = [...new Set(S.sessions.map(x=>x.workout || x.date))].slice(-3)
+    .map(w => S.sessions.find(x => (x.workout || x.date) === w));
+  if(recent.length===3 && recent.every(s=>s && s.painEnd>=6)){
     msgs.push({t:"bad", x:"Dein Schmerzwert lag dreimal in Folge bei 6 oder höher. Bitte lass das ärztlich abklären, bevor du weitertrainierst."});
   }
   return msgs;
@@ -692,21 +755,60 @@ function endSet(aborted){
 /* ═══════════ Sessionablauf ═══════════ */
 let RUN = null;
 
-function startSession(){
-  const p = S.plan || planNext();
-  const lv = curEx().levels[p.level];
-  RUN = {plan:p, load:lv.load, level:p.level, levelName:lv.name, sets:[], i:0};
+function startWorkout(){
+  const p = S.plan || planWorkout();
+  RUN = {plan:p, b:0, fertig:[], sets:[], i:0};
+  startBlock();
+}
+function curBlock(){ return RUN.plan.blocks[RUN.b]; }
+function blockLabel(bl){ return labelOf(bl.exercise, bl.side); }
+
+function startBlock(){
+  const bl = curBlock();
+  RUN.sets = []; RUN.i = 0;
+  RUN.load = S.ex[bl.exercise].levels[bl.level].load;
+  RUN.levelName = S.ex[bl.exercise].levels[bl.level].name;
   nextSet();
 }
+
+/* Zwischenkarte: hier entsteht die Erholung fuer das zuerst belastete Bein. */
+function betweenBlocks(){
+  const n = RUN.b + 1, bl = RUN.plan.blocks[n];
+  show("home");
+  el("homeTitle").textContent = `Block ${n+1} von ${RUN.plan.blocks.length}`;
+  el("homeSub").textContent = blockLabel(bl);
+  const ex = S.ex[bl.exercise];
+  el("homeBody").innerHTML = `
+    <div class="card">
+      <span class="pill ${ZONES.find(z=>z.id===bl.zone).cls}">Zone ${bl.zone}</span>
+      <h2 style="margin:11px 0 2px">${blockLabel(bl)}</h2>
+      <p class="muted" style="margin:0">${ex.levels[bl.level].name}</p>
+      ${!bl.fresh ? `<div class="note warn" style="margin-top:12px"><b>Zweite Seite — wird
+        trainiert, nicht gemessen.</b> Dieses Bein war eben schon als hinteres Bein belastet.
+        Der Satz wird aufgezeichnet und im Verlauf als <i>vorermüdet</i> geführt, geht aber
+        nicht in die Kurve ein. Weniger zu schaffen als vorhin ist hier normal und kein
+        Rückschritt.</div>` : ""}
+      <div class="kpi" style="margin-top:14px">
+        <div><b>${fmt(bl.target)}</b><small>Richtwert erster Satz</small></div>
+        <div><b>${SETS}</b><small>Sätze · ${PAUSE_S}s Pause</small></div>
+      </div>
+      ${bl.exercise==="push" ? `<p class="tiny" style="margin-top:11px">Dieser Block steht
+        bewusst zwischen den Beinen: Er gibt der zuerst belasteten Seite fünf bis acht Minuten
+        Erholung.</p>` : ""}
+      <button class="primary" style="width:100%;margin-top:12px;padding:16px" id="goBlock">
+        Block starten</button>
+    </div>`;
+  el("goBlock").onclick = ()=>{ beep(660,60,.05); RUN.b = n; startBlock(); };
+}
 function nextSet(){
-  const p = RUN.plan;
+  const p = curBlock();
   /* Sätze 2+ starten von einer realistisch niedrigeren Vorgabe:
      nach 20 s Pause liegt die Haltezeit erfahrungsgemäß bei rund
      einem Drittel des ersten Satzes (Handoff 3.1). */
   const tgt = RUN.i===0 ? p.target
             : Math.max(8, Math.round(RUN.sets[0].time * (RUN.i===1 ? .45 : .3)));
   runSet({
-    what: `${curEx().name} · ${RUN.levelName} · Satz ${RUN.i+1} von ${SETS}`,
+    what: `${blockLabel(p)} · ${RUN.levelName} · Satz ${RUN.i+1} von ${SETS}`,
     target: tgt,
     done: (time)=>{
       if(time===null){ RUN=null; render(); return; }
@@ -732,7 +834,7 @@ function askPain(time, tgt){
   el("painOk").onclick = ()=>{
     RUN.sets.push({time, target:tgt, pain: el("painChk").checked});
     RUN.i++;
-    if(RUN.i >= SETS) finishSession();
+    if(RUN.i >= SETS) endBlock();
     else pause();
   };
 }
@@ -756,12 +858,29 @@ function pause(){
     else draw();
   },1000);
 }
-function finishSession(){
+function endBlock(){
+  const bl = curBlock();
+  RUN.fertig.push({
+    exercise: bl.exercise, side: bl.side, level: bl.level,
+    levelName: S.ex[bl.exercise].levels[bl.level].name,
+    load: S.ex[bl.exercise].levels[bl.level].load,
+    target: bl.target, workoutZone: bl.zone,
+    /* Zone nach der ERREICHTEN Zeit — wer eine Stufe selbst waehlt, landet oft woanders. */
+    zone: zoneOf(RUN.sets[0].time).id,
+    fresh: bl.fresh, userPicked: !!bl.userPicked,
+    sets: RUN.sets.slice()
+  });
+  if(RUN.b + 1 < RUN.plan.blocks.length) betweenBlocks();
+  else finishWorkout();
+}
+
+function finishWorkout(){
   show("home");
   el("homeBody").innerHTML = `
     <div class="card">
       <h2 style="margin-top:0">Wie stark war der Schmerz heute?</h2>
-      <p class="tiny">Ein Wert für die ganze Session. 0 = kein Schmerz, 10 = unerträglich.
+      <p class="tiny">Ein Wert für das ganze Workout, alle drei Blöcke zusammen.
+      0 = kein Schmerz, 10 = unerträglich.
       Ziel ist ein Bereich von 0 bis 4.</p>
       <div class="scaleBtns" id="sc1"></div>
       <div class="scaleBtns" id="sc2" style="margin-top:5px"></div>
@@ -788,55 +907,63 @@ function finishSession(){
   };
   mk("sc1",0,5); mk("sc2",6,10);
   el("scOk").onclick = ()=>{
-    const ses = {
-      date: new Date().toISOString(), exercise: S.exercise, level: RUN.level,
-      levelName: RUN.levelName, load: RUN.load, target: RUN.plan.target,
-      /* Die Zone ergibt sich aus der ERREICHTEN Zeit, nicht aus der geplanten.
-         Wer eine Stufe selbst waehlt, landet oft woanders — der Messpunkt gehoert
-         dann in die Zone, in der er tatsaechlich liegt. */
-      zone: zoneOf(RUN.sets[0].time).id, zoneGeplant: RUN.plan.zone,
-      userPicked: !!RUN.plan.userPicked,
-      sets: RUN.sets, painEnd: sel
-    };
-    S.sessions.push(ses);
-    if(sel>=7 && S.level>0) S.level--;
-    const msgs = applyRules(ses);
+    const wid  = "w" + Date.now();
+    const jetzt = new Date().toISOString();
+    const gespeichert = [];
+    for(const b of RUN.fertig){
+      const ses = Object.assign({}, b, {date: jetzt, workout: wid, painEnd: sel});
+      S.sessions.push(ses);
+      gespeichert.push({ses, msgs: applyRules(ses)});
+    }
+    /* Schmerzwert 7+ stuft jede im Workout belastete Kurve eine Stufe zurueck. */
+    if(sel >= 7) for(const {ses} of gespeichert){
+      const k = keyOf(ses.exercise, ses.side);
+      if((S.levels[k]||0) > 0) S.levels[k]--;
+    }
+    /* Startseite wechseln, damit beide Seiten gleich oft frisch gemessen werden. */
+    S.nextSide = (S.nextSide === "rechts") ? "links" : "rechts";
     S.plan = null; S.planDay = null; ignoreRest = false; save(); RUN = null;
-    showResult(ses, msgs);
+    showWorkoutResult(gespeichert, sel);
   };
 }
-function showResult(ses, msgs){
-  const f = curFit();
-  const nxt = planNext(); S.plan = nxt; S.planDay = today(); save();
-  const lv = curEx().levels[nxt.level];
+function showWorkoutResult(gespeichert, painEnd){
+  const alle = gespeichert.flatMap(x => x.msgs);
+  const nxt = planWorkout();
   const g = gate();
-  const wann = g.ok ? "" : new Date(Date.now() + g.wait*86400000)
-    .toLocaleDateString("de-DE", {weekday:"long", day:"numeric", month:"long"});
+  const wann = g.ok ? "heute noch möglich"
+    : new Date(Date.now() + g.wait*86400000)
+        .toLocaleDateString("de-DE", {weekday:"long", day:"numeric", month:"long"});
   show("home");
-  el("homeTitle").textContent = "Session gespeichert";
-  el("homeSub").textContent = `${curEx().name} · ${ses.levelName}`;
+  el("homeTitle").textContent = "Workout gespeichert";
+  el("homeSub").textContent = `${gespeichert.length} Blöcke · Schmerzwert ${painEnd}`;
   el("homeBody").innerHTML = `
+    ${gespeichert.map(({ses})=>`
+      <div class="card">
+        <h3 style="margin-top:0">${labelOf(ses.exercise, ses.side)}
+          ${ses.fresh === false ? '<span class="pill pRest">vorermüdet</span>' : ''}</h3>
+        <p class="tiny" style="margin:0 0 8px">${ses.levelName} · Zone ${ses.zone}${
+          ses.workoutZone && ses.workoutZone !== ses.zone
+            ? ` <span class="tiny">(geplant ${ses.workoutZone} — zählt, wo er gelandet ist)</span>` : ""}</p>
+        <table><thead><tr><th>Satz</th><th class="n">gehalten</th><th class="n">Richtwert</th><th>Ende</th></tr></thead>
+        <tbody>${ses.sets.map((x,i)=>`<tr><td>${i+1}</td><td class="n">${fmt(x.time)}</td>
+          <td class="n">${fmt(x.target)}</td>
+          <td>${x.pain?'<span style="color:var(--bad)">Schmerz</span>':"Ermüdung"}</td></tr>`).join("")}
+        </tbody></table>
+        ${ses.sets.length>1 ? `<p class="tiny" style="margin-top:9px">Abfall Satz 1 → 2:
+          <b>${Math.round(ses.sets[1].time/ses.sets[0].time*100)} %</b> — beschreibt, wie schnell
+          sich dein Vorrat leert.</p>`:""}
+        ${ses.fresh === false ? `<p class="tiny">Nicht in der Kurve. Diese Seite war als hinteres
+          Bein vorbelastet — der Wert misst die Ermüdung mit, nicht die Belastbarkeit.</p>` : ""}
+      </div>`).join("")}
+    ${alle.map(m=>`<div class="note ${m.t==="ok"?"":m.t}">${m.x}</div>`).join("")}
     <div class="card">
-      <h3 style="margin-top:0">Deine Sätze</h3>
-      <table><thead><tr><th>Satz</th><th class="n">gehalten</th><th class="n">Vorgabe</th><th>Ende</th></tr></thead>
-      <tbody>${ses.sets.map((s,i)=>`<tr><td>${i+1}</td><td class="n">${fmt(s.time)}</td>
-        <td class="n">${fmt(s.target)}</td><td>${s.pain?'<span style="color:var(--bad)">Schmerz</span>':"Ermüdung"}</td></tr>`).join("")}
-      </tbody></table>
-      ${ses.sets.length>1 ? `<p class="tiny" style="margin-top:9px">Abfall Satz 1 → 2:
-        <b>${Math.round(ses.sets[1].time/ses.sets[0].time*100)} %</b>. Dieser Wert beschreibt, wie
-        schnell sich dein Vorrat leert.</p>`:""}
-    </div>
-    ${msgs.map(m=>`<div class="note ${m.t==="ok"?"":m.t}">${m.x}</div>`).join("")}
-    <div class="card">
-      <h3 style="margin-top:0">Nächste Session</h3>
-      <p style="margin:4px 0"><b>${g.ok ? "heute noch möglich" : wann}</b></p>
-      <p class="tiny">Dein Messpunkt von eben liegt in <b>Zone ${ses.zone}</b>${ses.zoneGeplant && ses.zoneGeplant!==ses.zone
-        ? ` — geplant war Zone ${ses.zoneGeplant}. Er zählt dort, wo er gelandet ist.` : ""}</p>
-      <p class="muted" style="margin:2px 0">${curEx().name} · ${lv.name} · Zone ${nxt.zone} ·
-        Vorgabe etwa <b>${fmt(nxt.target)}</b>${f?` <span class="tiny">(±${Math.round(rel(f)*100)} %)</span>`:""}</p>
+      <h3 style="margin-top:0">Nächstes Workout</h3>
+      <p style="margin:4px 0"><b>${wann}</b></p>
+      <p class="muted" style="margin:2px 0">Zone ${nxt.zone} · ${nxt.blocks.map(blockLabel).join("  →  ")}</p>
       <p class="tiny">${nxt.why}</p>
-      <p class="tiny">Diese Muskelgruppe ist für heute fertig. Eine überschneidungsfreie Übung
-      — Knie neben Schulter — darfst du am selben Tag testen.</p>
+      <p class="tiny">Die Startseite wechselt: Beim nächsten Mal wird
+      <b>${S.nextSide}</b> zuerst gemessen. So bekommt jede Seite gleich oft einen frischen
+      Messpunkt.</p>
     </div>
     <button class="primary" style="width:100%" onclick="show('profile')">Profil ansehen</button>`;
 }
@@ -868,9 +995,9 @@ function curveSVG(f, pts){
   lv.forEach((l,i)=>{
     g += `<line x1="${X(l.load)}" y1="${TP}" x2="${X(l.load)}" y2="${H-B}"
            stroke="var(--line)" stroke-dasharray="2 4" stroke-width="1"/>
-          ${(i===S.level || i%2===0) ? `<text x="${X(l.load)}" y="${H-B+15}" text-anchor="middle"
-           font-size="11.5" fill="${i===S.level?"var(--acc)":"var(--tx3)"}"
-           font-weight="${i===S.level?700:400}">${i+1}</text>` : ""}`;
+          ${(i===curLevel() || i%2===0) ? `<text x="${X(l.load)}" y="${H-B+15}" text-anchor="middle"
+           font-size="11.5" fill="${i===curLevel()?"var(--acc)":"var(--tx3)"}"
+           font-weight="${i===curLevel()?700:400}">${i+1}</text>` : ""}`;
   });
   g += `<text x="${W/2}" y="${H-5}" text-anchor="middle" font-size="11.5" fill="var(--tx3)">Stufe · leicht → schwer</text>`;
 
@@ -923,9 +1050,8 @@ function historySVG(pts){
 
 /* ═══════════ Bildschirme ═══════════ */
 function renderHome(){
-  const pts = points(), f = curFit();
   el("homeTitle").textContent = "Heute";
-  el("homeSub").textContent = `${curEx().name} · ${curEx().region}`;
+  el("homeSub").textContent = "Workout aus drei Blöcken";
 
   if(S.redflag){
     el("homeBody").innerHTML = `<div class="note bad"><b>Bitte zuerst ärztlich abklären.</b>
@@ -936,17 +1062,12 @@ function renderHome(){
     return;
   }
 
-  /* Der gespeicherte Plan gilt nur für den Tag, an dem er gerechnet wurde.
-     Über Nacht ändern sich die Zonenalter — sonst startet man in eine Zone,
-     die inzwischen von einer besser erholten abgelöst gehört. */
-  const p = (S.plan && S.planDay === today()) ? S.plan : planNext();
+  const p = (S.plan && S.planDay === today()) ? S.plan : planWorkout();
   S.plan = p; S.planDay = today(); save();
-  const lv = curEx().levels[p.level];
-  const z = ZONES.find(z=>z.id===p.zone);
-  const cov = zoneCoverage();
-
-  /* Pausentag (Lukes Vorgabe): ein Test pro Tag, danach Erholung. */
+  const z = ZONES.find(x=>x.id===p.zone);
   const g = gate();
+
+  /* ── Pausentag ───────────────────────────────────────────── */
   if(!g.ok && !ignoreRest){
     const age = zoneAge();
     const dat = new Date(Date.now() + g.wait*86400000)
@@ -955,21 +1076,16 @@ function renderHome(){
       <div class="card">
         <span class="pill pRest">Pausentag</span>
         <h2 style="margin:11px 0 2px">Heute nicht</h2>
-        <p class="muted" style="margin:0">Nächste Einheit: ${dat}</p>
+        <p class="muted" style="margin:0">Nächstes Workout: ${dat}</p>
         <p class="tiny" style="margin-top:12px">${g.kind === "day"
           ? (g.onboarding
-              ? `Der letzte Test liegt noch keine 24 Stunden zurück. Die drei Einstiegstests
-                 gehören an drei verschiedene Tage — sonst misst der zweite nur noch die Ermüdung
-                 aus dem ersten.`
-              : `Diese Muskelgruppe war zuletzt vor ${today()-g.lastDay} Tag${today()-g.lastDay===1?"":"en"}
-                 dran. Dieselbe Gruppe wird <b>dreimal pro Woche</b> belastet, also frühestens
-                 mit ${MIN_GAP_DAYS} Tagen Abstand.`)
-          : `Jedes Energiesystem kommt <b>einmal pro Woche</b> dran. Drei Zonen, drei Einheiten
-             je Woche — heute ist keine davon so weit. Eine Ausweichzone gibt es nicht: Die
-             Systeme arbeiten überlappend, nie isoliert.`}</p>
-        ${freieUebungen().length ? `<p class="tiny">Frei ist heute:
-          <b>${freieUebungen().join(", ")}</b> — andere Muskelgruppe, keine Überschneidung.
-          Umschalten unter Mehr → Übung.</p>` : ""}
+              ? `Das letzte Einstiegs-Workout liegt noch keine 24 Stunden zurück. Die drei
+                 gehören an drei verschiedene Tage.`
+              : `Das letzte Workout war vor ${today()-g.lastDay} Tag${today()-g.lastDay===1?"":"en"}.
+                 Trainiert wird <b>dreimal pro Woche</b>, also frühestens mit ${MIN_GAP_DAYS} Tagen
+                 Abstand.`)
+          : `Jedes Energiesystem kommt <b>einmal pro Woche</b> dran. Drei Zonen, drei Workouts je
+             Woche — heute ist keine davon so weit.`}</p>
         <table style="margin-top:12px"><tbody>${ZONES.map(zz=>{
           const a = age[zz.id], r = restOf(zz.id), frei = a >= r;
           return `<tr><td style="white-space:nowrap"><span class="pill ${zz.cls}">${zz.id}</span>
@@ -982,95 +1098,127 @@ function renderHome(){
         <b>Mehr → Erholung</b> und sind änderbar. Es sind grobe Richtwerte.</p>
       </div>
       <div class="card flat">
-        <p class="tiny" style="margin-top:0">Wenn du dich sicher bist, dass du erholt bist,
-        kannst du die Sperre für heute übergehen. Die Messung wird dann trotzdem gewertet —
-        mit dem Wissen, dass sie unter Vorermüdung entstanden ist.</p>
+        <p class="tiny" style="margin-top:0">Wenn du dir sicher bist, dass du erholt bist, kannst
+        du die Sperre für heute übergehen. Die Messung wird dann trotzdem gewertet — mit dem
+        Wissen, dass sie unter Vorermüdung entstanden ist.</p>
         <button class="ghost" style="width:100%" id="ignoreBtn">Trotzdem trainieren</button>
-      </div>
-      ${pts.length? `<div class="card flat">
-        <h3 style="margin-top:0">Letzte Sessions</h3>
-        ${historySVG(pts.slice(-12))}</div>`:""}`;
+      </div>`;
     el("ignoreBtn").onclick = ()=>{ ignoreRest = true; render(); };
     return;
   }
 
+  /* ── Workoutkarte ────────────────────────────────────────── */
+  const blockKarte = (bl, i) => {
+    const ex = S.ex[bl.exercise], f = curFit(bl.exercise, bl.side);
+    const tp = f ? predictTime(f, ex.levels[bl.level].load) : null;
+    const zz = (tp && isFinite(tp)) ? zoneOf(tp) : null;
+    return `
+      <div class="card flat">
+        <p class="tiny" style="margin:0 0 2px;letter-spacing:.06em;text-transform:uppercase">
+          Block ${i+1} · ${bl.fresh ? "wird gemessen" : "nur Training"}</p>
+        <h3 style="margin:0 0 6px">${blockLabel(bl)}</h3>
+        <label class="tiny" for="lvlPick${i}" style="display:block;margin-bottom:4px">Stufe —
+          du entscheidest</label>
+        <select id="lvlPick${i}" data-b="${i}">${ex.levels.map((L,k)=>{
+          const t = f ? predictTime(f, L.load) : null;
+          const hint = (t && isFinite(t)) ? ` · erwartet ${fmt(t)}` : "";
+          return `<option value="${k}" ${k===bl.level?"selected":""}>${L.name}${hint}</option>`;
+        }).join("")}</select>
+        <p class="tiny" style="margin-top:7px">Richtwert erster Satz <b>${fmt(bl.target)}</b> ·
+          ${SETS} Sätze · ${PAUSE_S}s Pause${
+          zz ? ` · erwarteter Landeplatz <span class="pill ${zz.cls}">Zone ${zz.id}</span>` : ""}</p>
+        ${bl.userPicked ? `<p class="tiny">Von dir gewählt — Vorschlag war
+          <b>${ex.levels[bl.levelVorschlag].name}</b>.</p>` : ""}
+        ${!bl.fresh ? `<p class="tiny">Dieses Bein war eben schon als hinteres Bein belastet.
+          Der Satz zählt als Training und erscheint im Verlauf als <i>vorermüdet</i> — er geht
+          nicht in die Kurve.</p>` : ""}
+        ${bl.exercise==="push" ? `<p class="tiny">Steht bewusst in der Mitte: gibt der zuerst
+          belasteten Seite fünf bis acht Minuten Erholung.</p>` : ""}
+      </div>`;
+  };
+
   el("homeBody").innerHTML = `
     <div class="card">
-      ${p.benchmark ? `<span class="pill pB">Test ${pts.length+1} von 3</span>`
-                    : `<span class="pill ${z.cls}">Zone ${z.id} · ${z.name}</span>`}
-      <h2 style="margin:11px 0 2px">${curEx().name}</h2>
-      <label class="tiny" for="lvlPick" style="display:block;margin:8px 0 4px">Stufe — du
-        entscheidest</label>
-      <select id="lvlPick">${curEx().levels.map((L,i)=>{
-        const t = f ? predictTime(f, L.load) : null;
-        const hint = (t && isFinite(t)) ? ` · erwartet ${fmt(t)}` : "";
-        return `<option value="${i}" ${i===p.level?"selected":""}>${L.name}${hint}</option>`;
-      }).join("")}</select>
-      <div class="kpi" style="margin-top:14px">
-        <div><b>${fmt(p.target)}</b><small>Richtwert erster Satz</small></div>
-        <div><b>${SETS}</b><small>Sätze · ${PAUSE_S}s Pause</small></div>
-      </div>
+      ${p.onboarding ? `<span class="pill pB">Einstiegs-Workout ${workoutCount()+1} von 3</span>`
+                     : `<span class="pill ${z.cls}">Zone ${z.id} · ${z.name}</span>`}
+      <h2 style="margin:11px 0 2px">Drei Blöcke</h2>
+      <p class="muted" style="margin:0">${p.blocks.map(blockLabel).join("  →  ")}</p>
       <p class="tiny" style="margin-top:11px">${p.why}</p>
-      ${p.userPicked ? `<p class="tiny">Stufe von dir gewählt — der Vorschlag der App war
-        <b>${curEx().levels[p.levelVorschlag].name}</b>.</p>` : ""}
       <p class="tiny"><b>Der Richtwert ist kein Ziel.</b> Halte so lange du kannst. Der Messpunkt
-      zählt so, wie er herauskommt — ob du dich über- oder unterschätzt, ist gleichgültig. Genau
-      aus der Streuung entsteht die Kurve.</p>
-      ${f ? (()=>{ const tp = predictTime(f, lv.load);
-        if(!isFinite(tp)) return `<p class="tiny">Diese Stufe liegt unter deiner Dauerleistungs­grenze —
-          rechnerisch hältst du sie sehr lange. Als Messpunkt taugt sie wenig.</p>`;
-        const zz = zoneOf(tp);
-        return `<p class="tiny">Erwarteter Landeplatz: <span class="pill ${zz.cls}">Zone ${zz.id}</span>
-          ${zz.lo}–${zz.hi} s.${zz.id!==p.zone ? ` Geplant war Zone ${p.zone} — auch gut, der Messpunkt
-          wird der Zone zugeordnet, in der er tatsächlich landet.` : ""}</p>`; })() : ""}
-      ${f && !p.benchmark ? `<p class="tiny">Erwartungsbereich etwa
-        ${fmt(p.target*(1-rel(f)))} bis ${fmt(p.target*(1+rel(f)))} — die App verspricht keine
-        Sekundenzahl, sie schätzt.</p>`:""}
+      zählt so, wie er herauskommt — ob du dich über- oder unterschätzt, ist gleichgültig.
+      Genau aus der Streuung entsteht die Kurve.</p>
       <button class="primary" style="width:100%;margin-top:12px;padding:16px" id="goSess">
-        ${p.benchmark?"Test starten":"Session starten"}</button>
+        Workout starten</button>
       <p class="tiny" style="text-align:center;margin-top:9px">Ton einschalten — die Ansagen
       kommen akustisch, damit du nicht aufs Display schauen musst.</p>
     </div>
-    ${!profileReady() ? `<div class="card flat">
-      <h3 style="margin-top:0">Bis zum vollständigen Profil</h3>
-      <p class="tiny">Die Kurve entsteht nicht durch viele Messungen, sondern durch
-      <b>gespreizte</b>. Solange eine Zone leer ist, bleibt die Kurve dort eine Vermutung.</p>
-      <table><tbody>${ZONES.map(z=>`<tr><td><span class="pill ${z.cls}">${z.id}</span>
-        ${z.lo}–${z.hi}s</td><td class="n">${cov[z.id]>0
-        ? '<span style="color:var(--ok)">✓ '+cov[z.id]+'</span>'
-        : '<span style="color:var(--tx3)">offen</span>'}</td></tr>`).join("")}
-      </tbody></table></div>`:""}
-    ${pts.length? `<div class="card flat">
-      <h3 style="margin-top:0">Letzte Sessions</h3>
-      ${historySVG(pts.slice(-12))}</div>`:""}`;
-  el("lvlPick").onchange = e => {
-    const i = +e.target.value;
-    if(p.levelVorschlag == null) p.levelVorschlag = p.level;
-    p.level = i;
-    p.userPicked = (i !== p.levelVorschlag);
-    /* Richtwert an die gewählte Stufe anpassen, solange eine Kurve existiert.
-       Ohne Kurve bleibt der Zonenrichtwert stehen — etwas Besseres gibt es nicht. */
-    if(f){ const t = predictTime(f, curEx().levels[i].load);
-           if(isFinite(t)) p.target = Math.max(15, Math.round(t)); }
-    S.plan = p; save(); render();
-  };
-  el("goSess").onclick = ()=>{ beep(660,60,.05); startSession(); };
+    ${p.blocks.map(blockKarte).join("")}
+    ${(()=>{ const offen = allKeys().filter(k => !profileReady(k.ex, k.side));
+      return offen.length ? `<div class="card flat">
+        <h3 style="margin-top:0">Bis zum vollständigen Profil</h3>
+        <p class="tiny">Die Kurve entsteht nicht durch viele Messungen, sondern durch
+        <b>gespreizte</b>. Solange eine Zone leer ist, bleibt die Kurve dort eine Vermutung.</p>
+        <table><tbody>${allKeys().map(k=>{
+          const cov = zoneCoverage(k.ex, k.side);
+          const n = Object.values(cov).filter(v=>v>0).length;
+          return `<tr><td>${labelOf(k.ex, k.side)}</td>
+            <td class="n">${n===3 ? '<span style="color:var(--ok)">✓ alle 3 Zonen</span>'
+              : `<span style="color:var(--tx3)">${n} von 3 Zonen</span>`}</td></tr>`;
+        }).join("")}</tbody></table></div>` : ""; })()}`;
+
+  p.blocks.forEach((bl,i)=>{
+    el("lvlPick"+i).onchange = e => {
+      const k = +e.target.value;
+      bl.level = k;
+      bl.userPicked = (k !== bl.levelVorschlag);
+      const f = curFit(bl.exercise, bl.side);
+      if(f){ const t = predictTime(f, S.ex[bl.exercise].levels[k].load);
+             if(isFinite(t)) bl.target = Math.max(15, Math.round(t)); }
+      S.plan = p; save(); render();
+    };
+  });
+  el("goSess").onclick = ()=>{ beep(660,60,.05); startWorkout(); };
 }
+
+/* Waehler ueber alle Kurven: Liegestuetz, Ausfallschritt links, Ausfallschritt rechts. */
+function curveSelectHTML(id){
+  return `<select id="${id}">${allKeys().map(k=>
+    `<option value="${k.key}" ${k.key===curKey()?"selected":""}>${labelOf(k.ex,k.side)}</option>`
+  ).join("")}</select>`;
+}
+function wireCurveSelect(id){
+  el(id).onchange = e => {
+    const [ex, sd] = e.target.value.split("|");
+    S.exercise = ex; S.side = sd || null; save(); render2();
+  };
+}
+/* Nach dem Wechsel neu zeichnen, ohne auf die Startseite zu springen. */
+let aktiverScreen = "home";
+function render2(){ show(aktiverScreen); }
 
 function renderProfile(){
   const pts = points(), f = curFit(), cov = zoneCoverage();
-  el("profSub").textContent = `${curEx().name} · ${pts.length} Messpunkt${pts.length===1?"":"e"}`;
+  el("profSub").textContent = `${labelOf(S.exercise,S.side)} · ${pts.length} Messpunkt${pts.length===1?"":"e"}`;
+
+  const waehler = `<div class="card flat" style="margin-top:0">
+      <label class="tiny" for="profCurve" style="display:block;margin-bottom:4px">Kurve</label>
+      ${curveSelectHTML("profCurve")}
+      <p class="tiny" style="margin-top:7px">Der Ausfallschritt hat <b>zwei</b> Kurven. Beide
+      Beine arbeiten gleichzeitig (grob 60 % vorne, 40 % hinten), und Beschwerden sind meist
+      einseitig — in einer gemeinsamen Kurve verschwände genau der Seitenunterschied.</p>
+    </div>`;
 
   if(!f){
-    el("profBody").innerHTML = `<div class="card"><p>Noch keine Kurve.</p>
+    el("profBody").innerHTML = waehler + `<div class="card"><p>Noch keine Kurve.</p>
       <p class="tiny">Dafür braucht die App mindestens zwei Messungen in
       <b>verschiedenen</b> Stufen. Zwei Messungen in derselben Stufe ergeben keine Kurve —
       das ist keine Ungenauigkeit, sondern rechnerisch nicht lösbar.</p></div>`;
+    wireCurveSelect("profCurve");
     return;
   }
   const ready = profileReady();
   const ec = predictLoad(f, 240);
-  el("profBody").innerHTML = `
+  el("profBody").innerHTML = waehler + `
     <div class="card">
       ${curveSVG(f, pts)}
       <p class="tiny" style="margin-top:8px">Punkte sind deine Messungen, ein offener Ring bedeutet
@@ -1099,8 +1247,8 @@ function renderProfile(){
       <tbody>${curEx().levels.map((l,i)=>{
         const t = predictTime(f,l.load);
         const z = isFinite(t) && t<=400 ? zoneOf(t) : null;
-        return `<tr${i===S.level?' style="background:rgba(78,163,255,.07)"':""}>
-          <td>${l.name}${i===S.level?' <span class="tiny">· aktuell</span>':""}</td>
+        return `<tr${i===curLevel()?' style="background:rgba(78,163,255,.07)"':""}>
+          <td>${l.name}${i===curLevel()?' <span class="tiny">· aktuell</span>':""}</td>
           <td class="n">${l.load.toFixed(2)}</td>
           <td class="n">${!isFinite(t)?"sehr lang":t>400?"> 400s":fmt(t)}</td>
           <td>${z?`<span class="pill ${z.cls}">${z.id}</span>`
@@ -1115,29 +1263,38 @@ function renderProfile(){
       1,4 bis 1,7, und zwanzig Messungen machten ihn kaum besser als fünf. Ein Wert, der ohne
       Trainingsgrund springt, verwirrt mehr als er nützt — deshalb zeigt diese App ihn nicht.</p>
     </details>`;
+  wireCurveSelect("profCurve");
 }
 
 function renderHistory(){
-  const mine = S.sessions.filter(s=>s.exercise===S.exercise);
-  el("histSub").textContent = `${curEx().name} · ${mine.length} Session${mine.length===1?"":"s"}`;
-  if(!mine.length){ el("histBody").innerHTML = `<div class="card"><p>Noch keine Sessions.</p></div>`; return; }
-  el("histBody").innerHTML = `
-    <div class="card"><h3 style="margin-top:0">Erster Satz je Session</h3>
+  const mine = S.sessions.filter(x => x.exercise===S.exercise && (x.side||null)===(S.side||null));
+  el("histSub").textContent = `${labelOf(S.exercise,S.side)} · ${mine.length} Satzblock${mine.length===1?"":"s"}`;
+  const waehler = `<div class="card flat" style="margin-top:0">
+      <label class="tiny" for="histCurve" style="display:block;margin-bottom:4px">Kurve</label>
+      ${curveSelectHTML("histCurve")}</div>`;
+  if(!mine.length){
+    el("histBody").innerHTML = waehler + `<div class="card"><p>Noch keine Einträge.</p></div>`;
+    wireCurveSelect("histCurve"); return;
+  }
+  el("histBody").innerHTML = waehler + `
+    <div class="card"><h3 style="margin-top:0">Erster Satz, nur gemessene Blöcke</h3>
       ${historySVG(points())}</div>
     <div class="card">
       <table><thead><tr><th>Datum</th><th>Stufe</th><th class="n">Satz 1</th>
         <th class="n">Ziel</th><th class="n">Ampel</th></tr></thead>
-      <tbody>${mine.slice().reverse().map(s=>`<tr>
+      <tbody>${mine.slice().reverse().map(s=>`<tr${s.fresh===false?' style="opacity:.55"':""}>
         <td>${new Date(s.date).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"})}</td>
-        <td class="tiny">${s.levelName}</td>
+        <td class="tiny">${s.levelName}${s.fresh===false?'<br><span class="tiny">vorermüdet</span>':""}</td>
         <td class="n">${s.sets[0]?fmt(s.sets[0].time):"–"}${s.sets[0]&&s.sets[0].pain
           ?' <span style="color:var(--bad)">!</span>':""}</td>
         <td class="n">${fmt(s.target)}</td>
         <td class="n" style="color:${s.painEnd<=4?"var(--ok)":s.painEnd<=6?"var(--warn)":"var(--bad)"}">
           ${s.painEnd}</td></tr>`).join("")}
       </tbody></table>
-      <p class="tiny" style="margin-top:9px">! = Satz wegen Schmerzen beendet</p>
+      <p class="tiny" style="margin-top:9px">! = Satz wegen Schmerzen beendet ·
+      abgeblendet = vorermüdete zweite Seite, zählt nicht in die Kurve</p>
     </div>`;
+  wireCurveSelect("histCurve");
 }
 
 function renderSetup(){
@@ -1202,7 +1359,7 @@ function renderSetup(){
       Kein Medizinprodukt. Keine Diagnose, keine Therapieempfehlung.</p>`;
 
   dbBadge();
-  el("exSel").onchange = e=>{ S.exercise = e.target.value; S.level = 0; S.plan = null; S.planDay = null; save(); render(); };
+  el("exSel").onchange = e=>{ S.exercise = e.target.value; fixSide(); S.plan = null; S.planDay = null; save(); render2(); };
 
   const host = el("lvlEdit");
   curEx().levels.forEach((l,i)=>{
@@ -1338,7 +1495,14 @@ const el = id => document.getElementById(id);
 const fmt = s => (s>=100 ? Math.round(s) : (Math.round(s*10)/10).toString().replace(".",",")) + " s";
 const rel = f => Math.min(.35, Math.max(.05, f.rmse));   // grobe Streuungsangabe
 
+/* Haelt S.side gueltig zur gewaehlten Uebung: Liegestuetz hat keine Seiten,
+   der Ausfallschritt muss eine haben. */
+function fixSide(){
+  const sd = sidesOf(S.exercise);
+  if(!sd.includes(S.side || null)) S.side = sd[0];
+}
 function show(name){
+  aktiverScreen = name;
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));
   el("s-"+name).classList.add("on");
   document.querySelectorAll("nav button").forEach(b=>
