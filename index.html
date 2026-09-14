@@ -231,6 +231,17 @@ const PAIN_BACK  = 2;    // Regel 1: zweimal in Folge → Level zurück
 const MISS_BACK  = 3;    // Regel 3: dreimal in Folge → Level zurück
 const DECAY      = 0.97; // Alterung der Messpunkte (Abschnitt 4.1)
 
+/* ── Erholung ────────────────────────────────────────────────────
+   Lukes Vorgabe vom 14.09.2026: An einem Tag wird genau EIN Test
+   gemacht — nicht alle drei Zonen hintereinander. Danach braucht das
+   belastete Energiesystem Pause. Die Systeme arbeiten überlappend,
+   nie isoliert; deshalb zwei Schranken statt einer:
+     MIN_GAP_DAYS — zwischen zwei Einheiten überhaupt, übungsübergreifend.
+     rest[Zone]   — bis dieselbe Zone derselben Übung wieder drankommt.
+   Die Zahlen sind Startwerte und stehen unter Mehr zum Ändern. */
+const MIN_GAP_DAYS = 1;
+const DEFAULT_REST = {A:2, B:2, C:2};
+
 /* Lastfaktoren: STARTWERTE, relativ zur leichtesten Stufe = 1,00.
    Laut Handoff 4.2 lernt die echte App diese Werte aus der Population.
    Ein einzelner Nutzer kann das nicht — deshalb hier feste, editierbare
@@ -279,7 +290,7 @@ const RED_FLAGS = [
 /* Stand der ausgelieferten Fassung. Steht unten in der App und beim Start in der
    Konsole — daran erkennst du am Handy, ob das Update schon angekommen ist.
    Wird bei jeder Änderung hochgezählt. */
-const BUILD = "2026-09-14 a";
+const BUILD = "2026-09-14 b";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
@@ -291,7 +302,8 @@ function fresh(){
   return {
     onboarded:false, exercise:"push", ex:structuredClone(DEFAULT_EX),
     exVersion:EX_VERSION,
-    level:0, sessions:[], plan:null, painStreak:0, missStreak:0, redflag:false
+    level:0, sessions:[], plan:null, painStreak:0, missStreak:0, redflag:false,
+    rest:{...DEFAULT_REST}
   };
 }
 function normalize(d){
@@ -300,6 +312,7 @@ function normalize(d){
   const ex = stale ? structuredClone(DEFAULT_EX)
                    : Object.assign(structuredClone(DEFAULT_EX), d.ex || {});
   return Object.assign(fresh(), d, {ex, exVersion:EX_VERSION,
+                                    rest: Object.assign({...DEFAULT_REST}, d.rest||{}),
                                     level: stale ? 0 : (d.level||0), plan:null});
 }
 function load(){
@@ -318,6 +331,8 @@ function save(){
    Nur in der veröffentlichten Fassung vorhanden. Ohne ihn lebt alles
    im Browserspeicher und ist beim Leeren der Websitedaten weg. */
 let DB = null, dbTimer = null, dbState = "prüfen";
+/* Nur für diesen Seitenaufruf: Pausentag bewusst übergangen. Nicht gespeichert. */
+let ignoreRest = false;
 async function initDB(){
   let cap = null;
   try{
@@ -421,6 +436,59 @@ function profileReady(){
   return points().length>=4 && c.A>0 && c.B>0 && c.C>0;
 }
 
+/* ═══════════ Erholung ═══════════
+   Gerechnet wird in Kalendertagen, nicht in Stunden: "gestern trainiert"
+   ist die Auskunft, die ein Mensch geben kann. 23 Uhr und 7 Uhr am
+   Folgetag zaehlen damit als ein Tag Abstand. */
+function dayNum(d){
+  const x = (d instanceof Date) ? d : new Date(d);
+  if(isNaN(x)) return null;
+  return Math.floor((x.getTime() - x.getTimezoneOffset()*60000) / 86400000);
+}
+const today = () => dayNum(new Date());
+const restOf = id => (S.rest && S.rest[id] != null) ? S.rest[id] : DEFAULT_REST[id];
+
+/* Letzte Einheit ueberhaupt — uebungsuebergreifend, weil die Energiesysteme
+   ueberlappen. Ein Test am Knie laesst die Schulter nicht unberuehrt. */
+function lastDayAll(){
+  let best = null;
+  for(const ses of S.sessions){
+    const d = dayNum(ses.date);
+    if(d != null && (best === null || d > best)) best = d;
+  }
+  return best;
+}
+/* Letzter Tag je Zone — hier pro Uebung, weil es um dasselbe Gewebe geht. */
+function zoneLastDay(){
+  const last = {A:null, B:null, C:null};
+  for(const ses of S.sessions){
+    if(ses.exercise !== S.exercise) continue;
+    const first = ses.sets && ses.sets[0];
+    if(!first || !first.time) continue;
+    const z = (ses.zone && last[ses.zone] !== undefined) ? ses.zone : zoneOf(first.time).id;
+    const d = dayNum(ses.date);
+    if(d != null && (last[z] === null || d > last[z])) last[z] = d;
+  }
+  return last;
+}
+/* Seit wie vielen Tagen ist diese Zone frei? Nie trainiert = sofort faellig. */
+function zoneAge(){
+  const t = today(), zl = zoneLastDay(), out = {};
+  for(const z of ZONES) out[z.id] = zl[z.id] === null ? Infinity : t - zl[z.id];
+  return out;
+}
+/* Darf heute trainiert werden? */
+function gate(){
+  const t = today(), la = lastDayAll();
+  if(la !== null && (t - la) < MIN_GAP_DAYS)
+    return {ok:false, kind:"day", wait: MIN_GAP_DAYS - (t - la), lastDay: la};
+  const age = zoneAge();
+  const waits = ZONES.map(z => Math.max(0, restOf(z.id) - age[z.id]));
+  const wait = Math.min(...waits);
+  if(wait > 0) return {ok:false, kind:"zone", wait, age};
+  return {ok:true};
+}
+
 /* ═══════════ Planung der nächsten Session ═══════════
    Regel 5: Es wird die Zone angefordert, die am längsten zurückliegt.
    Dazu die Stufe, die für diese Zielzeit am besten passt. */
@@ -437,13 +505,17 @@ function planNext(){
     ];
     const step = order[pts.length];
     return {benchmark:true, zone:step.zone, target:step.t, level:step.lvl,
-            why:`Test ${pts.length+1} von 3 — ${pts.length===0?"leicht":pts.length===1?"mittel":"schwer"}. Halte so lange du kannst.`};
+            why:`Test ${pts.length+1} von 3 — ${pts.length===0?"leicht":pts.length===1?"mittel":"schwer"}. `
+              + `Halte so lange du kannst. Die drei Tests gehören an drei verschiedene Tage.`};
   }
 
-  /* Danach: Zone mit dem ältesten Eintrag zuerst */
-  const last = {A:-1, B:-1, C:-1};
-  pts.forEach((p,i)=>{ last[zoneOf(p.time).id] = i; });
-  const zone = ZONES.slice().sort((a,b)=> last[a.id]-last[b.id])[0];
+  /* Danach: unter den erholten Zonen die, die am längsten zurückliegt.
+     Gerechnet nach Datum, nicht nach Reihenfolge — sonst würde eine Zone
+     als "dran" gelten, die gestern belastet wurde. */
+  const age = zoneAge();
+  const erholt = ZONES.filter(z => age[z.id] >= restOf(z.id));
+  const pool = erholt.length ? erholt : ZONES;   /* nichts frei: planen trotzdem, gate() blockt */
+  const zone = pool.slice().sort((a,b)=> age[b.id]-age[a.id])[0];
   const target = Math.round((zone.lo+zone.hi)/2);
 
   /* Stufe wählen: die, deren vorhergesagte Zeit am nächsten am Ziel liegt */
@@ -460,7 +532,8 @@ function planNext(){
   return {
     benchmark:false, zone:zone.id, level,
     target: Math.max(15, Math.round(isFinite(tt) ? tt : target)),
-    why:`Zone ${zone.id} war am längsten dran. ${f?"Vorgabe kommt aus deiner Kurve.":""}`
+    why:`Zone ${zone.id} liegt am längsten zurück${isFinite(age[zone.id])?` (${age[zone.id]} Tag${age[zone.id]===1?"":"e"})`:""} und ist erholt. `
+       + `${f?"Die Vorgabe kommt aus deiner Kurve.":""}`
   };
 }
 
@@ -677,7 +750,7 @@ function finishSession(){
     S.sessions.push(ses);
     if(sel>=7 && S.level>0) S.level--;
     const msgs = applyRules(ses);
-    S.plan = null; save(); RUN = null;
+    S.plan = null; ignoreRest = false; save(); RUN = null;
     showResult(ses, msgs);
   };
 }
@@ -685,6 +758,9 @@ function showResult(ses, msgs){
   const f = curFit();
   const nxt = planNext(); S.plan = nxt; save();
   const lv = curEx().levels[nxt.level];
+  const g = gate();
+  const wann = g.ok ? "" : new Date(Date.now() + g.wait*86400000)
+    .toLocaleDateString("de-DE", {weekday:"long", day:"numeric", month:"long"});
   show("home");
   el("homeTitle").textContent = "Session gespeichert";
   el("homeSub").textContent = `${curEx().name} · ${ses.levelName}`;
@@ -702,10 +778,12 @@ function showResult(ses, msgs){
     ${msgs.map(m=>`<div class="note ${m.t==="ok"?"":m.t}">${m.x}</div>`).join("")}
     <div class="card">
       <h3 style="margin-top:0">Nächste Session</h3>
-      <p style="margin:4px 0"><b>${curEx().name} · ${lv.name}</b></p>
-      <p class="muted" style="margin:2px 0">Zone ${nxt.zone} · Vorgabe etwa
-        <b>${fmt(nxt.target)}</b>${f?` <span class="tiny">(±${Math.round(rel(f)*100)} %)</span>`:""}</p>
+      <p style="margin:4px 0"><b>${g.ok ? "heute noch möglich" : wann}</b></p>
+      <p class="muted" style="margin:2px 0">${curEx().name} · ${lv.name} · Zone ${nxt.zone} ·
+        Vorgabe etwa <b>${fmt(nxt.target)}</b>${f?` <span class="tiny">(±${Math.round(rel(f)*100)} %)</span>`:""}</p>
       <p class="tiny">${nxt.why}</p>
+      <p class="tiny">Heute ist dieses Gewebe fertig. Ein zweiter Test am selben Tag misst die
+      Ermüdung aus dem ersten, nicht deine Belastbarkeit.</p>
     </div>
     <button class="primary" style="width:100%" onclick="show('profile')">Profil ansehen</button>`;
 }
@@ -809,6 +887,46 @@ function renderHome(){
   const lv = curEx().levels[p.level];
   const z = ZONES.find(z=>z.id===p.zone);
   const cov = zoneCoverage();
+
+  /* Pausentag (Lukes Vorgabe): ein Test pro Tag, danach Erholung. */
+  const g = gate();
+  if(!g.ok && !ignoreRest){
+    const age = zoneAge();
+    const dat = new Date(Date.now() + g.wait*86400000)
+      .toLocaleDateString("de-DE", {weekday:"long", day:"numeric", month:"long"});
+    el("homeBody").innerHTML = `
+      <div class="card">
+        <span class="pill">Pausentag</span>
+        <h2 style="margin:11px 0 2px">Heute nicht</h2>
+        <p class="muted" style="margin:0">Nächste Einheit: ${dat}</p>
+        <p class="tiny" style="margin-top:12px">${g.kind === "day"
+          ? `Du hast heute schon trainiert. Pro Tag wird <b>eine</b> Position getestet, nicht drei
+             hintereinander — sonst misst der zweite Test nur noch die Ermüdung aus dem ersten.`
+          : `Alle drei Zonen sind noch in der Erholung. Die Energiesysteme arbeiten
+             <b>überlappend, nie isoliert</b>: Was du in einer Zone belastest, fehlt auch den
+             anderen. Deshalb wartet die App, statt dir eine Ausweichzone anzubieten.`}</p>
+        <table style="margin-top:12px"><tbody>${ZONES.map(zz=>{
+          const a = age[zz.id], r = restOf(zz.id), frei = a >= r;
+          return `<tr><td><span class="pill ${zz.cls}">${zz.id}</span> ${zz.lo}–${zz.hi}s</td>
+            <td class="n">${!isFinite(a) ? '<span style="color:var(--ok)">frei</span>'
+              : frei ? `<span style="color:var(--ok)">frei · ${a} Tag${a===1?"":"e"} her</span>`
+                     : `<span style="color:var(--tx3)">erholt sich · noch ${r-a} Tag${r-a===1?"":"e"}</span>`}</td></tr>`;
+        }).join("")}</tbody></table>
+        <p class="tiny" style="margin-top:10px">Die Wartezeiten stehen unter
+        <b>Mehr → Erholung</b> und sind änderbar.</p>
+      </div>
+      <div class="card flat">
+        <p class="tiny" style="margin-top:0">Wenn du dich sicher bist, dass du erholt bist,
+        kannst du die Sperre für heute übergehen. Die Messung wird dann trotzdem gewertet —
+        mit dem Wissen, dass sie unter Vorermüdung entstanden ist.</p>
+        <button class="ghost" style="width:100%" id="ignoreBtn">Trotzdem trainieren</button>
+      </div>
+      ${pts.length? `<div class="card flat">
+        <h3 style="margin-top:0">Letzte Sessions</h3>
+        ${historySVG(pts.slice(-12))}</div>`:""}`;
+    el("ignoreBtn").onclick = ()=>{ ignoreRest = true; render(); };
+    return;
+  }
 
   el("homeBody").innerHTML = `
     <div class="card">
@@ -946,6 +1064,17 @@ function renderSetup(){
       <button class="ghost" style="width:100%;margin-top:8px" id="lvlSave">Speichern</button>
     </div>
     <div class="card">
+      <h3 style="margin-top:0">Erholung</h3>
+      <p class="tiny" style="margin-top:0">Pro Tag wird <b>eine</b> Position getestet — nie alle
+      drei Zonen hintereinander. Danach braucht das belastete System Pause. Weil die
+      Energiesysteme überlappend arbeiten und nie isoliert, gilt der Tagesabstand
+      übungsübergreifend; die Zonenpause gilt je Übung.</p>
+      <div id="restEdit"></div>
+      <p class="tiny">Mindestabstand zwischen zwei Einheiten: <b>${MIN_GAP_DAYS} Tag${MIN_GAP_DAYS===1?"":"e"}</b>,
+      fest. Die Zonenwerte sind Startwerte und liegen in deinem Fachbereich.</p>
+      <button class="ghost" style="width:100%;margin-top:8px" id="restSave">Speichern</button>
+    </div>
+    <div class="card">
       <h3 style="margin-top:0">Deine Daten</h3>
       <p class="tiny" style="display:flex;justify-content:space-between;gap:10px">
         <span>Speicherort</span><span id="dbState" style="font-family:var(--mono)"></span></p>
@@ -995,6 +1124,24 @@ function renderSetup(){
     });
     S.plan = null; save(); render();
   };
+
+  const rhost = el("restEdit");
+  ZONES.forEach(z=>{
+    const d = document.createElement("div");
+    d.className = "lvlrow";
+    d.innerHTML = `<span class="tiny" style="align-self:center">
+                     <span class="pill ${z.cls}">${z.id}</span> ${z.name} · ${z.lo}–${z.hi}s</span>
+                   <input type="number" step="1" min="0" max="14" value="${restOf(z.id)}" data-r="${z.id}">`;
+    rhost.appendChild(d);
+  });
+  el("restSave").onclick = ()=>{
+    rhost.querySelectorAll("[data-r]").forEach(inp=>{
+      const v = parseInt(inp.value, 10);
+      if(Number.isFinite(v) && v >= 0 && v <= 14) S.rest[inp.dataset.r] = v;
+    });
+    S.plan = null; save(); render();
+  };
+
   el("expBtn").onclick = async ()=>{
     const json = JSON.stringify(S, null, 2);
     const name = `iso-coach-${new Date().toISOString().slice(0,10)}.json`;
