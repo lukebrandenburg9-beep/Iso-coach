@@ -300,7 +300,7 @@ const RED_FLAGS = [
 /* Stand der ausgelieferten Fassung. Steht unten in der App und beim Start in der
    Konsole — daran erkennst du am Handy, ob das Update schon angekommen ist.
    Wird bei jeder Änderung hochgezählt. */
-const BUILD = "2026-09-14 d";
+const BUILD = "2026-09-14 e";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
@@ -591,11 +591,20 @@ function applyRules(session){
     S.painStreak = 0; S.missStreak = 0;
     msgs.push({t:"ok", x:`Vorgabe übertroffen (${fmt(first.time)} statt ${fmt(session.target)}). Die Kurve zieht nach oben.`});
   } else if(first.time < session.target*MISS_RATIO){/* Regel 3 */
-    S.painStreak = 0; S.missStreak++;
-    msgs.push({t:"warn", x:`Deutlich unter der Vorgabe. Zählt trotzdem — auch schwache Sessions gehören in die Kurve.`});
-    if(S.missStreak >= MISS_BACK && S.level > 0){
-      S.level--; S.missStreak = 0;
-      msgs.push({t:"bad", x:`Dreimal in Folge verfehlt → eine Stufe zurück auf „${lv[S.level].name}".`});
+    S.painStreak = 0;
+    if(session.userPicked){
+      /* Die Stufe hat der Nutzer selbst gewaehlt. Den Richtwert zu verfehlen ist
+         dann keine Verfehlung, sondern eine Schaetzung, die danebenlag — und
+         genau so ein Messpunkt wie jeder andere. Kein Rueckstufen. */
+      S.missStreak = 0;
+      msgs.push({t:"ok", x:`Unter dem Richtwert — bei selbst gewählter Stufe ist das kein Fehlschlag. Der Messpunkt zählt voll.`});
+    } else {
+      S.missStreak++;
+      msgs.push({t:"warn", x:`Deutlich unter der Vorgabe. Zählt trotzdem — auch schwache Sessions gehören in die Kurve.`});
+      if(S.missStreak >= MISS_BACK && S.level > 0){
+        S.level--; S.missStreak = 0;
+        msgs.push({t:"bad", x:`Dreimal in Folge verfehlt → eine Stufe zurück auf „${lv[S.level].name}".`});
+      }
     }
   } else {
     S.painStreak = 0; S.missStreak = 0;
@@ -782,7 +791,12 @@ function finishSession(){
     const ses = {
       date: new Date().toISOString(), exercise: S.exercise, level: RUN.level,
       levelName: RUN.levelName, load: RUN.load, target: RUN.plan.target,
-      zone: RUN.plan.zone, sets: RUN.sets, painEnd: sel
+      /* Die Zone ergibt sich aus der ERREICHTEN Zeit, nicht aus der geplanten.
+         Wer eine Stufe selbst waehlt, landet oft woanders — der Messpunkt gehoert
+         dann in die Zone, in der er tatsaechlich liegt. */
+      zone: zoneOf(RUN.sets[0].time).id, zoneGeplant: RUN.plan.zone,
+      userPicked: !!RUN.plan.userPicked,
+      sets: RUN.sets, painEnd: sel
     };
     S.sessions.push(ses);
     if(sel>=7 && S.level>0) S.level--;
@@ -816,6 +830,8 @@ function showResult(ses, msgs){
     <div class="card">
       <h3 style="margin-top:0">Nächste Session</h3>
       <p style="margin:4px 0"><b>${g.ok ? "heute noch möglich" : wann}</b></p>
+      <p class="tiny">Dein Messpunkt von eben liegt in <b>Zone ${ses.zone}</b>${ses.zoneGeplant && ses.zoneGeplant!==ses.zone
+        ? ` — geplant war Zone ${ses.zoneGeplant}. Er zählt dort, wo er gelandet ist.` : ""}</p>
       <p class="muted" style="margin:2px 0">${curEx().name} · ${lv.name} · Zone ${nxt.zone} ·
         Vorgabe etwa <b>${fmt(nxt.target)}</b>${f?` <span class="tiny">(±${Math.round(rel(f)*100)} %)</span>`:""}</p>
       <p class="tiny">${nxt.why}</p>
@@ -983,12 +999,30 @@ function renderHome(){
       ${p.benchmark ? `<span class="pill pB">Test ${pts.length+1} von 3</span>`
                     : `<span class="pill ${z.cls}">Zone ${z.id} · ${z.name}</span>`}
       <h2 style="margin:11px 0 2px">${curEx().name}</h2>
-      <p class="muted" style="margin:0">${lv.name}</p>
+      <label class="tiny" for="lvlPick" style="display:block;margin:8px 0 4px">Stufe — du
+        entscheidest</label>
+      <select id="lvlPick">${curEx().levels.map((L,i)=>{
+        const t = f ? predictTime(f, L.load) : null;
+        const hint = (t && isFinite(t)) ? ` · erwartet ${fmt(t)}` : "";
+        return `<option value="${i}" ${i===p.level?"selected":""}>${L.name}${hint}</option>`;
+      }).join("")}</select>
       <div class="kpi" style="margin-top:14px">
-        <div><b>${fmt(p.target)}</b><small>Vorgabe erster Satz</small></div>
+        <div><b>${fmt(p.target)}</b><small>Richtwert erster Satz</small></div>
         <div><b>${SETS}</b><small>Sätze · ${PAUSE_S}s Pause</small></div>
       </div>
       <p class="tiny" style="margin-top:11px">${p.why}</p>
+      ${p.userPicked ? `<p class="tiny">Stufe von dir gewählt — der Vorschlag der App war
+        <b>${curEx().levels[p.levelVorschlag].name}</b>.</p>` : ""}
+      <p class="tiny"><b>Der Richtwert ist kein Ziel.</b> Halte so lange du kannst. Der Messpunkt
+      zählt so, wie er herauskommt — ob du dich über- oder unterschätzt, ist gleichgültig. Genau
+      aus der Streuung entsteht die Kurve.</p>
+      ${f ? (()=>{ const tp = predictTime(f, lv.load);
+        if(!isFinite(tp)) return `<p class="tiny">Diese Stufe liegt unter deiner Dauerleistungs­grenze —
+          rechnerisch hältst du sie sehr lange. Als Messpunkt taugt sie wenig.</p>`;
+        const zz = zoneOf(tp);
+        return `<p class="tiny">Erwarteter Landeplatz: <span class="pill ${zz.cls}">Zone ${zz.id}</span>
+          ${zz.lo}–${zz.hi} s.${zz.id!==p.zone ? ` Geplant war Zone ${p.zone} — auch gut, der Messpunkt
+          wird der Zone zugeordnet, in der er tatsächlich landet.` : ""}</p>`; })() : ""}
       ${f && !p.benchmark ? `<p class="tiny">Erwartungsbereich etwa
         ${fmt(p.target*(1-rel(f)))} bis ${fmt(p.target*(1+rel(f)))} — die App verspricht keine
         Sekundenzahl, sie schätzt.</p>`:""}
@@ -1009,6 +1043,17 @@ function renderHome(){
     ${pts.length? `<div class="card flat">
       <h3 style="margin-top:0">Letzte Sessions</h3>
       ${historySVG(pts.slice(-12))}</div>`:""}`;
+  el("lvlPick").onchange = e => {
+    const i = +e.target.value;
+    if(p.levelVorschlag == null) p.levelVorschlag = p.level;
+    p.level = i;
+    p.userPicked = (i !== p.levelVorschlag);
+    /* Richtwert an die gewählte Stufe anpassen, solange eine Kurve existiert.
+       Ohne Kurve bleibt der Zonenrichtwert stehen — etwas Besseres gibt es nicht. */
+    if(f){ const t = predictTime(f, curEx().levels[i].load);
+           if(isFinite(t)) p.target = Math.max(15, Math.round(t)); }
+    S.plan = p; save(); render();
+  };
   el("goSess").onclick = ()=>{ beep(660,60,.05); startSession(); };
 }
 
