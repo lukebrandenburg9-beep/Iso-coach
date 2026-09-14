@@ -16,36 +16,43 @@ auf diesem einen Gerät — sie gehen nirgendwohin.
 Am Handy ist die App eigentlich erst brauchbar — du liegst beim Liegestütz auf dem Boden und
 brauchst die Tonsignale.
 
-Die Datei bringt alles mit, was sie zu einer installierbaren App macht: Symbol, Name und
-Vollbildstart stecken bereits in der HTML-Datei. Was noch fehlt, ist eine Internetadresse,
-unter der sie liegt.
+**Die Adresse:** https://lukebrandenburg9-beep.github.io/Iso-coach/
 
-### Warum der Artifact-Link dafür nicht reicht
+Diese Adresse **am iPhone in Safari** öffnen (Android: Chrome) → Teilen → **„Zum
+Home-Bildschirm"**. Sie startet dann im Vollbild, ohne Browserleiste, mit eigenem Symbol.
 
-Ein Artifact-Link öffnet immer die Claude-Oberfläche mit der App darin. Die lässt sich nicht
-als eigenständige App installieren — in der Claude-App gibt es das Teilen-Menü dafür gar nicht,
-und **Chrome auf dem iPhone kann „Zum Home-Bildschirm" grundsätzlich nicht**, das kann auf iOS
-nur Safari. Der Artifact-Link ist gut zum schnellen Öffnen, nicht zum Installieren.
+**Chrome auf dem iPhone kann „Zum Home-Bildschirm" grundsätzlich nicht** — das kann unter iOS
+nur Safari. Ein Artifact-Link funktioniert dafür ebenfalls nicht: der öffnet die
+Claude-Oberfläche mit der App darin, und die lässt sich nicht installieren.
 
-### Der Weg, der funktioniert
+## Wie Änderungen ankommen
 
-1. Auf **github.com** ein neues Repository anlegen, **Public**, mit Häkchen bei „Add a README".
-2. **Add file → Upload files** → `index.html` hineinziehen → **Commit changes**.
-3. **Settings → Pages** → unter „Branch" **`main`** und **`/ (root)`** wählen → **Save**.
-4. Nach ein bis zwei Minuten liegt die App unter
-   `https://<dein-github-name>.github.io/<repo-name>/`.
-5. Diese Adresse **am Handy in Safari** öffnen (Android: Chrome) → Teilen → **„Zum
-   Home-Bildschirm"**. Sie startet dann im Vollbild, ohne Browserleiste, mit eigenem Symbol.
+Der Ordner auf dem Mac ist ein Git-Repository und hängt an
+[github.com/lukebrandenburg9-beep/Iso-coach](https://github.com/lukebrandenburg9-beep/Iso-coach).
+Eine Änderung geht so hoch:
 
-Das Repository muss öffentlich sein, damit GitHub Pages ohne bezahltes Konto funktioniert.
-Das ist unbedenklich: In der Datei stehen keine persönlichen Daten — die Messwerte entstehen
-erst beim Benutzen und bleiben im Browser des jeweiligen Nutzers.
+```bash
+git add -A && git commit -m "kurze Beschreibung" && git push
+```
 
-### Ohne GitHub
+GitHub Pages baut die Seite danach in etwa einer Minute neu. Du musst nichts hochladen.
 
-Jeder Webspace tut es, auf den du eine Datei legen kannst. Es muss **https** sein, sonst
-verweigert das Handy die Installation. Eine Datei auf dem Handy selbst (per AirDrop in die
-Dateien-App) lässt sich nicht installieren und verliert unter iOS außerdem gespeicherte Daten.
+**Woran du erkennst, ob das Update angekommen ist:** Unten in der App steht die Fassung, zum
+Beispiel „Fassung 2026-09-14 a". Die wird bei jeder Änderung hochgezählt.
+
+**Wenn noch die alte Fassung erscheint:** GitHub Pages lässt Browser die Seite bis zu zehn
+Minuten zwischenspeichern, und eine installierte App auf dem iPhone hält manchmal länger daran
+fest. App aus dem App-Umschalter wegwischen und neu öffnen.
+
+**Deine Messwerte überleben die Updates.** Sie liegen unter dem Schlüssel `isocoach.v1` im
+Browser, gebunden an die Adresse. Solange die Adresse gleich bleibt, bleiben die Sessions
+erhalten; geänderte Übungsstufen werden über `EX_VERSION` sauber nachgezogen. Vor größeren
+Umbauten trotzdem einmal über **Mehr → Sichern (Datei)** sichern.
+
+**Das Repository ist öffentlich**, weil GitHub Pages ohne bezahltes Konto nur so funktioniert.
+Unbedenklich: In den Dateien stehen keine persönlichen Daten — die Messwerte entstehen erst
+beim Benutzen und bleiben im Browser des jeweiligen Nutzers. Das Handoff mit den Zugängen liegt
+eine Ebene höher und ist nicht Teil des Repositorys.
 
 ---
 
