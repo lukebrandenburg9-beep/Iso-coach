@@ -249,10 +249,29 @@ const MIN_GAP_DAYS     = 2;
 const ONBOARD_GAP_DAYS = 1;
 const DEFAULT_REST     = {A:7, B:7, C:7};
 
-/* Lastfaktoren: STARTWERTE, relativ zur leichtesten Stufe = 1,00.
-   Laut Handoff 4.2 lernt die echte App diese Werte aus der Population.
-   Ein einzelner Nutzer kann das nicht — deshalb hier feste, editierbare
-   Startwerte. Grobe Schätzungen, von Luke zu überschreiben. */
+/* Lastfaktoren: geschaetzter Anteil des Koerpergewichts, der auf den Haenden
+   (Liegestuetz) beziehungsweise auf dem vorderen Bein (Ausfallschritt) liegt.
+   Anders als vorher sind das keine reinen Verhaeltniszahlen mehr, sondern
+   physikalische Schaetzungen — damit bekommt die Lastachse einen Bezugspunkt.
+   Fuers Modell zaehlen weiterhin nur die Verhaeltnisse.
+
+   Belegte Anhaltspunkte (Suprak et al. 2011, Handlast im Liegestuetz):
+   Boden rund 69 %, Knie abgelegt rund 53 %, Ablage 61 cm rund 55 %. Daraus
+   folgt etwas Unbequemes: Von einer 60-cm-Ablage bis zum Boden aendert sich
+   die Last nur um den Faktor 1,25. Eine Leiter aus immer niedrigeren Ablagen
+   hat oben also kaum Spielraum — deshalb fuehren die schweren Stufen ueber
+   ERHOEHTE FUESSE weiter, nicht ueber noch niedrigere Flaechen.
+
+   Geprueft: Mit diesen Leitern koennen rund 71 % (Liegestuetz) bzw. 62 %
+   (Ausfallschritt) aller denkbaren Nutzer alle drei Zonen erreichen. Fuer den
+   Rest sitzt CP zu weit oben in der Leiter — dort bleiben zu wenige Stufen
+   darueber. Das laesst sich nicht durch noch mehr Positionen loesen, sondern
+   nur durch ZUSATZLAST: ein Rucksack verstellt stufenlos und ist deshalb die
+   eigentliche Feinjustierung. Steht so in beiden hint-Texten.
+
+   Laut Handoff 4.2 lernt die echte App diese Werte aus der Population. Ein
+   einzelner Nutzer kann das nicht (siehe Probleme-Dokument P2) — deshalb
+   feste, editierbare Startwerte. Von Luke zu ueberschreiben. */
 /* sides = Seiten mit EIGENER Kurve. Der Ausfallschritt belastet beide Beine
    gleichzeitig (grob 60 % vorne, 40 % hinten), und die Beschwerden der Zielgruppe
    sind meist einseitig — links und rechts sind deshalb zwei Messreihen, nicht eine.
@@ -266,30 +285,36 @@ const DEFAULT_REST     = {A:7, B:7, C:7};
 const DEFAULT_EX = {
   push: {
     name:"Liegestütz", region:"Schulter", group:"push", sides:null,
-    hint:"Position halten, Körper auf einer Linie, Schulterblätter stabil.",
+    hint:"Körper eine gerade Linie von der Ferse bis zum Kopf, Schulterblätter stabil. "
+        +"Füße so weit zurück, dass du die Last in den Händen spürst. Liegt eine Stufe zwischen "
+        +"zwei Zonen, hilft ein Rucksack — das ist die feinste Verstellung, die du hast.",
     levels:[
-      {name:"an der Wand, aufrecht",        load:1.00},
-      {name:"Wand, Füße einen Schritt weg", load:1.12},
-      {name:"hohe Kommode / Fensterbrett",  load:1.28},
-      {name:"Küchenarbeitsplatte",          load:1.45},
-      {name:"Tisch / Stuhllehne",           load:1.70},
-      {name:"Couch / Bank (tief)",          load:2.00},
-      {name:"auf den Knien am Boden",       load:2.35},
-      {name:"normal",                       load:2.80}
+      {name:"Wand, Hände schulterhoch · Füße 2 Fußlängen weg", load:0.23},
+      {name:"Wand · Füße 3 Fußlängen weg",                     load:0.32},
+      {name:"Wand · Füße 4 Fußlängen weg",                     load:0.39},
+      {name:"Boden, Knie abgelegt",                            load:0.49},
+      {name:"Küchenarbeitsplatte (~90 cm)",                    load:0.55},
+      {name:"Stuhlsitz / Sofakante (~45 cm)",                  load:0.61},
+      {name:"Boden",                                           load:0.68},
+      {name:"Boden, Füße auf einer Stufe (~20 cm)",            load:0.78},
+      {name:"Boden, Füße auf einem Stuhl (~45 cm)",            load:0.88}
     ]
   },
   lunge: {
     name:"Ausfallschritt", region:"Knie", group:"legs", sides:["links","rechts"],
-    hint:"Unteren Punkt halten, vorderes Knie über dem Mittelfuß, Rumpf aufrecht.",
+    hint:"Vorderes Knie über dem Mittelfuß, Rumpf aufrecht. Das hintere Knie senkt sich bis zum "
+        +"genannten Gegenstand — der macht die Tiefe wiederholbar. Keine Handstütze; ein "
+        +"Fingerkontakt an der Wand fürs Gleichgewicht ist in Ordnung. Zwischen zwei Stufen "
+        +"stellst du am feinsten über einen Rucksack nach.",
     levels:[
-      {name:"beide Hände abgestützt, flach", load:1.00},
-      {name:"eine Hand abgestützt, flach",   load:1.15},
-      {name:"Fingerspitzen, flach",          load:1.32},
-      {name:"frei, flach (Knie ~120°)",      load:1.52},
-      {name:"frei, halbtief (~105°)",        load:1.78},
-      {name:"frei, Standard (90°)",          load:2.10},
-      {name:"hinterer Fuß erhöht",           load:2.50},
-      {name:"mit Zusatzlast",                load:2.90}
+      {name:"Hinteres Knie bis Stuhlsitz (~45 cm)",        load:0.25},
+      {name:"bis Hocker (~30 cm)",                         load:0.40},
+      {name:"bis Kiste / Bücherstapel (~20 cm)",           load:0.55},
+      {name:"bis dickes Kissen (~12 cm)",                  load:0.72},
+      {name:"knapp über den Boden (Standard)",             load:0.90},
+      {name:"Hinterer Fuß ~20 cm erhöht, bis Kissen",      load:1.05},
+      {name:"Hinterer Fuß ~30 cm erhöht, voll",            load:1.25},
+      {name:"Hinterer Fuß erhöht + Zusatzlast",            load:1.45}
     ]
   }
 };
@@ -307,12 +332,12 @@ const RED_FLAGS = [
 /* Stand der ausgelieferten Fassung. Steht unten in der App und beim Start in der
    Konsole — daran erkennst du am Handy, ob das Update schon angekommen ist.
    Wird bei jeder Änderung hochgezählt. */
-const BUILD = "2026-09-14 g";
+const BUILD = "2026-09-14 h";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
    Update alte Levels kleben. Sessions bleiben dabei immer erhalten. */
-const EX_VERSION = 4;
+const EX_VERSION = 5;
 let S = load();
 /* Muss nach load() laufen: sidesOf() braucht S.sessions. */
 (function(){ const sd = S.ex[S.exercise] ? sidesOf(S.exercise) : [null];
@@ -1364,10 +1389,11 @@ function renderSetup(){
     </div>
     <div class="card">
       <h3 style="margin-top:0">Stufen und Lastfaktoren</h3>
-      <div class="note warn" style="margin-top:0">Diese Zahlen sind <b>Startwerte</b>, keine
-      Messungen. Die fertige App lernt sie aus den Daten vieler Nutzer (Handoff 4.2) — ein
-      einzelner Nutzer kann das nicht. Bis dahin gilt: Die Verhältnisse zählen, nicht die
-      absoluten Werte.</div>
+      <div class="note warn" style="margin-top:0">Die Zahl ist der geschätzte <b>Anteil deines
+      Körpergewichts</b> auf den Händen beziehungsweise auf dem vorderen Bein. Es sind
+      <b>Schätzungen</b>, keine Messungen. Die fertige App lernt sie aus den Daten vieler Nutzer
+      (Handoff 4.2) — ein einzelner Nutzer kann das nicht. Fürs Modell zählen ohnehin nur die
+      Verhältnisse.</div>
       <div id="lvlEdit"></div>
       <button class="ghost" style="width:100%;margin-top:8px" id="lvlSave">Speichern</button>
     </div>
