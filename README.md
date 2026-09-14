@@ -64,8 +64,13 @@ Rechenlogik:
 - **Die Kurve** `t = W'/(P − CP)`, gefittet über eine eindimensionale Suche, ältere Messpunkte
   werden mit 3 % je neuerem Punkt abgewertet.
 - **Gespreiztes Onboarding** über drei Stufen (leicht / mittel / schwer) statt einer.
-- **Zonenrotation:** Die App fordert immer die Zone an, die am längsten zurückliegt. Ohne das
-  verliert die Kurve ihre Spreizung und wird wertlos.
+- **Zonenrotation:** Die App fordert die Zone an, die am längsten zurückliegt — **und erholt
+  ist**. Ohne Spreizung wird die Kurve wertlos, ohne Erholung die Messung.
+- **Erholung:** Pro Tag genau **ein** Test, nie drei Zonen hintereinander. Danach wartet die
+  Zone, bis sie wieder belastbar ist (Startwert zwei Tage, unter *Mehr → Erholung* änderbar).
+  Der Tagesabstand gilt **übungsübergreifend**, die Zonenpause je Übung — weil die
+  Energiesysteme überlappend arbeiten und nie isoliert. An einem gesperrten Tag zeigt die App
+  einen Pausentag mit Begründung und Termin; übergehen lässt er sich bewusst.
 - **Progressionsregeln 1–4** inklusive Rückstufung bei zweimaligem Schmerzabbruch.
 - **Schmerz** als Häkchen pro Satz plus ein Ampelwert am Sessionende.
 - **Sicherheitsregel:** dreimal in Folge Ampelwert 6 oder höher → Hinweis auf ärztliche Abklärung.
