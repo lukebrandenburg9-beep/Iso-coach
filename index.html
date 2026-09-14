@@ -291,7 +291,7 @@ const RED_FLAGS = [
 /* Stand der ausgelieferten Fassung. Steht unten in der App und beim Start in der
    Konsole — daran erkennst du am Handy, ob das Update schon angekommen ist.
    Wird bei jeder Änderung hochgezählt. */
-const BUILD = "2026-09-14 b";
+const BUILD = "2026-09-14 c";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
@@ -912,10 +912,11 @@ function renderHome(){
              anderen. Deshalb wartet die App, statt dir eine Ausweichzone anzubieten.`}</p>
         <table style="margin-top:12px"><tbody>${ZONES.map(zz=>{
           const a = age[zz.id], r = restOf(zz.id), frei = a >= r;
-          return `<tr><td><span class="pill ${zz.cls}">${zz.id}</span> ${zz.lo}–${zz.hi}s</td>
-            <td class="n">${!isFinite(a) ? '<span style="color:var(--ok)">frei</span>'
-              : frei ? `<span style="color:var(--ok)">frei · ${a} Tag${a===1?"":"e"} her</span>`
-                     : `<span style="color:var(--tx3)">erholt sich · noch ${r-a} Tag${r-a===1?"":"e"}</span>`}</td></tr>`;
+          return `<tr><td style="white-space:nowrap"><span class="pill ${zz.cls}">${zz.id}</span>
+              ${zz.lo}–${zz.hi} s</td>
+            <td class="n" style="white-space:nowrap">${frei
+              ? `<span style="color:var(--ok)">frei</span>`
+              : `<span style="color:var(--tx3)">noch ${r-a} Tag${r-a===1?"":"e"}</span>`}</td></tr>`;
         }).join("")}</tbody></table>
         <p class="tiny" style="margin-top:10px">Die Wartezeiten stehen unter
         <b>Mehr → Erholung</b> und sind änderbar.</p>
