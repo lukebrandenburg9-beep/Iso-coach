@@ -64,6 +64,10 @@ Rechenlogik:
 - **Die Kurve** `t = W'/(P − CP)`, gefittet über eine eindimensionale Suche, ältere Messpunkte
   werden mit 3 % je neuerem Punkt abgewertet.
 - **Gespreiztes Onboarding** über drei Stufen (leicht / mittel / schwer) statt einer.
+- **Die Stufe wählst du**, nicht die App. Sie schlägt eine vor und zeigt je Stufe die erwartete
+  Haltezeit sowie die Zone, in der sie voraussichtlich landet — entscheiden tust du. Der
+  Messpunkt zählt so, wie er herauskommt: Er wird der Zone zugeordnet, in der er tatsächlich
+  liegt, und den Richtwert zu verfehlen ist bei selbst gewählter Stufe kein Fehlschlag.
 - **Zonenrotation:** Die App fordert die Zone an, die am längsten zurückliegt — **und erholt
   ist**. Ohne Spreizung wird die Kurve wertlos, ohne Erholung die Messung.
 - **Erholung:** Dieselbe Muskelgruppe **dreimal pro Woche**, jedes Energiesystem — also jede
