@@ -226,6 +226,7 @@ const ZONES = [
   {id:"C", name:"Kapazität",                        lo:90, hi:150, cls:"pC"}
 ];
 const PAUSE_S    = 20;   // Abschnitt 3.1 — zugleich Messprotokoll
+const LEAD_IN    = 3;    // Sekunden zum In-Position-Gehen, bevor die Uhr laeuft
 const SETS       = 3;
 const MISS_RATIO = 0.8;  // Regel 3
 const PAIN_BACK  = 2;    // Regel 1: zweimal in Folge → Level zurück
@@ -306,7 +307,7 @@ const RED_FLAGS = [
 /* Stand der ausgelieferten Fassung. Steht unten in der App und beim Start in der
    Konsole — daran erkennst du am Handy, ob das Update schon angekommen ist.
    Wird bei jeder Änderung hochgezählt. */
-const BUILD = "2026-09-14 f";
+const BUILD = "2026-09-14 g";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
@@ -713,17 +714,34 @@ const cueTick  = ()=> beep(760,80,.14);
 const cueDone  = ()=>{beep(990,150); setTimeout(()=>beep(1320,260),170);};
 
 /* ═══════════ Timer ═══════════ */
-let T = null, wakeLock = null;
+let T = null, wakeLock = null, leadIv = null;
 
 async function runSet(cfg){
-  T = {start:performance.now(), target:cfg.target, raf:0, half:false, ticks:new Set(), done:cfg.done};
   el("tWhat").textContent = cfg.what;
   el("tTarget").innerHTML = `Ziel: <b>${fmt(cfg.target)}</b>`;
-  el("tHint").textContent = "Tippen, wenn du nicht mehr kannst";
   el("timerScreen").classList.add("on");
+  el("tBar").style.width = "0%";
   try{ if("wakeLock" in navigator) wakeLock = await navigator.wakeLock.request("screen"); }catch(e){}
-  cueStart();
-  tick();
+
+  /* Vorlauf: Zeit, um in die Position zu gehen, bevor die Uhr laeuft.
+     Ohne den beginnt die Messung, waehrend man sich noch aufbaut. */
+  let n = LEAD_IN;
+  T = {lead:true, done:cfg.done};
+  el("tHint").textContent = "In Position gehen";
+  el("tClock").style.color = "var(--tx2)";
+  el("tClock").textContent = n;
+  cueTick();
+  leadIv = setInterval(()=>{
+    if(!T || !T.lead){ clearInterval(leadIv); leadIv = null; return; }
+    n--;
+    if(n > 0){ el("tClock").textContent = n; cueTick(); return; }
+    clearInterval(leadIv); leadIv = null;
+    el("tClock").style.color = "";
+    el("tHint").textContent = "Tippen, wenn du nicht mehr kannst";
+    T = {start:performance.now(), target:cfg.target, raf:0, half:false, ticks:new Set(), done:cfg.done};
+    cueStart();
+    tick();
+  }, 1000);
 }
 function tick(){
   if(!T) return;
@@ -743,6 +761,17 @@ function tick(){
 }
 function endSet(aborted){
   if(!T) return;
+  if(T.lead){
+    /* Noch im Vorlauf — es gibt nichts zu messen, nur abbrechen ist sinnvoll. */
+    if(!aborted) return;
+    clearInterval(leadIv); leadIv = null;
+    const cb0 = T.done; T = null;
+    el("timerScreen").classList.remove("on");
+    el("tClock").style.color = "";
+    try{ wakeLock && wakeLock.release(); wakeLock = null; }catch(e){}
+    cb0(null);
+    return;
+  }
   const s = (performance.now()-T.start)/1000;
   cancelAnimationFrame(T.raf);
   const cb = T.done; T = null;
@@ -812,52 +841,69 @@ function nextSet(){
     target: tgt,
     done: (time)=>{
       if(time===null){ RUN=null; render(); return; }
-      askPain(time, tgt);
+      afterSet(time, tgt);
     }
   });
 }
-function askPain(time, tgt){
+/* Nach jedem Satz: Die 20 Sekunden Pause laufen SOFORT und ungebremst durch.
+   Die Schmerzfrage steht daneben, nicht davor — vorher hat die Erklaerung samt
+   Rueckfrage die Pause aufgefressen, und damit war der Abfall ueber die Saetze
+   nicht mehr vergleichbar. Der Abfall ist aber selbst ein Messwert. */
+function afterSet(time, tgt){
+  const letzter = RUN.i + 1 >= SETS;
   show("home");
-  el("homeBody").innerHTML = `
+  el("homeTitle").textContent = `Satz ${RUN.i+1} von ${SETS}`;
+  el("homeSub").textContent = blockLabel(curBlock());
+
+  const karte = left => `
     <div class="card">
-      <h2 style="margin-top:0">Satz ${RUN.i+1} beendet</h2>
       <div class="kpi" style="margin-bottom:14px">
         <div><b>${fmt(time)}</b><small>gehalten</small></div>
-        <div><b>${fmt(tgt)}</b><small>Vorgabe</small></div>
+        <div><b>${fmt(tgt)}</b><small>Richtwert</small></div>
       </div>
       <label class="chk"><input type="checkbox" id="painChk">
         <span>Ich habe wegen <b>Schmerzen</b> abgebrochen<br>
-        <span class="tiny">Nur ankreuzen, wenn der Schmerz der Grund war — nicht bei normaler Muskelermüdung.</span></span>
+        <span class="tiny">Nur ankreuzen, wenn der Schmerz der Grund war — nicht bei normaler
+        Muskelermüdung.</span></span>
       </label>
-      <button class="primary" style="width:100%;margin-top:10px" id="painOk">Weiter</button>
+      ${left === null
+        ? `<button class="primary" style="width:100%;margin-top:14px" id="weiterBtn">Weiter</button>`
+        : `<div style="text-align:center;margin-top:16px">
+             <div class="big" id="pauseNum" style="font-size:64px;line-height:1">${left}</div>
+             <p class="tiny" style="margin:4px 0 0">Sekunden bis zum nächsten Satz</p>
+           </div>
+           <p class="tiny" style="margin-top:12px">Die Pause läuft durch und ist immer gleich
+           lang. Das Häkchen kannst du währenddessen setzen — es hält die Uhr nicht an.</p>`}
     </div>`;
-  el("painOk").onclick = ()=>{
+
+  const speichern = ()=>{
     RUN.sets.push({time, target:tgt, pain: el("painChk").checked});
     RUN.i++;
-    if(RUN.i >= SETS) endBlock();
-    else pause();
   };
-}
-function pause(){
+
+  if(letzter){
+    el("homeBody").innerHTML = karte(null);
+    el("weiterBtn").onclick = ()=>{ speichern(); endBlock(); };
+    return;
+  }
+
   let left = PAUSE_S;
-  const draw = ()=>{
-    el("homeBody").innerHTML = `
-      <div class="card" style="text-align:center">
-        <h3 style="margin-top:0">Pause</h3>
-        <div class="big" style="font-size:64px;margin:6px 0">${left}</div>
-        <p class="tiny">Die kurze Pause ist Absicht — der Abfall über die Sätze ist selbst ein Messwert.</p>
-        <button class="ghost" id="skipP" style="width:100%;margin-top:8px">Überspringen</button>
-      </div>`;
-    el("skipP").onclick = ()=>{ clearInterval(iv); nextSet(); };
-  };
-  draw();
+  el("homeBody").innerHTML = karte(left);
   const iv = setInterval(()=>{
     left--;
-    if(left<=3 && left>0) cueTick();
-    if(left<=0){ clearInterval(iv); cueStart(); nextSet(); }
-    else draw();
-  },1000);
+    if(left <= 0){
+      clearInterval(iv);
+      speichern();
+      nextSet();
+      return;
+    }
+    if(left <= 3) cueTick();
+    const n = el("pauseNum");
+    if(n) n.textContent = left;
+    else clearInterval(iv);   /* Bildschirm gewechselt — Pause abbrechen */
+  }, 1000);
 }
+
 function endBlock(){
   const bl = curBlock();
   RUN.fertig.push({
@@ -1118,12 +1164,18 @@ function renderHome(){
           Block ${i+1} · ${bl.fresh ? "wird gemessen" : "nur Training"}</p>
         <h3 style="margin:0 0 6px">${blockLabel(bl)}</h3>
         <label class="tiny" for="lvlPick${i}" style="display:block;margin-bottom:4px">Stufe —
-          du entscheidest</label>
-        <select id="lvlPick${i}" data-b="${i}">${ex.levels.map((L,k)=>{
-          const t = f ? predictTime(f, L.load) : null;
-          const hint = (t && isFinite(t)) ? ` · erwartet ${fmt(t)}` : "";
-          return `<option value="${k}" ${k===bl.level?"selected":""}>${L.name}${hint}</option>`;
-        }).join("")}</select>
+          du entscheidest (${bl.level+1} von ${ex.levels.length})</label>
+        <div class="row" style="gap:7px;align-items:stretch">
+          <button class="ghost" id="lvlMinus${i}" style="flex:0 0 52px;font-size:22px;padding:0"
+            ${bl.level===0?"disabled":""} aria-label="leichtere Stufe">−</button>
+          <select id="lvlPick${i}" data-b="${i}" style="flex:1">${ex.levels.map((L,k)=>{
+            const t = f ? predictTime(f, L.load) : null;
+            const hint = (t && isFinite(t)) ? ` · erwartet ${fmt(t)}` : "";
+            return `<option value="${k}" ${k===bl.level?"selected":""}>${L.name}${hint}</option>`;
+          }).join("")}</select>
+          <button class="ghost" id="lvlPlus${i}" style="flex:0 0 52px;font-size:22px;padding:0"
+            ${bl.level>=ex.levels.length-1?"disabled":""} aria-label="schwerere Stufe">+</button>
+        </div>
         <p class="tiny" style="margin-top:7px">Richtwert erster Satz <b>${fmt(bl.target)}</b> ·
           ${SETS} Sätze · ${PAUSE_S}s Pause${
           zz ? ` · erwarteter Landeplatz <span class="pill ${zz.cls}">Zone ${zz.id}</span>` : ""}</p>
@@ -1167,15 +1219,19 @@ function renderHome(){
         }).join("")}</tbody></table></div>` : ""; })()}`;
 
   p.blocks.forEach((bl,i)=>{
-    el("lvlPick"+i).onchange = e => {
-      const k = +e.target.value;
+    const setzen = k => {
+      const lv = S.ex[bl.exercise].levels;
+      k = Math.max(0, Math.min(lv.length-1, k));
       bl.level = k;
       bl.userPicked = (k !== bl.levelVorschlag);
       const f = curFit(bl.exercise, bl.side);
-      if(f){ const t = predictTime(f, S.ex[bl.exercise].levels[k].load);
+      if(f){ const t = predictTime(f, lv[k].load);
              if(isFinite(t)) bl.target = Math.max(15, Math.round(t)); }
       S.plan = p; save(); render();
     };
+    el("lvlPick"+i).onchange = e => setzen(+e.target.value);
+    el("lvlMinus"+i).onclick = ()=> setzen(bl.level - 1);
+    el("lvlPlus"+i).onclick  = ()=> setzen(bl.level + 1);
   });
   el("goSess").onclick = ()=>{ beep(660,60,.05); startWorkout(); };
 }
