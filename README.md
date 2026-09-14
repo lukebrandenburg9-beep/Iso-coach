@@ -66,11 +66,14 @@ Rechenlogik:
 - **Gespreiztes Onboarding** über drei Stufen (leicht / mittel / schwer) statt einer.
 - **Zonenrotation:** Die App fordert die Zone an, die am längsten zurückliegt — **und erholt
   ist**. Ohne Spreizung wird die Kurve wertlos, ohne Erholung die Messung.
-- **Erholung:** Pro Tag genau **ein** Test, nie drei Zonen hintereinander. Danach wartet die
-  Zone, bis sie wieder belastbar ist (Startwert zwei Tage, unter *Mehr → Erholung* änderbar).
-  Der Tagesabstand gilt **übungsübergreifend**, die Zonenpause je Übung — weil die
-  Energiesysteme überlappend arbeiten und nie isoliert. An einem gesperrten Tag zeigt die App
-  einen Pausentag mit Begründung und Termin; übergehen lässt er sich bewusst.
+- **Erholung:** Dieselbe Muskelgruppe **dreimal pro Woche**, jedes Energiesystem — also jede
+  Zone — **einmal pro Woche**. Beides zusammen ist genau eine Rotation: drei Zonen, drei
+  Einheiten, ein Mo/Mi/Fr-Rhythmus. Umgesetzt als zwei Schranken: mindestens zwei Tage zwischen
+  zwei Einheiten derselben Muskelgruppe, sieben Tage bis dieselbe Zone wiederkommt.
+  Während der drei Einstiegstests genügen **24 Stunden** — sonst zöge sich das Onboarding über
+  drei Wochen. Übungen **ohne Überschneidung** (Liegestütz und Ausfallschritt) dürfen am selben
+  Tag getestet werden; die App sagt am Pausentag, welche Gruppe noch frei ist. Der Pausentag
+  nennt Grund und Termin und lässt sich bewusst übergehen. Werte unter *Mehr → Erholung*.
 - **Progressionsregeln 1–4** inklusive Rückstufung bei zweimaligem Schmerzabbruch.
 - **Schmerz** als Häkchen pro Satz plus ein Ampelwert am Sessionende.
 - **Sicherheitsregel:** dreimal in Folge Ampelwert 6 oder höher → Hinweis auf ärztliche Abklärung.

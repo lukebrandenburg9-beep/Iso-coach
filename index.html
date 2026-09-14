@@ -233,23 +233,32 @@ const MISS_BACK  = 3;    // Regel 3: dreimal in Folge → Level zurück
 const DECAY      = 0.97; // Alterung der Messpunkte (Abschnitt 4.1)
 
 /* ── Erholung ────────────────────────────────────────────────────
-   Lukes Vorgabe vom 14.09.2026: An einem Tag wird genau EIN Test
-   gemacht — nicht alle drei Zonen hintereinander. Danach braucht das
-   belastete Energiesystem Pause. Die Systeme arbeiten überlappend,
-   nie isoliert; deshalb zwei Schranken statt einer:
-     MIN_GAP_DAYS — zwischen zwei Einheiten überhaupt, übungsübergreifend.
-     rest[Zone]   — bis dieselbe Zone derselben Übung wieder drankommt.
-   Die Zahlen sind Startwerte und stehen unter Mehr zum Ändern. */
-const MIN_GAP_DAYS = 1;
-const DEFAULT_REST = {A:2, B:2, C:2};
+   Lukes Vorgabe vom 14.09.2026:
+     · Dieselbe Muskelgruppe dreimal pro Woche.
+     · Jedes Energiesystem — also jede Zone — einmal pro Woche.
+   Beides zusammen ergibt genau eine Rotation: drei Zonen, drei
+   Einheiten je Woche, jede Zone einmal. Zwei Schranken setzen das um:
+     MIN_GAP_DAYS — zwischen zwei Einheiten DERSELBEN Muskelgruppe.
+                    Zwei Tage Abstand ergibt hoechstens Mo/Mi/Fr.
+     rest[Zone]   — bis dieselbe Zone wieder drankommt: sieben Tage.
+   Ausnahme fuer die drei Einstiegstests: dort genuegen 24 Stunden,
+   sonst zoege sich das Onboarding ueber drei Wochen. Grobe Richtwerte,
+   die verfeinert werden; aenderbar unter Mehr. */
+const MIN_GAP_DAYS     = 2;
+const ONBOARD_GAP_DAYS = 1;
+const DEFAULT_REST     = {A:7, B:7, C:7};
 
 /* Lastfaktoren: STARTWERTE, relativ zur leichtesten Stufe = 1,00.
    Laut Handoff 4.2 lernt die echte App diese Werte aus der Population.
    Ein einzelner Nutzer kann das nicht — deshalb hier feste, editierbare
    Startwerte. Grobe Schätzungen, von Luke zu überschreiben. */
+/* group = Muskelgruppe. Uebungen mit derselben Gruppe sperren sich
+   gegenseitig; ueberschneidungsfreie duerfen am selben Tag getestet
+   werden. Lukes Kriterium: "wichtig ist keine ueberlappenden
+   Muskelgruppen". Liegestuetz und Ausfallschritt gehen also zusammen. */
 const DEFAULT_EX = {
   push: {
-    name:"Liegestütz", region:"Schulter",
+    name:"Liegestütz", region:"Schulter", group:"push",
     hint:"Position halten, Körper auf einer Linie, Schulterblätter stabil.",
     levels:[
       {name:"an der Wand, aufrecht",        load:1.00},
@@ -263,7 +272,7 @@ const DEFAULT_EX = {
     ]
   },
   lunge: {
-    name:"Ausfallschritt", region:"Knie",
+    name:"Ausfallschritt", region:"Knie", group:"legs",
     hint:"Unteren Punkt halten, vorderes Knie über dem Mittelfuß, Rumpf aufrecht.",
     levels:[
       {name:"beide Hände abgestützt, flach", load:1.00},
@@ -291,12 +300,12 @@ const RED_FLAGS = [
 /* Stand der ausgelieferten Fassung. Steht unten in der App und beim Start in der
    Konsole — daran erkennst du am Handy, ob das Update schon angekommen ist.
    Wird bei jeder Änderung hochgezählt. */
-const BUILD = "2026-09-14 c";
+const BUILD = "2026-09-14 d";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
    Update alte Levels kleben. Sessions bleiben dabei immer erhalten. */
-const EX_VERSION = 2;
+const EX_VERSION = 3;
 let S = load();
 
 function fresh(){
@@ -313,7 +322,8 @@ function normalize(d){
   const ex = stale ? structuredClone(DEFAULT_EX)
                    : Object.assign(structuredClone(DEFAULT_EX), d.ex || {});
   return Object.assign(fresh(), d, {ex, exVersion:EX_VERSION,
-                                    rest: Object.assign({...DEFAULT_REST}, d.rest||{}),
+                                    rest: stale ? {...DEFAULT_REST}
+                                                : Object.assign({...DEFAULT_REST}, d.rest||{}),
                                     level: stale ? 0 : (d.level||0), plan:null, planDay:null});
 }
 function load(){
@@ -449,21 +459,30 @@ function dayNum(d){
 const today = () => dayNum(new Date());
 const restOf = id => (S.rest && S.rest[id] != null) ? S.rest[id] : DEFAULT_REST[id];
 
-/* Letzte Einheit ueberhaupt — uebungsuebergreifend, weil die Energiesysteme
-   ueberlappen. Ein Test am Knie laesst die Schulter nicht unberuehrt. */
-function lastDayAll(){
+/* Muskelgruppe einer Uebung. Faellt auf den Uebungsschluessel zurueck,
+   wenn eine Uebung aus aelteren Daten kein group-Feld hat. */
+function groupOf(key){
+  const e = S.ex && S.ex[key];
+  return (e && e.group) ? e.group : key;
+}
+const sameGroup = ses => groupOf(ses.exercise) === groupOf(S.exercise);
+
+/* Letzte Einheit derselben Muskelgruppe. Eine ueberschneidungsfreie
+   Uebung — Knie neben Schulter — zaehlt bewusst nicht mit. */
+function lastDayGroup(){
   let best = null;
   for(const ses of S.sessions){
+    if(!sameGroup(ses)) continue;
     const d = dayNum(ses.date);
     if(d != null && (best === null || d > best)) best = d;
   }
   return best;
 }
-/* Letzter Tag je Zone — hier pro Uebung, weil es um dasselbe Gewebe geht. */
+/* Letzter Tag je Zone, ebenfalls pro Muskelgruppe. */
 function zoneLastDay(){
   const last = {A:null, B:null, C:null};
   for(const ses of S.sessions){
-    if(ses.exercise !== S.exercise) continue;
+    if(!sameGroup(ses)) continue;
     const first = ses.sets && ses.sets[0];
     if(!first || !first.time) continue;
     const z = (ses.zone && last[ses.zone] !== undefined) ? ses.zone : zoneOf(first.time).id;
@@ -478,16 +497,33 @@ function zoneAge(){
   for(const z of ZONES) out[z.id] = zl[z.id] === null ? Infinity : t - zl[z.id];
   return out;
 }
-/* Darf heute trainiert werden? */
+/* Darf heute trainiert werden?
+   Waehrend der drei Einstiegstests gilt nur der 24-Stunden-Abstand — die
+   Wochenpause je Zone wuerde das Onboarding sonst ueber drei Wochen ziehen. */
 function gate(){
-  const t = today(), la = lastDayAll();
-  if(la !== null && (t - la) < MIN_GAP_DAYS)
-    return {ok:false, kind:"day", wait: MIN_GAP_DAYS - (t - la), lastDay: la};
+  const t = today(), la = lastDayGroup();
+  const onboarding = points().length < 3;
+  const gap = onboarding ? ONBOARD_GAP_DAYS : MIN_GAP_DAYS;
+  if(la !== null && (t - la) < gap)
+    return {ok:false, kind:"day", wait: gap - (t - la), lastDay: la, onboarding};
+  if(onboarding) return {ok:true, onboarding};
   const age = zoneAge();
   const waits = ZONES.map(z => Math.max(0, restOf(z.id) - age[z.id]));
   const wait = Math.min(...waits);
   if(wait > 0) return {ok:false, kind:"zone", wait, age};
   return {ok:true};
+}
+/* Gleiche Rechnung fuer eine andere Uebung — fuer den Hinweis am Pausentag,
+   welche Muskelgruppe heute noch frei ist. */
+function gateFor(key){
+  const prev = S.exercise;
+  S.exercise = key;
+  try { return gate(); } finally { S.exercise = prev; }
+}
+function freieUebungen(){
+  return Object.keys(S.ex)
+    .filter(k => groupOf(k) !== groupOf(S.exercise) && gateFor(k).ok)
+    .map(k => S.ex[k].name);
 }
 
 /* ═══════════ Planung der nächsten Session ═══════════
@@ -783,8 +819,8 @@ function showResult(ses, msgs){
       <p class="muted" style="margin:2px 0">${curEx().name} · ${lv.name} · Zone ${nxt.zone} ·
         Vorgabe etwa <b>${fmt(nxt.target)}</b>${f?` <span class="tiny">(±${Math.round(rel(f)*100)} %)</span>`:""}</p>
       <p class="tiny">${nxt.why}</p>
-      <p class="tiny">Heute ist dieses Gewebe fertig. Ein zweiter Test am selben Tag misst die
-      Ermüdung aus dem ersten, nicht deine Belastbarkeit.</p>
+      <p class="tiny">Diese Muskelgruppe ist für heute fertig. Eine überschneidungsfreie Übung
+      — Knie neben Schulter — darfst du am selben Tag testen.</p>
     </div>
     <button class="primary" style="width:100%" onclick="show('profile')">Profil ansehen</button>`;
 }
@@ -905,11 +941,19 @@ function renderHome(){
         <h2 style="margin:11px 0 2px">Heute nicht</h2>
         <p class="muted" style="margin:0">Nächste Einheit: ${dat}</p>
         <p class="tiny" style="margin-top:12px">${g.kind === "day"
-          ? `Du hast heute schon trainiert. Pro Tag wird <b>eine</b> Position getestet, nicht drei
-             hintereinander — sonst misst der zweite Test nur noch die Ermüdung aus dem ersten.`
-          : `Alle drei Zonen sind noch in der Erholung. Die Energiesysteme arbeiten
-             <b>überlappend, nie isoliert</b>: Was du in einer Zone belastest, fehlt auch den
-             anderen. Deshalb wartet die App, statt dir eine Ausweichzone anzubieten.`}</p>
+          ? (g.onboarding
+              ? `Der letzte Test liegt noch keine 24 Stunden zurück. Die drei Einstiegstests
+                 gehören an drei verschiedene Tage — sonst misst der zweite nur noch die Ermüdung
+                 aus dem ersten.`
+              : `Diese Muskelgruppe war zuletzt vor ${today()-g.lastDay} Tag${today()-g.lastDay===1?"":"en"}
+                 dran. Dieselbe Gruppe wird <b>dreimal pro Woche</b> belastet, also frühestens
+                 mit ${MIN_GAP_DAYS} Tagen Abstand.`)
+          : `Jedes Energiesystem kommt <b>einmal pro Woche</b> dran. Drei Zonen, drei Einheiten
+             je Woche — heute ist keine davon so weit. Eine Ausweichzone gibt es nicht: Die
+             Systeme arbeiten überlappend, nie isoliert.`}</p>
+        ${freieUebungen().length ? `<p class="tiny">Frei ist heute:
+          <b>${freieUebungen().join(", ")}</b> — andere Muskelgruppe, keine Überschneidung.
+          Umschalten unter Mehr → Übung.</p>` : ""}
         <table style="margin-top:12px"><tbody>${ZONES.map(zz=>{
           const a = age[zz.id], r = restOf(zz.id), frei = a >= r;
           return `<tr><td style="white-space:nowrap"><span class="pill ${zz.cls}">${zz.id}</span>
@@ -919,7 +963,7 @@ function renderHome(){
               : `<span style="color:var(--tx3)">noch ${r-a} Tag${r-a===1?"":"e"}</span>`}</td></tr>`;
         }).join("")}</tbody></table>
         <p class="tiny" style="margin-top:10px">Die Wartezeiten stehen unter
-        <b>Mehr → Erholung</b> und sind änderbar.</p>
+        <b>Mehr → Erholung</b> und sind änderbar. Es sind grobe Richtwerte.</p>
       </div>
       <div class="card flat">
         <p class="tiny" style="margin-top:0">Wenn du dich sicher bist, dass du erholt bist,
@@ -1071,13 +1115,15 @@ function renderSetup(){
     </div>
     <div class="card">
       <h3 style="margin-top:0">Erholung</h3>
-      <p class="tiny" style="margin-top:0">Pro Tag wird <b>eine</b> Position getestet — nie alle
-      drei Zonen hintereinander. Danach braucht das belastete System Pause. Weil die
-      Energiesysteme überlappend arbeiten und nie isoliert, gilt der Tagesabstand
-      übungsübergreifend; die Zonenpause gilt je Übung.</p>
+      <p class="tiny" style="margin-top:0">Dieselbe Muskelgruppe wird <b>dreimal pro Woche</b>
+      belastet, jedes Energiesystem <b>einmal pro Woche</b>. Beides zusammen ist genau eine
+      Rotation: drei Zonen, drei Einheiten. Übungen ohne Überschneidung — Liegestütz und
+      Ausfallschritt — dürfen am selben Tag getestet werden.</p>
       <div id="restEdit"></div>
-      <p class="tiny">Mindestabstand zwischen zwei Einheiten: <b>${MIN_GAP_DAYS} Tag${MIN_GAP_DAYS===1?"":"e"}</b>,
-      fest. Die Zonenwerte sind Startwerte und liegen in deinem Fachbereich.</p>
+      <p class="tiny">Mindestabstand zwischen zwei Einheiten derselben Muskelgruppe:
+      <b>${MIN_GAP_DAYS} Tage</b>. Während der drei Einstiegstests genügen
+      <b>${ONBOARD_GAP_DAYS*24} Stunden</b>, sonst zöge sich das Onboarding über drei Wochen.
+      Grobe Richtwerte, die verfeinert werden.</p>
       <button class="ghost" style="width:100%;margin-top:8px" id="restSave">Speichern</button>
     </div>
     <div class="card">
