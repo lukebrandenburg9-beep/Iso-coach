@@ -304,7 +304,7 @@ function fresh(){
     onboarded:false, exercise:"push", ex:structuredClone(DEFAULT_EX),
     exVersion:EX_VERSION,
     level:0, sessions:[], plan:null, painStreak:0, missStreak:0, redflag:false,
-    rest:{...DEFAULT_REST}
+    rest:{...DEFAULT_REST}, planDay:null
   };
 }
 function normalize(d){
@@ -314,7 +314,7 @@ function normalize(d){
                    : Object.assign(structuredClone(DEFAULT_EX), d.ex || {});
   return Object.assign(fresh(), d, {ex, exVersion:EX_VERSION,
                                     rest: Object.assign({...DEFAULT_REST}, d.rest||{}),
-                                    level: stale ? 0 : (d.level||0), plan:null});
+                                    level: stale ? 0 : (d.level||0), plan:null, planDay:null});
 }
 function load(){
   try{
@@ -751,13 +751,13 @@ function finishSession(){
     S.sessions.push(ses);
     if(sel>=7 && S.level>0) S.level--;
     const msgs = applyRules(ses);
-    S.plan = null; ignoreRest = false; save(); RUN = null;
+    S.plan = null; S.planDay = null; ignoreRest = false; save(); RUN = null;
     showResult(ses, msgs);
   };
 }
 function showResult(ses, msgs){
   const f = curFit();
-  const nxt = planNext(); S.plan = nxt; save();
+  const nxt = planNext(); S.plan = nxt; S.planDay = today(); save();
   const lv = curEx().levels[nxt.level];
   const g = gate();
   const wann = g.ok ? "" : new Date(Date.now() + g.wait*86400000)
@@ -884,7 +884,11 @@ function renderHome(){
     return;
   }
 
-  const p = S.plan || planNext(); S.plan = p; save();
+  /* Der gespeicherte Plan gilt nur für den Tag, an dem er gerechnet wurde.
+     Über Nacht ändern sich die Zonenalter — sonst startet man in eine Zone,
+     die inzwischen von einer besser erholten abgelöst gehört. */
+  const p = (S.plan && S.planDay === today()) ? S.plan : planNext();
+  S.plan = p; S.planDay = today(); save();
   const lv = curEx().levels[p.level];
   const z = ZONES.find(z=>z.id===p.zone);
   const cov = zoneCoverage();
@@ -1106,7 +1110,7 @@ function renderSetup(){
       Kein Medizinprodukt. Keine Diagnose, keine Therapieempfehlung.</p>`;
 
   dbBadge();
-  el("exSel").onchange = e=>{ S.exercise = e.target.value; S.level = 0; S.plan = null; save(); render(); };
+  el("exSel").onchange = e=>{ S.exercise = e.target.value; S.level = 0; S.plan = null; S.planDay = null; save(); render(); };
 
   const host = el("lvlEdit");
   curEx().levels.forEach((l,i)=>{
@@ -1123,7 +1127,7 @@ function renderSetup(){
     host.querySelectorAll("[data-l]").forEach(inp=>{
       const v = parseFloat(inp.value); if(v>0) curEx().levels[+inp.dataset.l].load = v;
     });
-    S.plan = null; save(); render();
+    S.plan = null; S.planDay = null; save(); render();
   };
 
   const rhost = el("restEdit");
@@ -1140,7 +1144,7 @@ function renderSetup(){
       const v = parseInt(inp.value, 10);
       if(Number.isFinite(v) && v >= 0 && v <= 14) S.rest[inp.dataset.r] = v;
     });
-    S.plan = null; save(); render();
+    S.plan = null; S.planDay = null; save(); render();
   };
 
   el("expBtn").onclick = async ()=>{
