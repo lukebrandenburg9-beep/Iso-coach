@@ -74,6 +74,7 @@ nav .ic{font-size:17px;line-height:1}
 .pA{background:color-mix(in srgb,var(--zoneA) 20%,transparent);color:#f09b95}
 .pB{background:color-mix(in srgb,var(--zoneB) 20%,transparent);color:#95c9ea}
 .pC{background:color-mix(in srgb,var(--zoneC) 18%,transparent);color:#e8c887}
+.pRest{background:var(--panel2);color:var(--tx2);border:1px solid var(--line)}
 .big{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:300;letter-spacing:-.02em}
 td.n,.kpi b{font-family:var(--mono)}
 /* Timer */
@@ -896,7 +897,7 @@ function renderHome(){
       .toLocaleDateString("de-DE", {weekday:"long", day:"numeric", month:"long"});
     el("homeBody").innerHTML = `
       <div class="card">
-        <span class="pill">Pausentag</span>
+        <span class="pill pRest">Pausentag</span>
         <h2 style="margin:11px 0 2px">Heute nicht</h2>
         <p class="muted" style="margin:0">Nächste Einheit: ${dat}</p>
         <p class="tiny" style="margin-top:12px">${g.kind === "day"
