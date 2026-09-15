@@ -374,7 +374,7 @@ const RED_FLAGS = [
 /* Stand der ausgelieferten Fassung. Steht unten in der App und beim Start in der
    Konsole — daran erkennst du am Handy, ob das Update schon angekommen ist.
    Wird bei jeder Änderung hochgezählt. */
-const BUILD = "2026-09-15 b";
+const BUILD = "2026-09-15 c";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
@@ -400,6 +400,10 @@ function fresh(){
        eigenem Stand. Vorher war das global — eine Schmerzserie am Knie stufte
        die Schulter mit zurueck. */
     levels:{}, streak:{},
+    /* Welche Uebungen gehoeren ueberhaupt ins Workout. Wer heute nur den
+       Seitstuetz machen will, nimmt die anderen beiden raus — die Einstellung
+       bleibt stehen, bis er sie wieder anhakt. */
+    aktiv:{},
     sessions:[], plan:null, redflag:false,
     rest:{...DEFAULT_REST}, planDay:null, reaction:REACTION_DEFAULT
   };
@@ -413,6 +417,7 @@ function normalize(d){
   return Object.assign(fresh(), d, {ex, exVersion:EX_VERSION,
                                     rest: stale ? {...DEFAULT_REST}
                                                 : Object.assign({...DEFAULT_REST}, d.rest||{}),
+                                    aktiv: d.aktiv || {},
                                     levels: leitersturz ? {} : (d.levels || {}),
                                     streak: leitersturz ? {} : (d.streak || {}),
                                     reaction: (d.reaction == null ? REACTION_DEFAULT : d.reaction),
@@ -584,12 +589,15 @@ function dayNum(d){
 const today = () => dayNum(new Date());
 const restOf = id => (S.rest && S.rest[id] != null) ? S.rest[id] : DEFAULT_REST[id];
 
-/* ═══════════ Erholung, jetzt auf Workout-Ebene ═══════════
-   Ein Workout enthaelt beide Muskelgruppen (drei Bloecke). Die alte Trennung
-   nach Gruppen ist damit gegenstandslos: gezaehlt wird der Abstand zwischen
-   zwei WORKOUTS und die Wartezeit, bis eine Zone wiederkommt. Das Feld group
-   bleibt in den Uebungsdaten stehen, falls spaeter Uebungen dazukommen, die
-   sich ueberschneiden. */
+/* ═══════════ Erholung, je MUSKELGRUPPE ═══════════
+   Zwischenzeitlich lief das auf Workout-Ebene: ein Workout enthielt ohnehin
+   alle Gruppen, also genuegte der Abstand zwischen zwei Workouts.
+   Das traegt nicht mehr, seit sich die Uebungen einzeln zu- und abwaehlen
+   lassen. Wer vormittags Liegestuetz und Ausfallschritt gemacht hat, hat den
+   Rumpf nicht belastet — die Sperre fuer den Seitstuetz waere frei erfunden.
+   Gezaehlt wird deshalb wieder je Gruppe, und genau das ist auch Lukes
+   Kriterium: nicht ueberlappende Muskelgruppen duerfen am selben Tag.
+   push · legs · core sind ueberschneidungsfrei. */
 function groupOf(key){
   const e = S.ex && S.ex[key];
   return (e && e.group) ? e.group : key;
@@ -600,20 +608,29 @@ function workoutCount(){
   for(const ses of S.sessions) if(ses.workout) ids.add(ses.workout);
   return ids.size;
 }
-function lastWorkoutDay(){
+function lastWorkoutDay(gr){
   let best = null;
   for(const ses of S.sessions){
+    if(gr && groupOf(ses.exercise) !== gr) continue;
     const d = dayNum(ses.date);
     if(d != null && (best === null || d > best)) best = d;
   }
   return best;
 }
+/* Wie viele Workouts hat DIESE Gruppe hinter sich? Steuert ihre Einstiegsphase. */
+function groupWorkoutCount(gr){
+  const ids = new Set();
+  for(const ses of S.sessions)
+    if(ses.workout && (!gr || groupOf(ses.exercise) === gr)) ids.add(ses.workout);
+  return ids.size;
+}
 /* Letzter Tag je Zone — nach der ZIELZONE des Workouts, nicht nach der
    erreichten Zeit eines einzelnen Satzes. Die Rotation steuert, was das
    Workout anfordert. */
-function zoneLastDay(){
+function zoneLastDay(gr){
   const last = {A:null, B:null, C:null};
   for(const ses of S.sessions){
+    if(gr && groupOf(ses.exercise) !== gr) continue;
     const z = ses.workoutZone || ses.zone;
     if(!z || last[z] === undefined) continue;
     const d = dayNum(ses.date);
@@ -621,24 +638,45 @@ function zoneLastDay(){
   }
   return last;
 }
-function zoneAge(){
-  const t = today(), zl = zoneLastDay(), out = {};
+function zoneAge(gr){
+  const t = today(), zl = zoneLastDay(gr), out = {};
   for(const z of ZONES) out[z.id] = zl[z.id] === null ? Infinity : t - zl[z.id];
   return out;
 }
-/* Darf heute ein Workout stattfinden? */
-function gate(){
-  const t = today(), la = lastWorkoutDay();
-  const onboarding = workoutCount() < 3;
+/* Darf DIESE Muskelgruppe heute trainiert werden? */
+function gateGroup(gr){
+  const t = today(), la = lastWorkoutDay(gr);
+  const onboarding = groupWorkoutCount(gr) < 3;
   const gap = onboarding ? ONBOARD_GAP_DAYS : MIN_GAP_DAYS;
   if(la !== null && (t - la) < gap)
-    return {ok:false, kind:"day", wait: gap - (t - la), lastDay: la, onboarding};
-  if(onboarding) return {ok:true, onboarding};
-  const age = zoneAge();
+    return {ok:false, kind:"day", wait: gap - (t - la), lastDay: la, onboarding, group:gr};
+  if(onboarding) return {ok:true, onboarding, group:gr};
+  const age = zoneAge(gr);
   const waits = ZONES.map(z => Math.max(0, restOf(z.id) - age[z.id]));
   const wait = Math.min(...waits);
-  if(wait > 0) return {ok:false, kind:"zone", wait, age};
-  return {ok:true};
+  if(wait > 0) return {ok:false, kind:"zone", wait, age, group:gr};
+  return {ok:true, group:gr};
+}
+/* Eine Zeile je Uebung: angehakt? Gruppe frei? Warum nicht? */
+function uebungslage(){
+  return Object.keys(S.ex).map(ex => {
+    const gr = groupOf(ex);
+    return {ex, group:gr, aktiv: S.aktiv[ex] !== false, tor: gateGroup(gr)};
+  });
+}
+/* Was heute tatsaechlich trainiert wird. */
+function heuteDran(){
+  return uebungslage().filter(u => u.aktiv && (u.tor.ok || ignoreRest));
+}
+/* Gesamtlage fuer den Startbildschirm: das kuerzeste Warten aller angehakten
+   Uebungen — eine einzige freie Gruppe genuegt, um trainieren zu koennen. */
+function gate(){
+  const an = uebungslage().filter(u => u.aktiv);
+  if(!an.length) return {ok:false, kind:"leer", wait:0};
+  const frei = an.filter(u => u.tor.ok);
+  if(frei.length) return {ok:true, onboarding: frei.some(u=>u.tor.onboarding)};
+  const beste = an.slice().sort((a,b)=> a.tor.wait - b.tor.wait)[0].tor;
+  return Object.assign({}, beste, {ok:false});
 }
 
 /* ═══════════ Planung eines Workouts ═══════════
@@ -691,38 +729,63 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb){
           target: Math.max(15, Math.round(isFinite(tt) ? tt : target))};
 }
 
-function planWorkout(){
-  const n = workoutCount();
-  const onboarding = n < 3;
-  let zone, target, why;
-  if(onboarding){
-    /* Drei bewusst gespreizte Einstiegs-Workouts (M7, Abschnitt 4.4). */
-    zone = ONB_ORDER[n].z; target = ONB_ORDER[n].t;
-    why = `Einstiegs-Workout ${n+1} von 3 — bewusst ${n===0?"leicht":n===1?"mittel":"schwer"}. `
-        + `Halte in jedem Block so lange du kannst.`;
-  } else {
-    const age = zoneAge();
-    const erholt = ZONES.filter(z => age[z.id] >= restOf(z.id));
-    const pool = erholt.length ? erholt : ZONES;
-    const z = pool.slice().sort((a,b)=> age[b.id]-age[a.id])[0];
-    zone = z.id; target = Math.round((z.lo + z.hi)/2);
-    why = `Zone ${zone} liegt am längsten zurück${isFinite(age[zone])?` (${age[zone]} Tag${age[zone]===1?"":"e"})`:""} und ist erholt.`;
+/* Welche Zone fordert diese Muskelgruppe heute an? Je Gruppe, weil auch die
+   Erholung je Gruppe gezaehlt wird. */
+function zoneFuer(gr){
+  const n = groupWorkoutCount(gr);
+  if(n < 3){
+    const o = ONB_ORDER[n];
+    return {zone:o.z, target:o.t, onboarding:true,
+      why:`Einstiegs-Workout ${n+1} von 3 — bewusst ${n===0?"leicht":n===1?"mittel":"schwer"}. `
+        + `Halte in jedem Block so lange du kannst.`};
   }
+  const age = zoneAge(gr);
+  const erholt = ZONES.filter(z => age[z.id] >= restOf(z.id));
+  const pool = erholt.length ? erholt : ZONES;
+  const z = pool.slice().sort((a,b)=> age[b.id]-age[a.id])[0];
+  return {zone:z.id, target: Math.round((z.lo + z.hi)/2), onboarding:false,
+    why:`Zone ${z.id} liegt am längsten zurück`
+      + (isFinite(age[z.id]) ? ` (${age[z.id]} Tag${age[z.id]===1?"":"e"})` : "")
+      + ` und ist erholt.`};
+}
+
+/* ═══════════ Planung eines Workouts ═══════════
+   Gebaut wird aus den Uebungen, die heute ueberhaupt drankommen — angehakt und
+   Muskelgruppe erholt. Erst alle FRISCH gemessenen Bloecke, dann die zweiten
+   Seiten. Einseitige Uebungen stehen am Ende des ersten Teils und damit in der
+   Mitte des Workouts: So liegen zwischen erster und zweiter Seite jeder
+   zweiseitigen Uebung moeglichst viele Bloecke.
+   (PCr ~96 % nach 10 min, W' 86 % nach 15 min — der Puffer deckt damit rund
+   eine Zeitkonstante ab, nicht die volle Erholung.)
+   Bleibt nur eine zweiseitige Uebung uebrig, folgt die zweite Seite direkt auf
+   die erste. Das ist der Preis der freien Auswahl und steht als Hinweis in der
+   Zwischenkarte. */
+function planWorkout(){
+  const dran   = heuteDran();
   const erste  = S.nextSide === "rechts" ? "rechts" : "links";
   const zweite = erste === "links" ? "rechts" : "links";
-  /* Reihenfolge: erst beide frisch gemessenen Seiten und der Liegestuetz,
-     dann die zweiten Seiten. Der Liegestuetz steht exakt in der Mitte und
-     trennt damit BEIDE zweiseitigen Uebungen von ihrer Gegenseite — zwischen
-     Seite eins und Seite zwei liegen so immer zwei volle Bloecke. */
+  const zwei = dran.filter(u => S.ex[u.ex].sides);
+  const ein  = dran.filter(u => !S.ex[u.ex].sides);
+  const A = [], B = [];
+  for(const u of zwei){
+    const zf = zoneFuer(u.group);
+    A.push(mkBlock(u.ex, erste,  zf.zone, zf.target, true,  zf.onboarding));
+    B.push(mkBlock(u.ex, zweite, zf.zone, zf.target, false, zf.onboarding));
+  }
+  for(const u of ein){
+    const zf = zoneFuer(u.group);
+    A.push(mkBlock(u.ex, null, zf.zone, zf.target, true, zf.onboarding));
+  }
+  const blocks = A.concat(B);
+  const zonen  = [...new Set(blocks.map(b => b.zone))];
+  const gruende = [...new Set(dran.map(u => zoneFuer(u.group).why))];
   return {
-    zone, target, why, onboarding,
-    blocks: [
-      mkBlock("plank", erste,  zone, target, true,  onboarding),
-      mkBlock("lunge", erste,  zone, target, true,  onboarding),
-      mkBlock("push",  null,   zone, target, true,  onboarding),
-      mkBlock("plank", zweite, zone, target, false, onboarding),
-      mkBlock("lunge", zweite, zone, target, false, onboarding)
-    ]
+    zone: blocks.length ? blocks[0].zone : "C",
+    zonen,
+    target: blocks.length ? blocks[0].target : 120,
+    why: gruende.join(" "),
+    onboarding: dran.some(u => zoneFuer(u.group).onboarding),
+    blocks
   };
 }
 
@@ -943,9 +1006,12 @@ function betweenBlocks(){
         <div><b>${fmt(bl.target)}</b><small>Richtwert erster Satz</small></div>
         <div><b>${SETS}</b><small>Sätze · ${PAUSE_S}s Pause</small></div>
       </div>
-      ${bl.exercise==="push" ? `<p class="tiny" style="margin-top:11px">Dieser Block steht
-        bewusst in der Mitte: Er trennt bei Seitstütz und Ausfallschritt die erste von der
-        zweiten Seite und gibt ihr fünf bis acht Minuten Erholung.</p>` : ""}
+      ${bl.exercise==="push" && RUN.plan.blocks.length > 2 ? `<p class="tiny" style="margin-top:11px"
+        >Dieser Block steht bewusst in der Mitte: Er trennt bei Seitstütz und Ausfallschritt die
+        erste von der zweiten Seite und gibt ihr fünf bis acht Minuten Erholung.</p>` : ""}
+      ${!bl.fresh && RUN.plan.blocks.length === 2 ? `<p class="tiny" style="margin-top:11px">Weil
+        heute nur diese eine Übung läuft, folgt die zweite Seite direkt. Lass dir vor dem Start
+        ruhig ein paar Minuten — die Karte wartet.</p>` : ""}
       <button class="primary" style="width:100%;margin-top:12px;padding:16px" id="goBlock">
         Block starten</button>
     </div>`;
@@ -1258,9 +1324,42 @@ function renderHome(){
   const z = ZONES.find(x=>x.id===p.zone);
   const g = gate();
 
+  /* ── Welche Übungen sind heute dabei ─────────────────────── */
+  const auswahlKarte = () => {
+    const lage = uebungslage();
+    return `<div class="card flat">
+      <h3 style="margin-top:0">Was heute dabei ist</h3>
+      <p class="tiny">Häkchen weg heißt: Die Übung bleibt draußen, bis du sie wieder anhakst.
+      <b>Gesperrt</b> ist etwas anderes — das ist die Pause der Muskelgruppe und geht vorbei.</p>
+      ${lage.map((u,i)=>{
+        const e = S.ex[u.ex];
+        const frei = u.tor.ok;
+        const wartet = !frei ? (u.tor.kind === "day"
+          ? `heute schon trainiert — wieder in ${u.tor.wait} Tag${u.tor.wait===1?"":"en"}`
+          : `Zonenpause — noch ${u.tor.wait} Tag${u.tor.wait===1?"":"e"}`) : "";
+        return `<label class="chk" for="ak${i}">
+          <input type="checkbox" id="ak${i}" data-ex="${u.ex}" ${u.aktiv?"checked":""}>
+          <span><b>${e.name}</b> <span class="muted">· ${e.region}</span><br>
+          <span class="tiny" style="color:${frei?"var(--ok)":"var(--tx3)"}">${
+            frei ? "frei" : wartet}</span></span></label>`;
+      }).join("")}
+      ${lage.some(u=>u.aktiv && !u.tor.ok) ? `<p class="tiny">Angehakte Übungen, deren Gruppe
+        noch pausiert, bleiben heute außen vor — das Workout läuft mit dem Rest.</p>` : ""}
+    </div>`;
+  };
+  const auswahlBinden = () => {
+    uebungslage().forEach((u,i)=>{
+      const b = el("ak"+i); if(!b) return;
+      b.onchange = e => {
+        S.aktiv[u.ex] = e.target.checked;
+        S.plan = null; S.planDay = null; save(); render();
+      };
+    });
+  };
+
   /* ── Pausentag ───────────────────────────────────────────── */
   if(!g.ok && !ignoreRest){
-    const age = zoneAge();
+    const age = zoneAge(g.group);
     const dat = new Date(Date.now() + g.wait*86400000)
       .toLocaleDateString("de-DE", {weekday:"long", day:"numeric", month:"long"});
     el("homeBody").innerHTML = `
@@ -1268,7 +1367,9 @@ function renderHome(){
         <span class="pill pRest">Pausentag</span>
         <h2 style="margin:11px 0 2px">Heute nicht</h2>
         <p class="muted" style="margin:0">Nächstes Workout: ${dat}</p>
-        <p class="tiny" style="margin-top:12px">${g.kind === "day"
+        <p class="tiny" style="margin-top:12px">${g.kind === "leer"
+          ? `Es ist keine Übung angehakt. Setz unten mindestens ein Häkchen.`
+          : g.kind === "day"
           ? (g.onboarding
               ? `Das letzte Einstiegs-Workout liegt noch keine 24 Stunden zurück. Die drei
                  gehören an drei verschiedene Tage.`
@@ -1293,8 +1394,10 @@ function renderHome(){
         du die Sperre für heute übergehen. Die Messung wird dann trotzdem gewertet — mit dem
         Wissen, dass sie unter Vorermüdung entstanden ist.</p>
         <button class="ghost" style="width:100%" id="ignoreBtn">Trotzdem trainieren</button>
-      </div>`;
+      </div>
+      ${auswahlKarte()}`;
     el("ignoreBtn").onclick = ()=>{ ignoreRest = true; render(); };
+    auswahlBinden();
     return;
   }
 
@@ -1334,26 +1437,29 @@ function renderHome(){
         ${!bl.fresh ? `<p class="tiny">${zweiteSeiteGrund(bl.exercise)}
           Der Satz zählt als Training und erscheint im Verlauf als <i>vorermüdet</i> — er geht
           nicht in die Kurve.</p>` : ""}
-        ${bl.exercise==="push" ? `<p class="tiny">Steht bewusst in der Mitte: trennt bei beiden
-          zweiseitigen Übungen die erste von der zweiten Seite.</p>` : ""}
+        ${bl.exercise==="push" && p.blocks.length > 2 ? `<p class="tiny">Steht bewusst in der
+          Mitte: trennt bei beiden zweiseitigen Übungen die erste von der zweiten Seite.</p>` : ""}
       </div>`;
   };
 
   el("homeBody").innerHTML = `
     <div class="card">
-      ${p.onboarding ? `<span class="pill pB">Einstiegs-Workout ${workoutCount()+1} von 3</span>`
-                     : `<span class="pill ${z.cls}">Zone ${z.id} · ${z.name}</span>`}
+      ${(p.zonen||[p.zone]).map(id=>{ const zz = ZONES.find(x=>x.id===id);
+         return `<span class="pill ${zz.cls}">Zone ${zz.id} · ${zz.name}</span> `; }).join("")}
       <h2 style="margin:11px 0 2px">${ZAHLWORT[p.blocks.length]||p.blocks.length} Blöcke</h2>
       <p class="muted" style="margin:0">${p.blocks.map(blockLabel).join("  →  ")}</p>
       <p class="tiny" style="margin-top:11px">${p.why}</p>
       <p class="tiny"><b>Der Richtwert ist kein Ziel.</b> Halte so lange du kannst. Der Messpunkt
       zählt so, wie er herauskommt — ob du dich über- oder unterschätzt, ist gleichgültig.
       Genau aus der Streuung entsteht die Kurve.</p>
-      <button class="primary" style="width:100%;margin-top:12px;padding:16px" id="goSess">
-        Workout starten</button>
+      ${p.blocks.length ? `<button class="primary" style="width:100%;margin-top:12px;padding:16px"
+        id="goSess">Workout starten</button>`
+      : `<p class="tiny"><b>Kein Block übrig.</b> Hak unten mindestens eine Übung an, deren
+         Muskelgruppe heute frei ist.</p>`}
       <p class="tiny" style="text-align:center;margin-top:9px">Ton einschalten — die Ansagen
       kommen akustisch, damit du nicht aufs Display schauen musst.</p>
     </div>
+    ${auswahlKarte()}
     ${p.blocks.map(blockKarte).join("")}
     ${(()=>{ const offen = allKeys().filter(k => !profileReady(k.ex, k.side));
       return offen.length ? `<div class="card flat">
@@ -1383,7 +1489,8 @@ function renderHome(){
     el("lvlMinus"+i).onclick = ()=> setzen(bl.level - 1);
     el("lvlPlus"+i).onclick  = ()=> setzen(bl.level + 1);
   });
-  el("goSess").onclick = ()=>{ beep(660,60,.05); startWorkout(); };
+  auswahlBinden();
+  if(el("goSess")) el("goSess").onclick = ()=>{ beep(660,60,.05); startWorkout(); };
 }
 
 /* Waehler ueber alle Kurven: Liegestuetz, Ausfallschritt links, Ausfallschritt rechts. */
