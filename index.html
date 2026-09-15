@@ -1060,7 +1060,7 @@ function finishWorkout(){
   el("homeBody").innerHTML = `
     <div class="card">
       <h2 style="margin-top:0">Wie stark war der Schmerz heute?</h2>
-      <p class="tiny">Ein Wert für das ganze Workout, alle drei Blöcke zusammen.
+      <p class="tiny">Ein Wert für das ganze Workout, alle Blöcke zusammen.
       0 = kein Schmerz, 10 = unerträglich.
       Ziel ist ein Bereich von 0 bis 4.</p>
       <div class="scaleBtns" id="sc1"></div>
@@ -1232,7 +1232,7 @@ function historySVG(pts){
 /* ═══════════ Bildschirme ═══════════ */
 function renderHome(){
   el("homeTitle").textContent = "Heute";
-  el("homeSub").textContent = "Workout aus drei Blöcken";
+  el("homeSub").textContent = `Workout aus ${(S.plan && S.plan.blocks ? S.plan.blocks.length : 5)} Blöcken`;
 
   if(S.redflag){
     el("homeBody").innerHTML = `<div class="note bad"><b>Bitte zuerst ärztlich abklären.</b>
