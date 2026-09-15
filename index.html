@@ -318,6 +318,43 @@ const DEFAULT_EX = {
       {name:"Hinterer Fuß ~30 cm erhöht, voll",            load:1.25},
       {name:"Hinterer Fuß erhöht + Zusatzlast",            load:1.45}
     ]
+  },
+  /* Seitstuetz. Die Leiter ist gerechnet, nicht geschaetzt: Das Biegemoment an
+     der Taille (Segmentmodell nach Winter, Schnitt L4/L5) faellt in JEDER
+     Schraeglage mit cos(Neigungswinkel) — egal ob Unterarm oder Fuesse hoeher
+     liegen. Daraus folgen zwei Dinge, die der Alltagsrat nicht hergibt:
+       · Unterarm erhoehen ist die saubere Regression, weil sie den Hebel
+         unveraendert laesst und nur den Winkel dreht. Messbar in Zentimetern.
+       · FUESSE erhoehen ist KEINE Progression fuer den Rumpf. Es verschiebt
+         Last auf die Stuetzschulter, das Rumpfmoment sinkt sogar leicht.
+         Steht deshalb bewusst nicht in der Leiter.
+     Oberhalb des Standards bleibt nur Zusatzlast, und die wirkt nur nah an
+     der Taille: 10 kg an der Huefte sind +25 %, dieselben 10 kg als Rucksack
+     am Brustkorb +3 %. Darum steht der Ort in der Stufenbezeichnung.
+     Knie statt Fuesse verkuerzt den Hebel auf 63 % — der grosse Sprung der
+     Leiter, aber auch ihr Bruch: mit gebeugten Knien sinkt der Anteil der
+     Hueftabduktoren, die schraegen Bauchmuskeln werden relativ fuehrend
+     (EMG-Vergleich Knie- vs. Fussstuetz). Die Stufe ist also nicht nur
+     leichter, sie misst etwas anderes. Steht als P21 im Protokoll. */
+  plank: {
+    name:"Seitstütz", region:"Rumpf", group:"core", sides:["links","rechts"],
+    hint:"»Links« heißt: du stützt auf dem LINKEN Unterarm, die linke Rumpfseite arbeitet. "
+        +"Ellenbogen senkrecht unter der Schulter, Hüfte nach oben gedrückt. Der Körper ist "
+        +"eine gerade Linie — auch von vorne gesehen: die obere Hüfte darf nicht nach hinten "
+        +"kippen. Oberer Arm liegt an der Hüfte, Kopf in Verlängerung. Zwischen zwei Stufen "
+        +"stellst du am feinsten über die Höhe der Auflage nach.",
+    levels:[
+      {name:"Knie abgelegt · Unterarm auf Arbeitsplatte (~90 cm)",   load:0.20},
+      {name:"Knie abgelegt · Unterarm auf Tischplatte (~75 cm)",     load:0.36},
+      {name:"Knie abgelegt · Unterarm auf Stuhlsitz (~45 cm)",       load:0.50},
+      {name:"Knie abgelegt · Unterarm am Boden (kurzer Hebel)",      load:0.57},
+      {name:"Beine gestreckt · Unterarm auf Arbeitsplatte (~90 cm)", load:0.70},
+      {name:"Beine gestreckt · Unterarm auf Tischplatte (~75 cm)",   load:0.77},
+      {name:"Beine gestreckt · Unterarm am Boden (Standard)",        load:0.90},
+      {name:"Standard · 5 kg auf der oberen Hüfte",                  load:1.01},
+      {name:"Standard · 10 kg auf der oberen Hüfte",                 load:1.13},
+      {name:"Standard · 15 kg auf der oberen Hüfte",                 load:1.24}
+    ]
   }
 };
 
@@ -334,12 +371,17 @@ const RED_FLAGS = [
 /* Stand der ausgelieferten Fassung. Steht unten in der App und beim Start in der
    Konsole — daran erkennst du am Handy, ob das Update schon angekommen ist.
    Wird bei jeder Änderung hochgezählt. */
-const BUILD = "2026-09-15 a";
+const BUILD = "2026-09-15 b";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
    Update alte Levels kleben. Sessions bleiben dabei immer erhalten. */
-const EX_VERSION = 5;
+const EX_VERSION = 6;
+/* Fassung, in der sich zuletzt STUFEN einer bestehenden Uebung geaendert haben.
+   Nur dann muessen gespeicherte Levels weg — sie zeigen sonst auf eine Leiter,
+   die es nicht mehr gibt. Kommt bloss eine Uebung DAZU (6: Seitstuetz), bleiben
+   Liegestuetz und Ausfallschritt stehen, wo sie waren. */
+const LEVELS_RESET_AT = 5;
 let S = load();
 /* Muss nach load() laufen: sidesOf() braucht S.sessions. */
 (function(){ const sd = S.ex[S.exercise] ? sidesOf(S.exercise) : [null];
@@ -362,13 +404,14 @@ function fresh(){
 function normalize(d){
   if(!d || typeof d !== "object") return fresh();
   const stale = (d.exVersion || 1) < EX_VERSION;
+  const leitersturz = (d.exVersion || 1) < LEVELS_RESET_AT;
   const ex = stale ? structuredClone(DEFAULT_EX)
                    : Object.assign(structuredClone(DEFAULT_EX), d.ex || {});
   return Object.assign(fresh(), d, {ex, exVersion:EX_VERSION,
                                     rest: stale ? {...DEFAULT_REST}
                                                 : Object.assign({...DEFAULT_REST}, d.rest||{}),
-                                    levels: stale ? {} : (d.levels || {}),
-                                    streak: stale ? {} : (d.streak || {}),
+                                    levels: leitersturz ? {} : (d.levels || {}),
+                                    streak: leitersturz ? {} : (d.streak || {}),
                                     reaction: (d.reaction == null ? REACTION_DEFAULT : d.reaction),
                                     plan:null, planDay:null});
 }
@@ -603,7 +646,24 @@ function gate(){
    Gemessen wird nur die FRISCHE Seite; die zweite wird trainiert und
    aufgezeichnet, geht aber nicht in den Fit. Die Startseite wechselt je
    Workout, damit beide Seiten gleich oft frisch gemessen werden. */
-function mkBlock(ex, side, zone, target, fresh){
+/* Drei bewusst gespreizte Einstiegsmessungen. Bisher hing das am WORKOUT:
+   nach drei Workouts galt das Onboarding fuer alles als erledigt. Eine Uebung,
+   die spaeter dazukommt, haette damit nie eine Einstiegsphase bekommen — sie
+   wuerde auf der leichtesten Stufe starten und wochenlang Punkte aus derselben
+   Zone liefern, aus denen sich keine Kurve fitten laesst. Der Zaehler haengt
+   deshalb an der KURVE. */
+const ONB_ORDER = [{z:"C", t:120}, {z:"B", t:75}, {z:"A", t:35}];
+function onbStep(ex, side){
+  const n = points(ex, side).length;      // nur frische Messpunkte zaehlen
+  return n < ONB_ORDER.length ? n : null; // null = Kurve ist eingefahren
+}
+
+function mkBlock(ex, side, zone, target, fresh, workoutOnb){
+  /* Laeuft das Workout selbst noch im Onboarding, gibt es die Zone vor — dann
+     ziehen alle Bloecke am selben Strang. Erst danach holt eine noch leere
+     Kurve ihre eigenen drei Messungen nach. */
+  const st = workoutOnb ? null : onbStep(ex, side);
+  if(st !== null){ zone = ONB_ORDER[st].z; target = ONB_ORDER[st].t; }
   const f   = fit(points(ex, side));
   const lv  = S.ex[ex].levels;
   const key = keyOf(ex, side);
@@ -617,7 +677,7 @@ function mkBlock(ex, side, zone, target, fresh){
     });
   }
   const tt = f ? predictTime(f, lv[level].load) : target;
-  return {exercise:ex, side, zone, fresh, level, levelVorschlag:level,
+  return {exercise:ex, side, zone, fresh, level, levelVorschlag:level, onbStep:st,
           target: Math.max(15, Math.round(isFinite(tt) ? tt : target))};
 }
 
@@ -627,8 +687,7 @@ function planWorkout(){
   let zone, target, why;
   if(onboarding){
     /* Drei bewusst gespreizte Einstiegs-Workouts (M7, Abschnitt 4.4). */
-    const order = [{z:"C", t:120}, {z:"B", t:75}, {z:"A", t:35}];
-    zone = order[n].z; target = order[n].t;
+    zone = ONB_ORDER[n].z; target = ONB_ORDER[n].t;
     why = `Einstiegs-Workout ${n+1} von 3 — bewusst ${n===0?"leicht":n===1?"mittel":"schwer"}. `
         + `Halte in jedem Block so lange du kannst.`;
   } else {
@@ -641,12 +700,18 @@ function planWorkout(){
   }
   const erste  = S.nextSide === "rechts" ? "rechts" : "links";
   const zweite = erste === "links" ? "rechts" : "links";
+  /* Reihenfolge: erst beide frisch gemessenen Seiten und der Liegestuetz,
+     dann die zweiten Seiten. Der Liegestuetz steht exakt in der Mitte und
+     trennt damit BEIDE zweiseitigen Uebungen von ihrer Gegenseite — zwischen
+     Seite eins und Seite zwei liegen so immer zwei volle Bloecke. */
   return {
     zone, target, why, onboarding,
     blocks: [
-      mkBlock("lunge", erste,  zone, target, true),
-      mkBlock("push",  null,   zone, target, true),
-      mkBlock("lunge", zweite, zone, target, false)
+      mkBlock("plank", erste,  zone, target, true,  onboarding),
+      mkBlock("lunge", erste,  zone, target, true,  onboarding),
+      mkBlock("push",  null,   zone, target, true,  onboarding),
+      mkBlock("plank", zweite, zone, target, false, onboarding),
+      mkBlock("lunge", zweite, zone, target, false, onboarding)
     ]
   };
 }
@@ -826,6 +891,16 @@ function startWorkout(){
   RUN = {plan:p, b:0, fertig:[], sets:[], i:0};
   startBlock();
 }
+const ZAHLWORT = ["null","Ein","Zwei","Drei","Vier","Fünf","Sechs","Sieben","Acht"];
+/* Warum die zweite Seite nicht in die Kurve geht — das ist je Uebung ein
+   anderer Grund, und der Unterschied ist fachlich erheblich. */
+function zweiteSeiteGrund(ex){
+  return ex === "lunge"
+    ? `Dieses Bein war eben schon als hinteres Bein belastet — beim Ausfallschritt
+       arbeiten vorderes und hinteres Bein zu rund 60/40 überlappend.`
+    : `Die andere Rumpfseite arbeitet zwar mit eigenen Muskeln, dieser Satz steht
+       aber am Ende eines langen Workouts.`;
+}
 function curBlock(){ return RUN.plan.blocks[RUN.b]; }
 function blockLabel(bl){ return labelOf(bl.exercise, bl.side); }
 
@@ -850,7 +925,7 @@ function betweenBlocks(){
       <h2 style="margin:11px 0 2px">${blockLabel(bl)}</h2>
       <p class="muted" style="margin:0">${ex.levels[bl.level].name}</p>
       ${!bl.fresh ? `<div class="note warn" style="margin-top:12px"><b>Zweite Seite — wird
-        trainiert, nicht gemessen.</b> Dieses Bein war eben schon als hinteres Bein belastet.
+        trainiert, nicht gemessen.</b> ${zweiteSeiteGrund(bl.exercise)}
         Der Satz wird aufgezeichnet und im Verlauf als <i>vorermüdet</i> geführt, geht aber
         nicht in die Kurve ein. Weniger zu schaffen als vorhin ist hier normal und kein
         Rückschritt.</div>` : ""}
@@ -859,8 +934,8 @@ function betweenBlocks(){
         <div><b>${SETS}</b><small>Sätze · ${PAUSE_S}s Pause</small></div>
       </div>
       ${bl.exercise==="push" ? `<p class="tiny" style="margin-top:11px">Dieser Block steht
-        bewusst zwischen den Beinen: Er gibt der zuerst belasteten Seite fünf bis acht Minuten
-        Erholung.</p>` : ""}
+        bewusst in der Mitte: Er trennt bei Seitstütz und Ausfallschritt die erste von der
+        zweiten Seite und gibt ihr fünf bis acht Minuten Erholung.</p>` : ""}
       <button class="primary" style="width:100%;margin-top:12px;padding:16px" id="goBlock">
         Block starten</button>
     </div>`;
@@ -1222,6 +1297,9 @@ function renderHome(){
       <div class="card flat">
         <p class="tiny" style="margin:0 0 2px;letter-spacing:.06em;text-transform:uppercase">
           Block ${i+1} · ${bl.fresh ? "wird gemessen" : "nur Training"}</p>
+        ${bl.onbStep != null ? `<p class="tiny" style="margin:0 0 6px"><span class="pill pB"
+          >Einstiegsmessung ${bl.onbStep+1} von 3</span> Diese Kurve ist neu — sie holt ihre
+          drei gespreizten Messungen nach.</p>` : ""}
         <h3 style="margin:0 0 6px">${blockLabel(bl)}</h3>
         <label class="tiny" for="lvlPick${i}" style="display:block;margin-bottom:4px">Stufe —
           du entscheidest (${bl.level+1} von ${ex.levels.length})</label>
@@ -1241,11 +1319,11 @@ function renderHome(){
           zz ? ` · erwarteter Landeplatz <span class="pill ${zz.cls}">Zone ${zz.id}</span>` : ""}</p>
         ${bl.userPicked ? `<p class="tiny">Von dir gewählt — Vorschlag war
           <b>${ex.levels[bl.levelVorschlag].name}</b>.</p>` : ""}
-        ${!bl.fresh ? `<p class="tiny">Dieses Bein war eben schon als hinteres Bein belastet.
+        ${!bl.fresh ? `<p class="tiny">${zweiteSeiteGrund(bl.exercise)}
           Der Satz zählt als Training und erscheint im Verlauf als <i>vorermüdet</i> — er geht
           nicht in die Kurve.</p>` : ""}
-        ${bl.exercise==="push" ? `<p class="tiny">Steht bewusst in der Mitte: gibt der zuerst
-          belasteten Seite fünf bis acht Minuten Erholung.</p>` : ""}
+        ${bl.exercise==="push" ? `<p class="tiny">Steht bewusst in der Mitte: trennt bei beiden
+          zweiseitigen Übungen die erste von der zweiten Seite.</p>` : ""}
       </div>`;
   };
 
@@ -1253,7 +1331,7 @@ function renderHome(){
     <div class="card">
       ${p.onboarding ? `<span class="pill pB">Einstiegs-Workout ${workoutCount()+1} von 3</span>`
                      : `<span class="pill ${z.cls}">Zone ${z.id} · ${z.name}</span>`}
-      <h2 style="margin:11px 0 2px">Drei Blöcke</h2>
+      <h2 style="margin:11px 0 2px">${ZAHLWORT[p.blocks.length]||p.blocks.length} Blöcke</h2>
       <p class="muted" style="margin:0">${p.blocks.map(blockLabel).join("  →  ")}</p>
       <p class="tiny" style="margin-top:11px">${p.why}</p>
       <p class="tiny"><b>Der Richtwert ist kein Ziel.</b> Halte so lange du kannst. Der Messpunkt
