@@ -653,20 +653,26 @@ function gate(){
    nach drei Workouts galt das Onboarding fuer alles als erledigt. Eine Uebung,
    die spaeter dazukommt, haette damit nie eine Einstiegsphase bekommen — sie
    wuerde auf der leichtesten Stufe starten und wochenlang Punkte aus derselben
-   Zone liefern, aus denen sich keine Kurve fitten laesst. Der Zaehler haengt
-   deshalb an der KURVE. */
+   Zone liefern, aus denen sich keine Kurve fitten laesst.
+   Gezaehlt werden aber nicht Messungen, sondern ZONEN: was einer Kurve fehlt,
+   ist nie "noch zwei Punkte", sondern immer eine bestimmte leere Zone (P5 —
+   Spreizung schlaegt Anzahl). Reihenfolge C -> B -> A: von leicht nach schwer. */
 const ONB_ORDER = [{z:"C", t:120}, {z:"B", t:75}, {z:"A", t:35}];
-function onbStep(ex, side){
-  const n = points(ex, side).length;      // nur frische Messpunkte zaehlen
-  return n < ONB_ORDER.length ? n : null; // null = Kurve ist eingefahren
+function fehlendeZonen(ex, side){
+  const cov = zoneCoverage(ex, side);
+  return ONB_ORDER.filter(o => !cov[o.z]);
 }
 
 function mkBlock(ex, side, zone, target, fresh, workoutOnb){
   /* Laeuft das Workout selbst noch im Onboarding, gibt es die Zone vor — dann
-     ziehen alle Bloecke am selben Strang. Erst danach holt eine noch leere
-     Kurve ihre eigenen drei Messungen nach. */
-  const st = workoutOnb ? null : onbStep(ex, side);
-  if(st !== null){ zone = ONB_ORDER[st].z; target = ONB_ORDER[st].t; }
+     ziehen alle Bloecke am selben Strang.
+     Danach gilt: Die Rotation bleibt der Normalfall. Abgewichen wird nur, wenn
+     sie eine Zone anfordert, die diese Kurve SCHON hat, waehrend eine andere
+     noch leer ist — dann waere die Messung verschenkt. Eine neue Uebung trifft
+     das in jedem Workout, bis ihre drei Zonen stehen; eine eingefahrene nie. */
+  const fehlt = workoutOnb ? [] : fehlendeZonen(ex, side);
+  const luecke = (fehlt.length && zoneCoverage(ex, side)[zone] > 0) ? fehlt[0] : null;
+  if(luecke){ zone = luecke.z; target = luecke.t; }
   const f   = fit(points(ex, side));
   const lv  = S.ex[ex].levels;
   const key = keyOf(ex, side);
@@ -680,7 +686,8 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb){
     });
   }
   const tt = f ? predictTime(f, lv[level].load) : target;
-  return {exercise:ex, side, zone, fresh, level, levelVorschlag:level, onbStep:st,
+  return {exercise:ex, side, zone, fresh, level, levelVorschlag:level,
+          fehlt: fehlt.map(o=>o.z), abgewichen: !!luecke,
           target: Math.max(15, Math.round(isFinite(tt) ? tt : target))};
 }
 
@@ -1300,9 +1307,11 @@ function renderHome(){
       <div class="card flat">
         <p class="tiny" style="margin:0 0 2px;letter-spacing:.06em;text-transform:uppercase">
           Block ${i+1} · ${bl.fresh ? "wird gemessen" : "nur Training"}</p>
-        ${bl.onbStep != null ? `<p class="tiny" style="margin:0 0 6px"><span class="pill pB"
-          >Einstiegsmessung ${bl.onbStep+1} von 3</span> Diese Kurve ist neu — sie holt ihre
-          drei gespreizten Messungen nach.</p>` : ""}
+        ${bl.fehlt && bl.fehlt.length ? `<p class="tiny" style="margin:0 0 6px"><span
+          class="pill pB">Einstieg — ${bl.fehlt.length===1 ? `Zone ${bl.fehlt[0]} fehlt noch`
+          : `noch ${bl.fehlt.length} Zonen offen`}</span>${bl.abgewichen
+          ? ` Statt der Workout-Zone wird <b>Zone ${bl.zone}</b> gemessen: die hätte die Rotation
+            wiederholt, obwohl sie hier schon steht.` : ""}</p>` : ""}
         <h3 style="margin:0 0 6px">${blockLabel(bl)}</h3>
         <label class="tiny" for="lvlPick${i}" style="display:block;margin-bottom:4px">Stufe —
           du entscheidest (${bl.level+1} von ${ex.levels.length})</label>
