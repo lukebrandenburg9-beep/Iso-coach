@@ -1198,7 +1198,8 @@ function showWorkoutResult(gespeichert, painEnd){
         .toLocaleDateString("de-DE", {weekday:"long", day:"numeric", month:"long"});
   show("home");
   el("homeTitle").textContent = "Workout gespeichert";
-  el("homeSub").textContent = `${bloeckeText(gespeichert.length, "")} · Schmerzwert ${painEnd}`;
+  el("homeSub").textContent = `${gespeichert.length} Block${
+    gespeichert.length===1?"":"e"} · Schmerzwert ${painEnd}`;
   el("homeBody").innerHTML = `
     ${gespeichert.map(({ses})=>`
       <div class="card">
