@@ -226,7 +226,9 @@ const ZONES = [
   {id:"C", name:"Kapazität",                        lo:90, hi:150, cls:"pC"}
 ];
 const PAUSE_S    = 20;   // Abschnitt 3.1 — zugleich Messprotokoll
-const LEAD_IN    = 3;    // Sekunden zum In-Position-Gehen, bevor die Uhr laeuft
+const LEAD_IN    = 3;    // Sekunden zum In-Position-Gehen — nur vor dem ERSTEN Satz
+                         // eines Blocks. Ab Satz 2 dient die Pause selbst dazu.
+const REACTION_DEFAULT = 2;  // Sekunden zwischen Positionsende und Knopfdruck
 const SETS       = 3;
 const MISS_RATIO = 0.8;  // Regel 3
 const PAIN_BACK  = 2;    // Regel 1: zweimal in Folge → Level zurück
@@ -332,7 +334,7 @@ const RED_FLAGS = [
 /* Stand der ausgelieferten Fassung. Steht unten in der App und beim Start in der
    Konsole — daran erkennst du am Handy, ob das Update schon angekommen ist.
    Wird bei jeder Änderung hochgezählt. */
-const BUILD = "2026-09-14 h";
+const BUILD = "2026-09-15 a";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
@@ -354,7 +356,7 @@ function fresh(){
        die Schulter mit zurueck. */
     levels:{}, streak:{},
     sessions:[], plan:null, redflag:false,
-    rest:{...DEFAULT_REST}, planDay:null
+    rest:{...DEFAULT_REST}, planDay:null, reaction:REACTION_DEFAULT
   };
 }
 function normalize(d){
@@ -367,6 +369,7 @@ function normalize(d){
                                                 : Object.assign({...DEFAULT_REST}, d.rest||{}),
                                     levels: stale ? {} : (d.levels || {}),
                                     streak: stale ? {} : (d.streak || {}),
+                                    reaction: (d.reaction == null ? REACTION_DEFAULT : d.reaction),
                                     plan:null, planDay:null});
 }
 function load(){
@@ -748,8 +751,16 @@ async function runSet(cfg){
   el("tBar").style.width = "0%";
   try{ if("wakeLock" in navigator) wakeLock = await navigator.wakeLock.request("screen"); }catch(e){}
 
-  /* Vorlauf: Zeit, um in die Position zu gehen, bevor die Uhr laeuft.
-     Ohne den beginnt die Messung, waehrend man sich noch aufbaut. */
+  const starten = ()=>{
+    el("tClock").style.color = "";
+    el("tHint").textContent = "Tippen, wenn du nicht mehr kannst";
+    T = {start:performance.now(), target:cfg.target, raf:0, half:false, ticks:new Set(), done:cfg.done};
+    cueStart();
+    tick();
+  };
+  /* Ohne Vorlauf direkt los — ab Satz 2 ist die Pause der Vorlauf. */
+  if(!cfg.lead){ starten(); return; }
+
   let n = LEAD_IN;
   T = {lead:true, done:cfg.done};
   el("tHint").textContent = "In Position gehen";
@@ -761,11 +772,7 @@ async function runSet(cfg){
     n--;
     if(n > 0){ el("tClock").textContent = n; cueTick(); return; }
     clearInterval(leadIv); leadIv = null;
-    el("tClock").style.color = "";
-    el("tHint").textContent = "Tippen, wenn du nicht mehr kannst";
-    T = {start:performance.now(), target:cfg.target, raf:0, half:false, ticks:new Set(), done:cfg.done};
-    cueStart();
-    tick();
+    starten();
   }, 1000);
 }
 function tick(){
@@ -803,7 +810,12 @@ function endSet(aborted){
   el("timerScreen").classList.remove("on");
   el("tClock").style.color = "";
   try{ wakeLock && wakeLock.release(); wakeLock = null; }catch(e){}
-  cb(aborted ? null : Math.round(s*10)/10);
+  /* Zwischen dem Ende der Position und dem Knopfdruck vergeht Zeit. Der Abzug
+     ist fuer jeden Satz gleich gross, verzerrt die Verhaeltnisse also nicht —
+     er verschiebt nur das Niveau dorthin, wo es hingehoert. Einstellbar. */
+  const roh = Math.round(s*10)/10;
+  const abzug = (S.reaction == null ? REACTION_DEFAULT : S.reaction);
+  cb(aborted ? null : Math.max(1, Math.round((roh - abzug)*10)/10), roh);
 }
 
 /* ═══════════ Sessionablauf ═══════════ */
@@ -854,19 +866,36 @@ function betweenBlocks(){
     </div>`;
   el("goBlock").onclick = ()=>{ beep(660,60,.05); RUN.b = n; startBlock(); };
 }
+/* Zielzeit des naechsten Satzes.
+   Satz 1  — aus der Kurve (oder der Zone, solange es keine gibt).
+   Satz 2  — Anteil der TATSAECHLICH erreichten Zeit aus Satz 1.
+   Satz 3+ — der zwischen den letzten beiden Saetzen BEOBACHTETE Abfall wird
+             fortgeschrieben, statt einen angenommenen Wert zu verwenden. Wer
+             in Satz 2 ueber der Vorgabe lag, bekommt auch in Satz 3 mehr.
+   Der Abfall ueber die Saetze ist die W'-Rekonstitution (Handoff 3.1) und
+   damit personenabhaengig — genau deshalb wird er gemessen statt gesetzt. */
+const DROP2 = 0.45;   // Annahme fuer Satz 2, solange nichts beobachtet ist
+const DROP_MIN = 0.35, DROP_MAX = 0.85;
+
+function setTarget(){
+  const s = RUN.sets;
+  if(s.length === 0) return curBlock().target;
+  if(s.length === 1) return Math.max(8, Math.round(s[0].time * DROP2));
+  const a = s[s.length-2].time, b = s[s.length-1].time;
+  const r = Math.min(DROP_MAX, Math.max(DROP_MIN, a > 0 ? b/a : DROP2));
+  return Math.max(8, Math.round(b * r));
+}
+
 function nextSet(){
   const p = curBlock();
-  /* Sätze 2+ starten von einer realistisch niedrigeren Vorgabe:
-     nach 20 s Pause liegt die Haltezeit erfahrungsgemäß bei rund
-     einem Drittel des ersten Satzes (Handoff 3.1). */
-  const tgt = RUN.i===0 ? p.target
-            : Math.max(8, Math.round(RUN.sets[0].time * (RUN.i===1 ? .45 : .3)));
+  const tgt = setTarget();
   runSet({
     what: `${blockLabel(p)} · ${RUN.levelName} · Satz ${RUN.i+1} von ${SETS}`,
     target: tgt,
-    done: (time)=>{
+    lead: RUN.i === 0,
+    done: (time, roh)=>{
       if(time===null){ RUN=null; render(); return; }
-      afterSet(time, tgt);
+      afterSet(time, tgt, roh);
     }
   });
 }
@@ -874,18 +903,22 @@ function nextSet(){
    Die Schmerzfrage steht daneben, nicht davor — vorher hat die Erklaerung samt
    Rueckfrage die Pause aufgefressen, und damit war der Abfall ueber die Saetze
    nicht mehr vergleichbar. Der Abfall ist aber selbst ein Messwert. */
-function afterSet(time, tgt){
+function afterSet(time, tgt, roh){
   const letzter = RUN.i + 1 >= SETS;
   show("home");
   el("homeTitle").textContent = `Satz ${RUN.i+1} von ${SETS}`;
   el("homeSub").textContent = blockLabel(curBlock());
 
+  const abzug = (roh != null && roh > time) ? Math.round((roh - time)*10)/10 : 0;
   const karte = left => `
     <div class="card">
-      <div class="kpi" style="margin-bottom:14px">
-        <div><b>${fmt(time)}</b><small>gehalten</small></div>
+      <div class="kpi" style="margin-bottom:${abzug>0?"8px":"14px"}">
+        <div><b>${fmt(time)}</b><small>gewertet</small></div>
         <div><b>${fmt(tgt)}</b><small>Richtwert</small></div>
       </div>
+      ${abzug>0 ? `<p class="tiny" style="margin:0 0 14px">Uhr stand bei ${fmt(roh)} —
+        ${abzug} s Reaktionsabzug fürs Herauskommen und Drücken. Gleicher Abzug bei jedem Satz,
+        die Verhältnisse bleiben also unberührt. Einstellbar unter Mehr → Messung.</p>` : ""}
       <label class="chk"><input type="checkbox" id="painChk">
         <span>Ich habe wegen <b>Schmerzen</b> abgebrochen<br>
         <span class="tiny">Nur ankreuzen, wenn der Schmerz der Grund war — nicht bei normaler
@@ -898,7 +931,9 @@ function afterSet(time, tgt){
              <p class="tiny" style="margin:4px 0 0">Sekunden bis zum nächsten Satz</p>
            </div>
            <p class="tiny" style="margin-top:12px">Die Pause läuft durch und ist immer gleich
-           lang. Das Häkchen kannst du währenddessen setzen — es hält die Uhr nicht an.</p>`}
+           lang. Das Häkchen kannst du währenddessen setzen — es hält die Uhr nicht an.</p>
+           <p class="tiny">Die Vorgabe für den nächsten Satz rechnet sich aus dem, was du eben
+           tatsächlich geschafft hast — nicht aus dem Wert vom Sessionbeginn.</p>`}
     </div>`;
 
   const speichern = ()=>{
@@ -1398,6 +1433,22 @@ function renderSetup(){
       <button class="ghost" style="width:100%;margin-top:8px" id="lvlSave">Speichern</button>
     </div>
     <div class="card">
+      <h3 style="margin-top:0">Messung</h3>
+      <label class="tiny" for="reactSel" style="display:block;margin-bottom:4px">Reaktionsabzug
+        je Satz</label>
+      <select id="reactSel">${[0,1,2,3,4].map(v=>
+        `<option value="${v}" ${v===(S.reaction==null?REACTION_DEFAULT:S.reaction)?"selected":""}>${
+          v===0?"kein Abzug":v+" Sekunden"}</option>`).join("")}</select>
+      <p class="tiny" style="margin-top:8px">Zwischen dem Moment, in dem du die Position verlässt,
+      und dem Knopfdruck vergeht Zeit. Der Abzug holt das heraus. Er ist bei jedem Satz gleich
+      groß — die Verhältnisse zwischen den Sätzen bleiben also unberührt, nur das Niveau wandert
+      dorthin, wo es hingehört.</p>
+      <p class="tiny"><b>Änderst du den Wert später</b>, passen alte und neue Messungen nicht mehr
+      exakt zusammen. Am besten jetzt festlegen und dann stehen lassen.</p>
+      <p class="tiny">Vor dem <b>ersten</b> Satz eines Blocks zählt die App ${LEAD_IN} Sekunden
+      herunter, damit du in Position kommst. Ab Satz 2 nicht mehr — dafür ist die Pause da.</p>
+    </div>
+    <div class="card">
       <h3 style="margin-top:0">Erholung</h3>
       <p class="tiny" style="margin-top:0">Dieselbe Muskelgruppe wird <b>dreimal pro Woche</b>
       belastet, jedes Energiesystem <b>einmal pro Woche</b>. Beides zusammen ist genau eine
@@ -1460,6 +1511,8 @@ function renderSetup(){
     });
     S.plan = null; S.planDay = null; save(); render();
   };
+
+  el("reactSel").onchange = e => { S.reaction = +e.target.value; save(); };
 
   const rhost = el("restEdit");
   ZONES.forEach(z=>{
