@@ -973,12 +973,15 @@ function bloeckeText(n, prefix){
 }
 /* Warum die zweite Seite nicht in die Kurve geht — das ist je Uebung ein
    anderer Grund, und der Unterschied ist fachlich erheblich. */
-function zweiteSeiteGrund(ex){
-  return ex === "lunge"
-    ? `Dieses Bein war eben schon als hinteres Bein belastet — beim Ausfallschritt
-       arbeiten vorderes und hinteres Bein zu rund 60/40 überlappend.`
-    : `Die andere Rumpfseite arbeitet zwar mit eigenen Muskeln, dieser Satz steht
-       aber am Ende eines langen Workouts.`;
+function zweiteSeiteGrund(ex, bloecke){
+  if(ex === "lunge")
+    return `Dieses Bein war eben schon als hinteres Bein belastet — beim Ausfallschritt
+            arbeiten vorderes und hinteres Bein zu rund 60/40 überlappend.`;
+  return bloecke > 2
+    ? `Die andere Rumpfseite arbeitet zwar mit eigenen Muskeln, dieser Satz steht aber am
+       Ende eines langen Workouts.`
+    : `Die andere Rumpfseite arbeitet mit eigenen Muskeln, und heute läuft nur diese eine
+       Übung — viel spricht hier nicht gegen eine Messung.`;
 }
 function curBlock(){ return RUN.plan.blocks[RUN.b]; }
 function blockLabel(bl){ return labelOf(bl.exercise, bl.side); }
@@ -1004,7 +1007,7 @@ function betweenBlocks(){
       <h2 style="margin:11px 0 2px">${blockLabel(bl)}</h2>
       <p class="muted" style="margin:0">${ex.levels[bl.level].name}</p>
       ${bl.zweiteSeite && !bl.fresh ? `<div class="note warn" style="margin-top:12px"><b>Zweite
-        Seite — wird trainiert, nicht gemessen.</b> ${zweiteSeiteGrund(bl.exercise)}
+        Seite — wird trainiert, nicht gemessen.</b> ${zweiteSeiteGrund(bl.exercise, RUN.plan.blocks.length)}
         Der Satz wird aufgezeichnet und im Verlauf als <i>vorermüdet</i> geführt, geht aber
         nicht in die Kurve ein. Weniger zu schaffen als vorhin ist hier normal und kein
         Rückschritt.</div>` : ""}
@@ -1442,7 +1445,7 @@ function renderHome(){
           zz ? ` · erwarteter Landeplatz <span class="pill ${zz.cls}">Zone ${zz.id}</span>` : ""}</p>
         ${bl.userPicked ? `<p class="tiny">Von dir gewählt — Vorschlag war
           <b>${ex.levels[bl.levelVorschlag].name}</b>.</p>` : ""}
-        ${bl.zweiteSeite ? `<p class="tiny">${zweiteSeiteGrund(bl.exercise)}
+        ${bl.zweiteSeite ? `<p class="tiny">${zweiteSeiteGrund(bl.exercise, p.blocks.length)}
           ${bl.fresh ? `Du hast entschieden, ihn trotzdem zu messen — er geht in die Kurve.`
           : `Der Satz zählt als Training und erscheint im Verlauf als <i>vorermüdet</i> — er geht
              nicht in die Kurve.`}</p>
