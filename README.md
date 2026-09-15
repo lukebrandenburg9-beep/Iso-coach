@@ -63,7 +63,10 @@ Rechenlogik:
 
 - **Die Kurve** `t = W'/(P − CP)`, gefittet über eine eindimensionale Suche, ältere Messpunkte
   werden mit 3 % je neuerem Punkt abgewertet.
-- **Gespreiztes Onboarding** über drei Stufen (leicht / mittel / schwer) statt einer.
+- **Gespreiztes Onboarding** über drei Stufen (leicht / mittel / schwer) statt einer. Der
+  Einstieg hängt an der **Kurve**, nicht am Workout: Eine Übung, die später dazukommt, holt ihre
+  fehlenden Zonen nach. Gezählt werden dabei leere Zonen, nicht Messungen — zwei gespreizte
+  Punkte sind mehr wert als fünf aus derselben Zone.
 - **Die Stufe wählst du**, nicht die App. Sie schlägt eine vor und zeigt je Stufe die erwartete
   Haltezeit sowie die Zone, in der sie voraussichtlich landet — entscheiden tust du. Der
   Messpunkt zählt so, wie er herauskommt: Er wird der Zone zugeordnet, in der er tatsächlich
@@ -75,9 +78,11 @@ Rechenlogik:
   Einheiten, ein Mo/Mi/Fr-Rhythmus. Umgesetzt als zwei Schranken: mindestens zwei Tage zwischen
   zwei Einheiten derselben Muskelgruppe, sieben Tage bis dieselbe Zone wiederkommt.
   Während der drei Einstiegstests genügen **24 Stunden** — sonst zöge sich das Onboarding über
-  drei Wochen. Übungen **ohne Überschneidung** (Liegestütz und Ausfallschritt) dürfen am selben
+  drei Wochen. Übungen **ohne Überschneidung** (Liegestütz, Ausfallschritt, Seitstütz) dürfen am selben
   Tag getestet werden; die App sagt am Pausentag, welche Gruppe noch frei ist. Der Pausentag
   nennt Grund und Termin und lässt sich bewusst übergehen. Werte unter *Mehr → Erholung*.
+- **Fünf Blöcke** je Workout: Seitstütz und Ausfallschritt werden je Seite gemessen, der
+  Liegestütz steht exakt in der Mitte und trennt bei beiden die erste von der zweiten Seite.
 - **Progressionsregeln 1–4** inklusive Rückstufung bei zweimaligem Schmerzabbruch.
 - **Schmerz** als Häkchen pro Satz plus ein Ampelwert am Sessionende.
 - **Sicherheitsregel:** dreimal in Folge Ampelwert 6 oder höher → Hinweis auf ärztliche Abklärung.
@@ -105,6 +110,19 @@ prüfe unter **Profil → „Was du auf jeder Stufe schaffst"**, ob noch alle dr
 
 Der Ausfallschritt ist mein Vorschlag und nicht abgestimmt — Tiefe und Unterstützungsgrad als
 Progression. Der Liegestütz folgt der Stufenfolge aus dem Handoff, nur feiner unterteilt.
+
+Die Seitstütz-Leiter ist **gerechnet**, nicht geschätzt: Das Biegemoment an der Taille
+(Segmentmodell, Schnitt L4/L5) fällt in jeder Schräglage mit cos(Neigungswinkel). Zwei Folgen,
+die dem üblichen Rat widersprechen:
+
+- **Unterarm erhöhen** ist die saubere Regression — der Hebel bleibt, nur der Winkel dreht sich.
+  Messbar in Zentimetern.
+- **Füße erhöhen ist keine Progression.** Es verschiebt Last auf die Stützschulter (die im
+  flachen Seitstütz schon rund 70 % des Körpergewichts trägt); das Rumpfmoment sinkt dabei sogar
+  leicht. Die Stufe steht deshalb bewusst nicht in der Leiter.
+
+Oberhalb des Standards bleibt nur Zusatzlast, und die wirkt nur nah an der Taille: 10 kg an der
+Hüfte sind +25 %, dieselben 10 kg am Brustkorb +3 %. Darum steht der Ort in der Stufenbezeichnung.
 
 ---
 
