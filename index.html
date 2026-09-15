@@ -724,7 +724,7 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb){
     });
   }
   const tt = f ? predictTime(f, lv[level].load) : target;
-  return {exercise:ex, side, zone, fresh, level, levelVorschlag:level,
+  return {exercise:ex, side, zone, fresh, zweiteSeite: !fresh, level, levelVorschlag:level,
           fehlt: fehlt.map(o=>o.z), abgewichen: !!luecke,
           target: Math.max(15, Math.round(isFinite(tt) ? tt : target))};
 }
@@ -997,8 +997,8 @@ function betweenBlocks(){
       <span class="pill ${ZONES.find(z=>z.id===bl.zone).cls}">Zone ${bl.zone}</span>
       <h2 style="margin:11px 0 2px">${blockLabel(bl)}</h2>
       <p class="muted" style="margin:0">${ex.levels[bl.level].name}</p>
-      ${!bl.fresh ? `<div class="note warn" style="margin-top:12px"><b>Zweite Seite — wird
-        trainiert, nicht gemessen.</b> ${zweiteSeiteGrund(bl.exercise)}
+      ${bl.zweiteSeite && !bl.fresh ? `<div class="note warn" style="margin-top:12px"><b>Zweite
+        Seite — wird trainiert, nicht gemessen.</b> ${zweiteSeiteGrund(bl.exercise)}
         Der Satz wird aufgezeichnet und im Verlauf als <i>vorermüdet</i> geführt, geht aber
         nicht in die Kurve ein. Weniger zu schaffen als vorhin ist hier normal und kein
         Rückschritt.</div>` : ""}
@@ -1434,9 +1434,20 @@ function renderHome(){
           zz ? ` · erwarteter Landeplatz <span class="pill ${zz.cls}">Zone ${zz.id}</span>` : ""}</p>
         ${bl.userPicked ? `<p class="tiny">Von dir gewählt — Vorschlag war
           <b>${ex.levels[bl.levelVorschlag].name}</b>.</p>` : ""}
-        ${!bl.fresh ? `<p class="tiny">${zweiteSeiteGrund(bl.exercise)}
-          Der Satz zählt als Training und erscheint im Verlauf als <i>vorermüdet</i> — er geht
-          nicht in die Kurve.</p>` : ""}
+        ${bl.zweiteSeite ? `<p class="tiny">${zweiteSeiteGrund(bl.exercise)}
+          ${bl.fresh ? `Du hast entschieden, ihn trotzdem zu messen — er geht in die Kurve.`
+          : `Der Satz zählt als Training und erscheint im Verlauf als <i>vorermüdet</i> — er geht
+             nicht in die Kurve.`}</p>
+          <label class="chk" for="msPick${i}" style="margin-top:6px">
+            <input type="checkbox" id="msPick${i}" data-b="${i}" ${bl.fresh?"checked":""}>
+            <span class="tiny">Diesen Satz trotzdem messen.
+            ${bl.exercise==="plank"
+              ? `Beim Seitstütz arbeitet die andere Rumpfseite mit eigenen Muskeln — der einzige
+                 Einwand ist die Ermüdung aus dem bisherigen Workout.`
+              : `Beim Ausfallschritt war dieses Bein eben schon hinteres Bein; hier ist der
+                 Einwand fachlich schwerer.`}
+            Läuft heute nur diese eine Übung, kostet das Weglassen die Hälfte der Daten.</span>
+          </label>` : ""}
         ${bl.exercise==="push" && p.blocks.length > 2 ? `<p class="tiny">Steht bewusst in der
           Mitte: trennt bei beiden zweiseitigen Übungen die erste von der zweiten Seite.</p>` : ""}
       </div>`;
@@ -1485,6 +1496,8 @@ function renderHome(){
              if(isFinite(t)) bl.target = Math.max(15, Math.round(t)); }
       S.plan = p; save(); render();
     };
+    const ms = el("msPick"+i);
+    if(ms) ms.onchange = e => { bl.fresh = e.target.checked; S.plan = p; save(); render(); };
     el("lvlPick"+i).onchange = e => setzen(+e.target.value);
     el("lvlMinus"+i).onclick = ()=> setzen(bl.level - 1);
     el("lvlPlus"+i).onclick  = ()=> setzen(bl.level + 1);
