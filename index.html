@@ -965,6 +965,12 @@ function startWorkout(){
   startBlock();
 }
 const ZAHLWORT = ["null","Ein","Zwei","Drei","Vier","Fünf","Sechs","Sieben","Acht"];
+/* "Workout aus einem Block" / "... aus fünf Blöcken" — ohne Zahlendeutsch von Hand. */
+function bloeckeText(n, prefix){
+  if(!n) return "Heute nichts geplant";
+  const wort = ZAHLWORT[n] ? ZAHLWORT[n].toLowerCase() : String(n);
+  return n === 1 ? `${prefix}einem Block` : `${prefix}${wort} Blöcken`;
+}
 /* Warum die zweite Seite nicht in die Kurve geht — das ist je Uebung ein
    anderer Grund, und der Unterschied ist fachlich erheblich. */
 function zweiteSeiteGrund(ex){
@@ -1192,7 +1198,7 @@ function showWorkoutResult(gespeichert, painEnd){
         .toLocaleDateString("de-DE", {weekday:"long", day:"numeric", month:"long"});
   show("home");
   el("homeTitle").textContent = "Workout gespeichert";
-  el("homeSub").textContent = `${gespeichert.length} Blöcke · Schmerzwert ${painEnd}`;
+  el("homeSub").textContent = `${bloeckeText(gespeichert.length, "")} · Schmerzwert ${painEnd}`;
   el("homeBody").innerHTML = `
     ${gespeichert.map(({ses})=>`
       <div class="card">
@@ -1308,7 +1314,7 @@ function historySVG(pts){
 /* ═══════════ Bildschirme ═══════════ */
 function renderHome(){
   el("homeTitle").textContent = "Heute";
-  el("homeSub").textContent = `Workout aus ${(S.plan && S.plan.blocks ? S.plan.blocks.length : 5)} Blöcken`;
+  el("homeSub").textContent = "";   /* steht erst fest, wenn der Plan gebaut ist */
 
   if(S.redflag){
     el("homeBody").innerHTML = `<div class="note bad"><b>Bitte zuerst ärztlich abklären.</b>
@@ -1323,6 +1329,7 @@ function renderHome(){
   S.plan = p; S.planDay = today(); save();
   const z = ZONES.find(x=>x.id===p.zone);
   const g = gate();
+  el("homeSub").textContent = bloeckeText(p.blocks.length, "Workout aus ");
 
   /* ── Welche Übungen sind heute dabei ─────────────────────── */
   const auswahlKarte = () => {
