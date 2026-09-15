@@ -1642,11 +1642,13 @@ function renderSetup(){
     </div>
     <div class="card">
       <h3 style="margin-top:0">Stufen und Lastfaktoren</h3>
-      <div class="note warn" style="margin-top:0">Die Zahl ist der geschätzte <b>Anteil deines
-      Körpergewichts</b> auf den Händen beziehungsweise auf dem vorderen Bein. Es sind
-      <b>Schätzungen</b>, keine Messungen. Die fertige App lernt sie aus den Daten vieler Nutzer
-      (Handoff 4.2) — ein einzelner Nutzer kann das nicht. Fürs Modell zählen ohnehin nur die
-      Verhältnisse.</div>
+      <div class="note warn" style="margin-top:0">Die Zahl ist ein <b>Lastverhältnis innerhalb
+      einer Übung</b> — zwischen zwei Übungen sagt sie nichts, jede hat ihre eigene Kurve. Beim
+      Liegestütz und Ausfallschritt ist es der geschätzte Anteil des Körpergewichts auf den Händen
+      beziehungsweise dem vorderen Bein; beim Seitstütz das gerechnete Biegemoment an der Taille.
+      Liegestütz und Ausfallschritt sind <b>Schätzungen</b>, der Seitstütz ist gerechnet — gemessen
+      ist beides nicht. Die fertige App lernt die Werte aus den Daten vieler Nutzer (Handoff 4.2);
+      ein einzelner Nutzer kann das nicht.</div>
       <div id="lvlEdit"></div>
       <button class="ghost" style="width:100%;margin-top:8px" id="lvlSave">Speichern</button>
     </div>
