@@ -1130,6 +1130,9 @@ function zweiteSeiteGrund(ex, bloecke){
 /* Stufenbezeichnung inklusive Zusatzgewicht. Die Zahl gehoert an den Namen,
    sonst steht im Verlauf zweimal dieselbe Stufe bei verschiedenen Lasten. */
 const komma = (v, n) => v.toFixed(n).replace(".", ",");
+/* Deutsche Mehrzahl ist kein angehaengtes Suffix — "Satz" wird zu "Sätze",
+   nicht zu "Satzätze". Eine Stelle, damit der Fehler nicht wiederkommt. */
+const anzahl = (n, ein, viele) => `${n} ${n === 1 ? ein : viele}`;
 function stufenName(ex, level, kg){
   const L = S.ex[ex] && S.ex[ex].levels[level];
   if(!L) return "—";
@@ -1290,9 +1293,10 @@ function satzVerworfen(){
   el("homeBody").innerHTML = `
     <div class="card">
       <p class="muted" style="margin-top:0">Nur dieser Satz ist weg.${
-        hatSaetze ? ` Die ${RUN.sets.length} Satz${RUN.sets.length===1?"":"ätze"} vorher in
-        diesem Block ${RUN.sets.length===1?"steht":"stehen"} noch.` : ""}${
-        hatBloecke ? ` Die ${RUN.fertig.length} abgeschlossenen Blöcke ebenfalls.` : ""}</p>
+        hatSaetze ? ` ${anzahl(RUN.sets.length, "Satz", "Sätze")} vorher in diesem Block ${
+        RUN.sets.length===1?"steht":"stehen"} noch.` : ""}${
+        hatBloecke ? ` Die ${anzahl(RUN.fertig.length, "abgeschlossene Block",
+        "abgeschlossenen Blöcke")} ebenfalls.` : ""}</p>
       <button class="primary" style="width:100%;margin-top:14px;padding:16px" id="wdh">
         Satz wiederholen</button>
       ${hatSaetze
@@ -1536,11 +1540,12 @@ function renderHome(){
     el("homeBody").innerHTML = `
       <div class="card">
         <span class="pill pRest">unterbrochen</span>
-        <h2 style="margin:11px 0 2px">${n} Satz${n===1?"":"ätze"} sind gesichert</h2>
-        <p class="muted" style="margin:0">${b} von ${L.plan.blocks.length} Block${
-          L.plan.blocks.length===1?"":"öcken"} abgeschlossen${
-          (L.sets||[]).length ? ` · im laufenden Block ${L.sets.length} Satz${
-          L.sets.length===1?"":"ätze"}` : ""}</p>
+        <h2 style="margin:11px 0 2px">${anzahl(n, "Satz", "Sätze")} ${
+          n===1?"ist":"sind"} gesichert</h2>
+        <p class="muted" style="margin:0">${b} von ${anzahl(L.plan.blocks.length,
+          "Block", "Blöcken")} abgeschlossen${
+          (L.sets||[]).length ? ` · im laufenden Block ${
+          anzahl(L.sets.length, "Satz", "Sätze")}` : ""}</p>
         <p class="tiny" style="margin-top:12px">${heute
           ? `Die App hat den Lauf nach jedem Satz gesichert. Du kannst dort weitermachen, wo du
              aufgehört hast — die Pause dazwischen ist kein Problem, sie steht nur nicht im
@@ -1550,7 +1555,8 @@ function renderHome(){
         ${heute ? `<button class="primary" style="width:100%;margin-top:12px;padding:16px"
           id="lfWeiter">Weitermachen</button>` : ""}
         ${b ? `<button class="ghost" style="width:100%;margin-top:8px" id="lfSpeichern">${
-          b} fertige Block${b===1?"":"öcke"} abschließen und speichern</button>` : ""}
+          b===1 ? "Fertigen Block" : `${b} fertige Blöcke`} abschließen und
+          speichern</button>` : ""}
         <button class="ghost" style="width:100%;margin-top:8px" id="lfWeg">Verwerfen</button>
       </div>`;
     if(el("lfWeiter")) el("lfWeiter").onclick = ()=>{ beep(660,60,.05); laufFortsetzen(); };
@@ -1560,7 +1566,8 @@ function renderHome(){
       finishWorkout();
     };
     el("lfWeg").onclick = ()=>{
-      if(confirm(`${n} gemessene Sätze verwerfen? Das lässt sich nicht rückgängig machen.`))
+      if(confirm(`${anzahl(n, "gemessenen Satz", "gemessene Sätze")} verwerfen? `
+               + `Das lässt sich nicht rückgängig machen.`))
         { laufVerwerfen(); render(); }
     };
     return;
