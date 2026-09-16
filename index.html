@@ -384,7 +384,7 @@ const RED_FLAGS = [
 /* Stand der ausgelieferten Fassung. Steht unten in der App und beim Start in der
    Konsole — daran erkennst du am Handy, ob das Update schon angekommen ist.
    Wird bei jeder Änderung hochgezählt. */
-const BUILD = "2026-09-16 b";
+const BUILD = "2026-09-16 c";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
@@ -413,7 +413,7 @@ function fresh(){
        Ausfallschritt links und Ausfallschritt rechts sind drei Messreihen mit
        eigenem Stand. Vorher war das global — eine Schmerzserie am Knie stufte
        die Schulter mit zurueck. */
-    levels:{}, streak:{},
+    levels:{}, streak:{}, lauf:null,
     /* Zusatzgewicht in kg, je Kurve gemerkt — wie die Stufe. */
     extra:{}, bw:BW_DEFAULT,
     /* Welche Uebungen gehoeren ueberhaupt ins Workout. Wer heute nur den
@@ -434,6 +434,8 @@ function normalize(d){
                                     rest: stale ? {...DEFAULT_REST}
                                                 : Object.assign({...DEFAULT_REST}, d.rest||{}),
                                     aktiv: d.aktiv || {},
+                                    /* Ein angefangener Lauf ueberlebt das Neuladen. */
+                                    lauf: (d.lauf && d.lauf.plan) ? d.lauf : null,
                                     extra: leitersturz ? {} : (d.extra || {}),
                                     bw: (d.bw > 0 ? d.bw : BW_DEFAULT),
                                     levels: leitersturz ? {} : (d.levels || {}),
@@ -1064,9 +1066,46 @@ function endSet(aborted){
 /* ═══════════ Sessionablauf ═══════════ */
 let RUN = null;
 
+/* ═══════════ Der laufende Lauf ═══════════
+   RUN lebte nur im Arbeitsspeicher, gespeichert wurde erst nach dem letzten
+   Satz des letzten Blocks. Ein gesperrtes Handy, ein Tabwechsel, ein
+   Neuladen — und alles bereits Gemessene war weg. Auf dem Handy ist das kein
+   Randfall: Wer zwischen zwei Bloecken Pause macht, laesst den Tab genau so
+   lange im Hintergrund, wie das System braucht, um ihn wegzuraeumen.
+   Jetzt wird nach JEDEM Satz und jedem Block gesichert, und die App bietet
+   beim naechsten Start an, dort weiterzumachen. */
+function laufSichern(){
+  S.lauf = RUN ? {plan:RUN.plan, b:RUN.b, fertig:RUN.fertig, sets:RUN.sets, i:RUN.i,
+                  tag: today(), start: RUN.start, stand: Date.now()} : null;
+  save();
+}
+function laufVerwerfen(){ RUN = null; S.lauf = null; save(); }
+
+/* Zurueck in einen unterbrochenen Lauf — an genau der Stelle, an der er stand. */
+function laufFortsetzen(){
+  const L = S.lauf;
+  RUN = {plan:L.plan, b:L.b||0, fertig:(L.fertig||[]).slice(),
+         sets:(L.sets||[]).slice(), i:L.i||0, start: L.start || L.stand};
+  if(RUN.i >= SETS){                        /* Block war abgeschlossen */
+    RUN.b++;
+    if(RUN.b >= RUN.plan.blocks.length){ finishWorkout(); return; }
+    startBlock(); laufSichern(); return;    /* setzt sets und i zurueck */
+  }
+  if(RUN.i === 0){ startBlock(); laufSichern(); return; }
+  const bl = curBlock();                    /* mitten im Block weiter */
+  RUN.load = lastVon(bl.exercise, bl.level, bl.extra);
+  RUN.levelName = stufenName(bl.exercise, bl.level, bl.extra);
+  nextSet();
+}
+/* Wie viele Saetze stecken schon im Lauf? */
+function laufSaetze(L){
+  return (L.fertig||[]).reduce((a,b)=>a+(b.sets?b.sets.length:0), 0) + (L.sets||[]).length;
+}
+
 function startWorkout(){
   const p = S.plan || planWorkout();
-  RUN = {plan:p, b:0, fertig:[], sets:[], i:0};
+  RUN = {plan:p, b:0, fertig:[], sets:[], i:0, start: Date.now()};
+  laufSichern();
   startBlock();
 }
 const ZAHLWORT = ["null","Ein","Zwei","Drei","Vier","Fünf","Sechs","Sieben","Acht"];
@@ -1137,7 +1176,7 @@ function betweenBlocks(){
       <button class="primary" style="width:100%;margin-top:12px;padding:16px" id="goBlock">
         Block starten</button>
     </div>`;
-  el("goBlock").onclick = ()=>{ beep(660,60,.05); RUN.b = n; startBlock(); };
+  el("goBlock").onclick = ()=>{ beep(660,60,.05); RUN.b = n; startBlock(); laufSichern(); };
 }
 /* Zielzeit des naechsten Satzes.
    Satz 1  — aus der Kurve (oder der Zone, solange es keine gibt).
@@ -1167,7 +1206,7 @@ function nextSet(){
     target: tgt,
     lead: RUN.i === 0,
     done: (time, roh)=>{
-      if(time===null){ RUN=null; render(); return; }
+      if(time===null){ satzVerworfen(); return; }
       afterSet(time, tgt, roh);
     }
   });
@@ -1212,6 +1251,7 @@ function afterSet(time, tgt, roh){
   const speichern = ()=>{
     RUN.sets.push({time, target:tgt, pain: el("painChk").checked});
     RUN.i++;
+    laufSichern();
   };
 
   if(letzter){
@@ -1237,6 +1277,49 @@ function afterSet(time, tgt, roh){
   }, 1000);
 }
 
+/* Ein abgebrochener Satz ist ein abgebrochener SATZ. Vorher flog dabei der
+   ganze Lauf weg — samt aller Bloecke, die vorher schon gemessen waren. Der
+   Bestaetigungsdialog versprach "Satz verwerfen?" und tat etwas anderes. */
+function satzVerworfen(){
+  const hatSaetze = RUN.sets.length > 0;
+  const hatBloecke = RUN.fertig.length > 0;
+  const letzterBlock = RUN.b + 1 >= RUN.plan.blocks.length;
+  show("home");
+  el("homeTitle").textContent = "Satz verworfen";
+  el("homeSub").textContent = blockLabel(curBlock());
+  el("homeBody").innerHTML = `
+    <div class="card">
+      <p class="muted" style="margin-top:0">Nur dieser Satz ist weg.${
+        hatSaetze ? ` Die ${RUN.sets.length} Satz${RUN.sets.length===1?"":"ätze"} vorher in
+        diesem Block ${RUN.sets.length===1?"steht":"stehen"} noch.` : ""}${
+        hatBloecke ? ` Die ${RUN.fertig.length} abgeschlossenen Blöcke ebenfalls.` : ""}</p>
+      <button class="primary" style="width:100%;margin-top:14px;padding:16px" id="wdh">
+        Satz wiederholen</button>
+      ${hatSaetze
+        ? `<button class="ghost" style="width:100%;margin-top:8px" id="blkEnde">Block hier
+             beenden${letzterBlock ? " und Workout abschließen" : " und zum nächsten"}</button>`
+        : (!letzterBlock
+          ? `<button class="ghost" style="width:100%;margin-top:8px" id="blkSkip">Block
+               überspringen</button>` : "")}
+      ${hatBloecke && !hatSaetze
+        ? `<button class="ghost" style="width:100%;margin-top:8px" id="wkEnde">Workout hier
+             abschließen und speichern</button>` : ""}
+      <button class="ghost" style="width:100%;margin-top:8px" id="wkWeg">Workout ganz
+        verwerfen</button>
+    </div>`;
+  el("wdh").onclick = ()=> nextSet();
+  if(el("blkEnde")) el("blkEnde").onclick = ()=> endBlock();
+  if(el("blkSkip")) el("blkSkip").onclick = ()=>{
+    RUN.b++; RUN.sets = []; RUN.i = 0; laufSichern();
+    if(RUN.b < RUN.plan.blocks.length) startBlock(); else finishWorkout();
+  };
+  if(el("wkEnde")) el("wkEnde").onclick = ()=> finishWorkout();
+  el("wkWeg").onclick = ()=>{
+    if(confirm("Das ganze Workout verwerfen? Alle heute gemessenen Blöcke gehen verloren."))
+      { laufVerwerfen(); render(); }
+  };
+}
+
 function endBlock(){
   const bl = curBlock();
   RUN.fertig.push({
@@ -1249,6 +1332,7 @@ function endBlock(){
     fresh: bl.fresh, userPicked: !!bl.userPicked,
     sets: RUN.sets.slice()
   });
+  laufSichern();
   if(RUN.b + 1 < RUN.plan.blocks.length) betweenBlocks();
   else finishWorkout();
 }
@@ -1287,7 +1371,9 @@ function finishWorkout(){
   mk("sc1",0,5); mk("sc2",6,10);
   el("scOk").onclick = ()=>{
     const wid  = "w" + Date.now();
-    const jetzt = new Date().toISOString();
+    /* Ein nachtraeglich abgeschlossener Lauf traegt SEIN Datum, nicht das von
+       heute — sonst wandert eine Messung von gestern in die heutige Erholung. */
+    const jetzt = new Date(RUN.start || Date.now()).toISOString();
     const gespeichert = [];
     for(const b of RUN.fertig){
       const ses = Object.assign({}, b, {date: jetzt, workout: wid, painEnd: sel});
@@ -1301,7 +1387,7 @@ function finishWorkout(){
     }
     /* Startseite wechseln, damit beide Seiten gleich oft frisch gemessen werden. */
     S.nextSide = (S.nextSide === "rechts") ? "links" : "rechts";
-    S.plan = null; S.planDay = null; ignoreRest = false; save(); RUN = null;
+    S.plan = null; S.planDay = null; ignoreRest = false; RUN = null; S.lauf = null; save();
     showWorkoutResult(gespeichert, sel);
   };
 }
@@ -1432,6 +1518,49 @@ function historySVG(pts){
 function renderHome(){
   el("homeTitle").textContent = "Heute";
   el("homeSub").textContent = "";   /* steht erst fest, wenn der Plan gebaut ist */
+
+  /* ── Unterbrochener Lauf ──────────────────────────────────────
+     Steht vor allem anderen, auch vor dem Pausentag: Was schon gemessen
+     ist, darf nicht hinter einer Sperre verschwinden. */
+  if(!RUN && S.lauf && S.lauf.plan){
+    const L = S.lauf, heute = L.tag === today();
+    const n = laufSaetze(L), b = (L.fertig||[]).length;
+    const wann = new Date(L.stand).toLocaleString("de-DE",
+      {weekday:"long", day:"numeric", month:"long", hour:"2-digit", minute:"2-digit"});
+    el("homeTitle").textContent = heute ? "Workout läuft noch" : "Angefangenes Workout";
+    el("homeSub").textContent = wann;
+    el("homeBody").innerHTML = `
+      <div class="card">
+        <span class="pill pRest">unterbrochen</span>
+        <h2 style="margin:11px 0 2px">${n} Satz${n===1?"":"ätze"} sind gesichert</h2>
+        <p class="muted" style="margin:0">${b} von ${L.plan.blocks.length} Block${
+          L.plan.blocks.length===1?"":"öcken"} abgeschlossen${
+          (L.sets||[]).length ? ` · im laufenden Block ${L.sets.length} Satz${
+          L.sets.length===1?"":"ätze"}` : ""}</p>
+        <p class="tiny" style="margin-top:12px">${heute
+          ? `Die App hat den Lauf nach jedem Satz gesichert. Du kannst dort weitermachen, wo du
+             aufgehört hast — die Pause dazwischen ist kein Problem, sie steht nur nicht im
+             Messprotokoll.`
+          : `Der Lauf ist von einem früheren Tag. Weitermessen ergibt jetzt keinen Sinn mehr,
+             aber die fertigen Blöcke lassen sich mit dem damaligen Datum speichern.`}</p>
+        ${heute ? `<button class="primary" style="width:100%;margin-top:12px;padding:16px"
+          id="lfWeiter">Weitermachen</button>` : ""}
+        ${b ? `<button class="ghost" style="width:100%;margin-top:8px" id="lfSpeichern">${
+          b} fertige Block${b===1?"":"öcke"} abschließen und speichern</button>` : ""}
+        <button class="ghost" style="width:100%;margin-top:8px" id="lfWeg">Verwerfen</button>
+      </div>`;
+    if(el("lfWeiter")) el("lfWeiter").onclick = ()=>{ beep(660,60,.05); laufFortsetzen(); };
+    if(el("lfSpeichern")) el("lfSpeichern").onclick = ()=>{
+      RUN = {plan:L.plan, b:L.b||0, fertig:(L.fertig||[]).slice(), sets:[], i:0,
+             start: L.start || L.stand};
+      finishWorkout();
+    };
+    el("lfWeg").onclick = ()=>{
+      if(confirm(`${n} gemessene Sätze verwerfen? Das lässt sich nicht rückgängig machen.`))
+        { laufVerwerfen(); render(); }
+    };
+    return;
+  }
 
   if(S.redflag){
     el("homeBody").innerHTML = `<div class="note bad"><b>Bitte zuerst ärztlich abklären.</b>
