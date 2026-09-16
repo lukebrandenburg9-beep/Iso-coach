@@ -384,7 +384,7 @@ const RED_FLAGS = [
 /* Stand der ausgelieferten Fassung. Steht unten in der App und beim Start in der
    Konsole — daran erkennst du am Handy, ob das Update schon angekommen ist.
    Wird bei jeder Änderung hochgezählt. */
-const BUILD = "2026-09-16 e";
+const BUILD = "2026-09-16 f";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
@@ -1329,7 +1329,7 @@ function endBlock(){
   RUN.fertig.push({
     exercise: bl.exercise, side: bl.side, level: bl.level,
     levelName: stufenName(bl.exercise, bl.level, bl.extra),
-    load: lastVon(bl.exercise, bl.level, bl.extra), extra: bl.extra || 0,
+    load: lastVon(bl.exercise, bl.level, bl.extra), extra: bl.extra || 0, bw: S.bw || null,
     target: bl.target, workoutZone: bl.zone,
     /* Zone nach der ERREICHTEN Zeit — wer eine Stufe selbst waehlt, landet oft woanders. */
     zone: zoneOf(RUN.sets[0].time).id,
@@ -1520,6 +1520,122 @@ function historySVG(pts){
     g += `<text x="${L-5}" y="${Y(v)+4}" text-anchor="end" font-size="11.5" fill="var(--tx3)">${v}s</text>`;
   });
   return `<svg viewBox="0 0 ${W} ${H}">${g}</svg>`;
+}
+
+/* ═══════════ Datenexport ═══════════
+   Der Zustandsexport oben sichert die App. Das hier ist etwas anderes: eine
+   MESSREIHE, eine Zeile je gehaltenem Satz, ohne Bezug auf interne Strukturen.
+   Zweck ist die Portierung — die Zeilen muessen in einem anderen Programm
+   lesbar sein, das weder S noch DEFAULT_EX kennt.
+
+   Deshalb steht in jeder Zeile der Variantenname und der Lastfaktor SO, WIE
+   SIE ZUM ZEITPUNKT DER MESSUNG GALTEN. Stufenindizes taugen dafuer nicht:
+   Die Leitern haben sich seit dem 14.09. zweimal geaendert, ein Index von
+   damals zeigt heute auf eine andere Uebung. Der Name traegt, der Index nicht.
+
+   in_kurve markiert die Zeilen, aus denen sich CP und W' fitten lassen:
+   Satz 1 einer nicht vorermuedeten Messung. Alles andere ist Training oder
+   Erholungsmessung — wertvoll, aber nicht dieselbe Groesse. */
+const EXPORT_SCHEMA = 1;
+const EXPORT_SPALTEN = [
+  "datum","workout","uebung","uebung_name","seite","variante","stufe_nr",
+  "zusatz_kg","koerpergewicht_kg","last","satz","sekunden","ziel_sekunden",
+  "schmerz","frisch","in_kurve","zone_geplant","zone_erreicht",
+  "selbst_gewaehlt","nachgetragen","fassung"
+];
+function messreihen(){
+  const zeilen = [];
+  for(const ses of S.sessions){
+    const e = S.ex[ses.exercise];
+    (ses.sets || []).forEach((satz, i) => {
+      zeilen.push({
+        datum: ses.date,
+        workout: ses.workout || "",
+        uebung: ses.exercise,
+        uebung_name: e ? e.name : ses.exercise,
+        seite: ses.side || "",
+        variante: ses.levelName || (e && e.levels[ses.level] ? e.levels[ses.level].name : ""),
+        stufe_nr: (ses.level == null) ? "" : ses.level + 1,
+        zusatz_kg: ses.extra || 0,
+        koerpergewicht_kg: ses.bw || "",
+        last: ses.load,
+        satz: i + 1,
+        sekunden: satz.time,
+        ziel_sekunden: satz.target != null ? satz.target : ses.target,
+        schmerz: satz.pain ? 1 : 0,
+        frisch: ses.fresh === false ? 0 : 1,
+        in_kurve: (i === 0 && ses.fresh !== false) ? 1 : 0,
+        zone_geplant: ses.workoutZone || "",
+        zone_erreicht: ses.zone || "",
+        selbst_gewaehlt: ses.userPicked ? 1 : 0,
+        nachgetragen: ses.manuell ? 1 : 0,
+        fassung: BUILD
+      });
+    });
+  }
+  zeilen.sort((a,b)=> (a.datum < b.datum ? -1 : a.datum > b.datum ? 1
+                      : a.workout < b.workout ? -1 : a.workout > b.workout ? 1
+                      : a.satz - b.satz));
+  return zeilen;
+}
+/* Semikolon und Dezimalkomma: so oeffnet die Datei in einem deutschen Excel
+   oder Numbers direkt in Spalten, ohne Importdialog. */
+function messreihenCSV(){
+  const feld = v => {
+    if(v == null) return "";
+    let t = String(typeof v === "number" ? String(v).replace(".", ",") : v);
+    return /[";\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+  };
+  const zeilen = messreihen();
+  return "\ufeff" + EXPORT_SPALTEN.join(";") + "\n"
+       + zeilen.map(z => EXPORT_SPALTEN.map(k => feld(z[k])).join(";")).join("\n") + "\n";
+}
+function messreihenJSON(){
+  return JSON.stringify({
+    schema: EXPORT_SCHEMA,
+    erzeugt: new Date().toISOString(),
+    fassung: BUILD,
+    hinweis: "Eine Zeile je gehaltenem Satz. in_kurve=1 markiert die Punkte, aus denen "
+           + "sich CP und W' fitten lassen (Satz 1 einer nicht vorermuedeten Messung). "
+           + "last ist ein Lastverhaeltnis INNERHALB einer Uebung, nicht zwischen Uebungen.",
+    spalten: EXPORT_SPALTEN,
+    zonen: ZONES.map(z=>({id:z.id, name:z.name, von_s:z.lo, bis_s:z.hi})),
+    uebungen: Object.entries(S.ex).map(([k,v])=>({
+      id:k, name:v.name, region:v.region, gruppe:v.group, seiten:v.sides || null,
+      stufen: v.levels.map((L,i)=>({nr:i+1, name:L.name, last:L.load}))
+    })),
+    messungen: messreihen()
+  }, null, 2);
+}
+/* Eine Datei ausliefern — im Viewer ueber die Freigabe, sonst als Download.
+   Auf dem Handy zusaetzlich ueber das Teilen-Menue, damit die Datei per
+   AirDrop direkt auf dem Rechner landet statt im Downloadordner des Telefons. */
+async function dateiRaus(name, text, typ, btn){
+  const label = btn ? btn.textContent : "";
+  const fertig = t => { if(btn){ btn.textContent = t; setTimeout(()=>btn.textContent = label, 1800); } };
+  let dl = null;
+  try{
+    dl = (window.claude && typeof claude.use === "function")
+       ? await claude.use("downloads") : null;
+  }catch(e){ dl = null; }
+  if(dl){
+    try{ await dl.save({filename:name, data:text}); fertig("Gesichert"); }
+    catch(err){ if(err && err.code !== "declined") fertig("Nicht möglich"); else fertig(label); }
+    return;
+  }
+  const blob = new Blob([text], {type:typ});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+  fertig("Gesichert");
+}
+async function dateiTeilen(name, text, typ, btn){
+  const datei = new File([text], name, {type:typ});
+  if(!(navigator.canShare && navigator.canShare({files:[datei]}))){
+    return dateiRaus(name, text, typ, btn);
+  }
+  try{ await navigator.share({files:[datei], title:"ISO Coach Messreihen"}); }
+  catch(e){ /* abgebrochen — kein Fehler */ }
 }
 
 /* ═══════════ Bildschirme ═══════════ */
@@ -1990,6 +2106,35 @@ function renderSetup(){
       <button class="ghost" style="width:100%;margin-top:8px" id="restSave">Speichern</button>
     </div>
     <div class="card">
+      <h3 style="margin-top:0">Messreihen exportieren</h3>
+      <p class="tiny">Eine Zeile je gehaltenem Satz, mit <b>Variante</b>, <b>Haltedauer</b> und
+      Lastfaktor so, wie sie zum Zeitpunkt der Messung galten. Bewusst ohne Bezug auf den
+      inneren Aufbau dieser App — die Zeilen sind in jedes andere Programm übertragbar.</p>
+      <p class="tiny"><b>CSV</b> öffnet direkt in Excel oder Numbers. <b>JSON</b> bringt
+      zusätzlich die Zonengrenzen und alle Stufenleitern mit, damit ein neuer Prototyp die
+      Zahlen einordnen kann, ohne sie zu kennen.</p>
+      <div class="row" style="margin-top:9px">
+        <button class="grow" id="csvBtn">CSV</button>
+        <button class="grow" id="jsonBtn">JSON</button>
+      </div>
+      <button class="ghost" style="width:100%;margin-top:8px;display:none" id="shareBtn">
+        Teilen (AirDrop zum Rechner)</button>
+      <p class="tiny" id="expInfo" style="margin:9px 0 0"></p>
+      <details style="margin-top:10px"><summary>Was in den Spalten steht</summary>
+        <p class="tiny"><code>in_kurve</code> ist die wichtigste Spalte: 1 bedeutet Satz 1 einer
+        nicht vorermüdeten Messung — nur aus diesen Zeilen lassen sich CP und W' fitten. Sätze 2
+        und 3 messen die Erholung, die zweite Seite ist vorermüdet; beides ist wertvoll, aber
+        nicht dieselbe Größe.</p>
+        <p class="tiny"><code>last</code> ist ein Lastverhältnis <b>innerhalb einer Übung</b>,
+        keine Kilogramm und zwischen zwei Übungen nicht vergleichbar. Enthält das Zusatzgewicht
+        bereits; <code>zusatz_kg</code> und <code>koerpergewicht_kg</code> stehen daneben, damit
+        sich die Rechnung nachvollziehen lässt.</p>
+        <p class="tiny"><code>variante</code> ist der Stufenname zum Messzeitpunkt, nicht die
+        heutige Bezeichnung. <code>stufe_nr</code> steht nur zur Orientierung daneben — die
+        Leitern haben sich geändert, ein alter Index zeigt heute woandershin.</p>
+      </details>
+    </div>
+    <div class="card">
       <h3 style="margin-top:0">Deine Daten</h3>
       <p class="tiny" style="display:flex;justify-content:space-between;gap:10px">
         <span>Speicherort</span><span id="dbState" style="font-family:var(--mono)"></span></p>
@@ -2091,7 +2236,7 @@ function renderSetup(){
     const ses = {
       exercise: ex, side: e.sides ? el("nSide").value : null,
       level: lvl, levelName: stufenName(ex, lvl, kg),
-      load: lastVon(ex, lvl, kg), extra: kg,
+      load: lastVon(ex, lvl, kg), extra: kg, bw: S.bw || null,
       target: zeiten[0], workoutZone: zoneOf(zeiten[0]).id, zone: zoneOf(zeiten[0]).id,
       fresh: !pre, userPicked: true, manuell: true,
       date: new Date(d + "T12:00:00").toISOString(),
@@ -2107,6 +2252,25 @@ function renderSetup(){
     ["nT1","nT2","nT3"].forEach(id => el(id).value = "");
     el("nPain").checked = false;
   };
+
+  /* ── Messreihen ─────────────────────────────────────────── */
+  const stempel = new Date().toISOString().slice(0,10);
+  const zeilen = messreihen();
+  const kurven = new Set(zeilen.filter(z=>z.in_kurve).map(z=>z.uebung + (z.seite?"|"+z.seite:"")));
+  el("expInfo").innerHTML = zeilen.length
+    ? `${anzahl(zeilen.length, "Zeile", "Zeilen")} · davon
+       <b>${zeilen.filter(z=>z.in_kurve).length}</b> mit <code>in_kurve=1</code> aus
+       ${anzahl(kurven.size, "Kurve", "Kurven")}.`
+    : "Noch nichts gemessen.";
+  el("csvBtn").onclick  = ()=> dateiRaus(`iso-coach-messreihen-${stempel}.csv`,
+                                          messreihenCSV(), "text/csv;charset=utf-8", el("csvBtn"));
+  el("jsonBtn").onclick = ()=> dateiRaus(`iso-coach-messreihen-${stempel}.json`,
+                                          messreihenJSON(), "application/json", el("jsonBtn"));
+  if(navigator.canShare && navigator.canShare({files:[new File([""], "t.csv", {type:"text/csv"})]})){
+    el("shareBtn").style.display = "";
+    el("shareBtn").onclick = ()=> dateiTeilen(`iso-coach-messreihen-${stempel}.csv`,
+                                               messreihenCSV(), "text/csv", el("shareBtn"));
+  }
 
   dbBadge();
   el("exSel").onchange = e=>{ S.exercise = e.target.value; fixSide(); S.plan = null; S.planDay = null; save(); render2(); };
