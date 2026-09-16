@@ -1332,6 +1332,10 @@ function endBlock(){
     fresh: bl.fresh, userPicked: !!bl.userPicked,
     sets: RUN.sets.slice()
   });
+  /* Die Saetze stecken jetzt in fertig — im laufenden Block haben sie nichts
+     mehr verloren, sonst zaehlt die Fortsetzungskarte sie doppelt. RUN.i bleibt
+     auf SETS stehen: daran erkennt laufFortsetzen(), dass der Block durch ist. */
+  RUN.sets = [];
   laufSichern();
   if(RUN.b + 1 < RUN.plan.blocks.length) betweenBlocks();
   else finishWorkout();
