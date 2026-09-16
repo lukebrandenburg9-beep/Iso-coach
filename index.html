@@ -384,7 +384,7 @@ const RED_FLAGS = [
 /* Stand der ausgelieferten Fassung. Steht unten in der App und beim Start in der
    Konsole — daran erkennst du am Handy, ob das Update schon angekommen ist.
    Wird bei jeder Änderung hochgezählt. */
-const BUILD = "2026-09-16 c";
+const BUILD = "2026-09-16 d";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
@@ -1992,6 +1992,46 @@ function renderSetup(){
       <button class="danger" style="width:100%;margin-top:8px" id="resetBtn">Alles löschen</button>
       <input type="file" id="impFile" accept=".json,application/json" style="display:none">
     </div>
+    <div class="card">
+      <h3 style="margin-top:0">Messpunkt nachtragen</h3>
+      <p class="tiny">Für Sätze, die gemessen, aber nicht gespeichert wurden — oder auf Papier
+      notiert. Der Punkt geht wie jeder andere in die Kurve. <b>Die Progressionsregeln laufen
+      dabei nicht mit</b>: Stufen und Fehlserien bleiben, wie sie sind.</p>
+      <label class="tiny" for="nEx" style="display:block;margin-bottom:4px">Übung und Seite</label>
+      <div class="row" style="gap:7px">
+        <select id="nEx" style="flex:1">${Object.entries(S.ex).map(([k,v])=>
+          `<option value="${k}">${v.name}</option>`).join("")}</select>
+        <select id="nSide" style="flex:1"></select>
+      </div>
+      <label class="tiny" for="nLvl" style="display:block;margin:9px 0 4px">Stufe</label>
+      <select id="nLvl" style="width:100%"></select>
+      <div class="row" style="gap:7px;margin-top:9px">
+        <div style="flex:1">
+          <label class="tiny" for="nKg" style="display:block;margin-bottom:4px">Zusatzgewicht (kg)</label>
+          <input type="number" id="nKg" value="0" min="0" max="60" step="2.5"
+            inputmode="decimal" style="width:100%"></div>
+        <div style="flex:1">
+          <label class="tiny" for="nDate" style="display:block;margin-bottom:4px">Datum</label>
+          <input type="date" id="nDate" style="width:100%"></div>
+      </div>
+      <label class="tiny" style="display:block;margin:9px 0 4px">Haltezeiten in Sekunden —
+        Satz 1 genügt</label>
+      <div class="row" style="gap:7px">
+        <input type="number" id="nT1" placeholder="Satz 1" min="1" max="900" inputmode="numeric"
+          style="flex:1">
+        <input type="number" id="nT2" placeholder="Satz 2" min="1" max="900" inputmode="numeric"
+          style="flex:1">
+        <input type="number" id="nT3" placeholder="Satz 3" min="1" max="900" inputmode="numeric"
+          style="flex:1">
+      </div>
+      <label class="chk" for="nPain" style="margin-top:9px"><input type="checkbox" id="nPain">
+        <span class="tiny">Satz 1 wegen <b>Schmerzen</b> beendet</span></label>
+      <label class="chk" for="nPre" style="margin-bottom:0"><input type="checkbox" id="nPre">
+        <span class="tiny">Als <b>vorermüdet</b> führen — zweite Seite oder später im Workout.
+        Geht dann nicht in die Kurve.</span></label>
+      <button class="ghost" style="width:100%;margin-top:10px" id="nSave">Eintragen</button>
+      <p class="tiny" id="nHint" style="margin:8px 0 0;min-height:18px"></p>
+    </div>
     <details><summary>Was dieser Prototyp umsetzt — und was nicht</summary>
       <p class="tiny"><b>Umgesetzt:</b> Die 2-Parameter-Kurve aus Handoff 4.1 mit Alterung der
       Messpunkte · das gespreizte Onboarding über drei Stufen (M7, Abschnitt 4.4) · die
@@ -2007,6 +2047,55 @@ function renderSetup(){
     <p class="tiny" style="text-align:center;margin:18px 0 4px">
       ISO Coach · Prototyp · Fassung ${BUILD}<br>
       Kein Medizinprodukt. Keine Diagnose, keine Therapieempfehlung.</p>`;
+
+  /* ── Nachtragen ─────────────────────────────────────────── */
+  const nFill = ()=>{
+    const ex = el("nEx").value, e = S.ex[ex];
+    el("nSide").innerHTML = e.sides
+      ? e.sides.map(x=>`<option value="${x}">${x}</option>`).join("")
+      : `<option value="">—</option>`;
+    el("nSide").disabled = !e.sides;
+    el("nLvl").innerHTML = e.levels.map((L,i)=>
+      `<option value="${i}">${i+1}. ${L.name}</option>`).join("");
+    el("nKg").disabled = false;
+  };
+  el("nEx").onchange = nFill;
+  nFill();
+  el("nDate").value = new Date(Date.now() - new Date().getTimezoneOffset()*60000)
+                        .toISOString().slice(0,10);
+  el("nSave").onclick = ()=>{
+    const hint = el("nHint");
+    const ex = el("nEx").value, e = S.ex[ex];
+    const lvl = +el("nLvl").value;
+    const kg  = Math.max(0, +el("nKg").value || 0);
+    const zeiten = ["nT1","nT2","nT3"].map(id => +el(id).value)
+                   .filter(v => v > 0 && v <= 900);
+    if(!zeiten.length){
+      hint.textContent = "Mindestens die Zeit von Satz 1 eintragen.";
+      hint.style.color = "var(--bad)"; return;
+    }
+    const d = el("nDate").value;
+    if(!d){ hint.textContent = "Datum fehlt."; hint.style.color = "var(--bad)"; return; }
+    const pre = el("nPre").checked;
+    const ses = {
+      exercise: ex, side: e.sides ? el("nSide").value : null,
+      level: lvl, levelName: stufenName(ex, lvl, kg),
+      load: lastVon(ex, lvl, kg), extra: kg,
+      target: zeiten[0], workoutZone: zoneOf(zeiten[0]).id, zone: zoneOf(zeiten[0]).id,
+      fresh: !pre, userPicked: true, manuell: true,
+      date: new Date(d + "T12:00:00").toISOString(),
+      workout: "nach-" + Date.now(), painEnd: null,
+      sets: zeiten.map((t,i) => ({time:t, target:t, pain: i===0 && el("nPain").checked}))
+    };
+    S.sessions.push(ses);
+    S.sessions.sort((a,b)=> new Date(a.date) - new Date(b.date));
+    S.plan = null; S.planDay = null; save();
+    hint.innerHTML = `Eingetragen: <b>${labelOf(ex, ses.side)}</b> · ${ses.levelName} ·
+      ${zeiten.map(t=>fmt(t)).join(" · ")}${pre ? " · vorermüdet, nicht in der Kurve" : ""}.`;
+    hint.style.color = "var(--ok)";
+    ["nT1","nT2","nT3"].forEach(id => el(id).value = "");
+    el("nPain").checked = false;
+  };
 
   dbBadge();
   el("exSel").onchange = e=>{ S.exercise = e.target.value; fixSide(); S.plan = null; S.planDay = null; save(); render2(); };
