@@ -290,6 +290,12 @@ const DEFAULT_REST     = {A:7, B:7, C:7};
 const DEFAULT_EX = {
   push: {
     name:"Liegestütz", region:"Schulter", group:"push", sides:null,
+    /* Ab dieser Stufe bietet die App Zusatzgewicht an. Darunter ist die
+       Leiter das richtige Werkzeug: Wer mehr Last braucht, geht erst eine
+       Stufe hoch. extraK sagt, wie stark ein Kilo wirkt, gemessen in
+       Koerpergewichts-Anteilen — siehe Kommentar bei lastVon(). */
+    extraAb:6, extraK:1,
+    extraHint:"Rucksack, körpernah zwischen den Schulterblättern.",
     hint:"Körper eine gerade Linie von der Ferse bis zum Kopf, Schulterblätter stabil. "
         +"Füße so weit zurück, dass du die Last in den Händen spürst. Liegt eine Stufe zwischen "
         +"zwei Zonen, hilft ein Rucksack — das ist die feinste Verstellung, die du hast.",
@@ -307,6 +313,8 @@ const DEFAULT_EX = {
   },
   lunge: {
     name:"Ausfallschritt", region:"Knie", group:"legs", sides:["links","rechts"],
+    extraAb:5, extraK:1,
+    extraHint:"Rucksack oder Weste, körpernah getragen.",
     hint:"Vorderes Knie über dem Mittelfuß, Rumpf aufrecht. Das hintere Knie senkt sich bis zum "
         +"genannten Gegenstand — der macht die Tiefe wiederholbar. Keine Handstütze; ein "
         +"Fingerkontakt an der Wand fürs Gleichgewicht ist in Ordnung. Zwischen zwei Stufen "
@@ -318,8 +326,7 @@ const DEFAULT_EX = {
       {name:"bis dickes Kissen (~12 cm)",                  load:0.72},
       {name:"knapp über den Boden (Standard)",             load:0.90},
       {name:"Hinterer Fuß ~20 cm erhöht, bis Kissen",      load:1.05},
-      {name:"Hinterer Fuß ~30 cm erhöht, voll",            load:1.25},
-      {name:"Hinterer Fuß erhöht + Zusatzlast",            load:1.45}
+      {name:"Hinterer Fuß ~30 cm erhöht, voll",            load:1.25}
     ]
   },
   /* Seitstuetz. Die Leiter ist gerechnet, nicht geschaetzt: Das Biegemoment an
@@ -341,6 +348,12 @@ const DEFAULT_EX = {
      leichter, sie misst etwas anderes. Steht als P21 im Protokoll. */
   plank: {
     name:"Seitstütz", region:"Rumpf", group:"core", sides:["links","rechts"],
+    /* extraK = 2: Ein Kilo auf der oberen Huefte wirkt hier doppelt so stark
+       wie sein Anteil am Koerpergewicht — es sitzt am wirksamsten Hebelpunkt.
+       Deshalb steht der Ort in extraHint und nicht als Empfehlung nebenbei. */
+    extraAb:6, extraK:2,
+    extraHint:"Auf der oberen Hüfte, nicht auf dem Brustkorb — am Brustkorb wirkt dasselbe "
+             +"Gewicht nur zu einem Achtel.",
     hint:"»Links« heißt: du stützt auf dem LINKEN Unterarm, die linke Rumpfseite arbeitet. "
         +"Ellenbogen senkrecht unter der Schulter, Hüfte nach oben gedrückt. Der Körper ist "
         +"eine gerade Linie — auch von vorne gesehen: die obere Hüfte darf nicht nach hinten "
@@ -353,10 +366,7 @@ const DEFAULT_EX = {
       {name:"Knie abgelegt · Unterarm am Boden (kurzer Hebel)",      load:0.57},
       {name:"Beine gestreckt · Unterarm auf Arbeitsplatte (~90 cm)", load:0.70},
       {name:"Beine gestreckt · Unterarm auf Tischplatte (~75 cm)",   load:0.77},
-      {name:"Beine gestreckt · Unterarm am Boden (Standard)",        load:0.90},
-      {name:"Standard · 5 kg auf der oberen Hüfte",                  load:1.01},
-      {name:"Standard · 10 kg auf der oberen Hüfte",                 load:1.13},
-      {name:"Standard · 15 kg auf der oberen Hüfte",                 load:1.24}
+      {name:"Beine gestreckt · Unterarm am Boden (Standard)",        load:0.90}
     ]
   }
 };
@@ -374,17 +384,21 @@ const RED_FLAGS = [
 /* Stand der ausgelieferten Fassung. Steht unten in der App und beim Start in der
    Konsole — daran erkennst du am Handy, ob das Update schon angekommen ist.
    Wird bei jeder Änderung hochgezählt. */
-const BUILD = "2026-09-16 a";
+const BUILD = "2026-09-16 b";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
    Update alte Levels kleben. Sessions bleiben dabei immer erhalten. */
-const EX_VERSION = 6;
+const EX_VERSION = 7;
+/* Voreinstellung, bis der Nutzer sein Gewicht einträgt. Nur als Bezugsgroesse
+   fuer Zusatzlast noetig — die Lastfaktoren selbst sind gewichtsunabhaengige
+   Verhaeltniszahlen. */
+const BW_DEFAULT = 80;
 /* Fassung, in der sich zuletzt STUFEN einer bestehenden Uebung geaendert haben.
    Nur dann muessen gespeicherte Levels weg — sie zeigen sonst auf eine Leiter,
    die es nicht mehr gibt. Kommt bloss eine Uebung DAZU (6: Seitstuetz), bleiben
    Liegestuetz und Ausfallschritt stehen, wo sie waren. */
-const LEVELS_RESET_AT = 5;
+const LEVELS_RESET_AT = 7;
 let S = load();
 /* Muss nach load() laufen: sidesOf() braucht S.sessions. */
 (function(){ const sd = S.ex[S.exercise] ? sidesOf(S.exercise) : [null];
@@ -400,6 +414,8 @@ function fresh(){
        eigenem Stand. Vorher war das global — eine Schmerzserie am Knie stufte
        die Schulter mit zurueck. */
     levels:{}, streak:{},
+    /* Zusatzgewicht in kg, je Kurve gemerkt — wie die Stufe. */
+    extra:{}, bw:BW_DEFAULT,
     /* Welche Uebungen gehoeren ueberhaupt ins Workout. Wer heute nur den
        Seitstuetz machen will, nimmt die anderen beiden raus — die Einstellung
        bleibt stehen, bis er sie wieder anhakt. */
@@ -418,6 +434,8 @@ function normalize(d){
                                     rest: stale ? {...DEFAULT_REST}
                                                 : Object.assign({...DEFAULT_REST}, d.rest||{}),
                                     aktiv: d.aktiv || {},
+                                    extra: leitersturz ? {} : (d.extra || {}),
+                                    bw: (d.bw > 0 ? d.bw : BW_DEFAULT),
                                     levels: leitersturz ? {} : (d.levels || {}),
                                     streak: leitersturz ? {} : (d.streak || {}),
                                     reaction: (d.reaction == null ? REACTION_DEFAULT : d.reaction),
@@ -723,6 +741,31 @@ const ANNAHME_CP = 0.5;
    trotzdem jede Stufe zu — die Karte nennt beide Zahlen. */
 const MAX_SPRUNG = 3;
 
+/* ═══════════ Last einer Stufe, mit Zusatzgewicht ═══════════
+   Die Lastfaktoren sind Anteile des KOERPERGEWICHTS. Wer X kg dazunimmt,
+   traegt BW+X — der Anteil bleibt gleich, die absolute Last waechst um
+   X/BW. Das gilt fuer Liegestuetz und Ausfallschritt, wo die Zusatzlast
+   koerpernah am Rumpf sitzt (extraK = 1).
+   Beim Seitstuetz nicht: Dort ist die Last ein BIEGEMOMENT, und ein Kilo auf
+   der oberen Huefte sitzt am wirksamsten Hebelpunkt — es zaehlt doppelt
+   (extraK = 2). Dasselbe Kilo am Brustkorb waere fast wirkungslos; deshalb
+   steht der Ort in der Bedienung und nicht nur im Kleingedruckten. */
+const extraOf = key => (S.extra && S.extra[key]) || 0;
+function extraFaktor(ex, kg){
+  if(!kg) return 1;
+  const e = S.ex[ex], bw = (S.bw > 0 ? S.bw : BW_DEFAULT);
+  return 1 + ((e && e.extraK != null) ? e.extraK : 1) * kg / bw;
+}
+function lastVon(ex, level, kg){
+  const L = S.ex[ex] && S.ex[ex].levels[level];
+  return L ? Math.round(L.load * extraFaktor(ex, kg) * 1000) / 1000 : 0;
+}
+/* Ab welcher Stufe bietet die Uebung Zusatzgewicht an? */
+function extraAbOf(ex){
+  const e = S.ex[ex];
+  return (e && e.extraAb != null) ? e.extraAb : e.levels.length - 1;
+}
+
 function ankerpunkt(ex){
   const frisch = [], vorermuedet = [];
   for(const ses of S.sessions){
@@ -738,10 +781,12 @@ function ankerpunkt(ex){
           level: letzte.level || 0,
           quelle: frisch.length ? "gemessen" : "vorermüdet"};
 }
-/* Nachster Leiterplatz zu einer gewuenschten Last. */
-function stufeZuLast(lv, ziel){
+/* Nachster Leiterplatz zu einer gewuenschten Last — mit dem Zusatzgewicht,
+   das fuer diese Kurve eingestellt ist. */
+function stufeZuLast(ex, ziel, kg){
+  const lv = S.ex[ex].levels;
   let best = Infinity, k = 0;
-  lv.forEach((L,i)=>{ const d = Math.abs(Math.log(L.load/ziel));
+  lv.forEach((L,i)=>{ const d = Math.abs(Math.log(lastVon(ex,i,kg)/ziel));
                       if(d < best){ best = d; k = i; } });
   return k;
 }
@@ -759,11 +804,12 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb){
   const f   = fit(points(ex, side));
   const lv  = S.ex[ex].levels;
   const key = keyOf(ex, side);
+  const kg = extraOf(key);
   let level = (S.levels && S.levels[key]) || 0, best = Infinity;
   let herkunft = "stand", anker = null, roh = null;
   if(f){
     lv.forEach((L,i)=>{
-      const t = predictTime(f, L.load);
+      const t = predictTime(f, lastVon(ex, i, kg));
       if(!isFinite(t)) return;
       const d = Math.abs(Math.log(t/target));
       if(d < best){ best = d; level = i; }
@@ -771,7 +817,7 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb){
     herkunft = "kurve";
   } else if((anker = ankerpunkt(ex))){
     const ziel = anker.load * (ANNAHME_CP + (1-ANNAHME_CP) * anker.time / target);
-    roh   = stufeZuLast(lv, ziel);
+    roh   = stufeZuLast(ex, ziel, kg);
     level = Math.min(roh, anker.level + MAX_SPRUNG, lv.length-1);
     herkunft = "anker";
   } else {
@@ -781,9 +827,9 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb){
     level = Math.round([0.2, 0.5, 0.75][schritt] * (lv.length - 1));
     herkunft = "start";
   }
-  const tt = f ? predictTime(f, lv[level].load) : target;
+  const tt = f ? predictTime(f, lastVon(ex, level, kg)) : target;
   return {exercise:ex, side, zone, fresh, zweiteSeite: !fresh, level, levelVorschlag:level,
-          fehlt: fehlt.map(o=>o.z), abgewichen: !!luecke,
+          extra: kg, fehlt: fehlt.map(o=>o.z), abgewichen: !!luecke,
           herkunft, anker, rohStufe: roh,
           target: Math.max(15, Math.round(isFinite(tt) ? tt : target))};
 }
@@ -901,7 +947,7 @@ function applyRules(session){
   /* Regel 4 — Level rauf, wenn die Stufe die Obergrenze von Zone C erreicht */
   const f = curFit(session.exercise, session.side);
   if(f && !first.pain && lvNow() < lv.length-1){
-    const t = predictTime(f, lv[lvNow()].load);
+    const t = predictTime(f, lastVon(session.exercise, lvNow(), extraOf(key)));
     if(isFinite(t) && t > 150){
       S.levels[key] = lvNow() + 1;
       msgs.push({t:"ok", x:`${labelOf(session.exercise, session.side)}: Diese Stufe trägt über 150 Sekunden → eine Stufe höher auf „${lv[lvNow()].name}".`});
@@ -1042,14 +1088,21 @@ function zweiteSeiteGrund(ex, bloecke){
     : `Die andere Rumpfseite arbeitet mit eigenen Muskeln, und heute läuft nur diese eine
        Übung — viel spricht hier nicht gegen eine Messung.`;
 }
+/* Stufenbezeichnung inklusive Zusatzgewicht. Die Zahl gehoert an den Namen,
+   sonst steht im Verlauf zweimal dieselbe Stufe bei verschiedenen Lasten. */
+function stufenName(ex, level, kg){
+  const L = S.ex[ex] && S.ex[ex].levels[level];
+  if(!L) return "—";
+  return kg ? `${L.name} + ${kg} kg` : L.name;
+}
 function curBlock(){ return RUN.plan.blocks[RUN.b]; }
 function blockLabel(bl){ return labelOf(bl.exercise, bl.side); }
 
 function startBlock(){
   const bl = curBlock();
   RUN.sets = []; RUN.i = 0;
-  RUN.load = S.ex[bl.exercise].levels[bl.level].load;
-  RUN.levelName = S.ex[bl.exercise].levels[bl.level].name;
+  RUN.load = lastVon(bl.exercise, bl.level, bl.extra);
+  RUN.levelName = stufenName(bl.exercise, bl.level, bl.extra);
   nextSet();
 }
 
@@ -1064,7 +1117,7 @@ function betweenBlocks(){
     <div class="card">
       <span class="pill ${ZONES.find(z=>z.id===bl.zone).cls}">Zone ${bl.zone}</span>
       <h2 style="margin:11px 0 2px">${blockLabel(bl)}</h2>
-      <p class="muted" style="margin:0">${ex.levels[bl.level].name}</p>
+      <p class="muted" style="margin:0">${stufenName(bl.exercise, bl.level, bl.extra)}</p>
       ${bl.zweiteSeite && !bl.fresh ? `<div class="note warn" style="margin-top:12px"><b>Zweite
         Seite — wird trainiert, nicht gemessen.</b> ${zweiteSeiteGrund(bl.exercise, RUN.plan.blocks.length)}
         Der Satz wird aufgezeichnet und im Verlauf als <i>vorermüdet</i> geführt, geht aber
@@ -1187,8 +1240,8 @@ function endBlock(){
   const bl = curBlock();
   RUN.fertig.push({
     exercise: bl.exercise, side: bl.side, level: bl.level,
-    levelName: S.ex[bl.exercise].levels[bl.level].name,
-    load: S.ex[bl.exercise].levels[bl.level].load,
+    levelName: stufenName(bl.exercise, bl.level, bl.extra),
+    load: lastVon(bl.exercise, bl.level, bl.extra), extra: bl.extra || 0,
     target: bl.target, workoutZone: bl.zone,
     /* Zone nach der ERREICHTEN Zeit — wer eine Stufe selbst waehlt, landet oft woanders. */
     zone: zoneOf(RUN.sets[0].time).id,
@@ -1474,7 +1527,7 @@ function renderHome(){
   /* ── Workoutkarte ────────────────────────────────────────── */
   const blockKarte = (bl, i) => {
     const ex = S.ex[bl.exercise], f = curFit(bl.exercise, bl.side);
-    const tp = f ? predictTime(f, ex.levels[bl.level].load) : null;
+    const tp = f ? predictTime(f, lastVon(bl.exercise, bl.level, bl.extra)) : null;
     const zz = (tp && isFinite(tp)) ? zoneOf(tp) : null;
     return `
       <div class="card flat">
@@ -1492,13 +1545,28 @@ function renderHome(){
           <button class="ghost" id="lvlMinus${i}" style="flex:0 0 52px;font-size:22px;padding:0"
             ${bl.level===0?"disabled":""} aria-label="leichtere Stufe">−</button>
           <select id="lvlPick${i}" data-b="${i}" style="flex:1">${ex.levels.map((L,k)=>{
-            const t = f ? predictTime(f, L.load) : null;
+            const t = f ? predictTime(f, lastVon(bl.exercise, k, bl.extra)) : null;
             const hint = (t && isFinite(t)) ? ` · erwartet ${fmt(t)}` : "";
             return `<option value="${k}" ${k===bl.level?"selected":""}>${L.name}${hint}</option>`;
           }).join("")}</select>
           <button class="ghost" id="lvlPlus${i}" style="flex:0 0 52px;font-size:22px;padding:0"
             ${bl.level>=ex.levels.length-1?"disabled":""} aria-label="schwerere Stufe">+</button>
         </div>
+        ${bl.level >= extraAbOf(bl.exercise) ? `
+          <div class="row" style="gap:7px;align-items:center;margin-top:8px">
+            <label class="tiny" for="kgPick${i}" style="flex:1;margin:0">Zusatzgewicht</label>
+            <button class="ghost" id="kgMinus${i}" style="flex:0 0 52px;font-size:22px;padding:0"
+              ${(bl.extra||0)<=0?"disabled":""} aria-label="weniger Gewicht">−</button>
+            <input type="number" id="kgPick${i}" value="${bl.extra||0}" min="0" max="60" step="2.5"
+              inputmode="decimal" style="width:76px;text-align:center">
+            <button class="ghost" id="kgPlus${i}" style="flex:0 0 52px;font-size:22px;padding:0"
+              aria-label="mehr Gewicht">+</button>
+            <span class="tiny" style="flex:0 0 22px">kg</span>
+          </div>
+          <p class="tiny" style="margin-top:5px">${ex.extraHint || ""}${bl.extra
+            ? ` Wirksame Last <b>${lastVon(bl.exercise, bl.level, bl.extra).toFixed(2)}</b>
+                statt ${ex.levels[bl.level].load.toFixed(2)} — gerechnet auf ${S.bw} kg
+                Körpergewicht (<b>Mehr → Messung</b>).` : ""}</p>` : ""}
         <p class="tiny" style="margin-top:7px">Richtwert erster Satz <b>${fmt(bl.target)}</b> ·
           ${SETS} Sätze · ${PAUSE_S}s Pause${
           zz ? ` · erwarteter Landeplatz <span class="pill ${zz.cls}">Zone ${zz.id}</span>` : ""}</p>
@@ -1553,8 +1621,8 @@ function renderHome(){
       <p class="tiny" style="text-align:center;margin-top:9px">Ton einschalten — die Ansagen
       kommen akustisch, damit du nicht aufs Display schauen musst.</p>
     </div>
-    ${auswahlKarte()}
     ${p.blocks.map(blockKarte).join("")}
+    ${auswahlKarte()}
     ${(()=>{ const offen = allKeys().filter(k => !profileReady(k.ex, k.side));
       return offen.length ? `<div class="card flat">
         <h3 style="margin-top:0">Bis zum vollständigen Profil</h3>
@@ -1573,12 +1641,29 @@ function renderHome(){
       const lv = S.ex[bl.exercise].levels;
       k = Math.max(0, Math.min(lv.length-1, k));
       bl.level = k;
+      if(k < extraAbOf(bl.exercise)){        /* Feld verschwindet — Last auch */
+        bl.extra = 0; S.extra[keyOf(bl.exercise, bl.side)] = 0;
+      }
       bl.userPicked = (k !== bl.levelVorschlag);
       const f = curFit(bl.exercise, bl.side);
-      if(f){ const t = predictTime(f, lv[k].load);
+      if(f){ const t = predictTime(f, lastVon(bl.exercise, k, bl.extra));
              if(isFinite(t)) bl.target = Math.max(15, Math.round(t)); }
       S.plan = p; save(); render();
     };
+    const kgSetzen = v => {
+      const kg = Math.max(0, Math.min(60, Math.round((+v || 0) / 2.5) * 2.5));
+      S.extra[keyOf(bl.exercise, bl.side)] = kg;
+      bl.extra = kg;
+      const f2 = curFit(bl.exercise, bl.side);
+      if(f2){ const t = predictTime(f2, lastVon(bl.exercise, bl.level, kg));
+              if(isFinite(t)) bl.target = Math.max(15, Math.round(t)); }
+      S.plan = p; save(); render();
+    };
+    if(el("kgPick"+i)){
+      el("kgPick"+i).onchange = e => kgSetzen(e.target.value);
+      el("kgMinus"+i).onclick = ()=> kgSetzen((bl.extra||0) - 2.5);
+      el("kgPlus"+i).onclick  = ()=> kgSetzen((bl.extra||0) + 2.5);
+    }
     const ms = el("msPick"+i);
     if(ms) ms.onchange = e => { bl.fresh = e.target.checked; S.plan = p; save(); render(); };
     el("lvlPick"+i).onchange = e => setzen(+e.target.value);
@@ -1729,6 +1814,13 @@ function renderSetup(){
     </div>
     <div class="card">
       <h3 style="margin-top:0">Messung</h3>
+      <label class="tiny" for="bwInp" style="display:block;margin-bottom:4px">Körpergewicht
+        (kg) — Bezugsgröße für Zusatzgewicht</label>
+      <input type="number" id="bwInp" value="${S.bw || BW_DEFAULT}" min="30" max="200" step="1"
+        inputmode="decimal" style="width:110px">
+      <p class="tiny" style="margin:6px 0 14px">Die Lastfaktoren selbst sind Verhältniszahlen und
+      brauchen kein Gewicht. Nötig wird es erst, wenn du Zusatzgewicht auflegst: 10 kg wiegen bei
+      60 kg Körpergewicht deutlich schwerer als bei 95 kg.</p>
       <label class="tiny" for="reactSel" style="display:block;margin-bottom:4px">Reaktionsabzug
         je Satz</label>
       <select id="reactSel">${[0,1,2,3,4].map(v=>
@@ -1808,6 +1900,13 @@ function renderSetup(){
   };
 
   el("reactSel").onchange = e => { S.reaction = +e.target.value; save(); };
+  el("bwInp").onchange = e => {
+    const v = +e.target.value;
+    S.bw = (v >= 30 && v <= 200) ? v : BW_DEFAULT;
+    e.target.value = S.bw;
+    S.plan = null; S.planDay = null;   /* wirksame Lasten aendern sich */
+    save();
+  };
 
   const rhost = el("restEdit");
   ZONES.forEach(z=>{
