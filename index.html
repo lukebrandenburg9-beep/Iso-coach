@@ -374,7 +374,7 @@ const RED_FLAGS = [
 /* Stand der ausgelieferten Fassung. Steht unten in der App und beim Start in der
    Konsole — daran erkennst du am Handy, ob das Update schon angekommen ist.
    Wird bei jeder Änderung hochgezählt. */
-const BUILD = "2026-09-15 d";
+const BUILD = "2026-09-16 a";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
@@ -701,6 +701,51 @@ function fehlendeZonen(ex, side){
   return ONB_ORDER.filter(o => !cov[o.z]);
 }
 
+/* ═══════════ Stufenwahl, solange es keine Kurve gibt ═══════════
+   Bisher stand die Stufe ohne Kurve auf 0. Das ist keine Unbequemlichkeit,
+   sondern eine Sackgasse: Ohne Kurve bleibt die Stufe stehen, ohne wechselnde
+   Stufe entstehen nur Messpunkte bei DERSELBEN Last, und aus Punkten bei einer
+   einzigen Last laesst sich kein CP/W' fitten. Das Onboarding konnte sich also
+   nie aus dem Stand bringen — es spreizte die ZIELZEITEN, nicht die LASTEN.
+   Bei gleicher Stufe kommt aber dreimal ungefaehr dieselbe Haltezeit heraus,
+   egal welche Zielzeit danebensteht (P26).
+
+   Ausweg ist ein Anker: irgendein gemessener Punkt derselben Uebung — beide
+   Seiten, notfalls ein vorermuedeter Satz. Aus (L1, t1) und der gewuenschten
+   Zeit folgt mit t = W'/(L-CP) und der Annahme CP = c*L1:
+       L_ziel = L1 * [ c + (1-c) * t1/t_ziel ]
+   c ist GESETZT, nicht gemessen. Die Annahme faellt weg, sobald zwei
+   verschiedene Lasten vorliegen — dann fittet die App wirklich. */
+const ANNAHME_CP = 0.5;
+/* Ohne Kurve hoechstens so viele Stufen auf einmal. Die Hochrechnung kann weit
+   springen; bei Gelenk- und Sehnenbeschwerden ist ein Sprung ueber die halbe
+   Leiter nichts, was eine Schaetzung allein rechtfertigt. Der Waehler laesst
+   trotzdem jede Stufe zu — die Karte nennt beide Zahlen. */
+const MAX_SPRUNG = 3;
+
+function ankerpunkt(ex){
+  const frisch = [], vorermuedet = [];
+  for(const ses of S.sessions){
+    if(ses.exercise !== ex) continue;
+    const e = ses.sets && ses.sets[0];
+    if(!e || !e.time || !ses.load) continue;
+    (ses.fresh === false ? vorermuedet : frisch).push(ses);
+  }
+  const pool = frisch.length ? frisch : vorermuedet;
+  if(!pool.length) return null;
+  const letzte = pool[pool.length-1];          // der juengste Punkt zaehlt
+  return {load: letzte.load, time: letzte.sets[0].time,
+          level: letzte.level || 0,
+          quelle: frisch.length ? "gemessen" : "vorermüdet"};
+}
+/* Nachster Leiterplatz zu einer gewuenschten Last. */
+function stufeZuLast(lv, ziel){
+  let best = Infinity, k = 0;
+  lv.forEach((L,i)=>{ const d = Math.abs(Math.log(L.load/ziel));
+                      if(d < best){ best = d; k = i; } });
+  return k;
+}
+
 function mkBlock(ex, side, zone, target, fresh, workoutOnb){
   /* Laeuft das Workout selbst noch im Onboarding, gibt es die Zone vor — dann
      ziehen alle Bloecke am selben Strang.
@@ -715,6 +760,7 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb){
   const lv  = S.ex[ex].levels;
   const key = keyOf(ex, side);
   let level = (S.levels && S.levels[key]) || 0, best = Infinity;
+  let herkunft = "stand", anker = null, roh = null;
   if(f){
     lv.forEach((L,i)=>{
       const t = predictTime(f, L.load);
@@ -722,10 +768,23 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb){
       const d = Math.abs(Math.log(t/target));
       if(d < best){ best = d; level = i; }
     });
+    herkunft = "kurve";
+  } else if((anker = ankerpunkt(ex))){
+    const ziel = anker.load * (ANNAHME_CP + (1-ANNAHME_CP) * anker.time / target);
+    roh   = stufeZuLast(lv, ziel);
+    level = Math.min(roh, anker.level + MAX_SPRUNG, lv.length-1);
+    herkunft = "anker";
+  } else {
+    /* Noch gar nichts gemessen. Dann gespreizte STARTSTUFEN statt dreimal die
+       leichteste — das ist es, was "drei Tests in drei Stufen" meint. */
+    const schritt = Math.min(2, groupWorkoutCount(groupOf(ex)));
+    level = Math.round([0.2, 0.5, 0.75][schritt] * (lv.length - 1));
+    herkunft = "start";
   }
   const tt = f ? predictTime(f, lv[level].load) : target;
   return {exercise:ex, side, zone, fresh, zweiteSeite: !fresh, level, levelVorschlag:level,
           fehlt: fehlt.map(o=>o.z), abgewichen: !!luecke,
+          herkunft, anker, rohStufe: roh,
           target: Math.max(15, Math.round(isFinite(tt) ? tt : target))};
 }
 
@@ -1445,6 +1504,19 @@ function renderHome(){
           zz ? ` · erwarteter Landeplatz <span class="pill ${zz.cls}">Zone ${zz.id}</span>` : ""}</p>
         ${bl.userPicked ? `<p class="tiny">Von dir gewählt — Vorschlag war
           <b>${ex.levels[bl.levelVorschlag].name}</b>.</p>` : ""}
+        ${bl.herkunft === "anker" ? `<p class="tiny"><b>Noch keine Kurve.</b> Der Vorschlag ist
+          hochgerechnet aus deinem jüngsten Punkt (${fmt(bl.anker.time)} auf
+          „${ex.levels[bl.anker.level] ? ex.levels[bl.anker.level].name : "—"}"${
+          bl.anker.quelle === "vorermüdet" ? ", vorermüdet" : ""}) — mit der <i>Annahme</i>,
+          dass die Dauerleistung bei ${Math.round(ANNAHME_CP*100)} % dieser Last liegt. Das ist
+          gesetzt, nicht gemessen.${bl.rohStufe > bl.level
+          ? ` Die Rechnung landet bei <b>„${ex.levels[bl.rohStufe].name}"</b>; ohne Kurve gehe
+             ich höchstens ${MAX_SPRUNG} Stufen auf einmal hoch. Wenn du dir sicher bist, stell
+             oben direkt darauf.` : ""}</p>` : ""}
+        ${bl.herkunft === "start" ? `<p class="tiny"><b>Erste Messung dieser Kurve.</b> Die Stufe
+          ist bewusst nicht die leichteste: Drei Tests bei derselben Last ergeben drei Punkte
+          übereinander und daraus keine Kurve. Halte, so lange du kannst — der Punkt zählt, wie
+          er kommt.</p>` : ""}
         ${bl.zweiteSeite ? `<p class="tiny">${zweiteSeiteGrund(bl.exercise, p.blocks.length)}
           ${bl.fresh ? `Du hast entschieden, ihn trotzdem zu messen — er geht in die Kurve.`
           : `Der Satz zählt als Training und erscheint im Verlauf als <i>vorermüdet</i> — er geht
