@@ -1090,10 +1090,11 @@ function zweiteSeiteGrund(ex, bloecke){
 }
 /* Stufenbezeichnung inklusive Zusatzgewicht. Die Zahl gehoert an den Namen,
    sonst steht im Verlauf zweimal dieselbe Stufe bei verschiedenen Lasten. */
+const komma = (v, n) => v.toFixed(n).replace(".", ",");
 function stufenName(ex, level, kg){
   const L = S.ex[ex] && S.ex[ex].levels[level];
   if(!L) return "—";
-  return kg ? `${L.name} + ${kg} kg` : L.name;
+  return kg ? `${L.name} + ${String(kg).replace(".", ",")} kg` : L.name;
 }
 function curBlock(){ return RUN.plan.blocks[RUN.b]; }
 function blockLabel(bl){ return labelOf(bl.exercise, bl.side); }
@@ -1564,8 +1565,8 @@ function renderHome(){
             <span class="tiny" style="flex:0 0 22px">kg</span>
           </div>
           <p class="tiny" style="margin-top:5px">${ex.extraHint || ""}${bl.extra
-            ? ` Wirksame Last <b>${lastVon(bl.exercise, bl.level, bl.extra).toFixed(2)}</b>
-                statt ${ex.levels[bl.level].load.toFixed(2)} — gerechnet auf ${S.bw} kg
+            ? ` Wirksame Last <b>${komma(lastVon(bl.exercise, bl.level, bl.extra), 2)}</b>
+                statt ${komma(ex.levels[bl.level].load, 2)} — gerechnet auf ${S.bw} kg
                 Körpergewicht (<b>Mehr → Messung</b>).` : ""}</p>` : ""}
         <p class="tiny" style="margin-top:7px">Richtwert erster Satz <b>${fmt(bl.target)}</b> ·
           ${SETS} Sätze · ${PAUSE_S}s Pause${

@@ -122,7 +122,14 @@ die dem üblichen Rat widersprechen:
   leicht. Die Stufe steht deshalb bewusst nicht in der Leiter.
 
 Oberhalb des Standards bleibt nur Zusatzlast, und die wirkt nur nah an der Taille: 10 kg an der
-Hüfte sind +25 %, dieselben 10 kg am Brustkorb +3 %. Darum steht der Ort in der Stufenbezeichnung.
+Hüfte sind +25 %, dieselben 10 kg am Brustkorb +3 %. Darum steht der Ort in der Bedienung.
+
+**Zusatzgewicht ist eine eigene Achse, keine Leitersprosse.** Die Leiter bleibt reines
+Körpergewicht; Kilogramm kommen ab einer Stufe je Übung dazu (Liegestütz ab „Boden",
+Ausfallschritt ab „Hinterer Fuß ~20 cm erhöht", Seitstütz ab „Standard"). Wie stark ein Kilo
+wirkt, ist übungsabhängig: Bei Liegestütz und Ausfallschritt wächst die Last mit `X/BW`, beim
+Seitstütz mit `2·X/BW` — dort ist die Last ein Biegemoment und das Gewicht sitzt auf der Hüfte,
+dem wirksamsten Hebelpunkt. Dafür braucht die App das Körpergewicht: *Mehr → Messung*.
 
 ---
 
