@@ -2176,7 +2176,14 @@ function render(){
   if(!S.onboarded){ el("s-onboard").classList.add("on"); renderOnboard(); }
   else show("home");
 }
-document.querySelectorAll("nav button").forEach(b=> b.onclick = ()=> show(b.dataset.go));
+/* Waehrend eines Laufs fuehrt "Heute" zurueck INS Workout, nicht auf den
+   Planungsbildschirm. Vorher sah ein Tipp auf die Leiste aus, als waere das
+   Workout weg — RUN lebte weiter, war aber nicht mehr erreichbar. Profil und
+   Verlauf bleiben offen; der Lauf wartet. */
+document.querySelectorAll("nav button").forEach(b=> b.onclick = ()=>{
+  if(RUN && b.dataset.go === "home" && aktiverScreen !== "home"){ laufFortsetzen(); return; }
+  show(b.dataset.go);
+});
 el("tStop").onclick  = ()=> endSet(false);
 el("tTap").onclick   = ()=> endSet(false);
 el("tAbort").onclick = ()=> { if(confirm("Satz verwerfen?")) endSet(true); };
