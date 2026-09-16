@@ -233,6 +233,12 @@ const LEAD_IN    = 3;    // Sekunden zum In-Position-Gehen — nur vor dem ERSTE
                          // eines Blocks. Ab Satz 2 dient die Pause selbst dazu.
 const REACTION_DEFAULT = 2;  // Sekunden zwischen Positionsende und Knopfdruck
 const SETS       = 3;
+/* Satzzahl je Zone. Kurze, schwere Haltezeiten vertragen mehr Wiederholungen
+   als lange — fuenf Saetze in Zone A, drei in Zone C. Zone B liegt dazwischen;
+   die 4 ist interpoliert, nicht belegt. Der Waehler laesst 1 bis 6 zu. */
+const SETS_ZONE  = {A:5, B:4, C:3};
+const SETS_MIN = 1;
+const SETS_MAX = 6;
 const MISS_RATIO = 0.8;  // Regel 3
 const PAIN_BACK  = 2;    // Regel 1: zweimal in Folge → Level zurück
 const MISS_BACK  = 3;    // Regel 3: dreimal in Folge → Level zurück
@@ -384,7 +390,7 @@ const RED_FLAGS = [
 /* Stand der ausgelieferten Fassung. Steht unten in der App und beim Start in der
    Konsole — daran erkennst du am Handy, ob das Update schon angekommen ist.
    Wird bei jeder Änderung hochgezählt. */
-const BUILD = "2026-09-16 f";
+const BUILD = "2026-09-16 g";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
@@ -420,6 +426,10 @@ function fresh(){
        Seitstuetz machen will, nimmt die anderen beiden raus — die Einstellung
        bleibt stehen, bis er sie wieder anhakt. */
     aktiv:{},
+    /* Zweiseitige Uebungen: links und rechts laufen in derselben Variante,
+       solange nichts anderes gesagt ist. Wer einseitig Beschwerden hat, nimmt
+       das Haekchen raus und stellt die Seiten getrennt ein. */
+    sync:{},
     sessions:[], plan:null, redflag:false,
     rest:{...DEFAULT_REST}, planDay:null, reaction:REACTION_DEFAULT
   };
@@ -434,6 +444,7 @@ function normalize(d){
                                     rest: stale ? {...DEFAULT_REST}
                                                 : Object.assign({...DEFAULT_REST}, d.rest||{}),
                                     aktiv: d.aktiv || {},
+                                    sync: d.sync || {},
                                     /* Ein angefangener Lauf ueberlebt das Neuladen. */
                                     lauf: (d.lauf && d.lauf.plan) ? d.lauf : null,
                                     extra: leitersturz ? {} : (d.extra || {}),
@@ -831,7 +842,8 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb){
   }
   const tt = f ? predictTime(f, lastVon(ex, level, kg)) : target;
   return {exercise:ex, side, zone, fresh, zweiteSeite: !fresh, level, levelVorschlag:level,
-          extra: kg, fehlt: fehlt.map(o=>o.z), abgewichen: !!luecke,
+          extra: kg, saetze: SETS_ZONE[zone] || SETS,
+          fehlt: fehlt.map(o=>o.z), abgewichen: !!luecke,
           herkunft, anker, rohStufe: roh,
           target: Math.max(15, Math.round(isFinite(tt) ? tt : target))};
 }
@@ -1086,12 +1098,12 @@ function laufFortsetzen(){
   const L = S.lauf;
   RUN = {plan:L.plan, b:L.b||0, fertig:(L.fertig||[]).slice(),
          sets:(L.sets||[]).slice(), i:L.i||0, start: L.start || L.stand};
-  if(RUN.i >= SETS){                        /* Block war abgeschlossen */
-    RUN.b++;
-    if(RUN.b >= RUN.plan.blocks.length){ finishWorkout(); return; }
-    startBlock(); laufSichern(); return;    /* setzt sets und i zurueck */
-  }
-  if(RUN.i === 0){ startBlock(); laufSichern(); return; }
+  if(RUN.b >= RUN.plan.blocks.length){ finishWorkout(); return; }
+  /* Unterbrochen zwischen letztem Satz und Blockwechsel: nachholen. */
+  if(RUN.i >= curSets()){ endBlock(); return; }
+  /* Kein Satz im laufenden Block — also steht die Karte VOR der Übung an.
+     Nicht sofort die Uhr starten: die Variante will erst bestätigt werden. */
+  if(!RUN.sets.length){ blockIntro(RUN.b); return; }
   const bl = curBlock();                    /* mitten im Block weiter */
   RUN.load = lastVon(bl.exercise, bl.level, bl.extra);
   RUN.levelName = stufenName(bl.exercise, bl.level, bl.extra);
@@ -1104,9 +1116,13 @@ function laufSaetze(L){
 
 function startWorkout(){
   const p = S.plan || planWorkout();
+  /* Ein Plan ohne Block ist kein Workout. Das kann passieren, wenn zwischen
+     dem Zeichnen der Startseite und dem Knopfdruck eine Uebung abgehakt oder
+     eine Sperre wirksam wurde — dann neu zeichnen statt ins Leere laufen. */
+  if(!p.blocks || !p.blocks.length){ S.plan = null; S.planDay = null; save(); render(); return; }
   RUN = {plan:p, b:0, fertig:[], sets:[], i:0, start: Date.now()};
   laufSichern();
-  startBlock();
+  blockIntro(0);
 }
 const ZAHLWORT = ["null","Ein","Zwei","Drei","Vier","Fünf","Sechs","Sieben","Acht"];
 /* "Workout aus einem Block" / "... aus fünf Blöcken" — ohne Zahlendeutsch von Hand. */
@@ -1139,6 +1155,56 @@ function stufenName(ex, level, kg){
   return kg ? `${L.name} + ${String(kg).replace(".", ",")} kg` : L.name;
 }
 function curBlock(){ return RUN.plan.blocks[RUN.b]; }
+/* ── Stufe, Gewicht, Seitenabgleich ──────────────────────────────
+   Dieselben drei Funktionen bedienen die Uebersicht auf der Startseite und
+   die Karte direkt vor der Uebung. Vorher stand die Rechnerei zweimal da —
+   und eine Zielzeit, die nur an einer Stelle nachgezogen wird, ist falsch. */
+function zielNeu(bl){
+  const f = curFit(bl.exercise, bl.side);
+  if(!f) return;
+  const t = predictTime(f, lastVon(bl.exercise, bl.level, bl.extra));
+  if(isFinite(t)) bl.target = Math.max(15, Math.round(t));
+}
+function stufeSetzen(bl, k){
+  const lv = S.ex[bl.exercise].levels;
+  bl.level = Math.max(0, Math.min(lv.length-1, k));
+  if(bl.level < extraAbOf(bl.exercise)){     /* Feld verschwindet — Last auch */
+    bl.extra = 0; S.extra[keyOf(bl.exercise, bl.side)] = 0;
+  }
+  bl.userPicked = (bl.level !== bl.levelVorschlag);
+  zielNeu(bl);
+}
+function gewichtSetzen(bl, v){
+  const kg = Math.max(0, Math.min(60, Math.round((+v || 0) / 2.5) * 2.5));
+  S.extra[keyOf(bl.exercise, bl.side)] = kg;
+  bl.extra = kg;
+  zielNeu(bl);
+}
+/* Der Block der anderen Seite derselben Uebung — beim Ausfallschritt und beim
+   Seitstuetz gibt es ihn, beim Liegestuetz nicht. */
+function partnerVon(bloecke, bl){
+  if(!bl.side) return null;
+  return bloecke.find(b => b !== bl && b.exercise === bl.exercise
+                        && b.side && b.side !== bl.side) || null;
+}
+/* Seiten gleichziehen. Die ZIELZEIT wird dabei NICHT kopiert: sie kommt aus
+   der Kurve der jeweiligen Seite, und die beiden Seiten sind verschieden
+   stark. Gleich ist die Variante, nicht die Erwartung. */
+function seitenAbgleich(bloecke, bl){
+  if(S.sync[bl.exercise] === false) return null;
+  const q = partnerVon(bloecke, bl);
+  if(!q) return null;
+  q.level = bl.level;
+  q.userPicked = (q.level !== q.levelVorschlag);
+  const kg = (q.level >= extraAbOf(q.exercise)) ? (bl.extra || 0) : 0;
+  q.extra = kg; S.extra[keyOf(q.exercise, q.side)] = kg;
+  q.saetze = bl.saetze;
+  zielNeu(q);
+  return q;
+}
+/* Die Satzzahl haengt am BLOCK, nicht global an der App: Zone A will fuenf
+   Saetze, Zone C drei, und der Nutzer darf beides ueberstimmen. */
+function curSets(){ const b = curBlock(); return (b && b.saetze) || SETS; }
 function blockLabel(bl){ return labelOf(bl.exercise, bl.side); }
 
 function startBlock(){
@@ -1149,37 +1215,169 @@ function startBlock(){
   nextSet();
 }
 
-/* Zwischenkarte: hier entsteht die Erholung fuer das zuerst belastete Bein. */
-function betweenBlocks(){
-  const n = RUN.b + 1, bl = RUN.plan.blocks[n];
+/* ═══════════ Die Karte vor der Übung ═══════════
+   Die Variante wird HIER eingestellt, unmittelbar vor der Übung, die sie
+   betrifft — nicht alle drei bis fünf auf einmal auf der Startseite. Dort
+   stand ein Formular, das man vor dem ersten Satz einmal komplett durchgehen
+   musste und dessen untere Hälfte zwanzig Minuten später noch stimmen sollte.
+   Zwischen zwei Blöcken liegt ohnehin eine Pause; diese Karte füllt sie mit
+   der einen Entscheidung, die jetzt ansteht. */
+function blockIntro(i){
+  RUN.b = i;
+  const bl = curBlock(), ex = S.ex[bl.exercise], bloecke = RUN.plan.blocks;
+  /* Ein Plan aus einer aelteren Fassung kennt die Satzzahl noch nicht. */
+  if(bl.saetze == null) bl.saetze = SETS_ZONE[bl.zone] || SETS;
+  const f  = curFit(bl.exercise, bl.side);
+  const tp = f ? predictTime(f, lastVon(bl.exercise, bl.level, bl.extra)) : null;
+  const zz = (tp && isFinite(tp)) ? zoneOf(tp) : null;
+  const partner   = partnerVon(bloecke, bl);
+  const syncAn    = !!partner && S.sync[bl.exercise] !== false;
+  const gemessen  = RUN.fertig.length > 0;
+  const letzter   = i + 1 >= bloecke.length;
   show("home");
-  el("homeTitle").textContent = `Block ${n+1} von ${RUN.plan.blocks.length}`;
+  el("homeTitle").textContent = `Übung ${i+1} von ${bloecke.length}`;
   el("homeSub").textContent = blockLabel(bl);
-  const ex = S.ex[bl.exercise];
   el("homeBody").innerHTML = `
     <div class="card">
       <span class="pill ${ZONES.find(z=>z.id===bl.zone).cls}">Zone ${bl.zone}</span>
       <h2 style="margin:11px 0 2px">${blockLabel(bl)}</h2>
-      <p class="muted" style="margin:0">${stufenName(bl.exercise, bl.level, bl.extra)}</p>
-      ${bl.zweiteSeite && !bl.fresh ? `<div class="note warn" style="margin-top:12px"><b>Zweite
-        Seite — wird trainiert, nicht gemessen.</b> ${zweiteSeiteGrund(bl.exercise, RUN.plan.blocks.length)}
-        Der Satz wird aufgezeichnet und im Verlauf als <i>vorermüdet</i> geführt, geht aber
-        nicht in die Kurve ein. Weniger zu schaffen als vorhin ist hier normal und kein
-        Rückschritt.</div>` : ""}
+      <p class="muted" style="margin:0">${bl.fresh ? "wird gemessen" : "nur Training"}</p>
+      ${bl.fehlt && bl.fehlt.length ? `<p class="tiny" style="margin:10px 0 0"><span
+        class="pill pB">Einstieg — ${bl.fehlt.length===1 ? `Zone ${bl.fehlt[0]} fehlt noch`
+        : `noch ${bl.fehlt.length} Zonen offen`}</span>${bl.abgewichen
+        ? ` Statt der Workout-Zone wird <b>Zone ${bl.zone}</b> gemessen: die hätte die Rotation
+          wiederholt, obwohl sie hier schon steht.` : ""}</p>` : ""}
+
+      <label class="tiny" for="ivLvl" style="display:block;margin:14px 0 4px">Variante —
+        du entscheidest (${bl.level+1} von ${ex.levels.length})</label>
+      <div class="row" style="gap:7px;align-items:stretch">
+        <button class="ghost" id="ivMinus" style="flex:0 0 52px;font-size:22px;padding:0"
+          ${bl.level===0?"disabled":""} aria-label="leichtere Variante">−</button>
+        <select id="ivLvl" style="flex:1">${ex.levels.map((L,k)=>{
+          const t = f ? predictTime(f, lastVon(bl.exercise, k, bl.extra)) : null;
+          const hint = (t && isFinite(t)) ? ` · erwartet ${fmt(t)}` : "";
+          return `<option value="${k}" ${k===bl.level?"selected":""}>${L.name}${hint}</option>`;
+        }).join("")}</select>
+        <button class="ghost" id="ivPlus" style="flex:0 0 52px;font-size:22px;padding:0"
+          ${bl.level>=ex.levels.length-1?"disabled":""} aria-label="schwerere Variante">+</button>
+      </div>
+
+      ${bl.level >= extraAbOf(bl.exercise) ? `
+        <div class="row" style="gap:7px;align-items:center;margin-top:8px">
+          <label class="tiny" for="ivKg" style="flex:1;margin:0">Zusatzgewicht</label>
+          <button class="ghost" id="ivKgMinus" style="flex:0 0 52px;font-size:22px;padding:0"
+            ${(bl.extra||0)<=0?"disabled":""} aria-label="weniger Gewicht">−</button>
+          <input type="number" id="ivKg" value="${bl.extra||0}" min="0" max="60" step="2.5"
+            inputmode="decimal" style="width:76px;text-align:center">
+          <button class="ghost" id="ivKgPlus" style="flex:0 0 52px;font-size:22px;padding:0"
+            aria-label="mehr Gewicht">+</button>
+          <span class="tiny" style="flex:0 0 22px">kg</span>
+        </div>
+        <p class="tiny" style="margin-top:5px">${ex.extraHint || ""}${bl.extra
+          ? ` Wirksame Last <b>${komma(lastVon(bl.exercise, bl.level, bl.extra), 2)}</b>
+              statt ${komma(ex.levels[bl.level].load, 2)} — gerechnet auf ${S.bw} kg
+              Körpergewicht (<b>Mehr → Messung</b>).` : ""}</p>` : ""}
+
+      ${partner ? `<label class="chk" for="ivSync" style="margin-top:9px">
+        <input type="checkbox" id="ivSync" ${syncAn?"checked":""}>
+        <span class="tiny"><b>Beide Seiten gleich.</b> ${syncAn
+          ? `Was du hier einstellst, gilt auch für ${labelOf(partner.exercise, partner.side)}.
+             Die <i>Zielzeit</i> bleibt getrennt — sie kommt aus der Kurve der jeweiligen Seite,
+             und die beiden Seiten sind selten gleich stark.`
+          : `Die Seiten sind entkoppelt: ${labelOf(partner.exercise, partner.side)} steht auf
+             „${stufenName(partner.exercise, partner.level, partner.extra)}". Das ist richtig,
+             wenn eine Seite Beschwerden hat — sonst hak es wieder an.`}</span></label>` : ""}
+
+      <div class="row" style="gap:7px;align-items:center;margin-top:12px">
+        <label class="tiny" for="ivSets" style="flex:1;margin:0">Sätze${
+          bl.saetze !== (SETS_ZONE[bl.zone]||SETS) ? ` <span class="muted">· Vorgabe für Zone
+          ${bl.zone} wäre ${SETS_ZONE[bl.zone]||SETS}</span>` : ""}</label>
+        <button class="ghost" id="ivSetsMinus" style="flex:0 0 52px;font-size:22px;padding:0"
+          ${bl.saetze<=SETS_MIN?"disabled":""} aria-label="weniger Sätze">−</button>
+        <b id="ivSets" style="flex:0 0 40px;text-align:center;font-size:20px">${bl.saetze}</b>
+        <button class="ghost" id="ivSetsPlus" style="flex:0 0 52px;font-size:22px;padding:0"
+          ${bl.saetze>=SETS_MAX?"disabled":""} aria-label="mehr Sätze">+</button>
+      </div>
+
       <div class="kpi" style="margin-top:14px">
         <div><b>${fmt(bl.target)}</b><small>Richtwert erster Satz</small></div>
-        <div><b>${SETS}</b><small>Sätze · ${PAUSE_S}s Pause</small></div>
+        <div><b>${bl.saetze}</b><small>${bl.saetze===1?"Satz":"Sätze"} · ${PAUSE_S}s Pause</small></div>
       </div>
-      ${bl.exercise==="push" && RUN.plan.blocks.length > 2 ? `<p class="tiny" style="margin-top:11px"
+      ${zz ? `<p class="tiny" style="margin-top:9px">Erwarteter Landeplatz
+        <span class="pill ${zz.cls}">Zone ${zz.id}</span> — geplant ist Zone ${bl.zone}.</p>` : ""}
+
+      ${bl.zweiteSeite ? `<div class="note warn" style="margin-top:12px"><b>Zweite Seite${
+        bl.fresh ? "" : " — wird trainiert, nicht gemessen"}.</b>
+        ${zweiteSeiteGrund(bl.exercise, bloecke.length)}
+        ${bl.fresh ? `Du hast entschieden, ihn trotzdem zu messen — er geht in die Kurve.`
+          : `Der Satz wird aufgezeichnet und im Verlauf als <i>vorermüdet</i> geführt, geht aber
+             nicht in die Kurve ein. Weniger zu schaffen als vorhin ist hier normal und kein
+             Rückschritt.`}</div>
+        <label class="chk" for="ivMess" style="margin-top:6px">
+          <input type="checkbox" id="ivMess" ${bl.fresh?"checked":""}>
+          <span class="tiny">Diesen Satz trotzdem messen.
+          ${bl.exercise==="plank"
+            ? `Beim Seitstütz arbeitet die andere Rumpfseite mit eigenen Muskeln — der einzige
+               Einwand ist die Ermüdung aus dem bisherigen Workout.`
+            : `Beim Ausfallschritt war dieses Bein eben schon hinteres Bein; hier ist der
+               Einwand fachlich schwerer.`}</span></label>` : ""}
+
+      ${bl.userPicked ? `<p class="tiny" style="margin-top:9px">Von dir gewählt — Vorschlag war
+        <b>${ex.levels[bl.levelVorschlag].name}</b>.</p>` : ""}
+      ${bl.herkunft === "anker" ? `<p class="tiny" style="margin-top:9px"><b>Noch keine Kurve.</b>
+        Der Vorschlag ist hochgerechnet aus deinem jüngsten Punkt (${fmt(bl.anker.time)} auf
+        „${ex.levels[bl.anker.level] ? ex.levels[bl.anker.level].name : "—"}"${
+        bl.anker.quelle === "vorermüdet" ? ", vorermüdet" : ""}) — mit der <i>Annahme</i>,
+        dass die Dauerleistung bei ${Math.round(ANNAHME_CP*100)} % dieser Last liegt. Das ist
+        gesetzt, nicht gemessen.${bl.rohStufe > bl.level
+        ? ` Die Rechnung landet bei <b>„${ex.levels[bl.rohStufe].name}"</b>; ohne Kurve gehe ich
+           höchstens ${MAX_SPRUNG} Stufen auf einmal hoch. Wenn du dir sicher bist, stell oben
+           direkt darauf.` : ""}</p>` : ""}
+      ${bl.herkunft === "start" ? `<p class="tiny" style="margin-top:9px"><b>Erste Messung dieser
+        Kurve.</b> Die Stufe ist bewusst nicht die leichteste: Drei Tests bei derselben Last
+        ergeben drei Punkte übereinander und daraus keine Kurve. Halte, so lange du kannst —
+        der Punkt zählt, wie er kommt.</p>` : ""}
+      ${ex.hint ? `<p class="tiny" style="margin-top:9px">${ex.hint}</p>` : ""}
+      ${bl.exercise==="push" && bloecke.length > 2 ? `<p class="tiny" style="margin-top:9px"
         >Dieser Block steht bewusst in der Mitte: Er trennt bei Seitstütz und Ausfallschritt die
         erste von der zweiten Seite und gibt ihr fünf bis acht Minuten Erholung.</p>` : ""}
-      ${!bl.fresh && RUN.plan.blocks.length === 2 ? `<p class="tiny" style="margin-top:11px">Weil
-        heute nur diese eine Übung läuft, folgt die zweite Seite direkt. Lass dir vor dem Start
-        ruhig ein paar Minuten — die Karte wartet.</p>` : ""}
-      <button class="primary" style="width:100%;margin-top:12px;padding:16px" id="goBlock">
-        Block starten</button>
+      ${!bl.fresh && bloecke.length === 2 ? `<p class="tiny" style="margin-top:9px">Weil heute nur
+        diese eine Übung läuft, folgt die zweite Seite direkt. Lass dir vor dem Start ruhig ein
+        paar Minuten — die Karte wartet.</p>` : ""}
+
+      <button class="primary" style="width:100%;margin-top:14px;padding:16px" id="ivGo">
+        Übung starten</button>
+      ${(gemessen || !letzter) ? `<button class="ghost" style="width:100%;margin-top:8px"
+        id="ivEnde">Workout hier beenden${gemessen ? " und speichern" : ""}</button>` : ""}
     </div>`;
-  el("goBlock").onclick = ()=>{ beep(660,60,.05); RUN.b = n; startBlock(); laufSichern(); };
+
+  /* Jede Änderung wird sofort gesichert und die Karte neu gezeichnet — sonst
+     stünde nach einem Seitenabgleich die alte Zahl im Feld. */
+  const neu = () => { seitenAbgleich(bloecke, bl); laufSichern(); blockIntro(i); };
+  el("ivLvl").onchange   = e => { stufeSetzen(bl, +e.target.value); neu(); };
+  el("ivMinus").onclick  = ()=> { stufeSetzen(bl, bl.level - 1); neu(); };
+  el("ivPlus").onclick   = ()=> { stufeSetzen(bl, bl.level + 1); neu(); };
+  if(el("ivKg")){
+    el("ivKg").onchange     = e => { gewichtSetzen(bl, e.target.value); neu(); };
+    el("ivKgMinus").onclick = ()=> { gewichtSetzen(bl, (bl.extra||0) - 2.5); neu(); };
+    el("ivKgPlus").onclick  = ()=> { gewichtSetzen(bl, (bl.extra||0) + 2.5); neu(); };
+  }
+  const setzeSaetze = n => {
+    bl.saetze = Math.max(SETS_MIN, Math.min(SETS_MAX, n));
+    neu();
+  };
+  el("ivSetsMinus").onclick = ()=> setzeSaetze(bl.saetze - 1);
+  el("ivSetsPlus").onclick  = ()=> setzeSaetze(bl.saetze + 1);
+  if(el("ivSync")) el("ivSync").onchange = e => {
+    S.sync[bl.exercise] = e.target.checked;
+    if(e.target.checked) seitenAbgleich(bloecke, bl);
+    laufSichern(); blockIntro(i);
+  };
+  if(el("ivMess")) el("ivMess").onchange = e => {
+    bl.fresh = e.target.checked; laufSichern(); blockIntro(i);
+  };
+  el("ivGo").onclick = ()=>{ beep(660,60,.05); laufSichern(); startBlock(); };
+  if(el("ivEnde")) el("ivEnde").onclick = ()=> workoutBeenden();
 }
 /* Zielzeit des naechsten Satzes.
    Satz 1  — aus der Kurve (oder der Zone, solange es keine gibt).
@@ -1205,7 +1403,7 @@ function nextSet(){
   const p = curBlock();
   const tgt = setTarget();
   runSet({
-    what: `${blockLabel(p)} · ${RUN.levelName} · Satz ${RUN.i+1} von ${SETS}`,
+    what: `${blockLabel(p)} · ${RUN.levelName} · Satz ${RUN.i+1} von ${curSets()}`,
     target: tgt,
     lead: RUN.i === 0,
     done: (time, roh)=>{
@@ -1219,9 +1417,12 @@ function nextSet(){
    Rueckfrage die Pause aufgefressen, und damit war der Abfall ueber die Saetze
    nicht mehr vergleichbar. Der Abfall ist aber selbst ein Messwert. */
 function afterSet(time, tgt, roh){
-  const letzter = RUN.i + 1 >= SETS;
+  const letzter = RUN.i + 1 >= curSets();
+  /* Abbrechen lohnt nur, solange noch etwas käme — nach dem letzten Satz des
+     letzten Blocks ist "beenden" ohnehin der nächste Schritt. */
+  const mehrKommt = !letzter || RUN.b + 1 < RUN.plan.blocks.length;
   show("home");
-  el("homeTitle").textContent = `Satz ${RUN.i+1} von ${SETS}`;
+  el("homeTitle").textContent = `Satz ${RUN.i+1} von ${curSets()}`;
   el("homeSub").textContent = blockLabel(curBlock());
 
   const abzug = (roh != null && roh > time) ? Math.round((roh - time)*10)/10 : 0;
@@ -1249,6 +1450,8 @@ function afterSet(time, tgt, roh){
            lang. Das Häkchen kannst du währenddessen setzen — es hält die Uhr nicht an.</p>
            <p class="tiny">Die Vorgabe für den nächsten Satz rechnet sich aus dem, was du eben
            tatsächlich geschafft hast — nicht aus dem Wert vom Sessionbeginn.</p>`}
+      ${mehrKommt ? `<button class="ghost" style="width:100%;margin-top:${left===null?"8px":"14px"}"
+        id="wkStop">Workout hier beenden und speichern</button>` : ""}
     </div>`;
 
   const speichern = ()=>{
@@ -1260,12 +1463,18 @@ function afterSet(time, tgt, roh){
   if(letzter){
     el("homeBody").innerHTML = karte(null);
     el("weiterBtn").onclick = ()=>{ speichern(); endBlock(); };
+    /* Der eben gehaltene Satz zählt mit — erst sichern, dann beenden. */
+    if(el("wkStop")) el("wkStop").onclick = ()=>{ speichern(); workoutBeenden(); };
     return;
   }
 
   let left = PAUSE_S;
   el("homeBody").innerHTML = karte(left);
-  const iv = setInterval(()=>{
+  let iv = null;
+  if(el("wkStop")) el("wkStop").onclick = ()=>{
+    clearInterval(iv); speichern(); workoutBeenden();
+  };
+  iv = setInterval(()=>{
     left--;
     if(left <= 0){
       clearInterval(iv);
@@ -1305,26 +1514,30 @@ function satzVerworfen(){
         : (!letzterBlock
           ? `<button class="ghost" style="width:100%;margin-top:8px" id="blkSkip">Block
                überspringen</button>` : "")}
-      ${hatBloecke && !hatSaetze
+      ${(hatBloecke || hatSaetze)
         ? `<button class="ghost" style="width:100%;margin-top:8px" id="wkEnde">Workout hier
-             abschließen und speichern</button>` : ""}
+             beenden und speichern</button>` : ""}
       <button class="ghost" style="width:100%;margin-top:8px" id="wkWeg">Workout ganz
         verwerfen</button>
     </div>`;
   el("wdh").onclick = ()=> nextSet();
   if(el("blkEnde")) el("blkEnde").onclick = ()=> endBlock();
-  if(el("blkSkip")) el("blkSkip").onclick = ()=>{
-    RUN.b++; RUN.sets = []; RUN.i = 0; laufSichern();
-    if(RUN.b < RUN.plan.blocks.length) startBlock(); else finishWorkout();
-  };
-  if(el("wkEnde")) el("wkEnde").onclick = ()=> finishWorkout();
+  if(el("blkSkip")) el("blkSkip").onclick = ()=> endBlock();
+  if(el("wkEnde")) el("wkEnde").onclick = ()=> workoutBeenden();
   el("wkWeg").onclick = ()=>{
     if(confirm("Das ganze Workout verwerfen? Alle heute gemessenen Blöcke gehen verloren."))
       { laufVerwerfen(); render(); }
   };
 }
 
-function endBlock(){
+/* Was gemessen ist, wird gesichert — auch wenn es nur ein Satz von fünf ist.
+   Genau das ist der Unterschied zwischen "Workout beenden" und "verwerfen":
+   ein abgebrochener Block ist ein kurzer Block, kein verlorener. Deshalb
+   wandert er unverändert in RUN.fertig, mit der Zahl der GEPLANTEN Sätze
+   daneben — sonst steht später eine Reihe aus einem Satz neben einer aus
+   fünf und nichts unterscheidet sie. */
+function blockSichern(){
+  if(!RUN.sets.length) return false;
   const bl = curBlock();
   RUN.fertig.push({
     exercise: bl.exercise, side: bl.side, level: bl.level,
@@ -1334,15 +1547,26 @@ function endBlock(){
     /* Zone nach der ERREICHTEN Zeit — wer eine Stufe selbst waehlt, landet oft woanders. */
     zone: zoneOf(RUN.sets[0].time).id,
     fresh: bl.fresh, userPicked: !!bl.userPicked,
+    saetzeGeplant: curSets(),
     sets: RUN.sets.slice()
   });
-  /* Die Saetze stecken jetzt in fertig — im laufenden Block haben sie nichts
-     mehr verloren, sonst zaehlt die Fortsetzungskarte sie doppelt. RUN.i bleibt
-     auf SETS stehen: daran erkennt laufFortsetzen(), dass der Block durch ist. */
-  RUN.sets = [];
+  /* Der Block ist abgehakt: Saetze leeren, Zaehler zurueck, einen weiter.
+     Dieser Dreisatz ist der Stand, den laufFortsetzen() wiederfindet. */
+  RUN.sets = []; RUN.i = 0; RUN.b++;
   laufSichern();
-  if(RUN.b + 1 < RUN.plan.blocks.length) betweenBlocks();
+  return true;
+}
+function endBlock(){
+  if(!blockSichern()){ RUN.b++; RUN.sets = []; RUN.i = 0; laufSichern(); }
+  if(RUN.b < RUN.plan.blocks.length) blockIntro(RUN.b);
   else finishWorkout();
+}
+/* Workout vorzeitig beenden. Der angefangene Block geht mit — wer nach dem
+   ersten Satz merkt, dass es heute nicht mehr geht, hat trotzdem gemessen. */
+function workoutBeenden(){
+  blockSichern();
+  if(!RUN.fertig.length){ laufVerwerfen(); render(); return; }
+  finishWorkout();
 }
 
 function finishWorkout(){
@@ -1536,10 +1760,10 @@ function historySVG(pts){
    in_kurve markiert die Zeilen, aus denen sich CP und W' fitten lassen:
    Satz 1 einer nicht vorermuedeten Messung. Alles andere ist Training oder
    Erholungsmessung — wertvoll, aber nicht dieselbe Groesse. */
-const EXPORT_SCHEMA = 1;
+const EXPORT_SCHEMA = 2;
 const EXPORT_SPALTEN = [
   "datum","workout","uebung","uebung_name","seite","variante","stufe_nr",
-  "zusatz_kg","koerpergewicht_kg","last","satz","sekunden","ziel_sekunden",
+  "zusatz_kg","koerpergewicht_kg","last","satz","saetze_geplant","sekunden","ziel_sekunden",
   "schmerz","frisch","in_kurve","zone_geplant","zone_erreicht",
   "selbst_gewaehlt","nachgetragen","fassung"
 ];
@@ -1560,6 +1784,10 @@ function messreihen(){
         koerpergewicht_kg: ses.bw || "",
         last: ses.load,
         satz: i + 1,
+        /* Wie viele Saetze waren vorgesehen? Eine Reihe aus einem Satz kann ein
+           geplanter Einzelsatz sein oder ein abgebrochener Fuenfer — ohne diese
+           Spalte ist das im Nachhinein nicht mehr zu unterscheiden. */
+        saetze_geplant: ses.saetzeGeplant || (ses.sets || []).length,
         sekunden: satz.time,
         ziel_sekunden: satz.target != null ? satz.target : ses.target,
         schmerz: satz.pain ? 1 : 0,
@@ -1656,16 +1884,21 @@ function renderHome(){
     el("homeBody").innerHTML = `
       <div class="card">
         <span class="pill pRest">unterbrochen</span>
-        <h2 style="margin:11px 0 2px">${anzahl(n, "Satz", "Sätze")} ${
-          n===1?"ist":"sind"} gesichert</h2>
-        <p class="muted" style="margin:0">${b} von ${anzahl(L.plan.blocks.length,
-          "Block", "Blöcken")} abgeschlossen${
-          (L.sets||[]).length ? ` · im laufenden Block ${
-          anzahl(L.sets.length, "Satz", "Sätze")}` : ""}</p>
+        <h2 style="margin:11px 0 2px">${n
+          ? `${anzahl(n, "Satz", "Sätze")} ${n===1?"ist":"sind"} gesichert`
+          : "Workout angefangen"}</h2>
+        <p class="muted" style="margin:0">${n
+          ? `${b} von ${anzahl(L.plan.blocks.length, "Block", "Blöcken")} abgeschlossen${
+            (L.sets||[]).length ? ` · im laufenden Block ${
+            anzahl(L.sets.length, "Satz", "Sätze")}` : ""}`
+          : `${anzahl(L.plan.blocks.length, "Block", "Blöcke")} · noch nichts gemessen`}</p>
         <p class="tiny" style="margin-top:12px">${heute
-          ? `Die App hat den Lauf nach jedem Satz gesichert. Du kannst dort weitermachen, wo du
-             aufgehört hast — die Pause dazwischen ist kein Problem, sie steht nur nicht im
-             Messprotokoll.`
+          ? (n
+            ? `Die App hat den Lauf nach jedem Satz gesichert. Du kannst dort weitermachen, wo du
+               aufgehört hast — die Pause dazwischen ist kein Problem, sie steht nur nicht im
+               Messprotokoll.`
+            : `Gemessen ist noch nichts. Weitermachen setzt dort an, wo du warst — mit den
+               Varianten, die du schon eingestellt hast.`)
           : `Der Lauf ist von einem früheren Tag. Weitermessen ergibt jetzt keinen Sinn mehr,
              aber die fertigen Blöcke lassen sich mit dem damaligen Datum speichern.`}</p>
         ${heute ? `<button class="primary" style="width:100%;margin-top:12px;padding:16px"
@@ -1682,8 +1915,8 @@ function renderHome(){
       finishWorkout();
     };
     el("lfWeg").onclick = ()=>{
-      if(confirm(`${anzahl(n, "gemessenen Satz", "gemessene Sätze")} verwerfen? `
-               + `Das lässt sich nicht rückgängig machen.`))
+      if(!n || confirm(`${anzahl(n, "gemessenen Satz", "gemessene Sätze")} verwerfen? `
+                     + `Das lässt sich nicht rückgängig machen.`))
         { laufVerwerfen(); render(); }
     };
     return;
@@ -1781,83 +2014,25 @@ function renderHome(){
     return;
   }
 
-  /* ── Workoutkarte ────────────────────────────────────────── */
+  /* ── Workoutkarte ──────────────────────────────────────────
+     Nur die Übersicht. Eingestellt wird jede Variante dort, wo sie gebraucht
+     wird: auf der Karte unmittelbar vor der Übung (blockIntro). Hier stand
+     vorher ein Formular pro Block — fünf Stück untereinander, alle vor dem
+     ersten Satz auszufüllen. */
   const blockKarte = (bl, i) => {
-    const ex = S.ex[bl.exercise], f = curFit(bl.exercise, bl.side);
-    const tp = f ? predictTime(f, lastVon(bl.exercise, bl.level, bl.extra)) : null;
-    const zz = (tp && isFinite(tp)) ? zoneOf(tp) : null;
+    const ex = S.ex[bl.exercise];
+    const zz = ZONES.find(z=>z.id===bl.zone);
     return `
-      <div class="card flat">
-        <p class="tiny" style="margin:0 0 2px;letter-spacing:.06em;text-transform:uppercase">
-          Block ${i+1} · ${bl.fresh ? "wird gemessen" : "nur Training"}</p>
-        ${bl.fehlt && bl.fehlt.length ? `<p class="tiny" style="margin:0 0 6px"><span
-          class="pill pB">Einstieg — ${bl.fehlt.length===1 ? `Zone ${bl.fehlt[0]} fehlt noch`
-          : `noch ${bl.fehlt.length} Zonen offen`}</span>${bl.abgewichen
-          ? ` Statt der Workout-Zone wird <b>Zone ${bl.zone}</b> gemessen: die hätte die Rotation
-            wiederholt, obwohl sie hier schon steht.` : ""}</p>` : ""}
-        <h3 style="margin:0 0 6px">${blockLabel(bl)}</h3>
-        <label class="tiny" for="lvlPick${i}" style="display:block;margin-bottom:4px">Stufe —
-          du entscheidest (${bl.level+1} von ${ex.levels.length})</label>
-        <div class="row" style="gap:7px;align-items:stretch">
-          <button class="ghost" id="lvlMinus${i}" style="flex:0 0 52px;font-size:22px;padding:0"
-            ${bl.level===0?"disabled":""} aria-label="leichtere Stufe">−</button>
-          <select id="lvlPick${i}" data-b="${i}" style="flex:1">${ex.levels.map((L,k)=>{
-            const t = f ? predictTime(f, lastVon(bl.exercise, k, bl.extra)) : null;
-            const hint = (t && isFinite(t)) ? ` · erwartet ${fmt(t)}` : "";
-            return `<option value="${k}" ${k===bl.level?"selected":""}>${L.name}${hint}</option>`;
-          }).join("")}</select>
-          <button class="ghost" id="lvlPlus${i}" style="flex:0 0 52px;font-size:22px;padding:0"
-            ${bl.level>=ex.levels.length-1?"disabled":""} aria-label="schwerere Stufe">+</button>
+      <div class="card flat" style="padding:12px 14px">
+        <div class="row" style="justify-content:space-between;align-items:baseline;gap:9px">
+          <b>${i+1}. ${blockLabel(bl)}</b>
+          <span class="pill ${zz.cls}" style="flex:0 0 auto">Zone ${bl.zone}</span>
         </div>
-        ${bl.level >= extraAbOf(bl.exercise) ? `
-          <div class="row" style="gap:7px;align-items:center;margin-top:8px">
-            <label class="tiny" for="kgPick${i}" style="flex:1;margin:0">Zusatzgewicht</label>
-            <button class="ghost" id="kgMinus${i}" style="flex:0 0 52px;font-size:22px;padding:0"
-              ${(bl.extra||0)<=0?"disabled":""} aria-label="weniger Gewicht">−</button>
-            <input type="number" id="kgPick${i}" value="${bl.extra||0}" min="0" max="60" step="2.5"
-              inputmode="decimal" style="width:76px;text-align:center">
-            <button class="ghost" id="kgPlus${i}" style="flex:0 0 52px;font-size:22px;padding:0"
-              aria-label="mehr Gewicht">+</button>
-            <span class="tiny" style="flex:0 0 22px">kg</span>
-          </div>
-          <p class="tiny" style="margin-top:5px">${ex.extraHint || ""}${bl.extra
-            ? ` Wirksame Last <b>${komma(lastVon(bl.exercise, bl.level, bl.extra), 2)}</b>
-                statt ${komma(ex.levels[bl.level].load, 2)} — gerechnet auf ${S.bw} kg
-                Körpergewicht (<b>Mehr → Messung</b>).` : ""}</p>` : ""}
-        <p class="tiny" style="margin-top:7px">Richtwert erster Satz <b>${fmt(bl.target)}</b> ·
-          ${SETS} Sätze · ${PAUSE_S}s Pause${
-          zz ? ` · erwarteter Landeplatz <span class="pill ${zz.cls}">Zone ${zz.id}</span>` : ""}</p>
-        ${bl.userPicked ? `<p class="tiny">Von dir gewählt — Vorschlag war
-          <b>${ex.levels[bl.levelVorschlag].name}</b>.</p>` : ""}
-        ${bl.herkunft === "anker" ? `<p class="tiny"><b>Noch keine Kurve.</b> Der Vorschlag ist
-          hochgerechnet aus deinem jüngsten Punkt (${fmt(bl.anker.time)} auf
-          „${ex.levels[bl.anker.level] ? ex.levels[bl.anker.level].name : "—"}"${
-          bl.anker.quelle === "vorermüdet" ? ", vorermüdet" : ""}) — mit der <i>Annahme</i>,
-          dass die Dauerleistung bei ${Math.round(ANNAHME_CP*100)} % dieser Last liegt. Das ist
-          gesetzt, nicht gemessen.${bl.rohStufe > bl.level
-          ? ` Die Rechnung landet bei <b>„${ex.levels[bl.rohStufe].name}"</b>; ohne Kurve gehe
-             ich höchstens ${MAX_SPRUNG} Stufen auf einmal hoch. Wenn du dir sicher bist, stell
-             oben direkt darauf.` : ""}</p>` : ""}
-        ${bl.herkunft === "start" ? `<p class="tiny"><b>Erste Messung dieser Kurve.</b> Die Stufe
-          ist bewusst nicht die leichteste: Drei Tests bei derselben Last ergeben drei Punkte
-          übereinander und daraus keine Kurve. Halte, so lange du kannst — der Punkt zählt, wie
-          er kommt.</p>` : ""}
-        ${bl.zweiteSeite ? `<p class="tiny">${zweiteSeiteGrund(bl.exercise, p.blocks.length)}
-          ${bl.fresh ? `Du hast entschieden, ihn trotzdem zu messen — er geht in die Kurve.`
-          : `Der Satz zählt als Training und erscheint im Verlauf als <i>vorermüdet</i> — er geht
-             nicht in die Kurve.`}</p>
-          <label class="chk" for="msPick${i}" style="margin-top:6px">
-            <input type="checkbox" id="msPick${i}" data-b="${i}" ${bl.fresh?"checked":""}>
-            <span class="tiny">Diesen Satz trotzdem messen.
-            ${bl.exercise==="plank"
-              ? `Beim Seitstütz arbeitet die andere Rumpfseite mit eigenen Muskeln — der einzige
-                 Einwand ist die Ermüdung aus dem bisherigen Workout.`
-              : `Beim Ausfallschritt war dieses Bein eben schon hinteres Bein; hier ist der
-                 Einwand fachlich schwerer.`}
-            Läuft heute nur diese eine Übung, kostet das Weglassen die Hälfte der Daten.</span>
-          </label>` : ""}
-        ${bl.exercise==="push" && p.blocks.length > 2 ? `<p class="tiny">Steht bewusst in der
-          Mitte: trennt bei beiden zweiseitigen Übungen die erste von der zweiten Seite.</p>` : ""}
+        <p class="tiny" style="margin:4px 0 0">${stufenName(bl.exercise, bl.level, bl.extra)}</p>
+        <p class="tiny" style="margin:2px 0 0;color:var(--tx3)">Richtwert ${fmt(bl.target)} ·
+          ${anzahl(bl.saetze || SETS, "Satz", "Sätze")} ·
+          ${bl.fresh ? "wird gemessen" : "nur Training"}${
+          bl.fehlt && bl.fehlt.length ? " · Einstieg" : ""}</p>
       </div>`;
   };
 
@@ -1868,9 +2043,13 @@ function renderHome(){
       <h2 style="margin:11px 0 2px">${ZAHLWORT[p.blocks.length]||p.blocks.length} Blöcke</h2>
       <p class="muted" style="margin:0">${p.blocks.map(blockLabel).join("  →  ")}</p>
       <p class="tiny" style="margin-top:11px">${p.why}</p>
+      <p class="tiny"><b>Variante und Satzzahl stellst du vor jeder Übung ein</b> — auf der Karte,
+      die direkt davor kommt. Hier steht nur, was geplant ist.</p>
       <p class="tiny"><b>Der Richtwert ist kein Ziel.</b> Halte so lange du kannst. Der Messpunkt
       zählt so, wie er herauskommt — ob du dich über- oder unterschätzt, ist gleichgültig.
       Genau aus der Streuung entsteht die Kurve.</p>
+      <p class="tiny">Abbrechen geht jederzeit: In jeder Satzpause steht <b>Workout hier
+      beenden</b>. Alles bis dahin Gemessene wird gespeichert, auch ein einzelner Satz.</p>
       ${p.blocks.length ? `<button class="primary" style="width:100%;margin-top:12px;padding:16px"
         id="goSess">Workout starten</button>`
       : `<p class="tiny"><b>Kein Block übrig.</b> Hak unten mindestens eine Übung an, deren
@@ -1893,40 +2072,6 @@ function renderHome(){
               : `<span style="color:var(--tx3)">${n} von 3 Zonen</span>`}</td></tr>`;
         }).join("")}</tbody></table></div>` : ""; })()}`;
 
-  p.blocks.forEach((bl,i)=>{
-    const setzen = k => {
-      const lv = S.ex[bl.exercise].levels;
-      k = Math.max(0, Math.min(lv.length-1, k));
-      bl.level = k;
-      if(k < extraAbOf(bl.exercise)){        /* Feld verschwindet — Last auch */
-        bl.extra = 0; S.extra[keyOf(bl.exercise, bl.side)] = 0;
-      }
-      bl.userPicked = (k !== bl.levelVorschlag);
-      const f = curFit(bl.exercise, bl.side);
-      if(f){ const t = predictTime(f, lastVon(bl.exercise, k, bl.extra));
-             if(isFinite(t)) bl.target = Math.max(15, Math.round(t)); }
-      S.plan = p; save(); render();
-    };
-    const kgSetzen = v => {
-      const kg = Math.max(0, Math.min(60, Math.round((+v || 0) / 2.5) * 2.5));
-      S.extra[keyOf(bl.exercise, bl.side)] = kg;
-      bl.extra = kg;
-      const f2 = curFit(bl.exercise, bl.side);
-      if(f2){ const t = predictTime(f2, lastVon(bl.exercise, bl.level, kg));
-              if(isFinite(t)) bl.target = Math.max(15, Math.round(t)); }
-      S.plan = p; save(); render();
-    };
-    if(el("kgPick"+i)){
-      el("kgPick"+i).onchange = e => kgSetzen(e.target.value);
-      el("kgMinus"+i).onclick = ()=> kgSetzen((bl.extra||0) - 2.5);
-      el("kgPlus"+i).onclick  = ()=> kgSetzen((bl.extra||0) + 2.5);
-    }
-    const ms = el("msPick"+i);
-    if(ms) ms.onchange = e => { bl.fresh = e.target.checked; S.plan = p; save(); render(); };
-    el("lvlPick"+i).onchange = e => setzen(+e.target.value);
-    el("lvlMinus"+i).onclick = ()=> setzen(bl.level - 1);
-    el("lvlPlus"+i).onclick  = ()=> setzen(bl.level + 1);
-  });
   auswahlBinden();
   if(el("goSess")) el("goSess").onclick = ()=>{ beep(660,60,.05); startWorkout(); };
 }
