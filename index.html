@@ -142,8 +142,9 @@ code{background:var(--panel2);padding:1.5px 5px;border-radius:5px;font-size:12.5
 
   <div id="ob2" style="display:none">
     <h1>Was trainierst du?</h1>
-    <p class="muted">Für den Prototyp drei Übungen. Ausfallschritt und Seitstütz werden je Seite
-      gemessen — ein Workout hat deshalb fünf Blöcke.</p>
+    <p class="muted" id="obEx2">Zweiseitige Übungen werden je Seite gemessen und kosten deshalb
+      zwei Blöcke. Wie viele davon in eine Sitzung passen, stellst du später unter
+      <b>Mehr → Länge einer Sitzung</b> ein.</p>
     <div id="exPick" class="stack"></div>
     <div class="note" style="margin-top:16px">
       <b>So geht es weiter.</b> Drei Einstiegs-Workouts in drei verschiedenen Stufen — ein
@@ -256,6 +257,16 @@ const DECAY      = 0.97; // Alterung der Messpunkte (Abschnitt 4.1)
    Ausnahme fuer die drei Einstiegstests: dort genuegen 24 Stunden,
    sonst zoege sich das Onboarding ueber drei Wochen. Grobe Richtwerte,
    die verfeinert werden; aenderbar unter Mehr. */
+/* Obergrenze fuer die Blockzahl einer Sitzung. Mit fuenf Uebungen, davon drei
+   zweiseitig, waeren es sonst acht Bloecke — in Zone C ueber eine Stunde reine
+   Haltezeit. Die Erholung je Muskelgruppe bleibt die harte Schranke; dieser
+   Deckel entscheidet nur, WELCHE der freigegebenen Uebungen heute drankommen.
+
+   Ausdruecklich NICHT der richtige Hebel dafuer ist die Satzzahl: Der Abfall
+   ueber die Saetze ist die einzige Information ueber die W'-Rekonstitution.
+   Bei ein bis zwei Saetzen ist sie weg. Lieber weniger Uebungen als weniger
+   Saetze. */
+const MAX_BLOECKE      = 6;
 const MIN_GAP_DAYS     = 2;
 const ONBOARD_GAP_DAYS = 1;
 const DEFAULT_REST     = {A:7, B:7, C:7};
@@ -374,8 +385,114 @@ const DEFAULT_EX = {
       {name:"Beine gestreckt · Unterarm auf Tischplatte (~75 cm)",   load:0.77},
       {name:"Beine gestreckt · Unterarm am Boden (Standard)",        load:0.90}
     ]
+  },
+  /* ── Schraegzug ────────────────────────────────────────────────
+     Das Lastgesetz ist dasselbe wie beim Seitstuetz: Last = k * cos θ, mit
+     dem Koerperwinkel θ ueber der Waagerechten. k = 0,746, bestimmt aus
+     publizierten Kraftmessungen am Gurt (0,374 bei 60°, 0,529 bei 45°,
+     0,681 bei 30°, 0,695 waagerecht) — groesste Abweichung 5,1 %.
+
+     Daraus folgt zum ZWEITEN Mal, was beim Seitstuetz die Fusserhoehung
+     entwertet hat: FUESSE ERHOEHEN IST KEINE PROGRESSION. Es dreht den
+     Koerper nur zur Waagerechten, und dort hat cos θ sein Maximum; darueber
+     hinaus faellt die Last wieder. Gemessen: Fuesse auf dem Geraet statt am
+     Boden bringt 73,3 % statt 69,5 % — keine Stufe, sondern Rauschen.
+     Ueber der Waagerechten geht es nur noch mit Zusatzgewicht weiter.
+
+     Am Schlingentrainer stellt der Fussabstand den Winkel allein ein: Die
+     Gurte schwenken um die Verankerung und folgen dir, wenn du dich
+     zuruecklehnst. Deshalb sind die Sprossen Fussabstaende, keine Hoehen. */
+  row: {
+    name:"Schrägzug", region:"Rücken", group:"pull", sides:null,
+    extraAb:3, extraK:1.3,
+    extraHint:"Rucksack ganz normal auf dem Rücken — er hängt frei, weil dein Rücken in der "
+             +"Luft ist. Hoch schnallen, auf Höhe der Schulterblätter: rutscht er aufs Becken, "
+             +"wirkt dasselbe Gewicht nur zu drei Vierteln.",
+    hint:"Griffe des Schlingentrainers fassen, Körper eine gerade Linie von der Ferse bis zum "
+        +"Kopf. Schulterblätter VOR dem Zug nach unten-hinten setzen und dort halten. Gehalten "
+        +"wird in der Mitte: Ellenbogen etwa rechtwinklig, Oberarme rund 45° vom Rumpf weg — "
+        +"nicht mit gestreckten Armen hängen und nicht oben am Griff kleben. Den Winkel "
+        +"stellst du über den Fußabstand ein: je weiter die Füße nach vorn, desto flacher "
+        +"liegst du und desto schwerer wird es.",
+    levels:[
+      {name:"Fast aufrecht, nur leicht zurückgelehnt (~78°)",          load:0.155, geraet:"zug"},
+      {name:"Deutlich zurückgelehnt · Füße eine Fußlänge vor (~68°)",  load:0.280, geraet:"zug"},
+      {name:"Halber Weg zur Waagerechten (~57°)",                      load:0.406, geraet:"zug"},
+      {name:"Knapp über der Diagonale (~46°)",                         load:0.518, geraet:"zug"},
+      {name:"Flach · Schultern etwa auf Kniehöhe (~33°)",              load:0.626, geraet:"zug"},
+      {name:"Fast waagerecht (~15°)",                                  load:0.721, geraet:"zug"}
+    ]
+  },
+  /* ── Fersenbruecke ────────────────────────────────────────────
+     Einbeinige Brueckenhaltung, Ferse auf einer Unterlage. Die Skala ist der
+     FERSENABSTAND: kurzer Hebel (Knie rechtwinklig) leicht, langer Hebel
+     (Bein fast gestreckt) schwer. Die "Long-Lever-Bruecke" ist keine zweite
+     Uebung, sondern das obere Ende derselben Leiter.
+
+     Sprossen 1 bis 4 sind gerechnet (Winter-Anthropometrie, Zweipunktauflage
+     Schulter/Ferse) und von einem zweiten, unabhaengig aufgesetzten Modell
+     bestaetigt. Sprosse 5 ist fortgeschrieben. Sprossen 6 und 7 sind
+     GESCHAETZT: Bei gleicher Fersenhoehe ist das Hueftmoment dasselbe, ob die
+     Ferse auf der Rolle oder auf dem Boden liegt — offen ist, wie viel das
+     aktive Halten der wegrollenden Rolle zusaetzlich kostet. Genau dieses
+     Muster (fuehlt sich schwerer an, ist es aber vielleicht nicht) hat beim
+     Seitstuetz die Fusserhoehung als Scheinsprosse entlarvt. Gehoert
+     nachgemessen. */
+  hinge: {
+    name:"Fersenbrücke", region:"Oberschenkelrückseite", group:"hinge",
+    sides:["links","rechts"], extraAb:3, extraK:1.4,
+    extraHint:"Auf dem Becken, nicht auf dem Bauch — über dem Hüftgelenk wirkt es am "
+             +"stärksten. Eine Hantelscheibe oder ein Rucksack quer über die Hüftknochen.",
+    hint:"»Links« heißt: das LINKE Bein trägt, das rechte ist angehoben. Ferse auf die "
+        +"Unterlage, Zehen zeigen nach oben, Becken hoch drücken, bis Schulter, Hüfte und "
+        +"Knie eine Linie bilden. Das freie Bein bleibt angewinkelt in der Luft — nicht "
+        +"abstützen. Gearbeitet wird in der Ferse, nicht im Fußballen. Wenn es vorne im "
+        +"Oberschenkel krampft, ist das Becken zu tief.",
+    seitenHinweis:"Dieses Bein hat eben noch das Becken gehalten, während die andere Seite "
+                 +"gearbeitet hat — beide Oberschenkelrückseiten stabilisieren mit.",
+    /* Der Red-Flag-Fragebogen laeuft nur im Onboarding. Eine Uebung, die
+       spaeter dazukommt, bringt aber eine neue Koerperregion mit — und beim
+       Sitzbeinhoecker ist der Verwechslungsfall ein anderer als am Knie oder
+       an der Schulter. Deshalb eine eigene Frage, gestellt in dem Moment, in
+       dem die Uebung zum ersten Mal ansteht. */
+    warnung:{
+      titel:"Bevor du die Fersenbrücke zum ersten Mal machst",
+      frage:"Trifft eines davon auf dich zu?",
+      punkte:[
+        "Der Schmerz sitzt tief am Sitzbeinhöcker und wird beim langen Sitzen schlimmer",
+        "Er strahlt die Beinrückseite hinunter, bis in die Wade oder den Fuß",
+        "Taubheit, Kribbeln oder Kraftverlust im Bein",
+        "Der Schmerz hat nach einem plötzlichen Ereignis angefangen (Sprint, Ausrutschen, Riss)"
+      ],
+      warum:"Beschwerden an der Oberschenkelrückseite können von der Sehne am Sitzbein kommen — "
+           +"dann ist isometrisches Training genau richtig. Sie können aber auch vom Rücken "
+           +"ausstrahlen oder ein Sehnenriss sein, und dann wäre Belastung falsch. Das lässt "
+           +"sich nicht über eine App unterscheiden."
+    },
+    levels:[
+      {name:"Ferse auf Stuhlsitz (~45 cm) · Knie etwa rechtwinklig", load:0.296},
+      {name:"Ferse auf Hocker (~30 cm) · Knie etwa rechtwinklig",    load:0.415},
+      {name:"Ferse auf Kiste (~20 cm) · Knie leicht geöffnet",       load:0.561},
+      {name:"Ferse am Boden · Knie deutlich geöffnet",               load:0.648},
+      {name:"Ferse am Boden · Bein fast gestreckt (langer Hebel)",   load:0.760},
+      {name:"Ferse auf der Faszienrolle · Bein fast gestreckt",      load:0.850, geraet:"rolle"},
+      {name:"Ferse in den Ringen · Bein fast gestreckt",             load:0.960, geraet:"ringe"}
+    ]
   }
 };
+
+/* Geraete, die ueber Moebel hinausgehen. Der Schluessel steht an der Sprosse
+   (Feld geraet), der Haken in S.geraete. */
+const GERAETE = [
+  {id:"zug", name:"Etwas zum Daranziehen", was:"Schlingentrainer, niedrige Stange, Türreck — "
+   +"oder notfalls eine stabile Tischkante. Am Schlingentrainer stellst du den Winkel am "
+   +"feinsten ein, weil die Gurte dir folgen, wenn du dich zurücklehnst.",
+   fuer:"Schrägzug — ohne das entfällt die Übung ganz"},
+  {id:"rolle", name:"Faszienrolle", was:"Die übliche Schaumstoffrolle.",
+   fuer:"Fersenbrücke, obere Stufe"},
+  {id:"ringe", name:"Turnringe", was:"Frei hängende Ringe, in die der Fuß passt.",
+   fuer:"Fersenbrücke, oberste Stufe"}
+];
 
 const RED_FLAGS = [
   "Schmerz weckt mich nachts auf oder ist in Ruhe stark",
@@ -390,7 +507,7 @@ const RED_FLAGS = [
 /* Stand der ausgelieferten Fassung. Steht unten in der App und beim Start in der
    Konsole — daran erkennst du am Handy, ob das Update schon angekommen ist.
    Wird bei jeder Änderung hochgezählt. */
-const BUILD = "2026-09-16 g";
+const BUILD = "2026-09-17 a";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
@@ -430,6 +547,15 @@ function fresh(){
        solange nichts anderes gesagt ist. Wer einseitig Beschwerden hat, nimmt
        das Haekchen raus und stellt die Seiten getrennt ein. */
     sync:{},
+    /* Welche Geraete stehen zur Verfuegung. Sprossen mit einer geraet-Kennung
+       erscheinen nur, wenn hier ein Haken steht. Moebel zaehlen nicht dazu —
+       die setzt die App voraus. */
+    geraete:{zug:true},
+    /* Deckel auf die Blockzahl, und die von Hand zusammengestellte Einheit
+       (gilt nur fuer den Tag, an dem sie gewaehlt wurde). */
+    maxBloecke:MAX_BLOECKE, heute:null, heuteTag:null,
+    /* Welche uebungseigenen Sicherheitsfragen schon beantwortet sind. */
+    gefragt:{},
     sessions:[], plan:null, redflag:false,
     rest:{...DEFAULT_REST}, planDay:null, reaction:REACTION_DEFAULT
   };
@@ -445,6 +571,13 @@ function normalize(d){
                                                 : Object.assign({...DEFAULT_REST}, d.rest||{}),
                                     aktiv: d.aktiv || {},
                                     sync: d.sync || {},
+                                    /* Zugpunkt ist voreingestellt an — eine stabile
+                                       Tischkante reicht und hat praktisch jeder. Rolle und
+                                       Ringe muessen ausdruecklich angehakt werden. */
+                                    geraete: Object.assign({zug:true}, d.geraete || {}),
+                                    maxBloecke: (d.maxBloecke > 0 ? d.maxBloecke : MAX_BLOECKE),
+                                    heute: d.heute || null, heuteTag: d.heuteTag || null,
+                                    gefragt: d.gefragt || {},
                                     /* Ein angefangener Lauf ueberlebt das Neuladen. */
                                     lauf: (d.lauf && d.lauf.plan) ? d.lauf : null,
                                     extra: leitersturz ? {} : (d.extra || {}),
@@ -518,6 +651,13 @@ const curEx = () => S.ex[S.exercise];
    Ältere Punkte werden mit DECAY abgewertet. */
 function fit(points){
   if(!points || points.length < 2) return null;
+  /* Zwei Punkte auf DERSELBEN Last sind kein Fit. Ohne diese Zeile faellt
+     log(L - cp) als Konstante aus der Streuung heraus: sse haengt dann gar
+     nicht mehr von cp ab, und es gewinnt der erste Gitterpunkt, also cp ~ 0.
+     Die App meldete dabei eine kleinere rmse als bei einer ehrlichen Kurve —
+     der Scheinfit sah nach ihrer eigenen Guetezahl BESSER aus. Der Text im
+     Profil behauptet diese Pruefung seit jeher; jetzt gibt es sie auch. */
+  if(new Set(points.map(p => p.load)).size < 2) return null;
   const n = points.length;
   const w = points.map((_,i)=> Math.pow(DECAY, n-1-i));   // ältester bekommt am wenigsten
   const minL = Math.min(...points.map(p=>p.load));
@@ -536,7 +676,19 @@ function fit(points){
   if(!best) return null;
   best.n = n;
   best.rmse = Math.sqrt(best.sse / points.reduce((a,_,k)=>a+w[k],0));
+  /* Der GELTUNGSBEREICH der Kurve: zwischen diesen beiden Lasten wurde
+     gemessen. Ausserhalb ist jede Vorhersage eine Verlaengerung ins Leere —
+     bei einer kurzen Leiter ist das der Regelfall, nicht die Ausnahme. */
+  best.lo = Math.min(...points.map(p => p.load));
+  best.hi = Math.max(...points.map(p => p.load));
   return best;
+}
+/* Traegt die Kurve an dieser Last noch? Ein schmaler Saum nach aussen ist
+   zugelassen — die Zonengrenzen sind ohnehin weich, und ohne ihn koennte die
+   naechste Stufe nie vorgeschlagen werden. */
+const BEREICH_SAUM = 1.12;
+function imBereich(f, load){
+  return !!f && load >= f.lo / BEREICH_SAUM && load <= f.hi * BEREICH_SAUM;
 }
 const predictTime = (f,load) => (load<=f.cp) ? Infinity : f.wprime/(load-f.cp);
 const predictLoad = (f,t)    => f.cp + f.wprime/t;
@@ -603,9 +755,83 @@ function zoneCoverage(ex, side){
   for(const p of points(ex, side)) cov[zoneOf(p.time).id]++;
   return cov;
 }
+
+/* ═══════════ Was eine Leiter hergibt ═══════════
+   Bis hierher stand ueberall die Annahme, jede Uebung habe sieben bis neun
+   Sprossen ueber einen Lastbereich von 0,2 bis 1,25. Faszienrolle, Slider,
+   Ringe und Schlingentrainer brechen sie: Eine Sprosse, die der Nutzer
+   mangels Geraet nicht ausfuehren kann, darf die App nicht vorschlagen.
+
+   Wichtig: Die Leiter wird dabei NICHT umnummeriert. Nicht verfuegbare
+   Sprossen bleiben im Array stehen und werden nur bei der AUSWAHL
+   uebersprungen. Wuerde man sie herausfiltern, verschoeben sich S.levels und
+   die Exportspalte stufe_nr rueckwirkend, sobald ein Geraet angehakt wird. */
+const geraetDa = g => !g || !!(S.geraete && S.geraete[g]);
+function verfuegbareStufen(ex){
+  const lv = (S.ex[ex] && S.ex[ex].levels) || [];
+  return lv.map((L, i) => Object.assign({i}, L)).filter(L => geraetDa(L.geraet));
+}
+/* Lastverhaeltnis zwischen oberster und unterster verfuegbarer Sprosse.
+   Zusatzgewicht taucht hier nicht auf: es skaliert ALLE Sprossen gleich und
+   laesst das Verhaeltnis unberuehrt. */
+function leiterSpanne(ex){
+  const L = verfuegbareStufen(ex).map(s => s.load);
+  return L.length < 2 ? 1 : Math.max(...L) / Math.min(...L);
+}
+/* Die 1,25 ist keine Konvention: Bei 8 % Messfehler auf eine Haltezeit reisst
+   ein Zwei-Punkt-Fit darunter das CP um mehr als zehn Prozent mit. Die 1,9 ist
+   das Verhaeltnis, das von Zone C (120 s) bis Zone A (35 s) noetig ist. */
+/* Was jemand zu Hause realistisch traegt — nicht die 60 kg, die das
+   Eingabefeld zulaesst. Nur fuer die Frage, welche Zonen erreichbar sind. */
+const ZUSATZ_REAL = 20;
+const SPANNE_ZONE = 1.25;
+const SPANNE_VOLL = 1.9;
+function leiterArt(ex){
+  const s = leiterSpanne(ex);
+  return s < SPANNE_ZONE ? "punkt" : s < SPANNE_VOLL ? "teil" : "kurve";
+}
+/* Welche Zonen kann diese Kurve ueberhaupt TREFFEN? Vorher forderte die App
+   von jeder Uebung alle drei — eine kurze Leiter konnte die Forderung nie
+   erfuellen, und die Folge war kein Fehler, sondern ein Dauerzustand: Der
+   Block wurde als Zone B beschriftet und bekam eine Zielzeit aus Zone C.
+   Gerechnet wird mit der Kurve, solange es eine gibt, sonst mit derselben
+   Ankerannahme wie in mkBlock. Ohne jede Messung wird nichts ausgeschlossen. */
+function erreichbareZonen(ex, side){
+  const stufen = verfuegbareStufen(ex);
+  const alle = ZONES.map(z => z.id);
+  if(!stufen.length) return alle;
+  /* Zusatzgewicht gehoert zur Reichweite dazu — sonst gaelte eine Zone als
+     unerreichbar, die der Rucksack muehelos holt. Gerechnet wird NICHT mit
+     dem Maximum des Eingabefelds (60 kg), sondern mit dem, was sich zu Hause
+     tatsaechlich umschnallen laesst. */
+  const obenDrauf = stufen.some(st => st.i >= extraAbOf(ex)) ? ZUSATZ_REAL : 0;
+  const leicht = Math.min(...stufen.map(st => lastVon(ex, st.i, 0)));
+  const schwer = Math.max(...stufen.map(st => lastVon(ex, st.i, obenDrauf)));
+  const f = curFit(ex, side);
+  let zeit;
+  if(f){
+    zeit = L => predictTime(f, L);
+  } else {
+    const a = ankerpunkt(ex);
+    if(!a || !a.load) return alle;
+    const cp = ANNAHME_CP * a.load, wp = a.time * (a.load - cp);
+    zeit = L => (L <= cp) ? Infinity : wp / (L - cp);
+  }
+  const lang = zeit(leicht);                   // leichteste Stufe, laengste Zeit
+  const kurz = zeit(schwer);                   // schwerste Stufe, kuerzeste Zeit
+  if(!isFinite(kurz) || kurz <= 0) return alle;
+  const a1 = alle.indexOf(zoneOf(Math.max(1, kurz)).id);
+  const b1 = alle.indexOf(zoneOf(isFinite(lang) ? Math.max(1, lang) : 1e6).id);
+  return alle.slice(Math.min(a1, b1), Math.max(a1, b1) + 1);
+}
 function profileReady(ex, side){
   const c = zoneCoverage(ex, side);
-  return points(ex, side).length>=4 && c.A>0 && c.B>0 && c.C>0;
+  const kann = erreichbareZonen(ex, side);
+  /* Fertig ist, was ERREICHBAR ist — nicht, was drei Zonen waeren. Sonst
+     blockiert eine einzige kurze Leiter die Fortschrittskarte fuer immer,
+     und zwar fuer die ganze App. */
+  const n = kann.filter(id => c[id] > 0).length;
+  return points(ex, side).length >= Math.min(4, kann.length + 1) && n === kann.length;
 }
 
 /* ═══════════ Erholung ═══════════
@@ -689,15 +915,55 @@ function gateGroup(gr){
   return {ok:true, group:gr};
 }
 /* Eine Zeile je Uebung: angehakt? Gruppe frei? Warum nicht? */
+/* Eine Uebung, von der keine einzige Sprosse ausfuehrbar ist, hat im Workout
+   nichts verloren — die App wuerde sonst eine Variante vorschlagen, fuer die
+   der Gegenstand fehlt. */
+function ausfuehrbar(ex){ return verfuegbareStufen(ex).length > 0; }
 function uebungslage(){
   return Object.keys(S.ex).map(ex => {
     const gr = groupOf(ex);
-    return {ex, group:gr, aktiv: S.aktiv[ex] !== false, tor: gateGroup(gr)};
+    return {ex, group:gr, aktiv: S.aktiv[ex] !== false && ausfuehrbar(ex),
+            ohneGeraet: !ausfuehrbar(ex), tor: gateGroup(gr)};
   });
 }
 /* Was heute tatsaechlich trainiert wird. */
 function heuteDran(){
   return uebungslage().filter(u => u.aktiv && (u.tor.ok || ignoreRest));
+}
+/* Seit wie vielen Tagen wartet diese Uebung auf eine Messung? Gezaehlt ueber
+   BEIDE Seiten: wer links vor drei Tagen und rechts vor zehn gemessen hat,
+   wartet seit zehn. Nie gemessen zaehlt als unendlich — neue Uebungen und
+   vergessene Seiten kommen zuerst. */
+function uebungWartet(ex){
+  const sides = (S.ex[ex] && S.ex[ex].sides) || [null];
+  let laengste = 0;
+  for(const sd of sides){
+    const pts = points(ex, sd);
+    if(!pts.length) return Infinity;
+    laengste = Math.max(laengste, today() - dayNum(pts[pts.length-1].date));
+  }
+  return laengste;
+}
+/* Welche der freigegebenen Uebungen passen heute unter den Deckel.
+   Sortiert wird nach Wartezeit, nicht nach Gruppe: beim Ausfallschritt
+   koennen die Seiten auseinanderlaufen, und dann gehoert die vergessene
+   Seite nach vorn. Wer nicht mehr passt, rueckt vor — und steht beim
+   naechsten Mal ganz oben, weil er dann laenger gewartet hat. */
+function auswahlHeute(dran){
+  if(S.heuteTag === today() && Array.isArray(S.heute))
+    return dran.filter(u => S.heute.indexOf(u.ex) >= 0);
+  const deckel = (S.maxBloecke > 0) ? S.maxBloecke : MAX_BLOECKE;
+  const kosten = u => (S.ex[u.ex].sides ? 2 : 1);
+  const nachWartezeit = dran.slice().sort((a,b) => uebungWartet(b.ex) - uebungWartet(a.ex));
+  const drin = []; let n = 0;
+  for(const u of nachWartezeit){
+    const k = kosten(u);
+    /* Passt nichts mehr, wird uebersprungen — aber niemals ein leeres
+       Workout erzeugt, auch wenn eine einzelne Uebung den Deckel sprengt. */
+    if(n + k > deckel && drin.length) continue;
+    drin.push(u); n += k;
+  }
+  return dran.filter(u => drin.indexOf(u) >= 0);   /* Planreihenfolge behalten */
 }
 /* Gesamtlage fuer den Startbildschirm: das kuerzeste Warten aller angehakten
    Uebungen — eine einzige freie Gruppe genuegt, um trainieren zu koennen. */
@@ -729,7 +995,8 @@ function gate(){
 const ONB_ORDER = [{z:"C", t:120}, {z:"B", t:75}, {z:"A", t:35}];
 function fehlendeZonen(ex, side){
   const cov = zoneCoverage(ex, side);
-  return ONB_ORDER.filter(o => !cov[o.z]);
+  const kann = erreichbareZonen(ex, side);
+  return ONB_ORDER.filter(o => !cov[o.z] && kann.indexOf(o.z) >= 0);
 }
 
 /* ═══════════ Stufenwahl, solange es keine Kurve gibt ═══════════
@@ -753,6 +1020,8 @@ const ANNAHME_CP = 0.5;
    Leiter nichts, was eine Schaetzung allein rechtfertigt. Der Waehler laesst
    trotzdem jede Stufe zu — die Karte nennt beide Zahlen. */
 const MAX_SPRUNG = 3;
+/* Schrittweite des Zusatzgewichts — dieselbe wie im Eingabefeld. */
+const ZUSATZ_SCHRITT = 2.5;
 
 /* ═══════════ Last einer Stufe, mit Zusatzgewicht ═══════════
    Die Lastfaktoren sind Anteile des KOERPERGEWICHTS. Wer X kg dazunimmt,
@@ -796,11 +1065,18 @@ function ankerpunkt(ex){
 }
 /* Nachster Leiterplatz zu einer gewuenschten Last — mit dem Zusatzgewicht,
    das fuer diese Kurve eingestellt ist. */
+/* Faellt ein gerechneter Index auf eine Sprosse, die mangels Geraet nicht
+   ausfuehrbar ist, wird die naechstgelegene verfuegbare genommen. */
+function naechsteVerfuegbare(ex, i){
+  const stufen = verfuegbareStufen(ex);
+  if(!stufen.length) return i;
+  return stufen.reduce((a, b) => Math.abs(b.i - i) < Math.abs(a.i - i) ? b : a).i;
+}
 function stufeZuLast(ex, ziel, kg){
-  const lv = S.ex[ex].levels;
-  let best = Infinity, k = 0;
-  lv.forEach((L,i)=>{ const d = Math.abs(Math.log(lastVon(ex,i,kg)/ziel));
-                      if(d < best){ best = d; k = i; } });
+  const stufen = verfuegbareStufen(ex);
+  let best = Infinity, k = stufen.length ? stufen[0].i : 0;
+  stufen.forEach(st => { const d = Math.abs(Math.log(lastVon(ex, st.i, kg)/ziel));
+                         if(d < best){ best = d; k = st.i; } });
   return k;
 }
 
@@ -816,33 +1092,50 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb){
   if(luecke){ zone = luecke.z; target = luecke.t; }
   const f   = fit(points(ex, side));
   const lv  = S.ex[ex].levels;
+  const stufen = verfuegbareStufen(ex);
   const key = keyOf(ex, side);
   const kg = extraOf(key);
   let level = (S.levels && S.levels[key]) || 0, best = Infinity;
   let herkunft = "stand", anker = null, roh = null;
+  let ausserhalb = false;
   if(f){
-    lv.forEach((L,i)=>{
-      const t = predictTime(f, lastVon(ex, i, kg));
+    /* Nur Sprossen, die im GELTUNGSBEREICH der Kurve liegen: ausserhalb ist
+       die Vorhersage eine Verlaengerung ins Leere. Findet sich dort keine,
+       faellt der Block auf die Ankerrechnung zurueck — die sagt ehrlich, dass
+       sie schaetzt, statt eine Zahl auszugeben, die nach Messung aussieht. */
+    stufen.forEach(st => {
+      const last = lastVon(ex, st.i, kg);
+      if(!imBereich(f, last)) return;
+      const t = predictTime(f, last);
       if(!isFinite(t)) return;
       const d = Math.abs(Math.log(t/target));
-      if(d < best){ best = d; level = i; }
+      if(d < best){ best = d; level = st.i; }
     });
-    herkunft = "kurve";
-  } else if((anker = ankerpunkt(ex))){
+    if(best < Infinity) herkunft = "kurve";
+    else ausserhalb = true;
+  }
+  if(herkunft !== "kurve" && (anker = ankerpunkt(ex))){
     const ziel = anker.load * (ANNAHME_CP + (1-ANNAHME_CP) * anker.time / target);
     roh   = stufeZuLast(ex, ziel, kg);
     level = Math.min(roh, anker.level + MAX_SPRUNG, lv.length-1);
+    level = naechsteVerfuegbare(ex, level);
     herkunft = "anker";
-  } else {
+  } else if(herkunft !== "kurve"){
     /* Noch gar nichts gemessen. Dann gespreizte STARTSTUFEN statt dreimal die
        leichteste — das ist es, was "drei Tests in drei Stufen" meint. */
+    /* Gespreizt ueber die VERFUEGBAREN Sprossen — bei einer kurzen Leiter
+       sind das eben nur zwei, und dann stehen hier 0 / 1 / 1. */
     const schritt = Math.min(2, groupWorkoutCount(groupOf(ex)));
-    level = Math.round([0.2, 0.5, 0.75][schritt] * (lv.length - 1));
+    const n = Math.max(1, stufen.length);
+    const pos = Math.round([0.2, 0.5, 0.75][schritt] * (n - 1));
+    level = stufen.length ? stufen[Math.min(pos, n-1)].i : 0;
     herkunft = "start";
   }
-  const tt = f ? predictTime(f, lastVon(ex, level, kg)) : target;
+  const lastJetzt = lastVon(ex, level, kg);
+  const tt = (f && imBereich(f, lastJetzt)) ? predictTime(f, lastJetzt) : target;
   return {exercise:ex, side, zone, fresh, zweiteSeite: !fresh, level, levelVorschlag:level,
           extra: kg, saetze: SETS_ZONE[zone] || SETS,
+          art: leiterArt(ex), ausserhalb,
           fehlt: fehlt.map(o=>o.z), abgewichen: !!luecke,
           herkunft, anker, rohStufe: roh,
           target: Math.max(15, Math.round(isFinite(tt) ? tt : target))};
@@ -880,7 +1173,9 @@ function zoneFuer(gr){
    die erste. Das ist der Preis der freien Auswahl und steht als Hinweis in der
    Zwischenkarte. */
 function planWorkout(){
-  const dran   = heuteDran();
+  const frei   = heuteDran();
+  const dran   = auswahlHeute(frei);
+  const spaeter = frei.filter(u => dran.indexOf(u) < 0);
   const erste  = S.nextSide === "rechts" ? "rechts" : "links";
   const zweite = erste === "links" ? "rechts" : "links";
   const zwei = dran.filter(u => S.ex[u.ex].sides);
@@ -904,6 +1199,8 @@ function planWorkout(){
     target: blocks.length ? blocks[0].target : 120,
     why: gruende.join(" "),
     onboarding: dran.some(u => zoneFuer(u.group).onboarding),
+    /* Kein stiller Deckel: Was heute nicht mehr passt, wird benannt. */
+    spaeter: spaeter.map(u => u.ex),
     blocks
   };
 }
@@ -917,7 +1214,33 @@ function applyRules(session){
   const key = keyOf(session.exercise, session.side);
   const st = (S.streak[key] = S.streak[key] || {pain:0, miss:0});
   const lvNow = () => (S.levels[key] || 0);
-  const stufeRunter = () => { if(lvNow() > 0) S.levels[key] = lvNow() - 1; };
+  const kgNow = () => extraOf(key);
+  const wieJetzt = () => stufenName(session.exercise, lvNow(), kgNow());
+  /* Erleichtern und Erschweren laufen ueber ZWEI Bahnen: die Leiter und das
+     Zusatzgewicht. Bei einer kurzen Leiter ist das Gewicht oft die einzige —
+     vorher stoppte die Rueckstufung an Sprosse 0 und die Hochstufung an der
+     obersten Sprosse, und dann tat die App gar nichts mehr. Bei Schmerz ist
+     eine stille Nichtreaktion das Schlechteste von allem. */
+  const erleichtern = () => {
+    if(kgNow() > 0){
+      S.extra[key] = Math.max(0, Math.round((kgNow() - ZUSATZ_SCHRITT) * 10) / 10);
+      return "gewicht";
+    }
+    const tiefer = verfuegbareStufen(session.exercise).filter(st => st.i < lvNow());
+    if(tiefer.length){ S.levels[key] = tiefer[tiefer.length - 1].i; return "stufe"; }
+    return null;
+  };
+  const erschweren = () => {
+    const stufen = verfuegbareStufen(session.exercise);
+    const hoeher = stufen.filter(st => st.i > lvNow());
+    if(hoeher.length){ S.levels[key] = hoeher[0].i; return "stufe"; }
+    const oben = stufen[stufen.length - 1];
+    if(oben && oben.i >= extraAbOf(session.exercise)){
+      S.extra[key] = kgNow() + ZUSATZ_SCHRITT;
+      return "gewicht";
+    }
+    return null;
+  };
 
   /* Die zweite, vorermuedete Seite wird trainiert, nicht bewertet. Ihre Zahlen
      sagen nichts ueber die Belastbarkeit dieser Seite — nur die Schmerzregel
@@ -930,9 +1253,15 @@ function applyRules(session){
   if(first.pain){                                   /* Regel 1 */
     st.pain++; st.miss = 0;
     msgs.push({t:"warn", x:`${labelOf(session.exercise, session.side)}: Satz bei Schmerz beendet. Neue Vorgabe ist ${fmt(first.time)} — nicht mehr.`});
-    if(st.pain >= PAIN_BACK && lvNow() > 0){
-      stufeRunter(); st.pain = 0;
-      msgs.push({t:"bad", x:`Zweimal hintereinander Schmerzabbruch → eine Stufe zurück auf „${lv[lvNow()].name}".`});
+    if(st.pain >= PAIN_BACK){
+      const wie = erleichtern(); st.pain = 0;
+      msgs.push({t:"bad", x: wie === "gewicht"
+        ? `Zweimal hintereinander Schmerzabbruch → ${komma(ZUSATZ_SCHRITT,1)} kg weniger, jetzt „${wieJetzt()}".`
+        : wie === "stufe"
+        ? `Zweimal hintereinander Schmerzabbruch → eine Stufe zurück auf „${wieJetzt()}".`
+        : `Zweimal hintereinander Schmerzabbruch — und diese Position hat keine leichtere `
+          + `Stufe mehr. Hier ist die App am Ende ihrer Mittel: Lass die Übung weg, bis es `
+          + `besser ist, oder lass die Beschwerden abklären.`});
     }
   } else if(first.time > session.target){           /* Regel 2 */
     st.pain = 0; st.miss = 0;
@@ -948,9 +1277,14 @@ function applyRules(session){
     } else {
       st.miss++;
       msgs.push({t:"warn", x:`${labelOf(session.exercise, session.side)}: deutlich unter der Vorgabe. Zählt trotzdem — auch schwache Sätze gehören in die Kurve.`});
-      if(st.miss >= MISS_BACK && lvNow() > 0){
-        stufeRunter(); st.miss = 0;
-        msgs.push({t:"bad", x:`Dreimal in Folge verfehlt → eine Stufe zurück auf „${lv[lvNow()].name}".`});
+      if(st.miss >= MISS_BACK){
+        const wie = erleichtern(); st.miss = 0;
+        if(wie) msgs.push({t:"bad", x: wie === "gewicht"
+          ? `Dreimal in Folge verfehlt → ${komma(ZUSATZ_SCHRITT,1)} kg weniger, jetzt „${wieJetzt()}".`
+          : `Dreimal in Folge verfehlt → eine Stufe zurück auf „${wieJetzt()}".`});
+        else msgs.push({t:"warn", x:`Dreimal in Folge verfehlt, aber leichter geht es hier `
+          + `nicht mehr. Der Richtwert selbst ist dann zu hoch angesetzt — halte einfach, `
+          + `so lange du kannst.`});
       }
     }
   } else {
@@ -958,13 +1292,21 @@ function applyRules(session){
     msgs.push({t:"ok", x:`${labelOf(session.exercise, session.side)}: Vorgabe getroffen.`});
   }
 
-  /* Regel 4 — Level rauf, wenn die Stufe die Obergrenze von Zone C erreicht */
+  /* Regel 4 — schwerer, wenn die Stufe die Obergrenze von Zone C erreicht.
+     Am oberen Leiterende geht es ueber das Zusatzgewicht weiter; vorher war
+     dort schlicht Schluss und die Uebung wuchs nie wieder mit. */
   const f = curFit(session.exercise, session.side);
-  if(f && !first.pain && lvNow() < lv.length-1){
-    const t = predictTime(f, lastVon(session.exercise, lvNow(), extraOf(key)));
+  const lastJetzt = lastVon(session.exercise, lvNow(), kgNow());
+  if(f && !first.pain && imBereich(f, lastJetzt)){
+    const t = predictTime(f, lastJetzt);
     if(isFinite(t) && t > 150){
-      S.levels[key] = lvNow() + 1;
-      msgs.push({t:"ok", x:`${labelOf(session.exercise, session.side)}: Diese Stufe trägt über 150 Sekunden → eine Stufe höher auf „${lv[lvNow()].name}".`});
+      const wie = erschweren();
+      if(wie === "stufe")
+        msgs.push({t:"ok", x:`${labelOf(session.exercise, session.side)}: Diese Stufe trägt über 150 Sekunden → eine Stufe höher auf „${wieJetzt()}".`});
+      else if(wie === "gewicht")
+        msgs.push({t:"ok", x:`${labelOf(session.exercise, session.side)}: Die oberste Stufe trägt über 150 Sekunden → ${komma(ZUSATZ_SCHRITT,1)} kg dazu, jetzt „${wieJetzt()}".`});
+      else
+        msgs.push({t:"warn", x:`${labelOf(session.exercise, session.side)}: Diese Position trägt über 150 Sekunden, und schwerer geht sie nicht. Als Kontrollposition ist sie weiter brauchbar — für die Kurve gibt sie nichts mehr her.`});
     }
   }
 
@@ -1124,7 +1466,8 @@ function startWorkout(){
   laufSichern();
   blockIntro(0);
 }
-const ZAHLWORT = ["null","Ein","Zwei","Drei","Vier","Fünf","Sechs","Sieben","Acht"];
+const ZAHLWORT = ["null","Ein","Zwei","Drei","Vier","Fünf","Sechs","Sieben","Acht",
+                  "Neun","Zehn","Elf","Zwölf"];
 /* "Workout aus einem Block" / "... aus fünf Blöcken" — ohne Zahlendeutsch von Hand. */
 function bloeckeText(n, prefix){
   if(!n) return "Heute nichts geplant";
@@ -1134,6 +1477,10 @@ function bloeckeText(n, prefix){
 /* Warum die zweite Seite nicht in die Kurve geht — das ist je Uebung ein
    anderer Grund, und der Unterschied ist fachlich erheblich. */
 function zweiteSeiteGrund(ex, bloecke){
+  /* Der Grund steht bei der Uebung, wenn sie einen mitbringt — sonst erbte
+     jede neue zweiseitige Uebung stillschweigend den Seitstuetz-Text. */
+  const eigen = S.ex[ex] && S.ex[ex].seitenHinweis;
+  if(eigen) return eigen;
   if(ex === "lunge")
     return `Dieses Bein war eben schon als hinteres Bein belastet — beim Ausfallschritt
             arbeiten vorderes und hinteres Bein zu rund 60/40 überlappend.`;
@@ -1161,13 +1508,19 @@ function curBlock(){ return RUN.plan.blocks[RUN.b]; }
    und eine Zielzeit, die nur an einer Stelle nachgezogen wird, ist falsch. */
 function zielNeu(bl){
   const f = curFit(bl.exercise, bl.side);
-  if(!f) return;
-  const t = predictTime(f, lastVon(bl.exercise, bl.level, bl.extra));
+  const last = lastVon(bl.exercise, bl.level, bl.extra);
+  /* Ausserhalb des gemessenen Bereichs bleibt der Richtwert stehen: eine
+     hochgerechnete Zahl saehe genauso aus wie eine gemessene. */
+  bl.ausserhalb = !!f && !imBereich(f, last);
+  if(!f || bl.ausserhalb) return;
+  const t = predictTime(f, last);
   if(isFinite(t)) bl.target = Math.max(15, Math.round(t));
 }
 function stufeSetzen(bl, k){
   const lv = S.ex[bl.exercise].levels;
-  bl.level = Math.max(0, Math.min(lv.length-1, k));
+  /* Auf eine Sprosse, die mangels Geraet nicht ausfuehrbar ist, darf der
+     Waehler nicht rasten — sonst stuende dort ein Name ohne Gegenstand. */
+  bl.level = naechsteVerfuegbare(bl.exercise, Math.max(0, Math.min(lv.length-1, k)));
   if(bl.level < extraAbOf(bl.exercise)){     /* Feld verschwindet — Last auch */
     bl.extra = 0; S.extra[keyOf(bl.exercise, bl.side)] = 0;
   }
@@ -1215,6 +1568,45 @@ function startBlock(){
   nextSet();
 }
 
+/* Einmalige Sicherheitsfrage einer Uebung. Zwei Wege: weiter, oder die Uebung
+   aus dem Programm nehmen. Kein dritter — "spaeter fragen" waere hier
+   dasselbe wie gar nicht fragen. */
+function warnKarte(i, bl, ex){
+  show("home");
+  el("homeTitle").textContent = ex.warnung.titel;
+  el("homeSub").textContent = labelOf(bl.exercise, bl.side);
+  el("homeBody").innerHTML = `
+    <div class="card">
+      <div class="note warn" style="margin-top:0"><b>${ex.warnung.frage}</b>
+        <ul style="margin:8px 0 0 18px;padding:0">${
+          ex.warnung.punkte.map(x=>`<li class="tiny" style="margin-bottom:4px">${x}</li>`).join("")}
+        </ul>
+      </div>
+      <p class="tiny">${ex.warnung.warum}</p>
+      <button class="primary" style="width:100%;margin-top:14px;padding:16px" id="wkNein">
+        Trifft nichts davon zu — weiter</button>
+      <button class="ghost" style="width:100%;margin-top:8px" id="wkJa">
+        Trifft zu — Übung erst mal weglassen</button>
+      <p class="tiny" style="margin-top:9px">Die Frage kommt nur dieses eine Mal. Ändert sich
+      etwas, nimm die Übung unter <b>Heute</b> wieder raus.</p>
+    </div>`;
+  el("wkNein").onclick = ()=>{
+    S.gefragt[bl.exercise] = true; laufSichern(); blockIntro(i);
+  };
+  el("wkJa").onclick = ()=>{
+    /* Die Uebung fliegt dauerhaft raus und der laufende Block mit ihr —
+       aber nur dieser Block, nicht das Workout. */
+    S.aktiv[bl.exercise] = false;
+    S.plan = null; S.planDay = null;
+    RUN.plan.blocks = bloeckeOhne(RUN.plan.blocks, bl.exercise);
+    save();
+    if(RUN.b >= RUN.plan.blocks.length){ workoutBeenden(); return; }
+    blockIntro(Math.min(i, RUN.plan.blocks.length - 1));
+  };
+}
+/* Alle Bloecke einer Uebung aus einem laufenden Plan nehmen. */
+function bloeckeOhne(blocks, ex){ return blocks.filter(b => b.exercise !== ex); }
+
 /* ═══════════ Die Karte vor der Übung ═══════════
    Die Variante wird HIER eingestellt, unmittelbar vor der Übung, die sie
    betrifft — nicht alle drei bis fünf auf einmal auf der Startseite. Dort
@@ -1225,11 +1617,16 @@ function startBlock(){
 function blockIntro(i){
   RUN.b = i;
   const bl = curBlock(), ex = S.ex[bl.exercise], bloecke = RUN.plan.blocks;
+  /* Sicherheitsfrage vor der ersten Ausfuehrung — sie steht VOR der Karte,
+     nicht daneben, weil sie beantwortet gehoert, bevor gehalten wird. */
+  if(ex.warnung && !S.gefragt[bl.exercise]){ warnKarte(i, bl, ex); return; }
   /* Ein Plan aus einer aelteren Fassung kennt die Satzzahl noch nicht. */
   if(bl.saetze == null) bl.saetze = SETS_ZONE[bl.zone] || SETS;
   const f  = curFit(bl.exercise, bl.side);
   const tp = f ? predictTime(f, lastVon(bl.exercise, bl.level, bl.extra)) : null;
   const zz = (tp && isFinite(tp)) ? zoneOf(tp) : null;
+  const stufen    = verfuegbareStufen(bl.exercise);
+  const versteckt = ex.levels.length - stufen.length;
   const partner   = partnerVon(bloecke, bl);
   const syncAn    = !!partner && S.sync[bl.exercise] !== false;
   const gemessen  = RUN.fertig.length > 0;
@@ -1249,17 +1646,20 @@ function blockIntro(i){
           wiederholt, obwohl sie hier schon steht.` : ""}</p>` : ""}
 
       <label class="tiny" for="ivLvl" style="display:block;margin:14px 0 4px">Variante —
-        du entscheidest (${bl.level+1} von ${ex.levels.length})</label>
+        du entscheidest (${stufen.findIndex(st=>st.i===bl.level)+1} von ${stufen.length}${
+        versteckt ? `, ${versteckt} ohne Gerät ausgeblendet` : ""})</label>
       <div class="row" style="gap:7px;align-items:stretch">
         <button class="ghost" id="ivMinus" style="flex:0 0 52px;font-size:22px;padding:0"
-          ${bl.level===0?"disabled":""} aria-label="leichtere Variante">−</button>
-        <select id="ivLvl" style="flex:1">${ex.levels.map((L,k)=>{
-          const t = f ? predictTime(f, lastVon(bl.exercise, k, bl.extra)) : null;
+          ${bl.level<=stufen[0].i?"disabled":""} aria-label="leichtere Variante">−</button>
+        <select id="ivLvl" style="flex:1">${stufen.map(st=>{
+          const last = lastVon(bl.exercise, st.i, bl.extra);
+          const t = imBereich(f, last) ? predictTime(f, last) : null;
           const hint = (t && isFinite(t)) ? ` · erwartet ${fmt(t)}` : "";
-          return `<option value="${k}" ${k===bl.level?"selected":""}>${L.name}${hint}</option>`;
+          return `<option value="${st.i}" ${st.i===bl.level?"selected":""}>${st.name}${hint}</option>`;
         }).join("")}</select>
         <button class="ghost" id="ivPlus" style="flex:0 0 52px;font-size:22px;padding:0"
-          ${bl.level>=ex.levels.length-1?"disabled":""} aria-label="schwerere Variante">+</button>
+          ${bl.level>=stufen[stufen.length-1].i?"disabled":""}
+          aria-label="schwerere Variante">+</button>
       </div>
 
       ${bl.level >= extraAbOf(bl.exercise) ? `
@@ -1305,6 +1705,15 @@ function blockIntro(i){
       </div>
       ${zz ? `<p class="tiny" style="margin-top:9px">Erwarteter Landeplatz
         <span class="pill ${zz.cls}">Zone ${zz.id}</span> — geplant ist Zone ${bl.zone}.</p>` : ""}
+      ${(f && !imBereich(f, lastVon(bl.exercise, bl.level, bl.extra))) ? `<p class="tiny"
+        style="margin-top:9px"><b>Außerhalb des gemessenen Bereichs.</b> Deine Kurve steht auf
+        Lasten zwischen ${komma(f.lo,2)} und ${komma(f.hi,2)}; diese Variante liegt daneben.
+        Die App sagt deshalb keine Zeit voraus — halte einfach, so lange du kannst. Genau so ein
+        Punkt erweitert den Bereich.</p>` : ""}
+      ${bl.art === "punkt" ? `<p class="tiny" style="margin-top:9px"><b>Kontrollposition.</b>
+        Diese Position hat nur eine ausführbare Variante — daraus lässt sich keine Kurve rechnen
+        (dafür braucht es mindestens zwei verschiedene Lasten). Sie wird trotzdem gemessen und
+        als Verlauf über die Wochen geführt.</p>` : ""}
 
       ${bl.zweiteSeite ? `<div class="note warn" style="margin-top:12px"><b>Zweite Seite${
         bl.fresh ? "" : " — wird trainiert, nicht gemessen"}.</b>
@@ -1316,11 +1725,11 @@ function blockIntro(i){
         <label class="chk" for="ivMess" style="margin-top:6px">
           <input type="checkbox" id="ivMess" ${bl.fresh?"checked":""}>
           <span class="tiny">Diesen Satz trotzdem messen.
-          ${bl.exercise==="plank"
-            ? `Beim Seitstütz arbeitet die andere Rumpfseite mit eigenen Muskeln — der einzige
-               Einwand ist die Ermüdung aus dem bisherigen Workout.`
-            : `Beim Ausfallschritt war dieses Bein eben schon hinteres Bein; hier ist der
-               Einwand fachlich schwerer.`}</span></label>` : ""}
+          ${bl.exercise==="lunge"
+            ? `Beim Ausfallschritt war dieses Bein eben schon hinteres Bein; hier ist der
+               Einwand fachlich schwerer.`
+            : `Die andere Seite arbeitet mit eigenen Muskeln — der Einwand ist die Ermüdung
+               aus dem bisherigen Workout, nicht die Überschneidung.`}</span></label>` : ""}
 
       ${bl.userPicked ? `<p class="tiny" style="margin-top:9px">Von dir gewählt — Vorschlag war
         <b>${ex.levels[bl.levelVorschlag].name}</b>.</p>` : ""}
@@ -1338,9 +1747,10 @@ function blockIntro(i){
         ergeben drei Punkte übereinander und daraus keine Kurve. Halte, so lange du kannst —
         der Punkt zählt, wie er kommt.</p>` : ""}
       ${ex.hint ? `<p class="tiny" style="margin-top:9px">${ex.hint}</p>` : ""}
-      ${bl.exercise==="push" && bloecke.length > 2 ? `<p class="tiny" style="margin-top:9px"
-        >Dieser Block steht bewusst in der Mitte: Er trennt bei Seitstütz und Ausfallschritt die
-        erste von der zweiten Seite und gibt ihr fünf bis acht Minuten Erholung.</p>` : ""}
+      ${(!ex.sides && bloecke.length > 2 && i > 0 && i < bloecke.length-1) ? `<p class="tiny"
+        style="margin-top:9px">Dieser Block steht bewusst in der Mitte: Er trennt bei den
+        zweiseitigen Übungen die erste von der zweiten Seite und gibt ihr einige Minuten
+        Erholung.</p>` : ""}
       ${!bl.fresh && bloecke.length === 2 ? `<p class="tiny" style="margin-top:9px">Weil heute nur
         diese eine Übung läuft, folgt die zweite Seite direkt. Lass dir vor dem Start ruhig ein
         paar Minuten — die Karte wartet.</p>` : ""}
@@ -1354,9 +1764,16 @@ function blockIntro(i){
   /* Jede Änderung wird sofort gesichert und die Karte neu gezeichnet — sonst
      stünde nach einem Seitenabgleich die alte Zahl im Feld. */
   const neu = () => { seitenAbgleich(bloecke, bl); laufSichern(); blockIntro(i); };
+  /* Die Knoepfe springen zur naechsten VERFUEGBAREN Sprosse, nicht zum
+     naechsten Index — sonst blieben sie an einer ausgeblendeten haengen. */
+  const nachbar = richtung => {
+    const k = stufen.findIndex(st => st.i === bl.level);
+    const j = Math.max(0, Math.min(stufen.length - 1, k + richtung));
+    return stufen[j].i;
+  };
   el("ivLvl").onchange   = e => { stufeSetzen(bl, +e.target.value); neu(); };
-  el("ivMinus").onclick  = ()=> { stufeSetzen(bl, bl.level - 1); neu(); };
-  el("ivPlus").onclick   = ()=> { stufeSetzen(bl, bl.level + 1); neu(); };
+  el("ivMinus").onclick  = ()=> { stufeSetzen(bl, nachbar(-1)); neu(); };
+  el("ivPlus").onclick   = ()=> { stufeSetzen(bl, nachbar(+1)); neu(); };
   if(el("ivKg")){
     el("ivKg").onchange     = e => { gewichtSetzen(bl, e.target.value); neu(); };
     el("ivKgMinus").onclick = ()=> { gewichtSetzen(bl, (bl.extra||0) - 2.5); neu(); };
@@ -1700,15 +2117,26 @@ function curveSVG(f, pts){
   g += `<text x="${W/2}" y="${H-5}" text-anchor="middle" font-size="11.5" fill="var(--tx3)">Stufe · leicht → schwer</text>`;
 
   if(f){
-    let d = "", on = false;
+    /* Die Kurve wird nur dort DURCHGEZOGEN, wo gemessen wurde. Ausserhalb
+       laeuft sie gestrichelt weiter — sichtbar, aber erkennbar als
+       Verlaengerung und nicht als Messung. Vorher war beides derselbe Strich,
+       und bei einer kurzen Leiter ist das Ausserhalb der groessere Teil. */
+    const band = `<rect x="${X(Math.max(x0, f.lo))}" y="${TP}"
+      width="${Math.max(0, X(Math.min(x1, f.hi)) - X(Math.max(x0, f.lo)))}"
+      height="${H-B-TP}" fill="var(--acc)" opacity=".06"/>`;
+    g = band + g;
+    let d = "", dd = "", on = false, onAus = false;
     for(let i=0;i<=240;i++){
       const P = x0 + (x1-x0)*i/240;
-      if(P <= f.cp*1.001){ on=false; continue; }
+      if(P <= f.cp*1.001){ on=false; onAus=false; continue; }
       const t = predictTime(f,P);
-      if(t > y1*1.6){ on=false; continue; }
-      d += (on?"L":"M") + X(P).toFixed(1) + " " + Y(t).toFixed(1) + " ";
-      on = true;
+      if(t > y1*1.6){ on=false; onAus=false; continue; }
+      const xy = X(P).toFixed(1) + " " + Y(t).toFixed(1) + " ";
+      if(imBereich(f, P)){ d += (on?"L":"M") + xy; on = true; onAus = false; }
+      else { dd += (onAus?"L":"M") + xy; onAus = true; on = false; }
     }
+    if(dd) g += `<path d="${dd}" fill="none" stroke="var(--tx3)" stroke-width="1.6"
+                  stroke-dasharray="3 4" stroke-linecap="round"/>`;
     if(d) g += `<path d="${d}" fill="none" stroke="var(--acc)" stroke-width="2.5"
                  stroke-linecap="round" stroke-linejoin="round"/>`;
     if(f.cp > x0 && f.cp < x1){
@@ -1826,11 +2254,20 @@ function messreihenJSON(){
     hinweis: "Eine Zeile je gehaltenem Satz. in_kurve=1 markiert die Punkte, aus denen "
            + "sich CP und W' fitten lassen (Satz 1 einer nicht vorermuedeten Messung). "
            + "last ist ein Lastverhaeltnis INNERHALB einer Uebung, nicht zwischen Uebungen.",
+    rechnung: "last = grundlast_der_stufe * (1 + extra_k * zusatz_kg / koerpergewicht_kg). "
+            + "extra_k steht je Uebung dabei — ohne den Faktor laesst sich die Spalte last "
+            + "nicht nachrechnen.",
     spalten: EXPORT_SPALTEN,
     zonen: ZONES.map(z=>({id:z.id, name:z.name, von_s:z.lo, bis_s:z.hi})),
     uebungen: Object.entries(S.ex).map(([k,v])=>({
       id:k, name:v.name, region:v.region, gruppe:v.group, seiten:v.sides || null,
-      stufen: v.levels.map((L,i)=>({nr:i+1, name:L.name, last:L.load}))
+      /* extra_k fehlte hier und war damit extern nicht rekonstruierbar: Beim
+         Seitstuetz (extra_k = 2) rechnete jeder fremde Konsument falsch. */
+      extra_k: (v.extraK != null ? v.extraK : 1),
+      zusatzgewicht_ab_stufe: (v.extraAb != null ? v.extraAb : v.levels.length - 1) + 1,
+      art: leiterArt(k),
+      stufen: v.levels.map((L,i)=>({nr:i+1, name:L.name, last:L.load,
+        geraet: L.geraet || null, verfuegbar: geraetDa(L.geraet)}))
     })),
     messungen: messreihen()
   }, null, 2);
@@ -1953,11 +2390,30 @@ function renderHome(){
         return `<label class="chk" for="ak${i}">
           <input type="checkbox" id="ak${i}" data-ex="${u.ex}" ${u.aktiv?"checked":""}>
           <span><b>${e.name}</b> <span class="muted">· ${e.region}</span><br>
-          <span class="tiny" style="color:${frei?"var(--ok)":"var(--tx3)"}">${
-            frei ? "frei" : wartet}</span></span></label>`;
+          <span class="tiny" style="color:${u.ohneGeraet ? "var(--warn)"
+            : frei?"var(--ok)":"var(--tx3)"}">${
+            u.ohneGeraet ? "keine ausführbare Variante — Gerät fehlt (Mehr → Geräte)"
+            : frei ? "frei" : wartet}</span></span></label>`;
       }).join("")}
       ${lage.some(u=>u.aktiv && !u.tor.ok) ? `<p class="tiny">Angehakte Übungen, deren Gruppe
         noch pausiert, bleiben heute außen vor — das Workout läuft mit dem Rest.</p>` : ""}
+    </div>
+    <div class="card flat">
+      <h3 style="margin-top:0">Heute selbst zusammenstellen</h3>
+      <p class="tiny">Sonst entscheidet die Rotation: Sie nimmt die Übungen, die am längsten auf
+      eine Messung warten, bis ${anzahl(S.maxBloecke || MAX_BLOECKE, "Block", "Blöcke")} voll
+      sind. Du kannst das für heute übergehen — der Deckel gilt dann nicht.</p>
+      ${heuteDran().map((u,i)=>`<label class="chk" for="hd${i}">
+        <input type="checkbox" id="hd${i}" data-ex="${u.ex}"
+          ${(S.heuteTag===today() && Array.isArray(S.heute))
+            ? (S.heute.indexOf(u.ex)>=0 ? "checked" : "") : "checked"}>
+        <span>${S.ex[u.ex].name} <span class="tiny muted">· wartet ${
+          uebungWartet(u.ex)===Infinity ? "noch auf die erste Messung"
+          : anzahl(uebungWartet(u.ex), "Tag", "Tage")}</span></span></label>`).join("")}
+      <div class="row" style="gap:7px;margin-top:8px">
+        <button class="ghost" style="flex:1" id="hdSet">Für heute übernehmen</button>
+        <button class="ghost" style="flex:1" id="hdWeg">Rotation entscheiden lassen</button>
+      </div>
     </div>`;
   };
   const auswahlBinden = () => {
@@ -1968,6 +2424,19 @@ function renderHome(){
         S.plan = null; S.planDay = null; save(); render();
       };
     });
+    if(el("hdSet")) el("hdSet").onclick = ()=>{
+      const gewaehlt = heuteDran().map((u,i)=>({u, b: el("hd"+i)}))
+        .filter(x => x.b && x.b.checked).map(x => x.u.ex);
+      /* Leere Auswahl waere ein Workout ohne Bloecke — dann lieber die
+         Rotation entscheiden lassen. */
+      S.heute = gewaehlt.length ? gewaehlt : null;
+      S.heuteTag = gewaehlt.length ? today() : null;
+      S.plan = null; S.planDay = null; save(); render();
+    };
+    if(el("hdWeg")) el("hdWeg").onclick = ()=>{
+      S.heute = null; S.heuteTag = null;
+      S.plan = null; S.planDay = null; save(); render();
+    };
   };
 
   /* ── Pausentag ───────────────────────────────────────────── */
@@ -2045,6 +2514,13 @@ function renderHome(){
       <p class="tiny" style="margin-top:11px">${p.why}</p>
       <p class="tiny"><b>Variante und Satzzahl stellst du vor jeder Übung ein</b> — auf der Karte,
       die direkt davor kommt. Hier steht nur, was geplant ist.</p>
+      ${(p.spaeter && p.spaeter.length) ? `<p class="tiny"><b>Heute zurückgestellt:</b> ${
+        p.spaeter.map(ex => S.ex[ex].name).join(", ")}. ${
+        p.spaeter.length===1 ? "Diese Übung wäre" : "Diese Übungen wären"} frei, ${
+        p.spaeter.length===1 ? "passt" : "passen"} aber nicht mehr unter ${
+        anzahl(S.maxBloecke || MAX_BLOECKE, "Block", "Blöcke")}. Beim nächsten Mal ${
+        p.spaeter.length===1 ? "steht sie" : "stehen sie"} vorn — oder du stellst die Einheit
+        unten selbst zusammen.</p>` : ""}
       <p class="tiny"><b>Der Richtwert ist kein Ziel.</b> Halte so lange du kannst. Der Messpunkt
       zählt so, wie er herauskommt — ob du dich über- oder unterschätzt, ist gleichgültig.
       Genau aus der Streuung entsteht die Kurve.</p>
@@ -2092,6 +2568,30 @@ function wireCurveSelect(id){
 let aktiverScreen = "home";
 function render2(){ show(aktiverScreen); }
 
+/* Haltezeit ueber die Wochen — das, was einer Kontrollposition bleibt, wenn
+   keine Kurve moeglich ist. Bewusst schlicht: eine Zeile je Messung, mit dem
+   Hinweis, welche Stoergroessen darin stecken. */
+function verlaufsKarte(pts){
+  if(!pts.length) return `<div class="card"><p class="tiny">Noch nichts gemessen.</p></div>`;
+  const zeiten = pts.map(p => p.time);
+  const max = Math.max(...zeiten);
+  return `<div class="card">
+    <h3 style="margin-top:0">Haltezeit über die Zeit</h3>
+    <table><tbody>${pts.slice().reverse().map(p => {
+      const breite = Math.round(p.time / max * 100);
+      return `<tr><td style="white-space:nowrap" class="tiny">${
+        new Date(p.date).toLocaleDateString("de-DE", {day:"numeric", month:"short"})}</td>
+        <td style="width:100%"><div style="background:var(--acc);height:9px;border-radius:5px;
+          width:${breite}%;min-width:3px"></div></td>
+        <td class="n" style="white-space:nowrap">${fmt(p.time)}${
+          p.pain?' <span class="tiny">Schmerz</span>':""}</td></tr>`;
+    }).join("")}</tbody></table>
+    <p class="tiny" style="margin-top:10px">Bei fester Last ist die Haltezeit ein brauchbares
+    Maß für den Verlauf — aber ein empfindliches. Tagesform, wie viel vorher im Workout lag und
+    die Technik bewegen sie mit. Vergleichbar wird sie nur, wenn die Position immer an derselben
+    Stelle der Sitzung steht.</p>
+  </div>`;
+}
 function renderProfile(){
   const pts = points(), f = curFit(), cov = zoneCoverage();
   el("profSub").textContent = `${labelOf(S.exercise,S.side)} · ${pts.length} Messpunkt${pts.length===1?"":"e"}`;
@@ -2105,14 +2605,33 @@ function renderProfile(){
     </div>`;
 
   if(!f){
-    el("profBody").innerHTML = waehler + `<div class="card"><p>Noch keine Kurve.</p>
-      <p class="tiny">Dafür braucht die App mindestens zwei Messungen in
-      <b>verschiedenen</b> Stufen. Zwei Messungen in derselben Stufe ergeben keine Kurve —
-      das ist keine Ungenauigkeit, sondern rechnerisch nicht lösbar.</p></div>`;
+    const art = leiterArt(S.exercise);
+    el("profBody").innerHTML = waehler + (art === "punkt"
+      ? `<div class="card">
+          <span class="pill pRest">Kontrollposition</span>
+          <h2 style="margin:11px 0 2px">Keine Kurve — und das bleibt so</h2>
+          <p class="tiny" style="margin-top:8px">Diese Position hat nur <b>eine</b> ausführbare
+          Variante. Eine Kurve braucht mindestens zwei verschiedene Lasten; bei einer einzigen
+          sind CP und W′ nicht trennbar — eine Gleichung, zwei Unbekannte. Das ist keine
+          Ungenauigkeit, sondern Algebra, und mehr Messungen ändern nichts daran.</p>
+          <p class="tiny">Auch der Abfall über die Sätze hilft nicht: Er hängt an deiner
+          Erholung zwischen den Sätzen, nicht an der Dauerlast-Schwelle. Zwei Menschen mit ganz
+          verschiedenem CP erzeugen bei gleicher Last dieselbe Satzfolge.</p>
+          <p class="tiny"><b>Was stattdessen zählt:</b> die Haltezeit bei fester Last über die
+          Wochen. Unten im Verlauf steht sie.${
+            extraAbOf(S.exercise) < S.ex[S.exercise].levels.length
+            ? ` Wenn du Zusatzgewicht nimmst, entsteht eine zweite Last — und damit doch eine
+                Kurve.` : ""}</p>
+        </div>` + verlaufsKarte(pts)
+      : `<div class="card"><p>Noch keine Kurve.</p>
+          <p class="tiny">Dafür braucht die App mindestens zwei Messungen in
+          <b>verschiedenen</b> Stufen. Zwei Messungen in derselben Stufe ergeben keine Kurve —
+          das ist keine Ungenauigkeit, sondern rechnerisch nicht lösbar.</p></div>`);
     wireCurveSelect("profCurve");
     return;
   }
   const ready = profileReady();
+  const kann = erreichbareZonen(S.exercise, S.side);
   const ec = predictLoad(f, 240);
   el("profBody").innerHTML = waehler + `
     <div class="card">
@@ -2122,9 +2641,16 @@ function renderProfile(){
       rechnerisch sehr lange halten könntest.</p>
     </div>
     ${!ready ? `<div class="note warn">Die Kurve steht auf
-      ${pts.length} Punkt${pts.length===1?"":"en"} und ${Object.values(cov).filter(v=>v>0).length}
-      von 3 Zonen. Sie zeigt schon eine Richtung, ist aber noch keine belastbare Grundlage.</div>`
-      : `<div class="note">Alle drei Zonen sind belegt. Die Vorhersagen sind jetzt belastbar.</div>`}
+      ${pts.length} Punkt${pts.length===1?"":"en"} und ${kann.filter(id=>cov[id]>0).length}
+      von ${anzahl(kann.length, "erreichbaren Zone", "erreichbaren Zonen")}. Sie zeigt schon eine
+      Richtung, ist aber noch keine belastbare Grundlage.</div>`
+      : `<div class="note">${kann.length===3 ? "Alle drei Zonen sind belegt"
+        : `Alle ${anzahl(kann.length, "erreichbare Zone", "erreichbaren Zonen")} (${kann.join(", ")})
+           sind belegt`}. Die Vorhersagen sind jetzt belastbar.</div>`}
+    ${kann.length < 3 ? `<div class="note warn"><b>Teilkurve.</b> Die Leiter dieser Übung reicht
+      nur für ${anzahl(kann.length, "Zone", "Zonen")} — ${ZONES.filter(z=>kann.indexOf(z.id)<0)
+      .map(z=>`Zone ${z.id}`).join(" und ")} ${kann.length===2?"bleibt":"bleiben"} außer
+      Reichweite. Die App fordert sie deshalb nicht mehr ein.</div>` : ""}
     <div class="card">
       <h3 style="margin-top:0">Kennzahlen</h3>
       <div class="kpi">
@@ -2141,16 +2667,24 @@ function renderProfile(){
       <h3 style="margin-top:0">Was du auf jeder Stufe schaffst</h3>
       <table><thead><tr><th>Stufe</th><th class="n">Last</th><th class="n">Vorhersage</th><th>Zone</th></tr></thead>
       <tbody>${curEx().levels.map((l,i)=>{
+        const drin = imBereich(f, l.load), da = geraetDa(l.geraet);
         const t = predictTime(f,l.load);
-        const z = isFinite(t) && t<=400 ? zoneOf(t) : null;
-        return `<tr${i===curLevel()?' style="background:rgba(78,163,255,.07)"':""}>
-          <td>${l.name}${i===curLevel()?' <span class="tiny">· aktuell</span>':""}</td>
+        const z = (drin && isFinite(t) && t<=400) ? zoneOf(t) : null;
+        return `<tr${i===curLevel()?' style="background:rgba(78,163,255,.07)"':""}${
+          !da?' style="opacity:.45"':""}>
+          <td>${l.name}${i===curLevel()?' <span class="tiny">· aktuell</span>':""}${
+            !da?` <span class="tiny">· ${l.geraet} fehlt</span>`:""}</td>
           <td class="n">${l.load.toFixed(2)}</td>
-          <td class="n">${!isFinite(t)?"sehr lang":t>400?"> 400s":fmt(t)}</td>
+          <td class="n">${!drin ? '<span class="tiny">nicht gemessen</span>'
+                        : !isFinite(t)?"sehr lang":t>400?"> 400s":fmt(t)}</td>
           <td>${z?`<span class="pill ${z.cls}">${z.id}</span>`
-                :isFinite(t)&&t<20?'<span class="tiny">zu schwer</span>'
+                : !drin?'<span class="tiny">außerhalb</span>'
+                : isFinite(t)&&t<20?'<span class="tiny">zu schwer</span>'
                 :'<span class="tiny">zu leicht</span>'}</td></tr>`;
       }).join("")}</tbody></table>
+      <p class="tiny" style="margin-top:8px">Die Kurve ist zwischen <b>${komma(f.lo,2)}</b> und
+      <b>${komma(f.hi,2)}</b> gemessen. Was außerhalb liegt, bekommt keine Vorhersage — eine
+      hochgerechnete Zahl sähe genauso aus wie eine gemessene, und das wäre der Fehler.</p>
     </div>
     <details><summary>Warum hier keine Maximalkraft steht</summary>
       <p class="tiny">Das Vorbild zeigt eine „Consolidated Max Force" — den rechnerischen
@@ -2238,11 +2772,41 @@ function renderSetup(){
       herunter, damit du in Position kommst. Ab Satz 2 nicht mehr — dafür ist die Pause da.</p>
     </div>
     <div class="card">
+      <h3 style="margin-top:0">Geräte</h3>
+      <p class="tiny" style="margin-top:0">Möbel setzt die App voraus — Arbeitsplatte, Tisch,
+      Stuhl, Hocker, Kiste, Kissen. Alles darüber hinaus hakst du hier an. <b>Varianten, die ein
+      nicht angehaktes Gerät brauchen, tauchen gar nicht erst auf.</b></p>
+      ${GERAETE.map(g => `<label class="chk" for="ger_${g.id}">
+        <input type="checkbox" id="ger_${g.id}" data-ger="${g.id}"
+          ${S.geraete && S.geraete[g.id] ? "checked" : ""}>
+        <span><b>${g.name}</b><br><span class="tiny">${g.was} — ${g.fuer}</span></span>
+      </label>`).join("")}
+      <p class="tiny">Die Nummerierung der Stufen bleibt dabei stehen: Eine ausgeblendete Stufe
+      verschwindet aus der Auswahl, behält aber ihre Nummer. Sonst bekämen deine alten Messungen
+      im Export rückwirkend eine andere Stufennummer.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Länge einer Sitzung</h3>
+      <p class="tiny" style="margin-top:0">Höchstens so viele Blöcke pro Sitzung. Eine
+      zweiseitige Übung kostet zwei, eine einseitige einen. Was nicht mehr passt, rückt auf die
+      nächste Sitzung vor und steht dort ganz oben.</p>
+      <div class="row" style="gap:7px;align-items:center">
+        <label class="tiny" for="maxBl" style="flex:1;margin:0">Blöcke je Sitzung</label>
+        <input type="number" id="maxBl" value="${S.maxBloecke || MAX_BLOECKE}" min="1" max="12"
+          step="1" inputmode="numeric" style="width:76px;text-align:center">
+      </div>
+      <p class="tiny" style="margin-top:7px"><b>Die Satzzahl ist hier der falsche Hebel.</b> Wird
+      eine Sitzung zu lang, liegt es nahe, die Sätze zu kürzen — aber der Abfall über die Sätze
+      ist die einzige Information über deine Erholung innerhalb einer Serie. Lieber weniger
+      Übungen als weniger Sätze.</p>
+      <button class="ghost" style="width:100%;margin-top:8px" id="maxSave">Speichern</button>
+    </div>
+    <div class="card">
       <h3 style="margin-top:0">Erholung</h3>
       <p class="tiny" style="margin-top:0">Dieselbe Muskelgruppe wird <b>dreimal pro Woche</b>
       belastet, jedes Energiesystem <b>einmal pro Woche</b>. Beides zusammen ist genau eine
-      Rotation: drei Zonen, drei Einheiten. Übungen ohne Überschneidung — Liegestütz und
-      Ausfallschritt — dürfen am selben Tag getestet werden.</p>
+      Rotation: drei Zonen, drei Einheiten. Übungen ohne Überschneidung dürfen am selben Tag
+      getestet werden — jede Übung bringt ihre eigene Muskelgruppe mit.</p>
       <div id="restEdit"></div>
       <p class="tiny">Mindestabstand zwischen zwei Einheiten derselben Muskelgruppe:
       <b>${MIN_GAP_DAYS} Tage</b>. Während der drei Einstiegstests genügen
@@ -2447,6 +3011,22 @@ function renderSetup(){
     save();
   };
 
+  GERAETE.forEach(g => {
+    const b = el("ger_" + g.id);
+    if(!b) return;
+    b.onchange = e => {
+      S.geraete[g.id] = e.target.checked;
+      /* Die Leiter aendert sich damit — ein geplantes Workout kann auf eine
+         Stufe zeigen, die es gerade nicht mehr gibt. */
+      S.plan = null; S.planDay = null; save(); render();
+    };
+  });
+  if(el("maxSave")) el("maxSave").onclick = ()=>{
+    const v = parseInt(el("maxBl").value, 10);
+    if(Number.isFinite(v) && v >= 1 && v <= 12) S.maxBloecke = v;
+    S.plan = null; S.planDay = null; save(); render();
+  };
+
   const rhost = el("restEdit");
   ZONES.forEach(z=>{
     const d = document.createElement("div");
@@ -2542,8 +3122,10 @@ function renderOnboard(){
   Object.entries(S.ex).forEach(([k,v])=>{
     const b = document.createElement("button");
     b.style.cssText = "width:100%;text-align:left;padding:16px";
-    b.innerHTML = `<b>${v.name}</b> <span class="muted">· ${v.region}</span>
-                   <div class="tiny" style="margin-top:4px">${v.hint}</div>`;
+    /* Ohne Fallback stuende hier woertlich "undefined", sobald eine Uebung
+       ohne hint oder region dazukommt. */
+    b.innerHTML = `<b>${v.name}</b>${v.region ? ` <span class="muted">· ${v.region}</span>` : ""}
+                   ${v.hint ? `<div class="tiny" style="margin-top:4px">${v.hint}</div>` : ""}`;
     b.onclick = ()=>{
       S.exercise = k;
       pick.querySelectorAll("button").forEach(x=>x.classList.remove("primary"));
