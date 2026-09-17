@@ -78,18 +78,53 @@ Rechenlogik:
   Einheiten, ein Mo/Mi/Fr-Rhythmus. Umgesetzt als zwei Schranken: mindestens zwei Tage zwischen
   zwei Einheiten derselben Muskelgruppe, sieben Tage bis dieselbe Zone wiederkommt.
   Während der drei Einstiegstests genügen **24 Stunden** — sonst zöge sich das Onboarding über
-  drei Wochen. Übungen **ohne Überschneidung** (Liegestütz, Ausfallschritt, Seitstütz) dürfen am selben
-  Tag getestet werden; die App sagt am Pausentag, welche Gruppe noch frei ist. Der Pausentag
+  drei Wochen. Übungen **ohne Überschneidung** (Liegestütz, Ausfallschritt, Seitstütz, Schrägzug,
+  Fersenbrücke) dürfen am selben Tag getestet werden; die App sagt am Pausentag, welche Gruppe noch frei ist. Der Pausentag
   nennt Grund und Termin und lässt sich bewusst übergehen. Werte unter *Mehr → Erholung*.
-- **Fünf Blöcke** je Workout: Seitstütz und Ausfallschritt werden je Seite gemessen, der
-  Liegestütz steht exakt in der Mitte und trennt bei beiden die erste von der zweiten Seite.
-- **Progressionsregeln 1–4** inklusive Rückstufung bei zweimaligem Schmerzabbruch.
+- **Höchstens sechs Blöcke** je Workout. Fünf Übungen, davon drei zweiseitig, wären acht Blöcke
+  — in Zone C über eine Stunde. Die App nimmt deshalb die freigegebenen Übungen in der
+  Reihenfolge, wie lange ihre **Kurve** nicht mehr gemessen wurde, und stellt den Rest auf die
+  nächste Sitzung zurück; dort stehen sie oben. Wer selbst entscheiden will, benutzt auf der
+  Startseite *Heute selbst zusammenstellen* — das gilt nur für diese eine Sitzung und hebt den
+  Deckel auf.
+- **Progressionsregeln 1–4** über zwei Bahnen: Leiter und Zusatzgewicht. Am oberen Ende der
+  Leiter kommt Gewicht dazu statt gar nichts, am unteren geht erst Gewicht weg, bevor die Stufe
+  fällt. Zweimal Schmerzabbruch stuft zurück — und wenn nichts Leichteres mehr da ist, sagt die
+  App das ausdrücklich, statt zu schweigen.
+- **Die Kurve gilt nur, wo gemessen wurde.** Sie merkt sich die kleinste und größte Last, aus der
+  sie stammt. Außerhalb zeichnet das Profil gestrichelt und schreibt „außerhalb" statt einer Zahl
+  — keine Vorhersage über Lasten, bei denen du nie warst.
+- **Kontrollposition.** Liegen die verfügbaren Stufen einer Übung weniger als Faktor 1,25
+  auseinander, gibt es **keine Kurve**, sondern einen Verlauf der Haltezeit über die Wochen. Zwei
+  zu eng beieinander liegende Lasten ergeben rechnerisch keine Kurve — sie ergeben eine, die
+  perfekt aussieht und falsch ist.
 - **Schmerz** als Häkchen pro Satz plus ein Ampelwert am Sessionende.
 - **Sicherheitsregel:** dreimal in Folge Ampelwert 6 oder höher → Hinweis auf ärztliche Abklärung.
 - Red-Flag-Abfrage im Onboarding, Timer mit Tonsignalen, 20-Sekunden-Pausen, Export/Import.
+- **Sicherheitsfrage, wenn eine Übung eine neue Körperregion öffnet.** Der Fragebogen läuft sonst
+  nur im Onboarding — vor der ersten Fersenbrücke wird die Frage zur proximalen Hamstring-Sehne
+  nachgeholt.
 
 **Bewusst nicht drin:** CMF. Begründung steht in der App unter Profil → „Warum hier keine
 Maximalkraft steht" und ausführlich in `../Modell-Befunde_Simulation.md`.
+
+---
+
+## Was du an Gerät brauchst
+
+Unter **Mehr → Setup → Geräte** hakst du an, was du hast. Drei Übungen kommen mit Möbeln aus
+— Arbeitsplatte, Tisch, Stuhl, Hocker, Kiste, Kissen —, zwei nicht:
+
+| Gerät | wofür | voreingestellt |
+|---|---|---|
+| Etwas zum Daranziehen | Schrägzug, **die ganze Übung** | an — eine stabile Tischkante zählt mit |
+| Faszienrolle | Fersenbrücke, obere Stufe | aus |
+| Turnringe | Fersenbrücke, oberste Stufe | aus |
+
+Stufen, die ein fehlendes Gerät brauchen, erscheinen nicht in der Auswahl — aber die
+**Nummerierung bleibt stehen**. Sonst verschöbe sich die gespeicherte Stufe deiner alten
+Messungen, sobald du ein Gerät anhakst. Eine Übung, von der keine einzige Stufe ausführbar ist,
+taucht im Workout gar nicht erst auf.
 
 ---
 
@@ -124,12 +159,33 @@ die dem üblichen Rat widersprechen:
 Oberhalb des Standards bleibt nur Zusatzlast, und die wirkt nur nah an der Taille: 10 kg an der
 Hüfte sind +25 %, dieselben 10 kg am Brustkorb +3 %. Darum steht der Ort in der Bedienung.
 
+**Der Schrägzug folgt demselben Gesetz.** Last = 0,746 · cos θ, wobei θ der Körperwinkel über der
+Waagerechten ist — gegen vier publizierte Kraftmessungen am Gurt geprüft, größte Abweichung 5,1 %.
+Die Stufen sind deshalb **Winkelmarken**, getroffen über Fußabstand (trägt bis etwa 37°) und
+Gurtlänge (übernimmt ab dort). Und damit zum zweiten Mal: **Füße erhöhen ist keine Progression.**
+Es dreht dich nur zur Waagerechten, und dort hat cos θ sein Maximum — darüber hinaus fällt die
+Last wieder. Oberhalb geht es nur mit Zusatzgewicht weiter.
+
+Der **einarmige** Schrägzug ist keine Stufe davon, sondern eine andere Übung: rund 1,4
+Körpergewichte pro Arm plus ein Drehmoment um die Längsachse, das der Rumpf gegenhält.
+
+Die **Fersenbrücke** skaliert über den Fersenabstand — wie weit die Ferse vom Gesäß weg steht.
+Kurzer Hebel leicht, langer Hebel schwer; die „Long-Lever-Brücke" ist keine zweite Übung, sondern
+das obere Ende derselben Leiter. Die unteren vier Stufen sind von einem zweiten, unabhängigen
+Segmentmodell bestätigt. **Faszienrolle und Ringe sind geschätzt** und stehen in der App als
+solche gekennzeichnet: Ob die Rolle die Last wirklich hebt oder nur den Stabilisierungsaufwand,
+ist offen — bei gleicher Fersenhöhe ist das Hüftmoment dasselbe. Das ist genau das Muster, an dem
+beim Seitstütz die Fußerhöhung als Scheinstufe aufgeflogen ist, und steht deshalb als Erstes auf
+der Liste der Dinge, die nachgemessen gehören.
+
 **Zusatzgewicht ist eine eigene Achse, keine Leitersprosse.** Die Leiter bleibt reines
 Körpergewicht; Kilogramm kommen ab einer Stufe je Übung dazu (Liegestütz ab „Boden",
 Ausfallschritt ab „Hinterer Fuß ~20 cm erhöht", Seitstütz ab „Standard"). Wie stark ein Kilo
 wirkt, ist übungsabhängig: Bei Liegestütz und Ausfallschritt wächst die Last mit `X/BW`, beim
 Seitstütz mit `2·X/BW` — dort ist die Last ein Biegemoment und das Gewicht sitzt auf der Hüfte,
-dem wirksamsten Hebelpunkt. Dafür braucht die App das Körpergewicht: *Mehr → Messung*.
+dem wirksamsten Hebelpunkt. Beim Schrägzug sind es `1,3·X/BW` (Rucksack hoch auf den
+Schulterblättern; rutscht er aufs Becken, wirkt dasselbe Gewicht nur zu drei Vierteln), bei der
+Fersenbrücke `1,4·X/BW` (Gewicht auf dem Becken, dicht am Hüftgelenk). Dafür braucht die App das Körpergewicht: *Mehr → Messung*.
 
 ---
 
