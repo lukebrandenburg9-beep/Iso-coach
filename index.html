@@ -507,7 +507,7 @@ const RED_FLAGS = [
 /* Stand der ausgelieferten Fassung. Steht unten in der App und beim Start in der
    Konsole — daran erkennst du am Handy, ob das Update schon angekommen ist.
    Wird bei jeder Änderung hochgezählt. */
-const BUILD = "2026-09-17 a";
+const BUILD = "2026-09-17 b";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
@@ -531,7 +531,7 @@ function fresh(){
   return {
     onboarded:false, exercise:"push", ex:structuredClone(DEFAULT_EX),
     exVersion:EX_VERSION,
-    side:null, nextSide:"links",
+    side:null,
     /* Level und Fehlserien haengen an der KURVE, nicht am Nutzer: Liegestuetz,
        Ausfallschritt links und Ausfallschritt rechts sind drei Messreihen mit
        eigenem Stand. Vorher war das global — eine Schmerzserie am Knie stufte
@@ -661,7 +661,7 @@ function fit(points){
   const n = points.length;
   const w = points.map((_,i)=> Math.pow(DECAY, n-1-i));   // ältester bekommt am wenigsten
   const minL = Math.min(...points.map(p=>p.load));
-  let best = null;
+  let best = null, bestI = 0;
   const G = 1500;
   for(let i=1; i<G; i++){
     const cp = minL * (i/G) * 0.999;
@@ -671,10 +671,24 @@ function fit(points){
     const mean = sr/sw;
     let sse = 0;
     for(let k=0;k<n;k++) sse += w[k]*Math.pow(rs[k]-mean,2);
-    if(!best || sse < best.sse) best = {cp, sse, wprime: Math.exp(mean)};
+    if(!best || sse < best.sse){ best = {cp, sse, wprime: Math.exp(mean)}; bestI = i; }
   }
   if(!best) return null;
   best.n = n;
+  /* Sitzt das Optimum auf dem ersten oder letzten Gitterpunkt, hat die Suche
+     kein Minimum gefunden, sondern den Rand ihres Bereichs. Dann liegt das
+     rechnerisch beste CP AUSSERHALB von (0, kleinste Last) — die Daten pinnen
+     es nicht fest, sie schranken es nur ein. Die angezeigte 0,00 waere dann
+     die Wand, nicht eine Messung.
+     Achtung, und das war beim ersten Anlauf mein Denkfehler: Das sagt NICHTS
+     ueber die Qualitaet der Kurve. Zwei saubere Punkte mit fast konstantem
+     t*L (0,55/124 s und 1,25/55 s) landen ebenfalls am Rand — dort mit rmse
+     0,004, also einer praktisch perfekten Kurve. Fuer die Vorhersage INNERHALB
+     des gemessenen Bereichs bleibt so ein Fit brauchbar; unbrauchbar ist nur
+     die Zahl CP selbst. Deshalb blockiert randUnten nichts, es macht nur die
+     Anzeige ehrlich. */
+  best.randUnten = (bestI === 1);
+  best.randOben  = (bestI === G - 1);
   best.rmse = Math.sqrt(best.sse / points.reduce((a,_,k)=>a+w[k],0));
   /* Der GELTUNGSBEREICH der Kurve: zwischen diesen beiden Lasten wurde
      gemessen. Ausserhalb ist jede Vorhersage eine Verlaengerung ins Leere —
@@ -735,7 +749,9 @@ function points(ex, side){
     if(s.exercise !== ex) continue;
     if((s.side || null) !== (side || null)) continue;
     if(s.fresh === false) continue;
-    const first = s.sets[0];
+    /* s.sets kann bei Import- oder Fremddaten fehlen. Ungeschuetzt wirft der
+       Zugriff einen TypeError und das GANZE Profil bleibt leer. */
+    const first = s.sets && s.sets[0];
     if(!first || !first.time) continue;
     out.push({load: s.load, time: first.time, pain: !!first.pain, date: s.date, level: s.level});
   }
@@ -1172,17 +1188,34 @@ function zoneFuer(gr){
    Bleibt nur eine zweiseitige Uebung uebrig, folgt die zweite Seite direkt auf
    die erste. Das ist der Preis der freien Auswahl und steht als Hinweis in der
    Zwischenkarte. */
+/* Welche Seite in diesem Workout FRISCH gemessen wird.
+   Frueher entschied das ein einziger globaler Schalter (S.nextSide), der nach
+   jedem Workout kippte. Solange jedes Workout jede Uebung enthielt, ging das
+   auf. Seit die Rotation Uebungen auslaesst (MAX_BLOECKE), kippt er auch an
+   Workouts OHNE diese Uebung: Kommt sie nur jedes zweite Mal dran, ist er
+   zwischendurch zweimal gekippt — dieselbe Seite bekommt jedes Mal den
+   frischen Punkt, die andere nie einen. Der Satz "So bekommt jede Seite gleich
+   oft einen frischen Messpunkt" stimmte dann nicht mehr.
+   Jetzt entscheidet die Datenlage der Uebung selbst: Es startet die Seite mit
+   den WENIGER frischen Messpunkten. Das ist nicht nur robust gegen ausgelassene
+   Workouts — es gleicht einen bereits entstandenen Rueckstand von selbst aus. */
+function startSeite(ex){
+  const sd = (S.ex[ex] && S.ex[ex].sides) || null;
+  if(!sd || sd.length < 2) return null;
+  const n = sd.map(x => points(ex, x).length);
+  return (n[1] < n[0]) ? sd[1] : sd[0];
+}
 function planWorkout(){
   const frei   = heuteDran();
   const dran   = auswahlHeute(frei);
   const spaeter = frei.filter(u => dran.indexOf(u) < 0);
-  const erste  = S.nextSide === "rechts" ? "rechts" : "links";
-  const zweite = erste === "links" ? "rechts" : "links";
   const zwei = dran.filter(u => S.ex[u.ex].sides);
   const ein  = dran.filter(u => !S.ex[u.ex].sides);
   const A = [], B = [];
   for(const u of zwei){
     const zf = zoneFuer(u.group);
+    const erste  = startSeite(u.ex);
+    const zweite = S.ex[u.ex].sides.find(x => x !== erste);
     A.push(mkBlock(u.ex, erste,  zf.zone, zf.target, true,  zf.onboarding));
     B.push(mkBlock(u.ex, zweite, zf.zone, zf.target, false, zf.onboarding));
   }
@@ -2034,8 +2067,6 @@ function finishWorkout(){
       const k = keyOf(ses.exercise, ses.side);
       if((S.levels[k]||0) > 0) S.levels[k]--;
     }
-    /* Startseite wechseln, damit beide Seiten gleich oft frisch gemessen werden. */
-    S.nextSide = (S.nextSide === "rechts") ? "links" : "rechts";
     S.plan = null; S.planDay = null; ignoreRest = false; RUN = null; S.lauf = null; save();
     showWorkoutResult(gespeichert, sel);
   };
@@ -2076,20 +2107,44 @@ function showWorkoutResult(gespeichert, painEnd){
       <p style="margin:4px 0"><b>${wann}</b></p>
       <p class="muted" style="margin:2px 0">Zone ${nxt.zone} · ${nxt.blocks.map(blockLabel).join("  →  ")}</p>
       <p class="tiny">${nxt.why}</p>
-      <p class="tiny">Die Startseite wechselt: Beim nächsten Mal wird
-      <b>${S.nextSide}</b> zuerst gemessen. So bekommt jede Seite gleich oft einen frischen
-      Messpunkt.</p>
+      <p class="tiny">Bei zweiseitigen Übungen wird die Seite zuerst gemessen, die bisher die
+      <b>wenigsten</b> frischen Messpunkte hat. Eine Seite, die zurückgefallen ist, holt damit von
+      selbst wieder auf.</p>
     </div>
     <button class="primary" style="width:100%" onclick="show('profile')">Profil ansehen</button>`;
 }
 
 /* ═══════════ Zeichnen ═══════════ */
+/* Die Lastachse der Zeichnung ist mit Zahlen beschriftet — ohne Legende weiss
+   niemand, welche Stufe Nummer 3 ist, und die Tabelle weiter unten fuehrt die
+   Namen ohne Nummer. Beide tragen die Nummer jetzt, damit sie zusammenpassen. */
+function stufenLegende(pts){
+  const lv = curEx().levels;
+  const gemessen = new Set(pts.map(p => p.level));
+  const zeilen = lv.map((l,i)=>{
+    const da  = geraetDa(l.geraet);
+    const jetzt = (i === curLevel());
+    return `<div style="${da?"":"opacity:.45;"}${jetzt?"color:var(--acc);font-weight:600;":""}">
+      <span style="display:inline-block;min-width:1.5em">${i+1}</span>${l.name}${
+      gemessen.has(i) ? ` <span style="color:var(--acc)">\u25cf</span>` : ""}${
+      da ? "" : ` \u00b7 ${l.geraet} fehlt`}</div>`;
+  }).join("");
+  return `<div class="tiny" style="margin-top:9px;line-height:1.6">${zeilen}
+    <div style="margin-top:7px;opacity:.75">Die Zahlen stehen unter der Zeichnung an der Stufenachse${
+    gemessen.size ? `, der Punkt markiert die Stufen, auf denen du schon gemessen hast` : ""}.</div>
+  </div>`;
+}
 function curveSVG(f, pts){
   const W=400, H=290, L=42, R=12, TP=12, B=38;
   const lv = curEx().levels;
   const loads = lv.map(l=>l.load);
-  // Die Asymptote (CP) gehoert ins Bild - sie ist der anschaulichste Teil der Kurve.
-  const x0 = f ? Math.min(f.cp*0.96, Math.min(...loads)*0.93) : Math.min(...loads)*0.93;
+  /* Die Asymptote (CP) gehoert ins Bild - sie ist der anschaulichste Teil der
+     Kurve. ABER nur, wenn es sie gibt: Klebt CP am unteren Rand des
+     Suchbereichs, zieht f.cp*0.96 die Lastachse bis fast auf null und quetscht
+     alle Stufen an den rechten Bildrand. */
+  const cpZeigen = !!f && !f.randUnten;
+  const x0 = cpZeigen ? Math.min(f.cp*0.96, Math.min(...loads)*0.93)
+                      : Math.min(...loads)*0.93;
   const x1 = Math.max(...loads)*1.06;
   const y1 = 170;
   const X = v => L + (v-x0)/(x1-x0)*(W-L-R);
@@ -2139,7 +2194,7 @@ function curveSVG(f, pts){
                   stroke-dasharray="3 4" stroke-linecap="round"/>`;
     if(d) g += `<path d="${d}" fill="none" stroke="var(--acc)" stroke-width="2.5"
                  stroke-linecap="round" stroke-linejoin="round"/>`;
-    if(f.cp > x0 && f.cp < x1){
+    if(cpZeigen && f.cp > x0 && f.cp < x1){
       g += `<line x1="${X(f.cp)}" y1="${TP}" x2="${X(f.cp)}" y2="${H-B}"
              stroke="var(--tx2)" stroke-dasharray="4 3" stroke-width="1.4"/>
             <text x="${X(f.cp)+4}" y="${TP+11}" font-size="11" fill="var(--tx2)">CP</text>`;
@@ -2599,9 +2654,6 @@ function renderProfile(){
   const waehler = `<div class="card flat" style="margin-top:0">
       <label class="tiny" for="profCurve" style="display:block;margin-bottom:4px">Kurve</label>
       ${curveSelectHTML("profCurve")}
-      <p class="tiny" style="margin-top:7px">Der Ausfallschritt hat <b>zwei</b> Kurven. Beide
-      Beine arbeiten gleichzeitig (grob 60 % vorne, 40 % hinten), und Beschwerden sind meist
-      einseitig — in einer gemeinsamen Kurve verschwände genau der Seitenunterschied.</p>
     </div>`;
 
   if(!f){
@@ -2633,13 +2685,24 @@ function renderProfile(){
   const ready = profileReady();
   const kann = erreichbareZonen(S.exercise, S.side);
   const ec = predictLoad(f, 240);
+  const st = streuung(f);
   el("profBody").innerHTML = waehler + `
     <div class="card">
       ${curveSVG(f, pts)}
       <p class="tiny" style="margin-top:8px">Punkte sind deine Messungen, ein offener Ring bedeutet
-      Schmerzabbruch. Die gestrichelte senkrechte Linie ist die Last, unterhalb derer du
-      rechnerisch sehr lange halten könntest.</p>
+      Schmerzabbruch.${f.randUnten ? "" : ` Die gestrichelte senkrechte Linie ist die Last,
+      unterhalb derer du rechnerisch sehr lange halten könntest.`}</p>
+      ${stufenLegende(pts)}
     </div>
+    ${st.r >= STREU_WARN ? `<div class="note warn"><b>Die Kurve trifft deine Messungen nicht.</b>
+      Sie liegt um +${Math.round(st.hoch*100)} % / −${Math.round(st.runter*100)} % daneben. Das ist
+      keine Feinheit: Deine Haltezeiten passen nicht zu <i>einer</i> Kurve. Dafür gibt es zwei
+      Gründe, und sie lassen sich auseinanderhalten.
+      <br>· <b>Eine Messung war keine Maximalzeit</b> — zu früh abgesetzt, abgelenkt, schlechter
+      Tag. Das zieht sich mit der nächsten Messung von selbst zurecht.
+      <br>· <b>Die Lastfaktoren der Stufen stimmen für dich nicht.</b> Dann liegt auch die nächste
+      Messung wieder so daneben. Wenn das zweimal passiert, gehören die Stufen dieser Übung
+      nachgerechnet.</div>` : ""}
     ${!ready ? `<div class="note warn">Die Kurve steht auf
       ${pts.length} Punkt${pts.length===1?"":"en"} und ${kann.filter(id=>cov[id]>0).length}
       von ${anzahl(kann.length, "erreichbaren Zone", "erreichbaren Zonen")}. Sie zeigt schon eine
@@ -2654,14 +2717,23 @@ function renderProfile(){
     <div class="card">
       <h3 style="margin-top:0">Kennzahlen</h3>
       <div class="kpi">
-        <div><b>${f.cp.toFixed(2)}</b><small>Dauerlast-Schwelle (CP)</small></div>
+        <div><b>${f.randUnten ? "—" : f.cp.toFixed(2)}</b><small>Dauerlast-Schwelle (CP)</small></div>
         <div><b>${Math.round(f.wprime)}</b><small>Vorrat darüber (W′)</small></div>
         <div><b>${ec.toFixed(2)}</b><small>Last für 4 Minuten</small></div>
-        <div><b>±${Math.round(rel(f)*100)} %</b><small>Streuung der Vorhersage</small></div>
+        <div><b>+${Math.round(st.hoch*100)} / −${Math.round(st.runter*100)} %</b><small>Streuung der Vorhersage</small></div>
       </div>
-      <p class="tiny" style="margin-top:10px">Die Zahlen haben keine Einheit — es sind
-      Verhältnisse zur leichtesten Stufe. Die App weiß nicht, wie viele Kilogramm das sind,
-      und braucht es auch nicht.</p>
+      <p class="tiny" style="margin-top:10px"><b>Dauerlast-Schwelle und Last für 4 Minuten sind
+      nicht dasselbe.</b> Die Vier-Minuten-Last ist ein Punkt <i>auf</i> der Kurve: die Last, bei
+      der du nach dieser Kurve 240 Sekunden schaffst. Sie liegt nah an dem, was du gemessen hast.
+      Die Dauerlast-Schwelle ist das <i>Ende</i> der Kurve — die Last, unter der du nach dem
+      Modell gar nicht mehr ermüden würdest, also unendlich lange hältst. Diese Zahl wird weit
+      über deine Messungen hinaus verlängert und ist die unsicherste auf dieser Seite.</p>
+      ${f.randUnten ? `<p class="tiny"><b>Deshalb steht dort ein Strich.</b> Deine Messungen geben
+      die Schwelle nicht her: Rechnerisch liegt sie unterhalb des Bereichs, den die App absucht.
+      Dafür bräuchte es eine Messung auf einer deutlich <b>leichteren</b> Stufe, die du sehr lange
+      hältst. Die Vorhersagen zwischen deinen Messpunkten sind davon nicht betroffen.</p>` : ""}
+      <p class="tiny">Die Zahlen haben keine Einheit — es sind Verhältnisse zur leichtesten
+      Stufe. Die App weiß nicht, wie viele Kilogramm das sind, und braucht es auch nicht.</p>
     </div>
     <div class="card">
       <h3 style="margin-top:0">Was du auf jeder Stufe schaffst</h3>
@@ -2672,7 +2744,8 @@ function renderProfile(){
         const z = (drin && isFinite(t) && t<=400) ? zoneOf(t) : null;
         return `<tr${i===curLevel()?' style="background:rgba(78,163,255,.07)"':""}${
           !da?' style="opacity:.45"':""}>
-          <td>${l.name}${i===curLevel()?' <span class="tiny">· aktuell</span>':""}${
+          <td><span class="tiny" style="opacity:.6">${i+1}</span> ${l.name}${
+            i===curLevel()?' <span class="tiny">· aktuell</span>':""}${
             !da?` <span class="tiny">· ${l.geraet} fehlt</span>`:""}</td>
           <td class="n">${l.load.toFixed(2)}</td>
           <td class="n">${!drin ? '<span class="tiny">nicht gemessen</span>'
@@ -2685,20 +2758,19 @@ function renderProfile(){
       <p class="tiny" style="margin-top:8px">Die Kurve ist zwischen <b>${komma(f.lo,2)}</b> und
       <b>${komma(f.hi,2)}</b> gemessen. Was außerhalb liegt, bekommt keine Vorhersage — eine
       hochgerechnete Zahl sähe genauso aus wie eine gemessene, und das wäre der Fehler.</p>
-    </div>
-    <details><summary>Warum hier keine Maximalkraft steht</summary>
-      <p class="tiny">Das Vorbild zeigt eine „Consolidated Max Force" — den rechnerischen
-      Schnittpunkt der Kurve mit der Nulllinie. Dieser Wert liegt außerhalb dessen, was
-      gemessen wurde, und schwankt deshalb stark: In der Simulation streute er um den Faktor
-      1,4 bis 1,7, und zwanzig Messungen machten ihn kaum besser als fünf. Ein Wert, der ohne
-      Trainingsgrund springt, verwirrt mehr als er nützt — deshalb zeigt diese App ihn nicht.</p>
-    </details>`;
+    </div>`;
   wireCurveSelect("profCurve");
 }
 
 function renderHistory(){
   const mine = S.sessions.filter(x => x.exercise===S.exercise && (x.side||null)===(S.side||null));
-  el("histSub").textContent = `${labelOf(S.exercise,S.side)} · ${mine.length} Satzblock${mine.length===1?"":"s"}`;
+  /* Diese Zahl und die im Profil gehen auseinander, und das hat schon fuer
+     Verwirrung gesorgt: Hier stehen ALLE Bloecke der Kurve, im Profil nur die,
+     die den Fit tragen. Also beide nebeneinander, statt zwei Zahlen an zwei
+     Orten, die sich zu widersprechen scheinen. */
+  const inKurve = points(S.exercise, S.side).length;
+  el("histSub").textContent = `${labelOf(S.exercise,S.side)} · ${
+    anzahl(mine.length, "Messung", "Messungen")} · ${inKurve} davon in der Kurve`;
   const waehler = `<div class="card flat" style="margin-top:0">
       <label class="tiny" for="histCurve" style="display:block;margin-bottom:4px">Kurve</label>
       ${curveSelectHTML("histCurve")}</div>`;
@@ -3143,7 +3215,21 @@ function renderOnboard(){
 /* ═══════════ Gerüst ═══════════ */
 const el = id => document.getElementById(id);
 const fmt = s => (s>=100 ? Math.round(s) : (Math.round(s*10)/10).toString().replace(".",",")) + " s";
-const rel = f => Math.min(.35, Math.max(.05, f.rmse));   // grobe Streuungsangabe
+/* Streuung der Vorhersage. Zwei Korrekturen gegenueber frueher:
+   (1) Der Deckel bei 35 % ist weg. Er stand VOR der Anzeige, nicht in der
+       Rechnung — ein Fit mit rmse 0,41 wurde als "±35 %" gemeldet und sah
+       damit aus wie ein maessiger statt wie ein schlechter.
+   (2) Die Residuen sind Logarithmen. Die Abweichung ist also multiplikativ
+       und NICHT symmetrisch: rmse 0,41 heisst +51 % nach oben und -34 % nach
+       unten, nicht ±41 %.
+   Die untere Schranke bleibt: bei genau zwei Punkten ist das Residuum
+   bauartbedingt null, und "±0 %" waere die groessere Luege. */
+const STREU_MIN = 0.05;
+const STREU_WARN = 0.25;
+const streuung = f => {
+  const r = Math.max(STREU_MIN, f.rmse);
+  return {r, hoch: Math.exp(r) - 1, runter: 1 - Math.exp(-r)};
+};
 
 /* Haelt S.side gueltig zur gewaehlten Uebung: Liegestuetz hat keine Seiten,
    der Ausfallschritt muss eine haben. */

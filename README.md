@@ -105,8 +105,9 @@ Rechenlogik:
   nur im Onboarding — vor der ersten Fersenbrücke wird die Frage zur proximalen Hamstring-Sehne
   nachgeholt.
 
-**Bewusst nicht drin:** CMF. Begründung steht in der App unter Profil → „Warum hier keine
-Maximalkraft steht" und ausführlich in `../Modell-Befunde_Simulation.md`.
+**Bewusst nicht drin:** CMF. Die Begründung stand bis zum 17.09. auch in der App und ist dort
+wieder raus — sie erklärt ein Verfahren, das der Nutzer nie zu sehen bekommt. Nachzulesen in
+`../Modell-Befunde_Simulation.md` und als P3 in `../ISO-Coach_Probleme-und-Aenderungen.md`.
 
 ---
 
