@@ -507,7 +507,7 @@ const RED_FLAGS = [
 /* Stand der ausgelieferten Fassung. Steht unten in der App und beim Start in der
    Konsole — daran erkennst du am Handy, ob das Update schon angekommen ist.
    Wird bei jeder Änderung hochgezählt. */
-const BUILD = "2026-09-17 b";
+const BUILD = "2026-09-17 c";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
@@ -689,6 +689,10 @@ function fit(points){
      Anzeige ehrlich. */
   best.randUnten = (bestI === 1);
   best.randOben  = (bestI === G - 1);
+  /* Die Guetezahl des Fits. Zurzeit zeigt sie kein Bildschirm an — die
+     Kennzahlen-Karte ist am 17.09. rausgeflogen. Sie bleibt trotzdem hier:
+     Sie ist eine Eigenschaft des Fits, nicht der Anzeige, und sie ist das
+     Unterscheidungsmerkmal zwischen den beiden Faellen von randUnten oben. */
   best.rmse = Math.sqrt(best.sse / points.reduce((a,_,k)=>a+w[k],0));
   /* Der GELTUNGSBEREICH der Kurve: zwischen diesen beiden Lasten wurde
      gemessen. Ausserhalb ist jede Vorhersage eine Verlaengerung ins Leere —
@@ -705,7 +709,6 @@ function imBereich(f, load){
   return !!f && load >= f.lo / BEREICH_SAUM && load <= f.hi * BEREICH_SAUM;
 }
 const predictTime = (f,load) => (load<=f.cp) ? Infinity : f.wprime/(load-f.cp);
-const predictLoad = (f,t)    => f.cp + f.wprime/t;
 
 /* Alle Messpunkte der aktuellen Übung, chronologisch.
    Nur der ERSTE Satz jeder Session ist eine maximale Haltezeit —
@@ -2684,8 +2687,6 @@ function renderProfile(){
   }
   const ready = profileReady();
   const kann = erreichbareZonen(S.exercise, S.side);
-  const ec = predictLoad(f, 240);
-  const st = streuung(f);
   el("profBody").innerHTML = waehler + `
     <div class="card">
       ${curveSVG(f, pts)}
@@ -2694,15 +2695,6 @@ function renderProfile(){
       unterhalb derer du rechnerisch sehr lange halten könntest.`}</p>
       ${stufenLegende(pts)}
     </div>
-    ${st.r >= STREU_WARN ? `<div class="note warn"><b>Die Kurve trifft deine Messungen nicht.</b>
-      Sie liegt um +${Math.round(st.hoch*100)} % / −${Math.round(st.runter*100)} % daneben. Das ist
-      keine Feinheit: Deine Haltezeiten passen nicht zu <i>einer</i> Kurve. Dafür gibt es zwei
-      Gründe, und sie lassen sich auseinanderhalten.
-      <br>· <b>Eine Messung war keine Maximalzeit</b> — zu früh abgesetzt, abgelenkt, schlechter
-      Tag. Das zieht sich mit der nächsten Messung von selbst zurecht.
-      <br>· <b>Die Lastfaktoren der Stufen stimmen für dich nicht.</b> Dann liegt auch die nächste
-      Messung wieder so daneben. Wenn das zweimal passiert, gehören die Stufen dieser Übung
-      nachgerechnet.</div>` : ""}
     ${!ready ? `<div class="note warn">Die Kurve steht auf
       ${pts.length} Punkt${pts.length===1?"":"en"} und ${kann.filter(id=>cov[id]>0).length}
       von ${anzahl(kann.length, "erreichbaren Zone", "erreichbaren Zonen")}. Sie zeigt schon eine
@@ -2714,27 +2706,6 @@ function renderProfile(){
       nur für ${anzahl(kann.length, "Zone", "Zonen")} — ${ZONES.filter(z=>kann.indexOf(z.id)<0)
       .map(z=>`Zone ${z.id}`).join(" und ")} ${kann.length===2?"bleibt":"bleiben"} außer
       Reichweite. Die App fordert sie deshalb nicht mehr ein.</div>` : ""}
-    <div class="card">
-      <h3 style="margin-top:0">Kennzahlen</h3>
-      <div class="kpi">
-        <div><b>${f.randUnten ? "—" : f.cp.toFixed(2)}</b><small>Dauerlast-Schwelle (CP)</small></div>
-        <div><b>${Math.round(f.wprime)}</b><small>Vorrat darüber (W′)</small></div>
-        <div><b>${ec.toFixed(2)}</b><small>Last für 4 Minuten</small></div>
-        <div><b>+${Math.round(st.hoch*100)} / −${Math.round(st.runter*100)} %</b><small>Streuung der Vorhersage</small></div>
-      </div>
-      <p class="tiny" style="margin-top:10px"><b>Dauerlast-Schwelle und Last für 4 Minuten sind
-      nicht dasselbe.</b> Die Vier-Minuten-Last ist ein Punkt <i>auf</i> der Kurve: die Last, bei
-      der du nach dieser Kurve 240 Sekunden schaffst. Sie liegt nah an dem, was du gemessen hast.
-      Die Dauerlast-Schwelle ist das <i>Ende</i> der Kurve — die Last, unter der du nach dem
-      Modell gar nicht mehr ermüden würdest, also unendlich lange hältst. Diese Zahl wird weit
-      über deine Messungen hinaus verlängert und ist die unsicherste auf dieser Seite.</p>
-      ${f.randUnten ? `<p class="tiny"><b>Deshalb steht dort ein Strich.</b> Deine Messungen geben
-      die Schwelle nicht her: Rechnerisch liegt sie unterhalb des Bereichs, den die App absucht.
-      Dafür bräuchte es eine Messung auf einer deutlich <b>leichteren</b> Stufe, die du sehr lange
-      hältst. Die Vorhersagen zwischen deinen Messpunkten sind davon nicht betroffen.</p>` : ""}
-      <p class="tiny">Die Zahlen haben keine Einheit — es sind Verhältnisse zur leichtesten
-      Stufe. Die App weiß nicht, wie viele Kilogramm das sind, und braucht es auch nicht.</p>
-    </div>
     <div class="card">
       <h3 style="margin-top:0">Was du auf jeder Stufe schaffst</h3>
       <table><thead><tr><th>Stufe</th><th class="n">Last</th><th class="n">Vorhersage</th><th>Zone</th></tr></thead>
@@ -3215,21 +3186,6 @@ function renderOnboard(){
 /* ═══════════ Gerüst ═══════════ */
 const el = id => document.getElementById(id);
 const fmt = s => (s>=100 ? Math.round(s) : (Math.round(s*10)/10).toString().replace(".",",")) + " s";
-/* Streuung der Vorhersage. Zwei Korrekturen gegenueber frueher:
-   (1) Der Deckel bei 35 % ist weg. Er stand VOR der Anzeige, nicht in der
-       Rechnung — ein Fit mit rmse 0,41 wurde als "±35 %" gemeldet und sah
-       damit aus wie ein maessiger statt wie ein schlechter.
-   (2) Die Residuen sind Logarithmen. Die Abweichung ist also multiplikativ
-       und NICHT symmetrisch: rmse 0,41 heisst +51 % nach oben und -34 % nach
-       unten, nicht ±41 %.
-   Die untere Schranke bleibt: bei genau zwei Punkten ist das Residuum
-   bauartbedingt null, und "±0 %" waere die groessere Luege. */
-const STREU_MIN = 0.05;
-const STREU_WARN = 0.25;
-const streuung = f => {
-  const r = Math.max(STREU_MIN, f.rmse);
-  return {r, hoch: Math.exp(r) - 1, runter: 1 - Math.exp(-r)};
-};
 
 /* Haelt S.side gueltig zur gewaehlten Uebung: Liegestuetz hat keine Seiten,
    der Ausfallschritt muss eine haben. */
