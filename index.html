@@ -323,9 +323,12 @@ const DECAY      = 0.97; // Alterung der Messpunkte (Abschnitt 4.1)
 const MESS_MIN = 20;
 const MESS_MAX = 300;
 const messbar = t => t >= MESS_MIN && t <= MESS_MAX;
-/* Wie oft in Folge ausserhalb, bevor die App sagt, dass diese Leiter hier
-   keine passende Sprosse hat. */
-const LEER_SERIE = 3;
+/* Der Hinweis auf die fehlende Zwischensprosse kommt beim ERSTEN unbrauchbaren
+   Durchgang, nicht nach einer Serie. Lukes Vorgabe vom 18.09.2026: "nichts ist
+   frustrierender als beim Onboarding durchzufallen und dann direkt noch zweimal
+   mit der gleichen Stufe und aehnlichem Ergebnis konfrontiert zu werden."
+   Der Zaehler st.leer bleibt trotzdem — beim zweiten Mal in Folge hat der Sprung
+   nachweislich nicht gereicht, und das gehoert anders gesagt. */
 
 /* ── Erholung ────────────────────────────────────────────────────
    Lukes Vorgabe vom 14.09.2026:
@@ -791,7 +794,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-18 h";
+const BUILD = "2026-09-18 i";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
@@ -1135,6 +1138,20 @@ function zoneCoverage(ex, side){
    "Cannot access 'geraetDa' before initialization" abgebrochen - die App war dann
    beim Laden tot. Funktionsdeklarationen werden gehoben und haben das Problem nicht. */
 function geraetDa(g){ return !g || !!(S.geraete && S.geraete[g]); }
+/* Auf "hier fehlt ein Zwischenschritt" kann die App eine genaue Antwort geben,
+   statt auf ein Geraet zu tippen: Sie sieht nach, welche Sprossen zwischen der
+   alten und der neuen Stufe liegen und an welchem fehlenden Geraet sie haengen. */
+function fehlendeZwischen(ex, von, bis){
+  const lv = (S.ex[ex] && S.ex[ex].levels) || [];
+  const lo = Math.min(von, bis), hi = Math.max(von, bis);
+  const z = {};
+  lv.forEach((L, i) => {
+    if(i > lo && i < hi && L.geraet && !geraetDa(L.geraet))
+      z[L.geraet] = (z[L.geraet] || 0) + 1;
+  });
+  return z;
+}
+function geraetName(id){ const g = GERAETE.find(x => x.id === id); return g ? g.name : id; }
 function verfuegbareStufen(ex){
   const lv = (S.ex[ex] && S.ex[ex].levels) || [];
   return lv.map((L, i) => Object.assign({i}, L)).filter(L => geraetDa(L.geraet));
@@ -1398,6 +1415,14 @@ const ANNAHME_CP = 0.5;
 const MAX_SPRUNG = 3;
 /* Schrittweite des Zusatzgewichts — dieselbe wie im Eingabefeld. */
 const ZUSATZ_SCHRITT = 2.5;
+/* Obergrenze fuer das, was die App an Zusatzgewicht ueberhaupt vorschlaegt —
+   ein halbes Koerpergewicht, also rund 40 kg. Das ist Weste plus Rucksack und
+   damit das Ende dessen, was sich tragen laesst. Der Deckel ist noetig, seit
+   Regel 2a die noetige Last direkt ausrechnet statt sich heranzutasten: Bei
+   einem Halt weit ueber dem Fenster liefert die Formel sonst Zahlen wie 350 kg.
+   Die Rechnung ist dann nicht falsch — sie sagt nur, dass die Uebung in dieser
+   Zone nicht mehr erreichbar ist, und genau das soll die App dann auch sagen. */
+const MAX_ZUSATZ_ANTEIL = 0.5;
 
 /* ═══════════ Last einer Stufe, mit Zusatzgewicht ═══════════
    Die Lastfaktoren sind Anteile des KOERPERGEWICHTS. Wer X kg dazunimmt,
@@ -1693,25 +1718,109 @@ function applyRules(session){
     st.pain = 0; st.miss = 0;
     st.leer = (st.leer || 0) + 1;
     const zuLeicht = first.time > MESS_MAX;
-    const wie = zuLeicht ? erschweren() : erleichtern();
-    msgs.push({t:"warn", x:`${labelOf(session.exercise, session.side)}: ${fmt(first.time)} — `
-      + (zuLeicht
-         ? `mehr als ${MESS_MAX} Sekunden. Diese Stufe ist zu leicht, um etwas zu messen.`
-         : `weniger als ${MESS_MIN} Sekunden. Diese Stufe ist zu schwer, um etwas zu messen.`)
-      + ` Der Wert zählt nicht für die Kurve.`});
-    if(wie) msgs.push({t:"ok", x: wie === "stufe"
-      ? `${zuLeicht ? "Eine Stufe höher" : "Eine Stufe zurück"} auf „${wieJetzt()}".`
-      : `${komma(ZUSATZ_SCHRITT,1)} kg ${zuLeicht ? "dazu" : "weniger"}, jetzt „${wieJetzt()}".`});
-    else msgs.push({t:"bad", x: zuLeicht
+    const vorherStufe = lvNow(), vorherKg = kgNow();
+
+    /* WIE WEIT danebengelegen wurde, laesst sich beziffern — mit genau der Formel,
+       mit der die App den Einstieg ohne Kurve rechnet (siehe ankerpunkt):
+           Zielllast / Istlast = ANNAHME_CP + (1 - ANNAHME_CP) * gehalten / Ziel
+       Fuer 300 s gegen Zone C (120 s) ergibt das Faktor 1,75, gegen Zone B 2,5,
+       gegen Zone A 4,8. Tor 2 verlangt von einer Leiter nur 1,25 je Sprosse —
+       EINE Sprosse ist also rechnerisch zu wenig, man kaeme mit hoher
+       Wahrscheinlichkeit wieder ausserhalb des Fensters heraus. Deshalb wird so
+       weit gestuft, bis die Zielllast erreicht ist, hoechstens aber MAX_SPRUNG
+       Schritte weit — derselbe Deckel wie beim Einstieg.
+
+       Die Richtung ist in beiden Faellen die sichere: Ueber 300 s ist die Zeit nur
+       eine UNTERE Schranke (laenger ging vielleicht auch), der Sprung faellt damit
+       eher zu klein aus als zu gross. Unter 20 s ist die Zeit dagegen echt — dort
+       ist nur das Modell im Kurzzeitbereich unsicher, und Erleichtern ist die
+       harmlose Richtung. */
+    const zielLast = first.load * (ANNAHME_CP + (1-ANNAHME_CP) * first.time / session.target);
+    /* Am oberen Leiterende geht es ueber das Zusatzgewicht weiter — und DORT ist
+       die Rechnung exakt umkehrbar:
+           last = load * (1 + extraK * kg / bw)   ->   kg = bw * (last/load - 1) / extraK
+       Sich in 2,5-kg-Schritten heranzutasten waere hier nicht vorsichtig, sondern
+       nur langsam: Wer ueber dem Fenster haelt, braeuchte ein Dutzend Durchgaenge
+       bis zur passenden Last, und jeder einzelne davon waere wieder unbrauchbar.
+       Bei den SPROSSEN bleibt es beim Schrittdeckel MAX_SPRUNG, weil dort die
+       Abstaende fest und die Zwischenwerte nicht frei waehlbar sind. */
+    let zusatzBedarf = 0;                 /* was die Rechnung ungedeckelt verlangt */
+    let amDeckel = false;                 /* mehr Gewicht schlaegt die App nicht vor */
+    const gewichtDirekt = () => {
+      const e   = S.ex[session.exercise];
+      const bw  = (S.bw > 0 ? S.bw : BW_DEFAULT);
+      const eK  = (e && e.extraK != null) ? e.extraK : 1;
+      const bas = e.levels[lvNow()] ? e.levels[lvNow()].load : 0;
+      if(!(bas > 0 && eK > 0)) return;
+      const roh = bw * (zielLast / bas - 1) / eK;
+      const rnd = x => Math.max(0, Math.round(x / ZUSATZ_SCHRITT) * ZUSATZ_SCHRITT);
+      if(zuLeicht){
+        const deckel = rnd(MAX_ZUSATZ_ANTEIL * bw);
+        zusatzBedarf = Math.max(zusatzBedarf, rnd(roh));
+        amDeckel = rnd(roh) > deckel;
+        S.extra[key] = Math.max(vorherKg + ZUSATZ_SCHRITT, Math.min(rnd(roh), deckel));
+      } else {
+        S.extra[key] = Math.min(kgNow(), rnd(roh));
+      }
+    };
+
+    let wie = null, stufenAuf = 0;
+    for(let k = 0; k < MAX_SPRUNG; k++){
+      if(k > 0){
+        const jetzt = lastVon(session.exercise, lvNow(), kgNow());
+        if(zuLeicht ? jetzt >= zielLast : jetzt <= zielLast) break;
+      }
+      const w = zuLeicht ? erschweren() : erleichtern();
+      if(!w) break;
+      wie = w;
+      if(w === "stufe") stufenAuf++; else { gewichtDirekt(); if(amDeckel) break; }
+    }
+    const kgDelta = Math.round(Math.abs(kgNow() - vorherKg) * 10) / 10;
+
+    msgs.push({t:"warn", x:`${labelOf(session.exercise, session.side)}: `
+      + `${komma(first.time, 1)} s liegt ${zuLeicht ? "über" : "unter"} dem Messfenster `
+      + `(${MESS_MIN}–${MESS_MAX} s). Diese Stufe ist zu ${zuLeicht ? "leicht" : "schwer"}, `
+      + `um etwas zu messen — der Wert zählt nicht für die Kurve.`});
+
+    if(wie){
+      const teile = [];
+      if(stufenAuf) teile.push(stufenAuf === 1 ? "Eine Stufe" : `${stufenAuf} Stufen`);
+      if(kgDelta) teile.push(`${komma(kgDelta, 1)} kg`);
+      msgs.push({t:"ok", x:`${teile.join(" und ")} ${zuLeicht ? "schwerer" : "leichter"} — `
+        + `jetzt „${wieJetzt()}".`});
+    } else msgs.push({t:"bad", x: zuLeicht
       ? `Und schwerer geht diese Position nicht. Für die Kurve gibt sie nichts mehr her — `
         + `als Kontrollposition bleibt sie brauchbar.`
       : `Und leichter geht diese Position nicht. Lass sie weg, bis eine Zwischenstufe da ist.`});
-    if(st.leer >= LEER_SERIE){
-      st.leer = 0;
-      msgs.push({t:"bad", x:`${LEER_SERIE}-mal in Folge lag der Halt außerhalb von ${MESS_MIN} bis `
-        + `${MESS_MAX} Sekunden. Zwischen den hier verfügbaren Stufen liegt keine, die dich in `
-        + `dieses Fenster bringt — dieser Leiter fehlt ein Zwischenschritt. Meistens ist das ein `
-        + `Gerät, das unter „Mehr → Geräte" noch nicht angehakt ist.`});
+
+    /* Wenn die Rechnung mehr verlangt, als sich tragen laesst, ist das keine
+       Panne, sondern ein Befund: Die Uebung reicht in dieser Zone nicht mehr. */
+    if(zusatzBedarf > kgNow()){
+      msgs.push({t:"bad", x:`Um in das Fenster zu kommen, bräuchtest du rechnerisch rund `
+        + `${komma(Math.round(zusatzBedarf), 0)} kg zusätzlich. So viel lässt sich nicht `
+        + `sinnvoll tragen — in dieser Zone ist die Übung nicht erreichbar. Nimm sie in einer `
+        + `Zone mit kürzerer Zielzeit oder wähle eine andere Übung für diese Zone.`});
+    }
+
+    /* Sofort, nicht nach der dritten Wiederholung: Wer beim ersten Versuch aus dem
+       Fenster faellt, soll im selben Moment erfahren, warum der Sprung so gross
+       ausfaellt — und was ihn kleiner machen wuerde. */
+    if(wie){
+      const fehlt = fehlendeZwischen(session.exercise, vorherStufe, lvNow());
+      const ids = Object.keys(fehlt);
+      if(ids.length){
+        const anz = ids.reduce((sum, g) => sum + fehlt[g], 0);
+        msgs.push({t:"warn", x:`Der Sprung ist groß, weil dazwischen `
+          + `${anz === 1 ? "eine Sprosse liegt, die" : anz + " Sprossen liegen, die"} `
+          + `${ids.map(geraetName).join(" bzw. ")} brauchen. Unter „Mehr → Geräte" anhaken, `
+          + `dann geht es in kleineren Schritten.`});
+      } else if(st.leer >= 2){
+        msgs.push({t:"bad", x:`Zum ${st.leer}. Mal in Folge außerhalb von ${MESS_MIN} bis `
+          + `${MESS_MAX} Sekunden — der Sprung hat also nicht gereicht. Zwischen den hier `
+          + `verfügbaren Stufen liegt keine, die dich in dieses Fenster bringt. Diese Übung `
+          + `braucht ein Gerät oder eine feinere Leiter; bis dahin bringt sie für die Kurve `
+          + `nichts.`});
+      }
     }
   } else if(first.time > session.target){           /* Regel 2 */
     st.pain = 0; st.miss = 0; st.leer = 0;
