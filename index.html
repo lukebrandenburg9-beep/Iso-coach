@@ -2592,14 +2592,14 @@ function renderHome(){
       <h3 style="margin-top:0">Was heute dabei ist</h3>
       <p class="tiny">Häkchen weg heißt: Die Übung bleibt draußen, bis du sie wieder anhakst.
       <b>Gesperrt</b> ist etwas anderes — das ist die Pause der Muskelgruppe und geht vorbei.</p>
-      ${lage.map((u,i)=>{
+      ${lage.map(u=>{
         const e = S.ex[u.ex];
         const frei = u.tor.ok;
         const wartet = !frei ? (u.tor.kind === "day"
           ? `heute schon trainiert — wieder in ${u.tor.wait} Tag${u.tor.wait===1?"":"en"}`
           : `Zonenpause — noch ${u.tor.wait} Tag${u.tor.wait===1?"":"e"}`) : "";
-        return `<label class="chk" for="ak${i}">
-          <input type="checkbox" id="ak${i}" data-ex="${u.ex}" ${u.aktiv?"checked":""}>
+        return `<label class="chk" for="ak-${u.ex}">
+          <input type="checkbox" id="ak-${u.ex}" data-ex="${u.ex}" ${u.aktiv?"checked":""}>
           <span><b>${e.name}</b> <span class="muted">· ${e.region}</span><br>
           <span class="tiny" style="color:${u.ohneGeraet ? "var(--warn)"
             : frei?"var(--ok)":"var(--tx3)"}">${
@@ -2628,11 +2628,12 @@ function renderHome(){
     </div>`;
   };
   const auswahlBinden = () => {
-    uebungslage().forEach((u,i)=>{
-      const b = el("ak"+i); if(!b) return;
+    uebungslage().forEach(u=>{
+      const b = el("ak-"+u.ex); if(!b) return;
       b.onchange = e => {
         S.aktiv[u.ex] = e.target.checked;
-        S.plan = null; S.planDay = null; save(); render();
+        S.plan = null; S.planDay = null; save();
+        renderAmOrt("ak-"+u.ex);
       };
     });
     if(el("hdSet")) el("hdSet").onclick = ()=>{
@@ -2777,6 +2778,8 @@ function wireCurveSelect(id){
 }
 /* Nach dem Wechsel neu zeichnen, ohne auf die Startseite zu springen. */
 let aktiverScreen = "home";
+/* Gesetzt von renderAmOrt: unterdrueckt den Sprung nach oben in show(). */
+let halteScroll = false;
 function render2(){ show(aktiverScreen); }
 
 /* Haltezeit ueber die Wochen — das, was einer Kontrollposition bleibt, wenn
@@ -3356,7 +3359,28 @@ function show(name){
   if(name==="profile") renderProfile();
   if(name==="history") renderHistory();
   if(name==="setup")   renderSetup();
-  window.scrollTo(0,0);
+  if(!halteScroll) window.scrollTo(0,0);
+}
+
+/* Neu zeichnen, ohne dass die Seite springt.
+
+   Die Auswahlliste steht ganz unten, ein Haekchen aendert aber den Plan
+   DARUEBER: es fallen Blockkarten weg oder kommen dazu. Die alte
+   Scrollposition in Pixeln wiederherzustellen reicht deshalb nicht — die
+   Liste rutscht trotzdem unter dem Finger weg. Gemerkt wird stattdessen die
+   Lage der angetippten Zeile selbst; sie bleibt stehen, wo sie war.
+
+   Absichtlich nicht in show(): innerhalb des Workouts wechselt der
+   Home-Bildschirm staendig den Inhalt (Satz, Pause, Abschluss), und dort ist
+   der Sprung nach oben richtig. */
+function renderAmOrt(ankerId){
+  const a = el(ankerId);
+  const vorher = a ? a.getBoundingClientRect().top : null;
+  halteScroll = true;
+  render();
+  halteScroll = false;
+  const b = el(ankerId);
+  if(vorher !== null && b) window.scrollBy(0, b.getBoundingClientRect().top - vorher);
 }
 function render(){
   if(!S.onboarded){ el("s-onboard").classList.add("on"); renderOnboard(); }
