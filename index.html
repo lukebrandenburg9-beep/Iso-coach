@@ -232,6 +232,32 @@ code{background:var(--panel2);padding:1.5px 5px;border-radius:5px;font-size:12.5
 <script>
 "use strict";
 
+/* Sichtbarer Fehler statt stiller Totknopf. Ein JavaScript-Fehler in einem
+   onclick-Handler verschluckt sich sonst spurlos: Der Knopf tut nichts, und
+   niemand sieht einen Grund. Genau so ist der Verlust von warnKarte() zwei
+   Commits lang unbemerkt geblieben. Bewusst ohne App-CSS und ohne el(), damit
+   das Banner auch dann noch erscheint, wenn die App gar nicht erst hochkommt. */
+(function(){
+  var gezeigt = 0;
+  function banner(text){
+    if(gezeigt++ > 2) return;
+    var d = document.createElement("div");
+    d.setAttribute("style", "position:fixed;left:0;right:0;bottom:0;z-index:99999;"
+      + "background:#7f1d1d;color:#fff;font:13px/1.45 system-ui,sans-serif;"
+      + "padding:11px 14px;white-space:pre-wrap;word-break:break-word");
+    d.textContent = "Fehler in der App — bitte Luke melden:\n" + text;
+    d.onclick = function(){ d.remove(); };
+    (document.body || document.documentElement).appendChild(d);
+  }
+  window.addEventListener("error", function(e){
+    banner((e.message || "unbekannt") + "  ·  " + (e.filename || "").split("/").pop()
+           + ":" + (e.lineno || "?"));
+  });
+  window.addEventListener("unhandledrejection", function(e){
+    banner("unbehandelt: " + ((e.reason && e.reason.message) || e.reason || "?"));
+  });
+})();
+
 /* ═══════════════════════════════════════════════════════════════════
    ISO Coach — Prototyp
    Umgesetzt ist Abschnitt 4 des Handoffs: 2-Parameter-Kurve, Zonen-
@@ -722,7 +748,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-18 e";
+const BUILD = "2026-09-18 f";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
@@ -1949,6 +1975,53 @@ function uebungsbild(key){
     <div class="tiny" style="margin-top:7px;color:var(--tx3);opacity:.7">${fussnote}</div>
     </figcaption></figure>`;
 }
+
+/* Einmalige Sicherheitsfrage einer Uebung. Zwei Wege: weiter, oder die Uebung
+   aus dem Programm nehmen. Kein dritter — "spaeter fragen" waere hier
+   dasselbe wie gar nicht fragen.
+
+   ACHTUNG, das ist schon einmal passiert: Diese Funktion ist beim Einbau der
+   drei neuen Uebungen (27d827a) verlorengegangen, waehrend ihr Aufruf in
+   blockIntro() stehen blieb. Folge: Jede Uebung MIT warnung-Block — die
+   Fersenbruecke und alle drei neuen — liess sich nicht mehr starten, der Knopf
+   tat schlicht nichts. Aufgefallen ist es erst beim Durchklicken am 18.09.2026.
+   Wer hier etwas umbaut: blockIntro() ruft warnKarte() auf, warnKarte() ruft
+   blockIntro() zurueck — die beiden gehoeren zusammen. */
+function warnKarte(i, bl, ex){
+  show("home");
+  el("homeTitle").textContent = ex.warnung.titel;
+  el("homeSub").textContent = labelOf(bl.exercise, bl.side);
+  el("homeBody").innerHTML = `
+    <div class="card">
+      <div class="note warn" style="margin-top:0"><b>${ex.warnung.frage}</b>
+        <ul style="margin:8px 0 0 18px;padding:0">${
+          ex.warnung.punkte.map(x=>`<li class="tiny" style="margin-bottom:4px">${x}</li>`).join("")}
+        </ul>
+      </div>
+      <p class="tiny">${ex.warnung.warum}</p>
+      <button class="primary" style="width:100%;margin-top:14px;padding:16px" id="wkNein">
+        Trifft nichts davon zu — weiter</button>
+      <button class="ghost" style="width:100%;margin-top:8px" id="wkJa">
+        Trifft zu — Übung erst mal weglassen</button>
+      <p class="tiny" style="margin-top:9px">Die Frage kommt nur dieses eine Mal. Ändert sich
+      etwas, nimm die Übung unter <b>Heute</b> wieder raus.</p>
+    </div>`;
+  el("wkNein").onclick = ()=>{
+    S.gefragt[bl.exercise] = true; laufSichern(); blockIntro(i);
+  };
+  el("wkJa").onclick = ()=>{
+    /* Die Uebung fliegt dauerhaft raus und der laufende Block mit ihr —
+       aber nur dieser Block, nicht das Workout. */
+    S.aktiv[bl.exercise] = false;
+    S.plan = null; S.planDay = null;
+    RUN.plan.blocks = bloeckeOhne(RUN.plan.blocks, bl.exercise);
+    save();
+    if(RUN.b >= RUN.plan.blocks.length){ workoutBeenden(); return; }
+    blockIntro(Math.min(i, RUN.plan.blocks.length - 1));
+  };
+}
+/* Alle Bloecke einer Uebung aus einem laufenden Plan nehmen. */
+function bloeckeOhne(blocks, ex){ return blocks.filter(b => b.exercise !== ex); }
 
 /* ═══════════ Die Karte vor der Übung ═══════════
    Die Variante wird HIER eingestellt, unmittelbar vor der Übung, die sie
