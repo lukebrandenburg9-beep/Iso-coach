@@ -748,7 +748,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-18 f";
+const BUILD = "2026-09-18 g";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
@@ -2174,6 +2174,10 @@ function blockIntro(i){
 
       <button class="primary" style="width:100%;margin-top:14px;padding:16px" id="ivGo">
         Übung starten</button>
+      ${!letzter ? `<button class="ghost" style="width:100%;margin-top:8px" id="ivSkip">
+        Diese Übung heute auslassen</button>
+        <p class="tiny" style="margin:6px 0 0">Der Rest des Workouts läuft weiter. Ohne Satz gibt
+        es nichts zu verlieren — die Übung rückt in der Reihenfolge nach vorn.</p>` : ""}
       ${(gemessen || !letzter) ? `<button class="ghost" style="width:100%;margin-top:8px"
         id="ivEnde">Workout hier beenden${gemessen ? " und speichern" : ""}</button>` : ""}
     </div>`;
@@ -2211,6 +2215,7 @@ function blockIntro(i){
     bl.fresh = e.target.checked; laufSichern(); blockIntro(i);
   };
   el("ivGo").onclick = ()=>{ beep(660,60,.05); laufSichern(); startBlock(); };
+  if(el("ivSkip")) el("ivSkip").onclick = ()=> endBlock();
   if(el("ivEnde")) el("ivEnde").onclick = ()=> workoutBeenden();
 }
 /* Zielzeit des naechsten Satzes.
@@ -2255,6 +2260,10 @@ function afterSet(time, tgt, roh){
   /* Abbrechen lohnt nur, solange noch etwas käme — nach dem letzten Satz des
      letzten Blocks ist "beenden" ohnehin der nächste Schritt. */
   const mehrKommt = !letzter || RUN.b + 1 < RUN.plan.blocks.length;
+  /* Die UEBUNG abbrechen und trotzdem weitertrainieren ergibt nur Sinn, solange
+     von dieser Uebung noch Saetze kaemen UND danach noch ein Block steht. Nach
+     dem letzten Satz fuehrt "Weiter" ohnehin zum naechsten Block. */
+  const blockStop = !letzter && RUN.b + 1 < RUN.plan.blocks.length;
   show("home");
   el("homeTitle").textContent = `Satz ${RUN.i+1} von ${curSets()}`;
   el("homeSub").textContent = blockLabel(curBlock());
@@ -2284,7 +2293,13 @@ function afterSet(time, tgt, roh){
            lang. Das Häkchen kannst du währenddessen setzen — es hält die Uhr nicht an.</p>
            <p class="tiny">Die Vorgabe für den nächsten Satz rechnet sich aus dem, was du eben
            tatsächlich geschafft hast — nicht aus dem Wert vom Sessionbeginn.</p>`}
-      ${mehrKommt ? `<button class="ghost" style="width:100%;margin-top:${left===null?"8px":"14px"}"
+      ${blockStop ? `<button class="ghost" style="width:100%;margin-top:14px" id="blkStop">
+        Übung hier beenden und zur nächsten</button>
+        <p class="tiny" style="margin:6px 0 0">Der eben gehaltene Satz ist gespeichert. Für Kurve
+        und Stufenregel zählt ohnehin nur der erste Satz jeder Übung — was fehlt, ist
+        Trainingsumfang, keine Messung.</p>` : ""}
+      ${mehrKommt ? `<button class="ghost" style="width:100%;margin-top:${
+        left===null?"8px":(blockStop?"8px":"14px")}"
         id="wkStop">Workout hier beenden und speichern</button>` : ""}
     </div>`;
 
@@ -2307,6 +2322,12 @@ function afterSet(time, tgt, roh){
   let iv = null;
   if(el("wkStop")) el("wkStop").onclick = ()=>{
     clearInterval(iv); speichern(); workoutBeenden();
+  };
+  /* Der eben gehaltene Satz zaehlt mit — erst sichern, dann den Block zumachen.
+     endBlock() legt ihn ueber blockSichern() als KURZEN Block ab, mit der Zahl
+     der geplanten Saetze daneben; das ist derselbe Weg wie beim Workoutende. */
+  if(el("blkStop")) el("blkStop").onclick = ()=>{
+    clearInterval(iv); speichern(); endBlock();
   };
   iv = setInterval(()=>{
     left--;
@@ -2390,8 +2411,27 @@ function blockSichern(){
   laufSichern();
   return true;
 }
+/* Wird die ERSTE Seite ausgelassen, ohne dass ein Satz steht, ist die zweite
+   Seite nicht mehr vorermuedet, sondern frisch. Ohne diese Nachfuehrung liefe
+   sie in applyRules() ueber den Zweig session.fresh === false — "trainiert,
+   nicht gewertet" — und die Messung des Tages waere fuer diese Uebung weg,
+   obwohl niemand etwas vorermuedet hat. Nur bei NULL Saetzen: wer einen Satz
+   gehalten hat, hat die Muskulatur belastet, dann bleibt es bei vorermuedet. */
+function seiteNachruecken(bl){
+  if(!bl || !bl.fresh || !bl.side) return null;
+  const j = RUN.plan.blocks.findIndex((b, k) =>
+    k >= RUN.b && b.exercise === bl.exercise && b.side !== bl.side && b.fresh === false);
+  if(j < 0) return null;
+  RUN.plan.blocks[j].fresh = true;
+  return RUN.plan.blocks[j];
+}
 function endBlock(){
-  if(!blockSichern()){ RUN.b++; RUN.sets = []; RUN.i = 0; laufSichern(); }
+  if(!blockSichern()){
+    const uebersprungen = curBlock();
+    RUN.b++; RUN.sets = []; RUN.i = 0;
+    seiteNachruecken(uebersprungen);
+    laufSichern();
+  }
   if(RUN.b < RUN.plan.blocks.length) blockIntro(RUN.b);
   else finishWorkout();
 }
