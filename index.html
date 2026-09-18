@@ -292,6 +292,41 @@ const PAIN_BACK  = 2;    // Regel 1: zweimal in Folge → Level zurück
 const MISS_BACK  = 3;    // Regel 3: dreimal in Folge → Level zurück
 const DECAY      = 0.97; // Alterung der Messpunkte (Abschnitt 4.1)
 
+/* ── Das Messfenster ────────────────────────────────────────────
+   Lukes Vorgabe vom 18.09.2026, ausgeloest durch die erste Messung des
+   isometrischen Wadenhebens: 244,2 s beidbeinig — und er haette laenger
+   gekonnt. Ein Halt ueber 300 s oder unter 20 s misst nicht die
+   Belastbarkeit, sondern sagt nur, dass die Stufe falsch gewaehlt war:
+   zu leicht oder zu schwer.
+
+   Warum so ein Wert nicht in den Fit darf: t = W'/(L-CP) setzt voraus,
+   dass t die MAXIMALE Haltezeit auf dieser Last ist. Wer aufhoert, weil
+   nichts mehr passiert, liefert eine untere Schranke, keine Messung —
+   und die Kurve haelt die Uebung danach fuer schwaecher, als sie ist.
+
+   Was diese Grenze NICHT leistet, und das gehoert dazu: Der Halt, der
+   sie ausgeloest hat, faellt selbst nicht durch sie durch. 244,2 s
+   liegen unter 300, der Punkt zaehlt also weiter, obwohl er kein
+   Maximalhalt war. Die Zeitgrenze fasst nur die Faelle, in denen die
+   Stufe so offensichtlich daneben liegt, dass die Uhr es verraet. Ob
+   ein Halt ausgereizt wurde, weiss allein der Trainierende — dafuer
+   braeuchte es ein Feld am Satzende (Muskel / Form / Gleichgewicht /
+   abgebrochen), und das gibt es noch nicht.
+
+   Die Grenzen: oben das Doppelte der Zone-C-Obergrenze (150 s), unten
+   genau die Untergrenze von Zone A. Zwischen 150 und 300 s zaehlt ein
+   Wert weiter — die Randzonen sind offen —, darueber nicht mehr.
+
+   Verworfen heisst NICHT folgenlos: applyRules stuft daraufhin hoch bzw.
+   zurueck (Regel 2a). Ohne das bekaeme man beim naechsten Mal dieselbe
+   Stufe und dieselbe unbrauchbare Messung. */
+const MESS_MIN = 20;
+const MESS_MAX = 300;
+const messbar = t => t >= MESS_MIN && t <= MESS_MAX;
+/* Wie oft in Folge ausserhalb, bevor die App sagt, dass diese Leiter hier
+   keine passende Sprosse hat. */
+const LEER_SERIE = 3;
+
 /* ── Erholung ────────────────────────────────────────────────────
    Lukes Vorgabe vom 14.09.2026:
      · Dieselbe Muskelgruppe dreimal pro Woche.
@@ -589,9 +624,14 @@ const DEFAULT_EX = {
   wade: {
     name:"Isometrisches Wadenheben", region:"Wade", group:"calf",
     sides:["links","rechts"], extraAb:4, extraK:1, nichtMit:["handtuch"],
-    extraHint:"Rucksack ganz normal auf dem Rücken, einbeinig. Die Rechnung ist hier "
-             +"ausnahmsweise exakt: dein Körpergewicht plus das, was du trägst, steht auf "
-             +"einer Wade.",
+    extraHint:"Trägst du das Gewicht in der Hand, dann ZWINGEND auf der Standbeinseite — "
+             +"in der Hand über dem Fuß, auf dem du stehst. Hängt es auf der freien Seite, "
+             +"zieht es das Becken dorthin, und die Hüfte muss dagegenhalten: Dann begrenzt "
+             +"der Gluteus den Halt und nicht die Wade, und die Zeit misst das falsche "
+             +"Gelenk. Ein Rucksack oder eine Weste sitzt mittig und erzeugt dieses Moment "
+             +"gar nicht erst — das ist hier die ruhigere Wahl, weil auch kein Griff "
+             +"vorzeitig aufgibt. Die Rechnung ist in beiden Fällen exakt: dein "
+             +"Körpergewicht plus das, was du trägst, steht auf einer Wade.",
     hint:"Der Vorfuß steht auf einer Erhöhung, die Ferse hängt frei. Heb die Ferse genau so "
         +"weit, dass die Fußsohle waagerecht steht — Ferse und Vorfuß auf einer Höhe — und "
         +"BLEIB dort. Nicht tiefer absinken lassen und nicht höher drücken: diese mittlere "
@@ -645,8 +685,11 @@ const DEFAULT_EX = {
   handtuch: {
     name:"Isometrisches Wadenheben mit Handtuchrolle", region:"Fußsohle", group:"arch",
     sides:["links","rechts"], extraAb:4, extraK:1, nichtMit:["wade"],
-    extraHint:"Rucksack ganz normal auf dem Rücken, einbeinig. Dein Körpergewicht plus das, "
-             +"was du trägst, steht auf einem Fußgewölbe.",
+    extraHint:"Wie beim isometrischen Wadenheben: Gewicht in der Hand gehört ZWINGEND auf "
+             +"die Standbeinseite. Auf der freien Seite zieht es das Becken dorthin, die "
+             +"Hüfte hält dagegen, und dann begrenzt der Gluteus den Halt statt der Wade. "
+             +"Rucksack oder Weste sitzen mittig und sind davon frei. Dein Körpergewicht "
+             +"plus das, was du trägst, steht auf einem Fußgewölbe.",
     hint:"Wie das isometrische Wadenheben, mit zwei Unterschieden. Erstens liegt unter den "
         +"Zehen ein fest zusammengerolltes Handtuch, sodass die Zehen nach oben gedrückt "
         +"bleiben. Nur die Ballen tragen, die Zehen liegen auf der Rolle; bei den drei "
@@ -748,12 +791,12 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-18 g";
+const BUILD = "2026-09-18 h";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
    Update alte Levels kleben. Sessions bleiben dabei immer erhalten. */
-const EX_VERSION = 9;
+const EX_VERSION = 10;
 /* Voreinstellung, bis der Nutzer sein Gewicht einträgt. Nur als Bezugsgroesse
    fuer Zusatzlast noetig — die Lastfaktoren selbst sind gewichtsunabhaengige
    Verhaeltniszahlen. */
@@ -1035,7 +1078,7 @@ function konflikt(a, b){
 }
 const curLevel  = () => (S.levels && S.levels[curKey()]) || 0;
 const setLevel  = v  => { S.levels[curKey()] = v; };
-const curStreak = () => (S.streak[curKey()] = S.streak[curKey()] || {pain:0, miss:0});
+const curStreak = () => (S.streak[curKey()] = S.streak[curKey()] || {pain:0, miss:0, leer:0});
 
 /* Messpunkte einer Kurve. Vorermuedete Saetze — die zweite Seite im Workout —
    bleiben im Verlauf sichtbar, gehen aber NICHT in den Fit: Sie messen die
@@ -1052,6 +1095,9 @@ function points(ex, side){
        Zugriff einen TypeError und das GANZE Profil bleibt leer. */
     const first = s.sets && s.sets[0];
     if(!first || !first.time) continue;
+    /* Ausserhalb des Messfensters ist der Wert keine Maximalhaltezeit,
+       sondern eine Aussage ueber die Stufenwahl — siehe MESS_MIN/MESS_MAX. */
+    if(!messbar(first.time)) continue;
     out.push({load: s.load, time: first.time, pain: !!first.pain, date: s.date, level: s.level});
   }
   return out;
@@ -1081,7 +1127,14 @@ function zoneCoverage(ex, side){
    Sprossen bleiben im Array stehen und werden nur bei der AUSWAHL
    uebersprungen. Wuerde man sie herausfiltern, verschoeben sich S.levels und
    die Exportspalte stufe_nr rueckwirkend, sobald ein Geraet angehakt wird. */
-const geraetDa = g => !g || !!(S.geraete && S.geraete[g]);
+/* Bewusst eine Funktionsdeklaration, keine const-Pfeilfunktion: die Startpruefung
+   direkt nach load() ruft ueber sidesOf -> beidJetzt -> gemerkteStufe ->
+   verfuegbareStufen bis hierher durch, und das passiert weiter oben in der Datei,
+   als diese Zeile steht. Eine const-Bindung waere zu dem Zeitpunkt noch in der
+   temporalen Todeszone und haette das ganze Skript mit
+   "Cannot access 'geraetDa' before initialization" abgebrochen - die App war dann
+   beim Laden tot. Funktionsdeklarationen werden gehoben und haben das Problem nicht. */
+function geraetDa(g){ return !g || !!(S.geraete && S.geraete[g]); }
 function verfuegbareStufen(ex){
   const lv = (S.ex[ex] && S.ex[ex].levels) || [];
   return lv.map((L, i) => Object.assign({i}, L)).filter(L => geraetDa(L.geraet));
@@ -1377,6 +1430,10 @@ function ankerpunkt(ex){
     if(ses.exercise !== ex) continue;
     const e = ses.sets && ses.sets[0];
     if(!e || !e.time || !ses.load) continue;
+    /* Derselbe Filter wie in points(): Ein Halt ausserhalb des Fensters
+       taugt auch als Anker nicht — die Ankerrechnung rechnet mit ihm
+       genauso weiter, als waere er ein Maximalhalt. */
+    if(!messbar(e.time)) continue;
     (ses.fresh === false ? vorermuedet : frisch).push(ses);
   }
   const pool = frisch.length ? frisch : vorermuedet;
@@ -1568,7 +1625,15 @@ function applyRules(session){
   const ex = S.ex[session.exercise];
   const lv = ex.levels;
   const key = keyOf(session.exercise, session.side);
-  const st = (S.streak[key] = S.streak[key] || {pain:0, miss:0});
+  const st = (S.streak[key] = S.streak[key] || {pain:0, miss:0, leer:0});
+  /* Griff Regel 2a in diesem Durchgang, dann hat es keinen Messwert gegeben —
+     und dann darf auch Regel 4 nicht noch ein zweites Mal stufen. Ohne das sah
+     der Nutzer nach 14 Sekunden erst "eine Stufe zurueck" und unmittelbar danach
+     "eine Stufe hoeher": zwei Meldungen, die sich aufheben, und am Ende stand er
+     wieder auf der Stufe, die er gerade nicht halten konnte. Regel 4 rechnet auf
+     der KURVE, die diesen Wert ohnehin nicht enthaelt; sie greift beim naechsten
+     Durchgang unveraendert. */
+  let unmessbar = false;
   const lvNow = () => (S.levels[key] || 0);
   const kgNow = () => extraOf(key);
   const wieJetzt = () => stufenName(session.exercise, lvNow(), kgNow());
@@ -1607,7 +1672,7 @@ function applyRules(session){
   }
 
   if(first.pain){                                   /* Regel 1 */
-    st.pain++; st.miss = 0;
+    st.pain++; st.miss = 0; st.leer = 0;
     msgs.push({t:"warn", x:`${labelOf(session.exercise, session.side)}: Satz bei Schmerz beendet. Neue Vorgabe ist ${fmt(first.time)} — nicht mehr.`});
     if(st.pain >= PAIN_BACK){
       const wie = erleichtern(); st.pain = 0;
@@ -1619,11 +1684,40 @@ function applyRules(session){
           + `Stufe mehr. Hier ist die App am Ende ihrer Mittel: Lass die Übung weg, bis es `
           + `besser ist, oder lass die Beschwerden abklären.`});
     }
-  } else if(first.time > session.target){           /* Regel 2 */
+  } else if(!messbar(first.time)){                  /* Regel 2a */
+    unmessbar = true;
+    /* Der Wert sagt nichts ueber die Belastbarkeit, nur ueber die Stufe.
+       points() und ankerpunkt() verwerfen ihn — aber eine Richtung gibt er
+       trotzdem, und die muss ankommen. Ohne diesen Zweig bekaeme man beim
+       naechsten Mal dieselbe Stufe und dieselbe unbrauchbare Messung. */
     st.pain = 0; st.miss = 0;
+    st.leer = (st.leer || 0) + 1;
+    const zuLeicht = first.time > MESS_MAX;
+    const wie = zuLeicht ? erschweren() : erleichtern();
+    msgs.push({t:"warn", x:`${labelOf(session.exercise, session.side)}: ${fmt(first.time)} — `
+      + (zuLeicht
+         ? `mehr als ${MESS_MAX} Sekunden. Diese Stufe ist zu leicht, um etwas zu messen.`
+         : `weniger als ${MESS_MIN} Sekunden. Diese Stufe ist zu schwer, um etwas zu messen.`)
+      + ` Der Wert zählt nicht für die Kurve.`});
+    if(wie) msgs.push({t:"ok", x: wie === "stufe"
+      ? `${zuLeicht ? "Eine Stufe höher" : "Eine Stufe zurück"} auf „${wieJetzt()}".`
+      : `${komma(ZUSATZ_SCHRITT,1)} kg ${zuLeicht ? "dazu" : "weniger"}, jetzt „${wieJetzt()}".`});
+    else msgs.push({t:"bad", x: zuLeicht
+      ? `Und schwerer geht diese Position nicht. Für die Kurve gibt sie nichts mehr her — `
+        + `als Kontrollposition bleibt sie brauchbar.`
+      : `Und leichter geht diese Position nicht. Lass sie weg, bis eine Zwischenstufe da ist.`});
+    if(st.leer >= LEER_SERIE){
+      st.leer = 0;
+      msgs.push({t:"bad", x:`${LEER_SERIE}-mal in Folge lag der Halt außerhalb von ${MESS_MIN} bis `
+        + `${MESS_MAX} Sekunden. Zwischen den hier verfügbaren Stufen liegt keine, die dich in `
+        + `dieses Fenster bringt — dieser Leiter fehlt ein Zwischenschritt. Meistens ist das ein `
+        + `Gerät, das unter „Mehr → Geräte" noch nicht angehakt ist.`});
+    }
+  } else if(first.time > session.target){           /* Regel 2 */
+    st.pain = 0; st.miss = 0; st.leer = 0;
     msgs.push({t:"ok", x:`Vorgabe übertroffen (${fmt(first.time)} statt ${fmt(session.target)}). Die Kurve zieht nach oben.`});
   } else if(first.time < session.target*MISS_RATIO){/* Regel 3 */
-    st.pain = 0;
+    st.pain = 0; st.leer = 0;
     if(session.userPicked){
       /* Die Stufe hat der Nutzer selbst gewaehlt. Den Richtwert zu verfehlen ist
          dann keine Verfehlung, sondern eine Schaetzung, die danebenlag — und
@@ -1644,7 +1738,7 @@ function applyRules(session){
       }
     }
   } else {
-    st.pain = 0; st.miss = 0;
+    st.pain = 0; st.miss = 0; st.leer = 0;
     msgs.push({t:"ok", x:`${labelOf(session.exercise, session.side)}: Vorgabe getroffen.`});
   }
 
@@ -1653,7 +1747,7 @@ function applyRules(session){
      dort schlicht Schluss und die Uebung wuchs nie wieder mit. */
   const f = curFit(session.exercise, session.side);
   const lastJetzt = lastVon(session.exercise, lvNow(), kgNow());
-  if(f && !first.pain && imBereich(f, lastJetzt)){
+  if(f && !first.pain && !unmessbar && imBereich(f, lastJetzt)){
     const t = predictTime(f, lastJetzt);
     if(isFinite(t) && t > 150){
       const wie = erschweren();
@@ -1743,6 +1837,17 @@ function tick(){
     T.ticks.add(0); cueDone();
     el("tClock").style.color = "var(--ok)";
     el("tHint").innerHTML = '<span id="tHit">Vorgabe erreicht — jede Sekunde mehr zieht die Kurve hoch</span>';
+  }
+  /* Ab hier zieht keine Sekunde mehr irgendetwas: points() verwirft den Wert,
+     und die Zeile darueber wuerde weiter das Gegenteil behaupten ("jede Sekunde
+     mehr zieht die Kurve hoch"). Wer das nicht erfaehrt, steht umsonst weiter.
+     -1 ist kein Sekundenwert, nur ein freier Schluessel im selben Set. */
+  if(s >= MESS_MAX && !T.ticks.has(-1)){
+    T.ticks.add(-1); cueDone();
+    el("tClock").style.color = "var(--warn)";
+    el("tHint").innerHTML = '<span style="color:var(--warn)">Über ' + MESS_MAX
+      + ' Sekunden — ab hier zählt der Wert nicht mehr für die Kurve. Diese Stufe ist zu '
+      + 'leicht. Beende den Satz; die App stuft dich danach hoch.</span>';
   }
   T.raf = requestAnimationFrame(tick);
 }
@@ -2665,8 +2770,10 @@ function historySVG(pts){
    damals zeigt heute auf eine andere Uebung. Der Name traegt, der Index nicht.
 
    in_kurve markiert die Zeilen, aus denen sich CP und W' fitten lassen:
-   Satz 1 einer nicht vorermuedeten Messung. Alles andere ist Training oder
-   Erholungsmessung — wertvoll, aber nicht dieselbe Groesse. */
+   Satz 1 einer nicht vorermuedeten Messung, deren Zeit im Messfenster
+   MESS_MIN..MESS_MAX liegt. Alles andere ist Training, Erholungsmessung
+   oder eine Stufe, die zu leicht bzw. zu schwer war — wertvoll, aber
+   nicht dieselbe Groesse. */
 const EXPORT_SCHEMA = 2;
 const EXPORT_SPALTEN = [
   "datum","workout","uebung","uebung_name","seite","variante","stufe_nr",
@@ -2699,7 +2806,7 @@ function messreihen(){
         ziel_sekunden: satz.target != null ? satz.target : ses.target,
         schmerz: satz.pain ? 1 : 0,
         frisch: ses.fresh === false ? 0 : 1,
-        in_kurve: (i === 0 && ses.fresh !== false) ? 1 : 0,
+        in_kurve: (i === 0 && ses.fresh !== false && messbar(satz.time)) ? 1 : 0,
         zone_geplant: ses.workoutZone || "",
         zone_erreicht: ses.zone || "",
         selbst_gewaehlt: ses.userPicked ? 1 : 0,
@@ -3214,13 +3321,16 @@ function renderHistory(){
         <td>${new Date(s.date).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"})}</td>
         <td class="tiny">${s.levelName}${s.fresh===false?'<br><span class="tiny">vorermüdet</span>':""}</td>
         <td class="n">${s.sets[0]?fmt(s.sets[0].time):"–"}${s.sets[0]&&s.sets[0].pain
-          ?' <span style="color:var(--bad)">!</span>':""}</td>
+          ?' <span style="color:var(--bad)">!</span>':""}${s.sets[0]&&s.sets[0].time
+            &&!messbar(s.sets[0].time)?' <span style="color:var(--warn)">×</span>':""}</td>
         <td class="n">${fmt(s.target)}</td>
         <td class="n" style="color:${s.painEnd<=4?"var(--ok)":s.painEnd<=6?"var(--warn)":"var(--bad)"}">
           ${s.painEnd}</td></tr>`).join("")}
       </tbody></table>
       <p class="tiny" style="margin-top:9px">! = Satz wegen Schmerzen beendet ·
-      abgeblendet = vorermüdete zweite Seite, zählt nicht in die Kurve</p>
+      abgeblendet = vorermüdete zweite Seite, zählt nicht in die Kurve ·
+      × = außerhalb von ${MESS_MIN}–${MESS_MAX} s, zählt nicht in die Kurve (die Stufe war
+      zu leicht oder zu schwer, der Wert ist keine maximale Haltezeit)</p>
     </div>`;
   wireCurveSelect("histCurve");
 }
