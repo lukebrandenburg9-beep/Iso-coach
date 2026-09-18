@@ -246,6 +246,11 @@ const ZONES = [
   {id:"C", name:"Kapazität",                        lo:90, hi:150, cls:"pC"}
 ];
 const PAUSE_S    = 20;   // Abschnitt 3.1 — zugleich Messprotokoll
+/* Nur fuer die Zeitschaetzung unter "Laenge einer Sitzung". Die App misst
+   diese Pause NICHT und schreibt sie auch niemandem vor — zwischen zwei
+   Bloecken laeuft keine Uhr. Drei Minuten ist Lukes Annahme vom 18.09.2026,
+   und die Schaetzung steht und faellt mit ihr. */
+const PAUSE_BLOCK_S = 180;
 const LEAD_IN    = 3;    // Sekunden zum In-Position-Gehen — nur vor dem ERSTEN Satz
                          // eines Blocks. Ab Satz 2 dient die Pause selbst dazu.
 const REACTION_DEFAULT = 2;  // Sekunden zwischen Positionsende und Knopfdruck
@@ -702,7 +707,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-18 b";
+const BUILD = "2026-09-18 c";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
@@ -1727,6 +1732,24 @@ const komma = (v, n) => v.toFixed(n).replace(".", ",");
 /* Deutsche Mehrzahl ist kein angehaengtes Suffix — "Satz" wird zu "Sätze",
    nicht zu "Satzätze". Eine Stelle, damit der Fehler nicht wiederkommt. */
 const anzahl = (n, ein, viele) => `${n} ${n === 1 ? ein : viele}`;
+
+/* Grober Zeitrahmen einer Sitzung. Bewusst eine SPANNE, keine Zahl: die
+   Haltezeit ist das, was der Nutzer schafft, nicht was vorgegeben ist —
+   die Zone gibt nur das Fenster vor, in dem sie landen soll.
+   Je Block: Vorlauf + Saetze x Haltezeit + Satzpausen (eine weniger als
+   Saetze). Dazwischen PAUSE_BLOCK_S, ebenfalls eine weniger als Bloecke.
+   Was hier NICHT drinsteckt: der Abfall ueber die Saetze. Satz 2 und 3
+   laufen kuerzer als Satz 1, aber um wie viel, weiss erst die Messung —
+   einen Faktor dafuer zu erfinden waere schlechter als die ehrliche
+   Spanne. Deshalb steht der Hinweis darunter im Klartext. */
+function sitzungsdauer(bloecke, zone){
+  const saetze = SETS_ZONE[zone.id] || SETS;
+  const block  = halt => LEAD_IN + saetze * halt + (saetze - 1) * PAUSE_S;
+  const gesamt = halt => bloecke * block(halt) + (bloecke - 1) * PAUSE_BLOCK_S;
+  return {saetze,
+          min: Math.round(gesamt(zone.lo) / 60),
+          max: Math.round(gesamt(zone.hi) / 60)};
+}
 function stufenName(ex, level, kg){
   const L = S.ex[ex] && S.ex[ex].levels[level];
   if(!L) return "—";
@@ -2979,6 +3002,35 @@ function renderHistory(){
   wireCurveSelect("histCurve");
 }
 
+/* Steht unter "Laenge einer Sitzung" und rechnet bei jedem Tastendruck im
+   Feld neu — nicht erst beim Speichern. Wer die Zahl hochdreht, soll sofort
+   sehen, was das kostet, und nicht erst nach einem Knopfdruck. */
+function dauerHTML(bloecke){
+  const b = Math.max(1, Math.min(12, Math.round(bloecke) || 1));
+  const zeilen = ZONES.map((z, i) => {
+    const d = sitzungsdauer(b, z);
+    return `<div style="display:flex;gap:11px;align-items:baseline;padding:7px 0${
+      i < ZONES.length - 1 ? ";border-bottom:1px solid var(--line)" : ""}">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px">Zone ${z.id} · ${z.name}</div>
+        <div class="tiny" style="margin:1px 0 0">${anzahl(d.saetze, "Satz", "Sätze")} à ${
+          z.lo}–${z.hi} s</div>
+      </div>
+      <b style="font-family:var(--mono);font-size:14px;white-space:nowrap">${d.min}–${d.max} min</b>
+    </div>`;
+  }).join("");
+  return `<div class="tiny" style="color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;
+    font-weight:600;font-size:11.5px;margin:14px 0 3px">Ungefähre Dauer bei ${
+    anzahl(b, "Block", "Blöcken")}</div>
+    ${zeilen}
+    <p class="tiny" style="margin-top:9px">Angenommen sind <b>${
+      Math.round(PAUSE_BLOCK_S / 60)} Minuten</b> Pause zwischen zwei Blöcken — die App misst sie
+    nicht und schreibt sie nicht vor. Innerhalb eines Blocks sind es ${PAUSE_S} Sekunden.
+    Die Spanne ist die Haltezeit selbst: sie steht nicht fest, sondern ist das, was du schaffst.
+    Satz 2 und 3 laufen vorermüdet kürzer als Satz 1 — eine echte Sitzung landet deshalb eher
+    im unteren Teil der Spanne.</p>`;
+}
+
 function renderSetup(){
   const j = JSON.stringify(S);
   el("setupBody").innerHTML = `
@@ -3047,7 +3099,8 @@ function renderSetup(){
         <input type="number" id="maxBl" value="${S.maxBloecke || MAX_BLOECKE}" min="1" max="12"
           step="1" inputmode="numeric" style="width:76px;text-align:center">
       </div>
-      <p class="tiny" style="margin-top:7px"><b>Die Satzzahl ist hier der falsche Hebel.</b> Wird
+      <div id="dauerSchaetz">${dauerHTML(S.maxBloecke || MAX_BLOECKE)}</div>
+      <p class="tiny" style="margin-top:12px"><b>Die Satzzahl ist hier der falsche Hebel.</b> Wird
       eine Sitzung zu lang, liegt es nahe, die Sätze zu kürzen — aber der Abfall über die Sätze
       ist die einzige Information über deine Erholung innerhalb einer Serie. Lieber weniger
       Übungen als weniger Sätze.</p>
@@ -3286,6 +3339,13 @@ function renderSetup(){
       renderAmOrt("ger_" + g.id);
     };
   });
+  /* Kein renderAmOrt() hier: das Feld haette sonst bei jedem Tastendruck den
+     Fokus verloren. Nur der Schaetzkasten wird ersetzt. */
+  if(el("maxBl")) el("maxBl").oninput = ()=>{
+    const v = parseInt(el("maxBl").value, 10);
+    if(el("dauerSchaetz") && Number.isFinite(v) && v >= 1 && v <= 12)
+      el("dauerSchaetz").innerHTML = dauerHTML(v);
+  };
   if(el("maxSave")) el("maxSave").onclick = ()=>{
     const v = parseInt(el("maxBl").value, 10);
     if(Number.isFinite(v) && v >= 1 && v <= 12) S.maxBloecke = v;
