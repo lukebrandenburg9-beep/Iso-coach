@@ -544,17 +544,31 @@ const DEFAULT_EX = {
      Wade gescheitert (scratchpad/wade.mjs). Mit einer Personenwaage unter dem
      Vorfuss IST der Lastfaktor die Anzeige der Waage — keine Umrechnung, kein
      Hebelarm, kein Modell dazwischen — und aus der unbaubaren Leiter wird eine
-     gewoehnliche. Preis: die Uebung ist damit nicht mehr geraetefrei. */
+     gewoehnliche.
+
+     Die beiden freien Sprossen tragen deshalb KEINE Geraetekennung: beidbeinig
+     und einbeinig brauchen nichts und sind sofort trainierbar. Nur die drei
+     Zwischenstufen verlangen die Waage. Fehlt sie, bleibt der Sprung von 50 %
+     auf 100 % bei 2,00 — die Uebung laeuft, die Kurve dazwischen bleibt eine
+     Vermutung.
+
+     Die Waage muss ANALOG sein. Digitalwaagen schalten bei stehender Last nach
+     Sekunden ab oder frieren die Anzeige ein; ein Halt dauert 35 bis 120 s.
+     Befund von Luke, 18.09.2026. */
   wade: {
     name:"Isometrisches Wadenheben", region:"Wade", group:"calf",
     sides:["links","rechts"], extraAb:4, extraK:1,
-    extraHint:"Rucksack ganz normal auf dem Rücken. Hier ist die Rechnung ausnahmsweise exakt: "
-             +"was du trägst, zeigt die Waage zusätzlich an.",
-    hint:"»Links« heißt: der LINKE Fuß trägt. Die Waage liegt unter dem Vorfuß, die Ferse "
-        +"hängt frei. Geh einmal hoch, bis die Ferse oben ist — und BLEIB dort. Keine "
-        +"Wiederholungen. Die Fersenhöhe bleibt über die ganze Leiter gleich, sie ist kein "
-        +"Teil der Last: nur die Zahl auf der Waage entscheidet. Unter 100 % nimmst du dir "
-        +"über die Hände auf einer Auflage Gewicht ab, bis die Anzeige stimmt.",
+    extraHint:"Rucksack ganz normal auf dem Rücken, einbeinig. Die Rechnung ist hier "
+             +"ausnahmsweise exakt: dein Körpergewicht plus das, was du trägst, steht auf "
+             +"einer Wade.",
+    hint:"Der Vorfuß steht auf einer Erhöhung, die Ferse hängt frei. Geh einmal hoch, bis die "
+        +"Ferse oben ist — und BLEIB dort. Keine Wiederholungen. Die Fersenhöhe bleibt über "
+        +"die ganze Leiter gleich, sie ist kein Teil der Last. Zwei Stufen brauchen nichts "
+        +"weiter: Bei 50 % stehst du auf beiden Vorfüßen — »links« und »rechts« sind dann "
+        +"derselbe Halt, einmal frisch und einmal vorermüdet. Bei 100 % trägt der genannte "
+        +"Fuß allein. Für die drei Stufen dazwischen liegt die Waage unter seinem Vorfuß — "
+        +"die Zahl auf der Anzeige IST die Stufe, und du nimmst dir über die Hände auf einer "
+        +"Auflage so viel Gewicht ab, bis sie stimmt.",
     seitenHinweis:"Diese Wade hat eben noch mitgehalten, während die andere Seite gearbeitet hat.",
     warnung:{
       titel:"Bevor du das isometrische Wadenheben zum ersten Mal machst",
@@ -570,11 +584,11 @@ const DEFAULT_EX = {
            +"Sehnengewebe nachweislich. In beiden Fällen wäre Belastung falsch."
     },
     levels:[
-      {name:"Waage zeigt 40 % deines Körpergewichts",  load:0.40, geraet:"waage"},
-      {name:"Waage zeigt 50 %",                        load:0.50, geraet:"waage"},
-      {name:"Waage zeigt 63 %",                        load:0.63, geraet:"waage"},
-      {name:"Waage zeigt 79 %",                        load:0.79, geraet:"waage"},
-      {name:"Einbeinig frei — Waage zeigt 100 %",      load:1.00, geraet:"waage"}
+      {name:"40 % des Körpergewichts — Waage",   load:0.40, geraet:"waage"},
+      {name:"50 % — beidbeinig, ohne Waage",     load:0.50},
+      {name:"63 % — Waage",                      load:0.63, geraet:"waage"},
+      {name:"79 % — Waage",                      load:0.79, geraet:"waage"},
+      {name:"100 % — einbeinig, ohne Waage",     load:1.00}
     ]
   },
 
@@ -588,10 +602,12 @@ const DEFAULT_EX = {
   handtuch: {
     name:"Isometrisches Wadenheben mit Handtuchrolle", region:"Fußsohle", group:"arch",
     sides:["links","rechts"], extraAb:4, extraK:1,
-    extraHint:"Rucksack ganz normal auf dem Rücken. Was du trägst, zeigt die Waage zusätzlich an.",
+    extraHint:"Rucksack ganz normal auf dem Rücken, einbeinig. Dein Körpergewicht plus das, "
+             +"was du trägst, steht auf einem Fußgewölbe.",
     hint:"Wie das isometrische Wadenheben, mit einem Unterschied: Unter den Zehen liegt ein "
         +"fest zusammengerolltes Handtuch, sodass die Zehen nach oben gedrückt bleiben. Nur "
-        +"die Ballen stehen auf der Waage, die Zehen auf der Rolle. Diese Zehenstellung ist "
+        +"die Ballen tragen, die Zehen liegen auf der Rolle; bei den drei Waage-Stufen liegt "
+        +"die Waage unter den Ballen. Diese Zehenstellung ist "
         +"der ganze Zweck der Übung — rutschen die Zehen von der Rolle, trainierst du wieder "
         +"die Wade statt die Fußsohle. Auch hier: einmal hoch und oben bleiben.",
     seitenHinweis:"Dieser Fuß hat eben noch mitgehalten, während die andere Seite gearbeitet hat.",
@@ -610,11 +626,11 @@ const DEFAULT_EX = {
            +"dann wäre Belastung falsch."
     },
     levels:[
-      {name:"Waage zeigt 40 % deines Körpergewichts",  load:0.40, geraet:"waage"},
-      {name:"Waage zeigt 50 %",                        load:0.50, geraet:"waage"},
-      {name:"Waage zeigt 63 %",                        load:0.63, geraet:"waage"},
-      {name:"Waage zeigt 79 %",                        load:0.79, geraet:"waage"},
-      {name:"Einbeinig frei — Waage zeigt 100 %",      load:1.00, geraet:"waage"}
+      {name:"40 % des Körpergewichts — Waage",   load:0.40, geraet:"waage"},
+      {name:"50 % — beidbeinig, ohne Waage",     load:0.50},
+      {name:"63 % — Waage",                      load:0.63, geraet:"waage"},
+      {name:"79 % — Waage",                      load:0.79, geraet:"waage"},
+      {name:"100 % — einbeinig, ohne Waage",     load:1.00}
     ]
   }
 };
@@ -661,10 +677,12 @@ const GERAETE = [
   {id:"gewicht", name:"Kettlebell, Hantel oder Scheiben", was:"Etwas Schweres, das du in einer "
    +"Hand halten kannst. Zwei Stufen brauchen 16 und 32 kg, eine dritte 24 kg als Gegengewicht.",
    fuer:"Aufrechter Läufer — ohne das entfällt die Übung ganz"},
-  {id:"waage", name:"Personenwaage", was:"Eine gewöhnliche Badezimmerwaage, die du unter den "
+  {id:"waage", name:"Personenwaage mit Zeiger (analog)", was:"Eine Waage, die du unter den "
    +"Vorfuß legen kannst. Sie ist hier kein Zubehör, sondern das Messgerät: die Zahl auf der "
-   +"Anzeige IST die Stufe.",
-   fuer:"Beide Formen des isometrischen Wadenhebens — ohne das entfallen sie ganz"}
+   +"Anzeige IST die Stufe. Sie muss analog sein — eine Digitalwaage schaltet bei stehender "
+   +"Last nach Sekunden ab oder friert die Anzeige ein, und ein Halt dauert 35 bis 120 s.",
+   fuer:"Die drei Zwischenstufen beider Formen des isometrischen Wadenhebens. Beidbeinig "
+       +"und einbeinig gehen ohne."}
 ];
 
 const RED_FLAGS = [
@@ -684,12 +702,12 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-18 a";
+const BUILD = "2026-09-18 b";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
    Update alte Levels kleben. Sessions bleiben dabei immer erhalten. */
-const EX_VERSION = 7;
+const EX_VERSION = 8;
 /* Voreinstellung, bis der Nutzer sein Gewicht einträgt. Nur als Bezugsgroesse
    fuer Zusatzlast noetig — die Lastfaktoren selbst sind gewichtsunabhaengige
    Verhaeltniszahlen. */
