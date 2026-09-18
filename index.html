@@ -707,7 +707,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-18 c";
+const BUILD = "2026-09-18 d";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
@@ -2785,7 +2785,10 @@ function renderHome(){
     <div class="card">
       ${(p.zonen||[p.zone]).map(id=>{ const zz = ZONES.find(x=>x.id===id);
          return `<span class="pill ${zz.cls}">Zone ${zz.id} · ${zz.name}</span> `; }).join("")}
-      <h2 style="margin:11px 0 2px">${ZAHLWORT[p.blocks.length]||p.blocks.length} Blöcke</h2>
+      <h2 style="margin:11px 0 2px">${ZAHLWORT[p.blocks.length]||p.blocks.length} ${
+        p.blocks.length === 1 ? "Block" : "Blöcke"}${
+        planDauer(p.blocks) ? `<span style="color:var(--tx3);font-size:15px;font-weight:400;
+          font-family:var(--mono)"> · rund ${planDauer(p.blocks)} min</span>` : ""}</h2>
       <p class="muted" style="margin:0">${p.blocks.map(blockLabel).join("  →  ")}</p>
       <p class="tiny" style="margin-top:11px">${p.why}</p>
       ${(p.spaeter && p.spaeter.length) ? `<p class="tiny"><b>Heute zurückgestellt:</b> ${
@@ -2800,6 +2803,12 @@ function renderHome(){
       : `<p class="tiny"><b>Kein Block übrig.</b> Hak unten mindestens eine Übung an, deren
          Muskelgruppe heute frei ist.</p>`}
       ${hilfe("plan", "Wie das Workout gemeint ist", `
+        <p class="tiny"><b>Die Minutenzahl oben ist geschätzt.</b> Drin stecken die Richtwerte
+        aller Blöcke, ${PAUSE_S} Sekunden zwischen den Sätzen und ${
+        Math.round(PAUSE_BLOCK_S/60)} Minuten zwischen zwei Blöcken — die Blockpause misst die
+        App nicht und schreibt sie auch nicht vor, sie ist nur angenommen. Nicht drin steckt,
+        dass Satz 2 und 3 vorermüdet kürzer laufen; dafür fehlen Aufbau und
+        Ergebnisbildschirm. Beides ist nicht gemessen, also wird beides nicht verrechnet.</p>
         <p class="tiny">Ton einschalten — die Ansagen kommen akustisch, damit du nicht aufs
         Display schauen musst.</p>
         <p class="tiny"><b>Variante und Satzzahl stellst du vor jeder Übung ein</b> — auf der
@@ -3005,6 +3014,30 @@ function renderHistory(){
 /* Steht unter "Laenge einer Sitzung" und rechnet bei jedem Tastendruck im
    Feld neu — nicht erst beim Speichern. Wer die Zahl hochdreht, soll sofort
    sehen, was das kostet, und nicht erst nach einem Knopfdruck. */
+/* Dauer des heutigen Plans — eine Zahl, kein Fenster. Anders als unter
+   "Laenge einer Sitzung" ist hier jeder Block bekannt: seine Satzzahl und
+   sein Richtwert stehen schon fest, der eine aus der Kurve, der andere aus
+   der Zone. Deshalb reicht hier eine Zahl, wo dort eine Spanne noetig war.
+   Gerundet auf fuenf Minuten, damit die Zahl aussieht wie das, was sie ist
+   — aber erst ab einer halben Stunde. Darunter ist der Fuenferschritt
+   groesser als der Fehler, den er andeuten soll: ein einzelner Block von
+   6,7 Minuten wuerde als "rund 5 min" um ein Viertel danebenliegen.
+   Zwei Fehler stecken drin und zeigen in verschiedene Richtungen: Satz 2
+   und 3 laufen vorermuedet kuerzer als der Richtwert (zu hoch geschaetzt),
+   dafuer fehlen Aufbau, Stufenwahl und Ergebnisbildschirm (zu niedrig).
+   Keiner von beiden ist gemessen, also wird keiner verrechnet. */
+function planDauer(bloecke){
+  if(!bloecke || !bloecke.length) return null;
+  const summe = bloecke.reduce((sum, bl) => {
+    const z = ZONES.find(x => x.id === bl.zone) || ZONES[0];
+    const n = bl.saetze || SETS_ZONE[bl.zone] || SETS;
+    const t = bl.target || Math.round((z.lo + z.hi) / 2);
+    return sum + LEAD_IN + n * t + (n - 1) * PAUSE_S;
+  }, 0) + (bloecke.length - 1) * PAUSE_BLOCK_S;
+  const min = summe / 60;
+  return min < 30 ? Math.max(1, Math.round(min)) : Math.round(min / 5) * 5;
+}
+
 function dauerHTML(bloecke){
   const b = Math.max(1, Math.min(12, Math.round(bloecke) || 1));
   const zeilen = ZONES.map((z, i) => {
