@@ -43,6 +43,22 @@ p{margin:8px 0}
 .tiny{color:var(--tx3);font-size:12px;line-height:1.45}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin:12px 0}
 .card.flat{background:var(--panel2)}
+/* Aufklappbare Erklaerung. Der Text steht weiter da, kostet aber nur eine
+   Zeile, solange man ihn nicht braucht. */
+details.hilfe{margin:10px 0 0;background:transparent;padding:2px 12px;border-radius:10px}
+details.hilfe[open]{padding-bottom:12px}
+details.hilfe>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:9px;
+  padding:11px 0;font-size:12px;color:var(--tx3);user-select:none;
+  -webkit-tap-highlight-color:transparent}
+details.hilfe>summary::-webkit-details-marker{display:none}
+details.hilfe>summary::before{content:"";flex:0 0 auto;width:6px;height:6px;margin-left:2px;
+  border-right:1.6px solid currentColor;border-bottom:1.6px solid currentColor;
+  transform:rotate(-45deg);transition:transform .16s}
+details.hilfe[open]>summary{color:var(--tx2)}
+details.hilfe[open]>summary::before{transform:rotate(45deg)}
+details.hilfe>summary:focus-visible{outline:2px solid var(--acc);outline-offset:3px;border-radius:7px}
+details.hilfe>p:first-of-type{margin-top:0}
+details.hilfe>p:last-child{margin-bottom:0}
 button{font:inherit;cursor:pointer;border:0;border-radius:11px;padding:13px 16px;
   background:var(--panel2);color:var(--tx);border:1px solid var(--line)}
 button:active{transform:translateY(1px)}
@@ -664,7 +680,7 @@ const RED_FLAGS = [
 /* Stand der ausgelieferten Fassung. Steht unten in der App und beim Start in der
    Konsole — daran erkennst du am Handy, ob das Update schon angekommen ist.
    Wird bei jeder Änderung hochgezählt. */
-const BUILD = "2026-09-17 c";
+const BUILD = "2026-09-18 a";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
@@ -2590,8 +2606,10 @@ function renderHome(){
     const lage = uebungslage();
     return `<div class="card flat">
       <h3 style="margin-top:0">Was heute dabei ist</h3>
-      <p class="tiny">Häkchen weg heißt: Die Übung bleibt draußen, bis du sie wieder anhakst.
-      <b>Gesperrt</b> ist etwas anderes — das ist die Pause der Muskelgruppe und geht vorbei.</p>
+      ${hilfe("auswahl", "Häkchen und Sperre — was ist was?", `
+        <p class="tiny">Häkchen weg heißt: Die Übung bleibt draußen, bis du sie wieder anhakst.
+        <b>Gesperrt</b> ist etwas anderes — das ist die Pause der Muskelgruppe und geht
+        vorbei.</p>`)}
       ${lage.map(u=>{
         const e = S.ex[u.ex];
         const frei = u.tor.ok;
@@ -2611,9 +2629,10 @@ function renderHome(){
     </div>
     <div class="card flat">
       <h3 style="margin-top:0">Heute selbst zusammenstellen</h3>
-      <p class="tiny">Sonst entscheidet die Rotation: Sie nimmt die Übungen, die am längsten auf
-      eine Messung warten, bis ${anzahl(S.maxBloecke || MAX_BLOECKE, "Block", "Blöcke")} voll
-      sind. Du kannst das für heute übergehen — der Deckel gilt dann nicht.</p>
+      ${hilfe("selbst", "Wonach die Rotation sonst entscheidet", `
+        <p class="tiny">Sonst entscheidet die Rotation: Sie nimmt die Übungen, die am längsten
+        auf eine Messung warten, bis ${anzahl(S.maxBloecke || MAX_BLOECKE, "Block", "Blöcke")}
+        voll sind. Du kannst das für heute übergehen — der Deckel gilt dann nicht.</p>`)}
       ${heuteDran().map((u,i)=>`<label class="chk" for="hd${i}">
         <input type="checkbox" id="hd${i}" data-ex="${u.ex}"
           ${(S.heuteTag===today() && Array.isArray(S.heute))
@@ -2724,8 +2743,6 @@ function renderHome(){
       <h2 style="margin:11px 0 2px">${ZAHLWORT[p.blocks.length]||p.blocks.length} Blöcke</h2>
       <p class="muted" style="margin:0">${p.blocks.map(blockLabel).join("  →  ")}</p>
       <p class="tiny" style="margin-top:11px">${p.why}</p>
-      <p class="tiny"><b>Variante und Satzzahl stellst du vor jeder Übung ein</b> — auf der Karte,
-      die direkt davor kommt. Hier steht nur, was geplant ist.</p>
       ${(p.spaeter && p.spaeter.length) ? `<p class="tiny"><b>Heute zurückgestellt:</b> ${
         p.spaeter.map(ex => S.ex[ex].name).join(", ")}. ${
         p.spaeter.length===1 ? "Diese Übung wäre" : "Diese Übungen wären"} frei, ${
@@ -2733,25 +2750,30 @@ function renderHome(){
         anzahl(S.maxBloecke || MAX_BLOECKE, "Block", "Blöcke")}. Beim nächsten Mal ${
         p.spaeter.length===1 ? "steht sie" : "stehen sie"} vorn — oder du stellst die Einheit
         unten selbst zusammen.</p>` : ""}
-      <p class="tiny"><b>Der Richtwert ist kein Ziel.</b> Halte so lange du kannst. Der Messpunkt
-      zählt so, wie er herauskommt — ob du dich über- oder unterschätzt, ist gleichgültig.
-      Genau aus der Streuung entsteht die Kurve.</p>
-      <p class="tiny">Abbrechen geht jederzeit: In jeder Satzpause steht <b>Workout hier
-      beenden</b>. Alles bis dahin Gemessene wird gespeichert, auch ein einzelner Satz.</p>
       ${p.blocks.length ? `<button class="primary" style="width:100%;margin-top:12px;padding:16px"
         id="goSess">Workout starten</button>`
       : `<p class="tiny"><b>Kein Block übrig.</b> Hak unten mindestens eine Übung an, deren
          Muskelgruppe heute frei ist.</p>`}
-      <p class="tiny" style="text-align:center;margin-top:9px">Ton einschalten — die Ansagen
-      kommen akustisch, damit du nicht aufs Display schauen musst.</p>
+      ${hilfe("plan", "Wie das Workout gemeint ist", `
+        <p class="tiny">Ton einschalten — die Ansagen kommen akustisch, damit du nicht aufs
+        Display schauen musst.</p>
+        <p class="tiny"><b>Variante und Satzzahl stellst du vor jeder Übung ein</b> — auf der
+        Karte, die direkt davor kommt. Hier steht nur, was geplant ist.</p>
+        <p class="tiny"><b>Der Richtwert ist kein Ziel.</b> Halte so lange du kannst. Der
+        Messpunkt zählt so, wie er herauskommt — ob du dich über- oder unterschätzt, ist
+        gleichgültig. Genau aus der Streuung entsteht die Kurve.</p>
+        <p class="tiny">Abbrechen geht jederzeit: In jeder Satzpause steht <b>Workout hier
+        beenden</b>. Alles bis dahin Gemessene wird gespeichert, auch ein einzelner Satz.</p>`)}
     </div>
     ${p.blocks.map(blockKarte).join("")}
     ${auswahlKarte()}
     ${(()=>{ const offen = allKeys().filter(k => !profileReady(k.ex, k.side));
       return offen.length ? `<div class="card flat">
         <h3 style="margin-top:0">Bis zum vollständigen Profil</h3>
-        <p class="tiny">Die Kurve entsteht nicht durch viele Messungen, sondern durch
-        <b>gespreizte</b>. Solange eine Zone leer ist, bleibt die Kurve dort eine Vermutung.</p>
+        ${hilfe("profilrest", "Warum gespreizte Messungen zählen", `
+          <p class="tiny">Die Kurve entsteht nicht durch viele Messungen, sondern durch
+          <b>gespreizte</b>. Solange eine Zone leer ist, bleibt die Kurve dort eine
+          Vermutung.</p>`)}
         <table><tbody>${allKeys().map(k=>{
           const cov = zoneCoverage(k.ex, k.side);
           const n = Object.values(cov).filter(v=>v>0).length;
@@ -2780,6 +2802,15 @@ function wireCurveSelect(id){
 let aktiverScreen = "home";
 /* Gesetzt von renderAmOrt: unterdrueckt den Sprung nach oben in show(). */
 let halteScroll = false;
+
+/* Welche Erklaerungen gerade aufgeklappt sind. Jeder Bildschirm wird bei jeder
+   Aenderung komplett neu gezeichnet — ohne dieses Gedaechtnis klappte alles
+   wieder zu, sobald man irgendwo ein Haekchen setzt. */
+const offeneHilfen = {};
+function hilfe(id, titel, inhalt){
+  return `<details class="hilfe" data-h="${id}"${offeneHilfen[id] ? " open" : ""}>
+    <summary>${titel}</summary>${inhalt}</details>`;
+}
 function render2(){ show(aktiverScreen); }
 
 /* Haltezeit ueber die Wochen — das, was einer Kontrollposition bleibt, wenn
@@ -3028,7 +3059,8 @@ function renderSetup(){
       <button class="ghost" style="width:100%;margin-top:8px;display:none" id="shareBtn">
         Teilen (AirDrop zum Rechner)</button>
       <p class="tiny" id="expInfo" style="margin:9px 0 0"></p>
-      <details style="margin-top:10px"><summary>Was in den Spalten steht</summary>
+      <details class="hilfe" data-h="spalten" style="margin-top:10px">
+        <summary>Was in den Spalten steht</summary>
         <p class="tiny"><code>in_kurve</code> ist die wichtigste Spalte: 1 bedeutet Satz 1 einer
         nicht vorermüdeten Messung — nur aus diesen Zeilen lassen sich CP und W' fitten. Sätze 2
         und 3 messen die Erholung, die zweite Seite ist vorermüdet; beides ist wertvoll, aber
@@ -3096,7 +3128,8 @@ function renderSetup(){
       <button class="ghost" style="width:100%;margin-top:10px" id="nSave">Eintragen</button>
       <p class="tiny" id="nHint" style="margin:8px 0 0;min-height:18px"></p>
     </div>
-    <details><summary>Was dieser Prototyp umsetzt — und was nicht</summary>
+    <details class="hilfe" data-h="umfang">
+      <summary>Was dieser Prototyp umsetzt — und was nicht</summary>
       <p class="tiny"><b>Umgesetzt:</b> Die 2-Parameter-Kurve aus Handoff 4.1 mit Alterung der
       Messpunkte · das gespreizte Onboarding über drei Stufen (M7, Abschnitt 4.4) · die
       Zonenrotation, damit die Spreizung erhalten bleibt (Regel 5) · die Progressionsregeln 1
@@ -3108,8 +3141,18 @@ function renderSetup(){
       Bezahlung, Videos · verlässlicher Timerlauf bei gesperrtem Display. Letzteres kann eine
       Webseite nicht zuverlässig — genau darum geht es in Abschnitt 6.1 des Handoffs.</p>
     </details>
+    <div class="card">
+      <h3 style="margin-top:0">Fassung</h3>
+      <p class="tiny" style="display:flex;justify-content:space-between;gap:10px;margin-top:0">
+        <span>Auf diesem Gerät</span>
+        <span id="buildState" style="font-family:var(--mono);color:var(--tx)">${BUILD}</span></p>
+      <p class="tiny">Liegt die App auf dem Startbildschirm, hält das Handy die einmal geladene
+      Fassung oft tagelang fest. Steht hier eine ältere Kennung als die genannte, holt der Knopf
+      die neue. Deine Daten bleiben dabei, wo sie sind.</p>
+      <button class="ghost" style="width:100%" id="updBtn">Neu laden und Fassung holen</button>
+    </div>
     <p class="tiny" style="text-align:center;margin:18px 0 4px">
-      ISO Coach · Prototyp · Fassung ${BUILD}<br>
+      ISO Coach · Prototyp<br>
       Kein Medizinprodukt. Keine Diagnose, keine Therapieempfehlung.</p>`;
 
   /* ── Nachtragen ─────────────────────────────────────────── */
@@ -3198,7 +3241,7 @@ function renderSetup(){
     host.querySelectorAll("[data-l]").forEach(inp=>{
       const v = parseFloat(inp.value); if(v>0) curEx().levels[+inp.dataset.l].load = v;
     });
-    S.plan = null; S.planDay = null; save(); render();
+    S.plan = null; S.planDay = null; save(); renderAmOrt("lvlSave");
   };
 
   el("reactSel").onchange = e => { S.reaction = +e.target.value; save(); };
@@ -3217,13 +3260,14 @@ function renderSetup(){
       S.geraete[g.id] = e.target.checked;
       /* Die Leiter aendert sich damit — ein geplantes Workout kann auf eine
          Stufe zeigen, die es gerade nicht mehr gibt. */
-      S.plan = null; S.planDay = null; save(); render();
+      S.plan = null; S.planDay = null; save();
+      renderAmOrt("ger_" + g.id);
     };
   });
   if(el("maxSave")) el("maxSave").onclick = ()=>{
     const v = parseInt(el("maxBl").value, 10);
     if(Number.isFinite(v) && v >= 1 && v <= 12) S.maxBloecke = v;
-    S.plan = null; S.planDay = null; save(); render();
+    S.plan = null; S.planDay = null; save(); renderAmOrt("maxSave");
   };
 
   const rhost = el("restEdit");
@@ -3240,7 +3284,14 @@ function renderSetup(){
       const v = parseInt(inp.value, 10);
       if(Number.isFinite(v) && v >= 0 && v <= 14) S.rest[inp.dataset.r] = v;
     });
-    S.plan = null; S.planDay = null; save(); render();
+    S.plan = null; S.planDay = null; save(); renderAmOrt("restSave");
+  };
+
+  /* Die Seite kommt aus dem Browser-Cache (GitHub Pages erlaubt zehn Minuten),
+     und eine auf den Startbildschirm gelegte Seite laedt von sich aus oft tagelang
+     gar nicht neu. Der Zeitstempel in der Adresse umgeht beides. */
+  el("updBtn").onclick = ()=>{
+    location.replace(location.pathname + "?frisch=" + Date.now());
   };
 
   el("expBtn").onclick = async ()=>{
@@ -3359,6 +3410,10 @@ function show(name){
   if(name==="profile") renderProfile();
   if(name==="history") renderHistory();
   if(name==="setup")   renderSetup();
+  document.querySelectorAll("details.hilfe[data-h]").forEach(d=>{
+    if(offeneHilfen[d.dataset.h]) d.open = true;
+    d.ontoggle = () => { offeneHilfen[d.dataset.h] = d.open; };
+  });
   if(!halteScroll) window.scrollTo(0,0);
 }
 
@@ -3372,12 +3427,16 @@ function show(name){
 
    Absichtlich nicht in show(): innerhalb des Workouts wechselt der
    Home-Bildschirm staendig den Inhalt (Satz, Pause, Abschluss), und dort ist
-   der Sprung nach oben richtig. */
+   der Sprung nach oben richtig.
+
+   render2() und nicht render(): render() heisst intern "zeige Home". Von einem
+   anderen Bildschirm aus waere das nicht nur ein Sprung nach oben, sondern ein
+   Bildschirmwechsel — genau das passierte bei den Geraete-Haekchen unter Mehr. */
 function renderAmOrt(ankerId){
   const a = el(ankerId);
   const vorher = a ? a.getBoundingClientRect().top : null;
   halteScroll = true;
-  render();
+  render2();
   halteScroll = false;
   const b = el(ankerId);
   if(vorher !== null && b) window.scrollBy(0, b.getBoundingClientRect().top - vorher);
