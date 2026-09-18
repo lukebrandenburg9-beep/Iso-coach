@@ -562,12 +562,15 @@ const DEFAULT_EX = {
      Befund von Luke, 18.09.2026. */
   wade: {
     name:"Isometrisches Wadenheben", region:"Wade", group:"calf",
-    sides:["links","rechts"], extraAb:4, extraK:1,
+    sides:["links","rechts"], extraAb:4, extraK:1, nichtMit:["handtuch"],
     extraHint:"Rucksack ganz normal auf dem Rücken, einbeinig. Die Rechnung ist hier "
              +"ausnahmsweise exakt: dein Körpergewicht plus das, was du trägst, steht auf "
              +"einer Wade.",
-    hint:"Der Vorfuß steht auf einer Erhöhung, die Ferse hängt frei. Geh einmal hoch, bis die "
-        +"Ferse oben ist — und BLEIB dort. Keine Wiederholungen. Die Fersenhöhe bleibt über "
+    hint:"Der Vorfuß steht auf einer Erhöhung, die Ferse hängt frei. Heb die Ferse genau so "
+        +"weit, dass die Fußsohle waagerecht steht — Ferse und Vorfuß auf einer Höhe — und "
+        +"BLEIB dort. Nicht tiefer absinken lassen und nicht höher drücken: diese mittlere "
+        +"Stellung IST die Übung, und sie ist der Unterschied zur Variante mit Handtuchrolle, "
+        +"die ganz oben gehalten wird. Keine Wiederholungen. Die Fersenhöhe bleibt über "
         +"die ganze Leiter gleich, sie ist kein Teil der Last. Zwei Stufen brauchen nichts "
         +"weiter: Bei 50 % stehst du auf beiden Vorfüßen — »links« und »rechts« sind dann "
         +"derselbe Halt, einmal frisch und einmal vorermüdet. Bei 100 % trägt der genannte "
@@ -590,31 +593,43 @@ const DEFAULT_EX = {
     },
     levels:[
       {name:"40 % des Körpergewichts — Waage",   load:0.40, geraet:"waage"},
-      {name:"50 % — beidbeinig, ohne Waage",     load:0.50},
+      {name:"50 % — beidbeinig, ohne Waage",     load:0.50, beid:true},
       {name:"63 % — Waage",                      load:0.63, geraet:"waage"},
       {name:"79 % — Waage",                      load:0.79, geraet:"waage"},
       {name:"100 % — einbeinig, ohne Waage",     load:1.00}
     ]
   },
 
-  /* Dieselbe Bewegung, dieselbe Leiter, ein Handtuch Unterschied. Stehen die
-     Zehen aufgestellt, wickelt sich die Plantarfaszie ueber die Mittelfusskoepfe
-     und traegt mit (Windenmechanismus); liegen sie flach, ist sie schlaff und
-     die Last geht in die Achillessehne. Der Aufbau stammt aus Rathleff 2015.
-     GESCHAETZT ist, ob das wirklich ZWEI Uebungen sind: liefern beide bei
-     derselben Waage-Anzeige dieselbe Kurve, ist es eine, und ein Uebungsplatz
-     von acht wird frei. Genau dafuer stehen sie beide erst einmal drin. */
+  /* Dieselbe Bewegung, dieselbe Leiter, ZWEI Unterschiede. Erstens das Handtuch:
+     stehen die Zehen aufgestellt, wickelt sich die Plantarfaszie ueber die
+     Mittelfusskoepfe und traegt mit (Windenmechanismus); liegen sie flach, ist
+     sie schlaff und die Last geht in die Achillessehne. Der Aufbau stammt aus
+     Rathleff 2015. Zweitens die Gelenkstellung: das Wadenheben ohne Handtuch
+     wird in der MITTE gehalten (Fusssohle waagerecht), das mit Handtuch OBEN
+     (Sprunggelenk fast am Anschlag, Zehen fast maximal aufgestellt). Isometrie
+     wirkt weitgehend um den geuebten Winkel herum — zwei Winkel decken mehr ab
+     als einer. Entscheidung von Luke, 18.09.2026.
+
+     Preis dieser Entscheidung, damit er spaeter nicht vergessen wird: Die beiden
+     Uebungen unterscheiden sich nun in ZWEI Dingen gleichzeitig. Kommen
+     verschiedene Kurven heraus, laesst sich nicht mehr sagen, ob das Handtuch
+     oder der Winkel sie getrennt hat. Die frueher hier notierte Frage — ob es
+     ueberhaupt zwei Uebungen sind — ist damit keine saubere Messung mehr,
+     sondern eine bewusste Setzung. Beide bleiben drin. */
   handtuch: {
     name:"Isometrisches Wadenheben mit Handtuchrolle", region:"Fußsohle", group:"arch",
-    sides:["links","rechts"], extraAb:4, extraK:1,
+    sides:["links","rechts"], extraAb:4, extraK:1, nichtMit:["wade"],
     extraHint:"Rucksack ganz normal auf dem Rücken, einbeinig. Dein Körpergewicht plus das, "
              +"was du trägst, steht auf einem Fußgewölbe.",
-    hint:"Wie das isometrische Wadenheben, mit einem Unterschied: Unter den Zehen liegt ein "
-        +"fest zusammengerolltes Handtuch, sodass die Zehen nach oben gedrückt bleiben. Nur "
-        +"die Ballen tragen, die Zehen liegen auf der Rolle; bei den drei Waage-Stufen liegt "
-        +"die Waage unter den Ballen. Diese Zehenstellung ist "
+    hint:"Wie das isometrische Wadenheben, mit zwei Unterschieden. Erstens liegt unter den "
+        +"Zehen ein fest zusammengerolltes Handtuch, sodass die Zehen nach oben gedrückt "
+        +"bleiben. Nur die Ballen tragen, die Zehen liegen auf der Rolle; bei den drei "
+        +"Waage-Stufen liegt die Waage unter den Ballen. Diese Zehenstellung ist "
         +"der ganze Zweck der Übung — rutschen die Zehen von der Rolle, trainierst du wieder "
-        +"die Wade statt die Fußsohle. Auch hier: einmal hoch und oben bleiben.",
+        +"die Wade statt die Fußsohle. Zweitens wird hier OBEN gehalten: Du drückst die Ferse "
+        +"so weit hoch, wie das Sprunggelenk hergibt, und die Zehen stehen dabei fast maximal "
+        +"aufgestellt. Das Wadenheben ohne Handtuch wird waagerecht gehalten — zusammen decken "
+        +"die beiden zwei verschiedene Gelenkstellungen ab. Auch hier: keine Wiederholungen.",
     seitenHinweis:"Dieser Fuß hat eben noch mitgehalten, während die andere Seite gearbeitet hat.",
     warnung:{
       titel:"Bevor du das Wadenheben mit Handtuchrolle zum ersten Mal machst",
@@ -632,7 +647,7 @@ const DEFAULT_EX = {
     },
     levels:[
       {name:"40 % des Körpergewichts — Waage",   load:0.40, geraet:"waage"},
-      {name:"50 % — beidbeinig, ohne Waage",     load:0.50},
+      {name:"50 % — beidbeinig, ohne Waage",     load:0.50, beid:true},
       {name:"63 % — Waage",                      load:0.63, geraet:"waage"},
       {name:"79 % — Waage",                      load:0.79, geraet:"waage"},
       {name:"100 % — einbeinig, ohne Waage",     load:1.00}
@@ -707,12 +722,12 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-18 d";
+const BUILD = "2026-09-18 e";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
    Update alte Levels kleben. Sessions bleiben dabei immer erhalten. */
-const EX_VERSION = 8;
+const EX_VERSION = 9;
 /* Voreinstellung, bis der Nutzer sein Gewicht einträgt. Nur als Bezugsgroesse
    fuer Zusatzlast noetig — die Lastfaktoren selbst sind gewichtsunabhaengige
    Verhaeltniszahlen. */
@@ -923,8 +938,14 @@ function sidesOf(ex){
   /* Altdaten aus der Zeit vor der Seitentrennung haben keine Seite. Sie werden
      NICHT auf eine Seite geraten — sie bekommen einen eigenen Eintrag, solange
      es sie gibt, und verschwinden von selbst, sobald keine mehr da sind. */
-  const ohne = S.sessions.some(x => x.exercise === ex && !x.side);
-  return ohne ? e.sides.concat([null]) : e.sides.slice();
+  const ohne = S.sessions.some(x => x.exercise === ex && !x.side) || hatBeidStufe(ex);
+  /* Solange die Uebung auf einer beidbeinigen Sprosse steht, gibt es links
+     und rechts noch nicht — sie wuerden als zwei leere Kurven in jeder Liste
+     stehen und nie gefuellt. Eine Seite, die schon Messpunkte hat, bleibt
+     natuerlich drin. */
+  const seiten = e.sides.filter(x => !beidJetzt(ex)
+                                  || S.sessions.some(y => y.exercise === ex && y.side === x));
+  return ohne ? [null].concat(seiten) : seiten.slice();
 }
 /* Alle Kurven der App, in Anzeigereihenfolge. */
 function allKeys(){
@@ -935,7 +956,56 @@ function allKeys(){
 function labelOf(ex, side){
   const e = S.ex[ex], n = e ? e.name : ex;
   if(side) return `${n} · ${side}`;
-  return (e && e.sides) ? `${n} · ohne Seite (Altdaten)` : n;
+  if(e && e.sides) return hatBeidStufe(ex) ? `${n} · beidbeinig` : `${n} · ohne Seite (Altdaten)`;
+  return n;
+}
+
+/* ── Sprossen, die BEIDE Seiten gleichzeitig tragen ───────────────────
+   Beim isometrischen Wadenheben ist die 50-%-Sprosse der beidbeinige
+   Stand. Dort gibt es kein links und kein rechts — es gibt EINEN Halt.
+   Die Uebung verhaelt sich auf dieser Sprosse also wie eine einseitige:
+   ein Block, eine Kurve, ein Messpunkt. Erst weiter oben, wo ein Fuss
+   allein traegt, zerfaellt sie wieder in zwei Seiten.
+   Massgeblich ist die GESPEICHERTE Stufe, nicht die aus der Kurve
+   vorhergesagte: der Blockdeckel muss die Frage beantworten koennen,
+   bevor irgendein Block gebaut ist. Sobald eine Seite hoeher steht,
+   zaehlt die hoehere — die Uebung ist dann wieder zweiseitig. */
+function beidStufe(ex, level){
+  const L = (S.ex[ex] && S.ex[ex].levels) || [];
+  return !!(L[level] && L[level].beid);
+}
+function hatBeidStufe(ex){
+  return ((S.ex[ex] && S.ex[ex].levels) || []).some(L => L.beid);
+}
+function gemerkteStufe(ex){
+  const e = S.ex[ex], L = S.levels || {};
+  const k = [L[ex]].concat((e && e.sides ? e.sides : []).map(x => L[keyOf(ex, x)]))
+                   .filter(v => Number.isFinite(v));
+  if(k.length) return Math.max(...k);
+  const st = verfuegbareStufen(ex);
+  return st.length ? st[0].i : 0;
+}
+function beidJetzt(ex){
+  const e = S.ex[ex];
+  return !!(e && e.sides) && beidStufe(ex, gemerkteStufe(ex));
+}
+/* Die Seiten, die HEUTE geplant werden — nicht die, die die Uebung
+   grundsaetzlich hat. Auf einer beidbeinigen Sprosse ist das [null]. */
+function planSeiten(ex){
+  const e = S.ex[ex];
+  if(!e || !e.sides) return [null];
+  return beidJetzt(ex) ? [null] : e.sides.slice();
+}
+/* Zwei Uebungen, die dieselbe Muskulatur als Hauptlast haben, aber in
+   verschiedenen Gruppen stehen: mit und ohne Handtuchrolle hebt beides
+   dieselbe Wade, nur die Zehenstellung ist anders. Die Erholungsschranke
+   greift JE GRUPPE und sieht das Paar deshalb nicht. Ohne diesen
+   Ausschluss stuenden beide am selben Tag — und die zweite Messung waere
+   von der ersten vorermuedet, also genau der Vergleich kaputt, fuer den
+   es die zweite Uebung ueberhaupt gibt. Befund von Luke, 18.09.2026. */
+function konflikt(a, b){
+  const A = (S.ex[a] && S.ex[a].nichtMit) || [], B = (S.ex[b] && S.ex[b].nichtMit) || [];
+  return A.indexOf(b) >= 0 || B.indexOf(a) >= 0;
 }
 const curLevel  = () => (S.levels && S.levels[curKey()]) || 0;
 const setLevel  = v  => { S.levels[curKey()] = v; };
@@ -1154,7 +1224,7 @@ function heuteDran(){
    wartet seit zehn. Nie gemessen zaehlt als unendlich — neue Uebungen und
    vergessene Seiten kommen zuerst. */
 function uebungWartet(ex){
-  const sides = (S.ex[ex] && S.ex[ex].sides) || [null];
+  const sides = planSeiten(ex);
   let laengste = 0;
   for(const sd of sides){
     const pts = points(ex, sd);
@@ -1169,13 +1239,21 @@ function uebungWartet(ex){
    Seite nach vorn. Wer nicht mehr passt, rueckt vor — und steht beim
    naechsten Mal ganz oben, weil er dann laenger gewartet hat. */
 function auswahlHeute(dran){
-  if(S.heuteTag === today() && Array.isArray(S.heute))
-    return dran.filter(u => S.heute.indexOf(u.ex) >= 0);
+  if(S.heuteTag === today() && Array.isArray(S.heute)){
+    /* Auch von Hand nicht: der Ausschluss gilt fuer die selbst
+       zusammengestellte Einheit genauso, sonst waere er nur eine Bitte. */
+    const gewaehlt = dran.filter(u => S.heute.indexOf(u.ex) >= 0);
+    return gewaehlt.filter((u, i) => !gewaehlt.some((v, j) => j < i && konflikt(v.ex, u.ex)));
+  }
   const deckel = (S.maxBloecke > 0) ? S.maxBloecke : MAX_BLOECKE;
-  const kosten = u => (S.ex[u.ex].sides ? 2 : 1);
+  const kosten = u => planSeiten(u.ex).length;
   const nachWartezeit = dran.slice().sort((a,b) => uebungWartet(b.ex) - uebungWartet(a.ex));
   const drin = []; let n = 0;
   for(const u of nachWartezeit){
+    /* Das Paar zuerst: wer heute schon einen Partner im Plan hat, faellt
+       raus, egal wie lange er wartet. Wer laenger gewartet hat, steht in
+       dieser Reihenfolge vorn und gewinnt den Platz. */
+    if(drin.some(v => konflikt(v.ex, u.ex))) continue;
     const k = kosten(u);
     /* Passt nichts mehr, wird uebersprungen — aber niemals ein leeres
        Workout erzeugt, auch wenn eine einzelne Uebung den Deckel sprengt. */
@@ -1417,6 +1495,14 @@ function planWorkout(){
   const A = [], B = [];
   for(const u of zwei){
     const zf = zoneFuer(u.group);
+    /* Traegt die geplante Sprosse beide Seiten, ist es EIN Halt: ein Block,
+       keine Seite. Der Probeblock hat das letzte Wort, weil erst er die
+       Sprosse aus der Kurve kennt — landet er doch einbeinig, gilt wieder
+       der Normalfall mit zwei Bloecken. */
+    if(beidJetzt(u.ex)){
+      const b = mkBlock(u.ex, null, zf.zone, zf.target, true, zf.onboarding);
+      if(beidStufe(u.ex, b.level)){ A.push(b); continue; }
+    }
     const erste  = startSeite(u.ex);
     const zweite = S.ex[u.ex].sides.find(x => x !== erste);
     A.push(mkBlock(u.ex, erste,  zf.zone, zf.target, true,  zf.onboarding));
@@ -1435,8 +1521,16 @@ function planWorkout(){
     target: blocks.length ? blocks[0].target : 120,
     why: gruende.join(" "),
     onboarding: dran.some(u => zoneFuer(u.group).onboarding),
-    /* Kein stiller Deckel: Was heute nicht mehr passt, wird benannt. */
-    spaeter: spaeter.map(u => u.ex),
+    /* Hat der Nutzer die Einheit selbst zusammengestellt, ist nicht der
+       Deckel der Grund, warum der Rest fehlt — dann hat er ihn schlicht
+       nicht angehakt. Der Satz darunter muss das unterscheiden. */
+    selbst: (S.heuteTag === today() && Array.isArray(S.heute)),
+    /* Kein stiller Deckel: Was heute nicht mehr passt, wird benannt — und
+       zwar mit dem richtigen Grund. Am Deckel gescheitert ist etwas anderes
+       als vom Partner verdraengt. */
+    spaeter: spaeter.filter(u => !dran.some(v => konflikt(v.ex, u.ex))).map(u => u.ex),
+    paar:    spaeter.filter(u =>  dran.some(v => konflikt(v.ex, u.ex)))
+                    .map(u => ({ex: u.ex, wegen: dran.find(v => konflikt(v.ex, u.ex)).ex})),
     blocks
   };
 }
@@ -2791,13 +2885,20 @@ function renderHome(){
           font-family:var(--mono)"> · rund ${planDauer(p.blocks)} min</span>` : ""}</h2>
       <p class="muted" style="margin:0">${p.blocks.map(blockLabel).join("  →  ")}</p>
       <p class="tiny" style="margin-top:11px">${p.why}</p>
+      ${(p.paar && p.paar.length) ? `<p class="tiny"><b>Heute nicht dabei:</b> ${
+        p.paar.map(o => S.ex[o.ex].name).join(", ")}. Dieselbe Muskulatur trägt heute schon in
+        einem anderen Block — »${[...new Set(p.paar.map(o => S.ex[o.wegen].name))].join("«, »")}«.
+        Die beiden ergänzen sich, gehören aber auf verschiedene Tage — sonst misst die zweite
+        nur die Ermüdung der ersten.</p>` : ""}
       ${(p.spaeter && p.spaeter.length) ? `<p class="tiny"><b>Heute zurückgestellt:</b> ${
         p.spaeter.map(ex => S.ex[ex].name).join(", ")}. ${
         p.spaeter.length===1 ? "Diese Übung wäre" : "Diese Übungen wären"} frei, ${
-        p.spaeter.length===1 ? "passt" : "passen"} aber nicht mehr unter ${
-        anzahl(S.maxBloecke || MAX_BLOECKE, "Block", "Blöcke")}. Beim nächsten Mal ${
-        p.spaeter.length===1 ? "steht sie" : "stehen sie"} vorn — oder du stellst die Einheit
-        unten selbst zusammen.</p>` : ""}
+        p.selbst
+          ? `${p.spaeter.length===1 ? "steht" : "stehen"} aber unten nicht angehakt.`
+          : `${p.spaeter.length===1 ? "passt" : "passen"} aber nicht mehr unter ${
+             anzahl(S.maxBloecke || MAX_BLOECKE, "Block", "Blöcke")}. Beim nächsten Mal ${
+             p.spaeter.length===1 ? "steht sie" : "stehen sie"} vorn — oder du stellst die
+             Einheit unten selbst zusammen.`}</p>` : ""}
       ${p.blocks.length ? `<button class="primary" style="width:100%;margin-top:12px;padding:16px"
         id="goSess">Workout starten</button>`
       : `<p class="tiny"><b>Kein Block übrig.</b> Hak unten mindestens eine Übung an, deren
@@ -3266,10 +3367,13 @@ function renderSetup(){
   /* ── Nachtragen ─────────────────────────────────────────── */
   const nFill = ()=>{
     const ex = el("nEx").value, e = S.ex[ex];
+    /* Eine beidbeinige Sprosse hat keine Seite. Sie muss trotzdem
+       nachtragbar sein, sonst faellt genau der Einstieg durchs Raster. */
     el("nSide").innerHTML = e.sides
-      ? e.sides.map(x=>`<option value="${x}">${x}</option>`).join("")
+      ? (hatBeidStufe(ex) ? `<option value="">beidbeinig</option>` : "")
+        + e.sides.map(x=>`<option value="${x}">${x}</option>`).join("")
       : `<option value="">—</option>`;
-    el("nSide").disabled = !e.sides;
+    el("nSide").disabled = !e.sides && !hatBeidStufe(ex);
     el("nLvl").innerHTML = e.levels.map((L,i)=>
       `<option value="${i}">${i+1}. ${L.name}</option>`).join("");
     el("nKg").disabled = false;
