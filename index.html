@@ -1675,6 +1675,28 @@ const MAX_ZUSATZ_ANTEIL = 0.5;
    (extraK = 2). Dasselbe Kilo am Brustkorb waere fast wirkungslos; deshalb
    steht der Ort in der Bedienung und nicht nur im Kleingedruckten. */
 const extraOf = key => (S.extra && S.extra[key]) || 0;
+/* Hat der Nutzer das Gewicht HEUTE selbst eingestellt?
+   Bei einer Leiter aus einer Sprosse rechnet der Planer das Gewicht aus der
+   Zielzone (siehe mkBlock). Das ist richtig, solange niemand widerspricht —
+   und falsch, sobald doch: Wer mit +10 kg testen will, stellt 10 kg ein und
+   waehlt dann die Zone; ohne diesen Merker haette der naechste Planlauf die
+   10 kg wieder ueberschrieben, und die freie Zonenwahl haette ihm das Gewicht
+   genommen, das sie eigentlich freigeben sollte.
+   Tagesgebunden wie die Zonenwahl: Morgen rechnet der Planer wieder, denn dann
+   steht die Messung von heute in der Kurve. Regel 2a schreibt nach der Messung
+   ohnehin weiter in S.extra — der Merker sperrt nur die Zonenrechnung, nicht
+   die Korrektur aus einem gemessenen Satz. */
+function extraSelbstGesetzt(key){
+  const w = S.extraWahl;
+  return !!(w && w.tag === today() && w.je && w.je[key]);
+}
+function extraSelbstMerken(key){
+  const w = (S.extraWahl && S.extraWahl.tag === today())
+    ? S.extraWahl : {tag: today(), je: {}};
+  if(!w.je) w.je = {};
+  w.je[key] = true;
+  S.extraWahl = w;
+}
 function extraFaktor(ex, kg){
   kg = extraKlemm(ex, kg);
   if(!kg) return 1;
@@ -1844,7 +1866,7 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
      Bei laengeren Leitern bleibt es bei der Sprossenwahl: dort sind die
      Abstaende fest, das Gewicht sitzt nur obendrauf, und die Nachsteuerung
      macht Regel 2a nach der Messung. */
-  if(stufen.length < 2 && level >= extraAbOf(ex)){
+  if(stufen.length < 2 && level >= extraAbOf(ex) && !extraSelbstGesetzt(key)){
     let zielLast = null;
     if(f){
       const roh = lastZuZeit(f, target);
@@ -2484,7 +2506,9 @@ function gewichtSetzen(bl, v){
   const b = extraBereich(bl.exercise);
   const kg = Math.max(b.lo, Math.min(b.hi,
     Math.round(Math.round((+v || 0) / b.schritt) * b.schritt * 10) / 10));
-  S.extra[keyOf(bl.exercise, bl.side)] = kg;
+  const key = keyOf(bl.exercise, bl.side);
+  S.extra[key] = kg;
+  extraSelbstMerken(key);
   bl.extra = kg;
   zielNeu(bl);
 }
@@ -2505,7 +2529,11 @@ function seitenAbgleich(bloecke, bl){
   q.level = bl.level;
   q.userPicked = (q.level !== q.levelVorschlag);
   const kg = (q.level >= extraAbOf(q.exercise)) ? (bl.extra || 0) : 0;
-  q.extra = kg; S.extra[keyOf(q.exercise, q.side)] = kg;
+  const qk = keyOf(q.exercise, q.side);
+  q.extra = kg; S.extra[qk] = kg;
+  /* Was fuer die eine Seite von Hand gesetzt ist, ist es fuer die andere auch —
+     sonst rechnete der Planer der zweiten Seite das Gewicht wieder weg. */
+  if(extraSelbstGesetzt(keyOf(bl.exercise, bl.side))) extraSelbstMerken(qk);
   q.saetze = bl.saetze;
   zielNeu(q);
   return q;
@@ -2674,7 +2702,9 @@ function blockIntro(i){
           <span class="tiny" style="flex:0 0 22px">kg</span>
         </div>
         <p class="tiny" style="margin-top:5px">${ex.extraSeiten && bl.extra
-          ? `<b>${stufenName(bl.exercise, bl.level, bl.extra)}</b>. ` : ""}${ex.extraHint || ""}${bl.extra
+          ? `<b>${stufenName(bl.exercise, bl.level, bl.extra)}</b>. ` : ""}${ex.extraHint || ""}${
+          (stufen.length < 2 && extraSelbstGesetzt(keyOf(bl.exercise, bl.side)))
+          ? ` Von dir eingestellt — die Zonenwahl verschiebt es nicht mehr.` : ""}${bl.extra
           ? ` Wirksame Last <b>${komma(lastVon(bl.exercise, bl.level, bl.extra), 2)}</b>
               statt ${komma(ex.levels[bl.level].load, 2)} — gerechnet auf ${S.bw} kg
               Körpergewicht (<b>Mehr → Messung</b>).` : ""}</p>` : ""}
