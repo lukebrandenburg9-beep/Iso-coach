@@ -575,29 +575,54 @@ const DEFAULT_EX = {
      oder vorn oben steht, aendert seine seitliche Lage kaum, und wer das Knie
      ganz hochzieht, zieht es zur Mitte und verkuerzt den Hebel sogar. Dasselbe
      Muster wie die Fersenhoehe bei der Wade: die Kniehoehe wird
-     Ausfuehrungsvorschrift, nicht Lastachse. Der Zug an der freien Huefte ist die
-     Lastachse — seit 19.09.2026 ein Band unter dem Standfuss statt einer Kettlebell
-     in der Hand. Grund: die Griffkraft soll nicht mitentscheiden, wann Schluss ist.
-     Warum das Band SENKRECHT ziehen muss und nicht waagerecht, steht in
-     scratchpad/laeufer-band.mjs: Ein waagerechter Zug auf Hueftenhoehe erzeugt um
-     die Standbeinhuefte fast kein Moment. Was er erzeugt, haengt daran, ob der
-     Nutzer den Rumpf ausweichen laesst (Hebel 0,92 m) oder den Standfuss zum Anker
-     rueckt (Hebel 0,00 m) — beides ist im Gleichgewicht, und die App sieht keines
-     von beiden. Ein senkrechter Zug verhaelt sich dagegen wie ein haengendes
-     Gewicht: fester Hebel, unabhaengig davon, wohin der Koerper als Ganzes
-     ausweicht. */
+     Ausfuehrungsvorschrift, nicht Lastachse.
+
+     Lastachse ist das Gewicht, das seitlich an der Huefte HAENGT — seit
+     19.09.2026 am Guertel statt in der Hand. Ein haengendes Gewicht ist
+     translationsinvariant: sein Moment um die Standbeinhuefte ist Masse mal
+     waagerechter Abstand, und der bleibt, wenn sich der ganze Koerper seitlich
+     verlagert. Deshalb war die Kettlebell in der Hand berechenbar — und deshalb
+     ist der Guertel es auch, nur mit festerem Aufhaengepunkt: die Hand kann den
+     Arm abspreizen oder an den Schenkel druecken, der Guertel nicht. Dazu faellt
+     die Griffkraft als Abbruchgrund weg; eine 32er in der Hand ist fuer die Hand
+     anstrengend, und gemeint ist die Huefte.
+
+     Gemessen (Luke, 19.09.2026): 0,22 m von der Koerpermitte zur Kugelmitte,
+     Gewicht am Guertel. Daraus Hebel 0,31 m nach aussen (freie Seite, belastet)
+     und 0,13 m nach innen (Standbeinseite, entlastet); geteilt durch
+     M0 = 0,0900 ergibt das extraK 3,44 und extraKNeg 1,44. Rechnung in
+     scratchpad/laeufer-guertel.mjs. Der Guertel ist damit der LAENGERE Hebel —
+     die Leiter stand vorher auf 0,29 m fuer die Hand, und das war eine Annahme,
+     keine Messung.
+
+     Die Leiter ist deshalb EINE Sprosse: die Abstufung macht das Gewicht, frei
+     von -32 bis +32 kg in 2-kg-Schritten. Das deckt Last 0,038 bis 0,214,
+     Spanne 5,6 — mehr als die vier festen Sprossen je hatten (3,6).
+
+     NICHT gebaut, obwohl am Vormittag des 19.09. kurz drin: ein Band, das
+     WAAGERECHT zieht. Dann waere der Hebel der senkrechte Abstand zum
+     Hueftgelenk, also fast null, und der Rest haenge daran, ob der Nutzer den
+     Rumpf ausweichen laesst oder den Standfuss rueckt — beides im
+     Gleichgewicht, keines davon fuer die App sichtbar. Das Band traegt hier,
+     es zieht nicht. */
   laeufer: {
     name:"Aufrechter Läufer", region:"Hüfte", group:"abduct",
-    sides:["links","rechts"], extraAb:2, extraK:2.15,
-    extraHint:"Am Gürtel der freien Hüfte, wo auch das Band einhakt. "
-             +"Dort wirkt jedes Kilo gut zweifach.",
+    sides:["links","rechts"],
+    extraAb:0, extraK:3.44, extraKNeg:1.44,
+    extraMin:-32, extraMax:32, extraSchritt:2, extraReal:32,
+    extraGeraet:["band","gewicht"],
+    extraLabel:"Gewicht am Gürtel",
+    extraSeiten:{plus:"am Gürtel der freien Seite",
+                 minus:"am Gürtel der Standbeinseite"},
+    extraHint:"Das Gewicht hängt am Gürtel seitlich an der Hüfte, rund 22 cm neben der "
+             +"Körpermitte. Minus heißt: auf der Standbeinseite — das entlastet.",
     hint:"»Links« heißt: das LINKE Bein steht, das rechte ist angehoben. Aufrecht stehen, "
         +"das freie Knie so weit hoch, dass der Oberschenkel waagerecht ist — und genau "
         +"dort halten. Die Hüften bleiben waagerecht: die freie Seite darf nicht absacken. "
         +"Der Oberkörper bleibt über der Mitte und wandert NICHT über das Standbein, sonst "
         +"fällt die Last in sich zusammen. Blick geradeaus, ein Fixpunkt an der Wand hilft. "
-        +"Das Band läuft unter dem Standfuß durch und hakt seitlich am Gürtel der FREIEN "
-        +"Hüfte ein — nicht in die Hand, nicht vor den Bauch. Beide Hände bleiben frei.",
+        +"Das Gewicht hängt am Gürtel SEITLICH an der Hüfte — nicht in der Hand, nicht vor "
+        +"dem Bauch. Beide Hände bleiben frei.",
     seitenHinweis:"Diese Hüfte hat eben noch das Becken waagerecht gehalten, während die "
                  +"andere Seite gearbeitet hat — sie war die ganze Zeit mit im Einsatz.",
     warnung:{
@@ -614,16 +639,12 @@ const DEFAULT_EX = {
            +"das Gelenk selbst, und Ausstrahlung aus dem Rücken auf einen Nerv. Beides lässt "
            +"sich nicht über eine App unterscheiden."
     },
-    /* Hebel der Bandsprossen: Guertelpunkt 0,21 m seitlich der Standbeinhuefte,
-       0,92 m ueber dem Boden, Band unter dem Standfuss — daraus 12,9 Grad
-       Schraeglage und ein wirksamer Hebel von 0,194 m (scratchpad/laeufer-band.mjs).
-       Der glatte Guertelhebel 0,21 waere 8,5 % zu hoch. */
+    /* Eine Sprosse, kein Geraet: aufrecht auf einem Bein stehen kann jeder, der
+       die Uebung ueberhaupt macht. Die Abstufung liegt im Gewicht (extraMin bis
+       extraMax) und haengt an extraGeraet — ohne Band und Gewicht bleibt die
+       Uebung also nutzbar, nur eben ohne Zusatzlast. */
     levels:[
-      {name:"Gegengewicht 24 kg in der Hand der Standbeinseite", load:0.057, geraet:"gewicht"},
-      {name:"Frei, ohne Zusatzlast",              load:0.090, geraet:["band","gewicht"]},
-      {name:"12 kg Bandzug am Gürtel der freien Hüfte", load:0.119, geraet:"band"},
-      {name:"26 kg Bandzug am Gürtel der freien Hüfte", load:0.153, geraet:"band"},
-      {name:"48 kg Bandzug am Gürtel der freien Hüfte", load:0.206, geraet:"band"}
+      {name:"Ohne Zusatzlast", load:0.090}
     ]
   },
 
@@ -787,17 +808,16 @@ const GERAETE = [
    fuer:"Fersenbrücke, obere Stufe"},
   {id:"ringe", name:"Turnringe", was:"Frei hängende Ringe, in die der Fuß passt.",
    fuer:"Fersenbrücke, oberste Stufe"},
-  {id:"band", name:"Widerstandsband und Zugwaage", was:"Ein kräftiges Band — die oberste Stufe "
-   +"verlangt 48 kg Zug. Dazu eine Zugwaage (Kofferwaage, rund 10 Euro, bis 50 kg): Die Kraft "
-   +"eines Bandes hängt daran, wie weit es gedehnt ist, also muss sie einmal in der "
-   +"Trainingsstellung abgelesen und dann immer gleich eingestellt werden. Ohne die Waage ist "
-   +"der Zug keine Zahl, sondern ein Gefühl.",
-   fuer:"Aufrechter Läufer — Band unter dem Standfuß, seitlich am Gürtel der freien Hüfte"},
-  {id:"gewicht", name:"Kettlebell, Hantel oder Scheiben", was:"Etwas Schweres, das du in einer "
-   +"Hand halten kannst. Nur noch die unterste Stufe braucht es: 24 kg als Gegengewicht in der "
-   +"Hand der Standbeinseite. Am Gürtel geht diese Stufe nicht — dort säße das Gewicht zu nah "
-   +"an der Mitte und bräuchte 88 kg für dieselbe Entlastung.",
-   fuer:"Aufrechter Läufer, unterste Stufe"},
+  {id:"band", name:"Band oder Gürtel zum Einhängen", was:"Etwas, das ein Gewicht seitlich an "
+   +"der Hüfte hält: ein kräftiges Widerstandsband als Schlaufe, ein Dip-Gürtel, ein "
+   +"Klettergurt. Es trägt nur — gezogen wird daran nicht. Wichtig ist allein, dass der "
+   +"Einhängepunkt bei jedem Durchgang an derselben Stelle sitzt.",
+   fuer:"Aufrechter Läufer — Gewicht am Gürtel, auf beiden Seiten"},
+  {id:"gewicht", name:"Kettlebell, Hantel oder Scheiben", was:"Das Gewicht, das am Gürtel "
+   +"hängt. Je feiner gestuft, desto besser: Aus 6, 8, 10, 16, 24 und 32 kg lassen sich "
+   +"0, 6, 8, 10, 14, 16, 18, 22, 24, 26, 30 und 32 kg bauen — die App lässt jeden "
+   +"2-kg-Wert zu, auflegen musst du ihn selbst.",
+   fuer:"Aufrechter Läufer — Zusatzgewicht in beide Richtungen"},
   {id:"waage", name:"Personenwaage mit Zeiger (analog)", was:"Eine Waage, die du unter den "
    +"Vorfuß legen kannst. Sie ist hier kein Zubehör, sondern das Messgerät: die Zahl auf der "
    +"Anzeige IST die Stufe. Sie muss analog sein — eine Digitalwaage schaltet bei stehender "
@@ -823,12 +843,12 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-19 a";
+const BUILD = "2026-09-19 b";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
    Update alte Levels kleben. Sessions bleiben dabei immer erhalten. */
-const EX_VERSION = 11;
+const EX_VERSION = 12;
 /* Voreinstellung, bis der Nutzer sein Gewicht einträgt. Nur als Bezugsgroesse
    fuer Zusatzlast noetig — die Lastfaktoren selbst sind gewichtsunabhaengige
    Verhaeltniszahlen. */
@@ -855,6 +875,43 @@ function laeuferUmziehen(lv){
     out[k] = (trifft && LAEUFER_UMZUG[lv[k]] != null) ? LAEUFER_UMZUG[lv[k]] : lv[k];
   }
   return out;
+}
+/* 19.09.2026: Der aufrechte Laeufer hat keine Leiter mehr, sondern EINE Sprosse
+   und ein frei einstellbares Gewicht von -32 bis +32 kg. Umgezogen wird die
+   LAST, nicht das Kilo — sonst stuende nach dem Update eine andere Belastung da
+   als vorher, und die Kurve haette einen Knick, den niemand trainiert hat. Die
+   Abweichung durch die 2-kg-Rasterung bleibt unter 2 %
+   (scratchpad/laeufer-guertel.mjs).
+   Ein Leitersturz waere hier das falsche Werkzeug: er wirft die Stufen ALLER
+   Uebungen weg, und die anderen sieben haben sich nicht geaendert. */
+const LAEUFER_FREI_AT   = 12;
+const LAEUFER_ALT_LOADS = [0.057, 0.090, 0.119, 0.153, 0.206];   /* Fassung 11 */
+const LAEUFER_ALT_K     = 2.15;
+function laeuferFrei(levels, extra, bw, sessions){
+  const lv = Object.assign({}, levels || {});
+  const ex = Object.assign({}, extra  || {});
+  const e  = DEFAULT_EX.laeufer, M0 = e.levels[0].load;
+  /* Die Schluessel koennen in levels fehlen und trotzdem gemeint sein: wer nie
+     umgestellt hat, stand auf Sprosse 0 — und das war die Gegengewicht-Sprosse,
+     also die LEICHTESTE. Ohne diesen Zweig landete er nach dem Update auf der
+     nackten Sprosse und damit auf 58 % mehr Last. */
+  const keys = new Set();
+  for(const k of Object.keys(lv)) keys.add(k);
+  for(const k of Object.keys(ex)) keys.add(k);
+  for(const ses of (sessions || [])){
+    if(ses && ses.exercise === "laeufer") keys.add(keyOf("laeufer", ses.side));
+  }
+  for(const k of keys){
+    if(k !== "laeufer" && k.indexOf("laeufer|") !== 0) continue;
+    const i    = Math.max(0, Math.min(LAEUFER_ALT_LOADS.length - 1, lv[k] | 0));
+    const ziel = LAEUFER_ALT_LOADS[i] * (1 + LAEUFER_ALT_K * ((+ex[k] || 0) / bw));
+    const r    = ziel / M0 - 1;
+    const kK   = (r < 0 && e.extraKNeg != null) ? e.extraKNeg : e.extraK;
+    lv[k] = 0;
+    ex[k] = Math.max(e.extraMin, Math.min(e.extraMax,
+              Math.round((bw * r / kK) / e.extraSchritt) * e.extraSchritt));
+  }
+  return {levels: lv, extra: ex};
 }
 let S = load();
 /* Muss nach load() laufen: sidesOf() braucht S.sessions. */
@@ -901,8 +958,18 @@ function normalize(d){
   const stale = (d.exVersion || 1) < EX_VERSION;
   const leitersturz = (d.exVersion || 1) < LEVELS_RESET_AT;
   const bandUmzug = !leitersturz && (d.exVersion || 1) < LAEUFER_BAND_AT;
+  const freiUmzug = !leitersturz && (d.exVersion || 1) < LAEUFER_FREI_AT;
   const ex = stale ? structuredClone(DEFAULT_EX)
                    : Object.assign(structuredClone(DEFAULT_EX), d.ex || {});
+  /* Erst die Band-Verschiebung von Fassung 11, dann der Umzug auf das freie
+     Gewicht — wer von Fassung 10 kommt, durchlaeuft beide der Reihe nach. */
+  const bwAlt  = (d.bw > 0 ? d.bw : BW_DEFAULT);
+  const lvRoh  = leitersturz ? {}
+               : bandUmzug ? laeuferUmziehen(d.levels) : (d.levels || {});
+  const exRoh  = leitersturz ? {} : (d.extra || {});
+  const umzug  = (freiUmzug && !leitersturz)
+               ? laeuferFrei(lvRoh, exRoh, bwAlt, d.sessions)
+               : {levels: lvRoh, extra: exRoh};
   return Object.assign(fresh(), d, {ex, exVersion:EX_VERSION,
                                     rest: stale ? {...DEFAULT_REST}
                                                 : Object.assign({...DEFAULT_REST}, d.rest||{}),
@@ -917,11 +984,9 @@ function normalize(d){
                                     gefragt: d.gefragt || {},
                                     /* Ein angefangener Lauf ueberlebt das Neuladen. */
                                     lauf: (d.lauf && d.lauf.plan) ? d.lauf : null,
-                                    extra: leitersturz ? {} : (d.extra || {}),
+                                    extra: umzug.extra,
                                     bw: (d.bw > 0 ? d.bw : BW_DEFAULT),
-                                    levels: leitersturz ? {}
-                                          : bandUmzug ? laeuferUmziehen(d.levels)
-                                          : (d.levels || {}),
+                                    levels: umzug.levels,
                                     streak: leitersturz ? {} : (d.streak || {}),
                                     reaction: (d.reaction == null ? REACTION_DEFAULT : d.reaction),
                                     plan:null, planDay:null});
@@ -1223,8 +1288,22 @@ function verfuegbareStufen(ex){
    Zusatzgewicht taucht hier nicht auf: es skaliert ALLE Sprossen gleich und
    laesst das Verhaeltnis unberuehrt. */
 function leiterSpanne(ex){
-  const L = verfuegbareStufen(ex).map(s => s.load);
-  return L.length < 2 ? 1 : Math.max(...L) / Math.min(...L);
+  const st = verfuegbareStufen(ex);
+  if(st.length >= 2){
+    const L = st.map(s => s.load);
+    return Math.max(...L) / Math.min(...L);
+  }
+  /* EINE Sprosse heisst nicht "keine Spanne": beim aufrechten Laeufer traegt
+     das frei einstellbare Gewicht die ganze Leiter. Bei mehreren Sprossen
+     bleibt die Rechnung absichtlich beim blossen Leiterabstand — das ist der
+     vorsichtigere Wert und war bisher so. */
+  if(st.length === 1){
+    const b = extraBereich(ex), r = extraRealOf(ex);
+    const lo = lastVon(ex, st[0].i, Math.max(b.lo, -r));
+    const hi = lastVon(ex, st[0].i, Math.min(b.hi,  r));
+    if(lo > 0 && hi > lo) return hi / lo;
+  }
+  return 1;
 }
 /* Die 1,25 ist keine Konvention: Bei 8 % Messfehler auf eine Haltezeit reisst
    ein Zwei-Punkt-Fit darunter das CP um mehr als zehn Prozent mit. Die 1,9 ist
@@ -1252,8 +1331,14 @@ function erreichbareZonen(ex, side){
      unerreichbar, die der Rucksack muehelos holt. Gerechnet wird NICHT mit
      dem Maximum des Eingabefelds (60 kg), sondern mit dem, was sich zu Hause
      tatsaechlich umschnallen laesst. */
-  const obenDrauf = stufen.some(st => st.i >= extraAbOf(ex)) ? ZUSATZ_REAL : 0;
-  const leicht = Math.min(...stufen.map(st => lastVon(ex, st.i, 0)));
+  const mitGewicht = stufen.some(st => st.i >= extraAbOf(ex));
+  const obenDrauf  = mitGewicht ? extraRealOf(ex) : 0;
+  /* Auch nach unten: ein Gegengewicht auf der Standbeinseite holt Zonen, die
+     die nackte Sprosse nie erreicht. Uebungen ohne negative Spanne bleiben
+     bei 0 und rechnen wie bisher. */
+  const untenDrunter = mitGewicht
+    ? Math.max(extraBereich(ex).lo, -extraRealOf(ex)) : 0;
+  const leicht = Math.min(...stufen.map(st => lastVon(ex, st.i, untenDrunter)));
   const schwer = Math.max(...stufen.map(st => lastVon(ex, st.i, obenDrauf)));
   const f = curFit(ex, side);
   let zeit;
@@ -1551,9 +1636,16 @@ const MAX_ZUSATZ_ANTEIL = 0.5;
    steht der Ort in der Bedienung und nicht nur im Kleingedruckten. */
 const extraOf = key => (S.extra && S.extra[key]) || 0;
 function extraFaktor(ex, kg){
+  kg = extraKlemm(ex, kg);
   if(!kg) return 1;
   const e = S.ex[ex], bw = (S.bw > 0 ? S.bw : BW_DEFAULT);
-  return 1 + ((e && e.extraK != null) ? e.extraK : 1) * kg / bw;
+  /* Nach innen ist der Hebel kuerzer als nach aussen — beim aufrechten Laeufer
+     0,13 gegen 0,31 m. Ein Gegengewicht entlastet also weniger, als dieselbe
+     Zahl auf der anderen Seite belastet. Uebungen ohne extraKNeg kennen nur
+     die positive Richtung, dort aendert sich nichts. */
+  const k = (kg < 0 && e && e.extraKNeg != null) ? e.extraKNeg
+          : ((e && e.extraK != null) ? e.extraK : 1);
+  return Math.max(0.05, 1 + k * kg / bw);
 }
 function lastVon(ex, level, kg){
   const L = S.ex[ex] && S.ex[ex].levels[level];
@@ -1563,6 +1655,36 @@ function lastVon(ex, level, kg){
 function extraAbOf(ex){
   const e = S.ex[ex];
   return (e && e.extraAb != null) ? e.extraAb : e.levels.length - 1;
+}
+/* Spanne, Schrittweite und Richtung des Zusatzgewichts — je Uebung. Der
+   aufrechte Laeufer ist die erste Uebung, bei der das Gewicht die ganze Leiter
+   traegt: von -32 (Guertel auf der Standbeinseite, entlastet) bis +32 kg.
+   Fehlt das Geraet, das die Last ueberhaupt an den Koerper bringt, ist die
+   Spanne null — die Uebung bleibt nutzbar, nur ohne Gewicht. Frueher wurde
+   stattdessen die ganze Sprosse ausgeblendet; bei EINER Sprosse waere das die
+   ganze Uebung gewesen. */
+function extraBereich(ex){
+  const e = S.ex[ex] || {};
+  const schritt = (e.extraSchritt != null) ? e.extraSchritt : ZUSATZ_SCHRITT;
+  const g = e.extraGeraet;
+  const da = !g || (Array.isArray(g) ? g : [g])
+                     .every(x => !!(S.geraete && S.geraete[x]));
+  if(!da) return {lo:0, hi:0, schritt};
+  return {lo: (e.extraMin != null ? e.extraMin : 0),
+          hi: (e.extraMax != null ? e.extraMax : 60), schritt};
+}
+/* Was sich zu Hause wirklich umhaengen laesst — nicht das Feldmaximum. */
+function extraRealOf(ex){
+  const e = S.ex[ex] || {};
+  return Math.min(extraBereich(ex).hi,
+                  (e.extraReal != null ? e.extraReal : ZUSATZ_REAL));
+}
+/* Ein gespeicherter Wert kann ausserhalb der heutigen Spanne liegen — nach
+   einem Leiterwechsel oder wenn ein Geraet abgewaehlt wurde. Gerechnet und
+   angezeigt wird dann der geklemmte Wert, damit beides dasselbe sagt. */
+function extraKlemm(ex, kg){
+  const b = extraBereich(ex);
+  return Math.max(b.lo, Math.min(b.hi, +kg || 0));
 }
 
 function ankerpunkt(ex){
@@ -1785,7 +1907,8 @@ function applyRules(session){
      Durchgang unveraendert. */
   let unmessbar = false;
   const lvNow = () => (S.levels[key] || 0);
-  const kgNow = () => extraOf(key);
+  const kgNow = () => extraKlemm(session.exercise, extraOf(key));
+  const schrittNow = () => extraBereich(session.exercise).schritt;
   const wieJetzt = () => stufenName(session.exercise, lvNow(), kgNow());
   /* Erleichtern und Erschweren laufen ueber ZWEI Bahnen: die Leiter und das
      Zusatzgewicht. Bei einer kurzen Leiter ist das Gewicht oft die einzige —
@@ -1793,8 +1916,12 @@ function applyRules(session){
      obersten Sprosse, und dann tat die App gar nichts mehr. Bei Schmerz ist
      eine stille Nichtreaktion das Schlechteste von allem. */
   const erleichtern = () => {
-    if(kgNow() > 0){
-      S.extra[key] = Math.max(0, Math.round((kgNow() - ZUSATZ_SCHRITT) * 10) / 10);
+    const b = extraBereich(session.exercise);
+    /* Die Untergrenze ist nicht zwangslaeufig null: beim aufrechten Laeufer
+       geht es unter 0 kg weiter, weil dasselbe Gewicht auf der Standbeinseite
+       entlastet. Uebungen ohne negative Spanne stoppen wie bisher bei 0. */
+    if(kgNow() > b.lo){
+      S.extra[key] = Math.max(b.lo, Math.round((kgNow() - b.schritt) * 10) / 10);
       return "gewicht";
     }
     const tiefer = verfuegbareStufen(session.exercise).filter(st => st.i < lvNow());
@@ -1806,8 +1933,9 @@ function applyRules(session){
     const hoeher = stufen.filter(st => st.i > lvNow());
     if(hoeher.length){ S.levels[key] = hoeher[0].i; return "stufe"; }
     const oben = stufen[stufen.length - 1];
-    if(oben && oben.i >= extraAbOf(session.exercise)){
-      S.extra[key] = kgNow() + ZUSATZ_SCHRITT;
+    const b = extraBereich(session.exercise);
+    if(oben && oben.i >= extraAbOf(session.exercise) && kgNow() < b.hi){
+      S.extra[key] = Math.min(b.hi, Math.round((kgNow() + b.schritt) * 10) / 10);
       return "gewicht";
     }
     return null;
@@ -1827,7 +1955,7 @@ function applyRules(session){
     if(st.pain >= PAIN_BACK){
       const wie = erleichtern(); st.pain = 0;
       msgs.push({t:"bad", x: wie === "gewicht"
-        ? `Zweimal hintereinander Schmerzabbruch → ${komma(ZUSATZ_SCHRITT,1)} kg weniger, jetzt „${wieJetzt()}".`
+        ? `Zweimal hintereinander Schmerzabbruch → ${komma(schrittNow(),1)} kg weniger, jetzt „${wieJetzt()}".`
         : wie === "stufe"
         ? `Zweimal hintereinander Schmerzabbruch → eine Stufe zurück auf „${wieJetzt()}".`
         : `Zweimal hintereinander Schmerzabbruch — und diese Position hat keine leichtere `
@@ -1874,18 +2002,29 @@ function applyRules(session){
     const gewichtDirekt = () => {
       const e   = S.ex[session.exercise];
       const bw  = (S.bw > 0 ? S.bw : BW_DEFAULT);
-      const eK  = (e && e.extraK != null) ? e.extraK : 1;
       const bas = e.levels[lvNow()] ? e.levels[lvNow()].load : 0;
-      if(!(bas > 0 && eK > 0)) return;
-      const roh = bw * (zielLast / bas - 1) / eK;
-      const rnd = x => Math.max(0, Math.round(x / ZUSATZ_SCHRITT) * ZUSATZ_SCHRITT);
+      if(!(bas > 0)) return;
+      const b   = extraBereich(session.exercise);
+      /* Die Umkehrung braucht denselben Hebel wie die Hinrechnung: liegt die
+         Ziellast UNTER der nackten Sprosse, geht das Gewicht auf die andere
+         Seite und wirkt mit dem kuerzeren extraKNeg. Mit dem falschen Hebel
+         gerechnet faende die App ein Gegengewicht, das doppelt so schwer waere
+         wie noetig. */
+      const r   = zielLast / bas - 1;
+      const eK  = (r < 0 && e.extraKNeg != null) ? e.extraKNeg
+                : ((e.extraK != null) ? e.extraK : 1);
+      if(!(eK > 0)) return;
+      const roh   = bw * r / eK;
+      const rnd   = x => Math.round(x / b.schritt) * b.schritt;
+      const klemm = x => Math.max(b.lo, Math.min(b.hi, Math.round(x * 10) / 10));
       if(zuLeicht){
-        const deckel = rnd(MAX_ZUSATZ_ANTEIL * bw);
+        const deckel = klemm(rnd(MAX_ZUSATZ_ANTEIL * bw));
         zusatzBedarf = Math.max(zusatzBedarf, rnd(roh));
         amDeckel = rnd(roh) > deckel;
-        S.extra[key] = Math.max(vorherKg + ZUSATZ_SCHRITT, Math.min(rnd(roh), deckel));
+        S.extra[key] = klemm(Math.max(vorherKg + b.schritt,
+                                      Math.min(klemm(rnd(roh)), deckel)));
       } else {
-        S.extra[key] = Math.min(kgNow(), rnd(roh));
+        S.extra[key] = klemm(Math.min(kgNow(), rnd(roh)));
       }
     };
 
@@ -1964,7 +2103,7 @@ function applyRules(session){
       if(st.miss >= MISS_BACK){
         const wie = erleichtern(); st.miss = 0;
         if(wie) msgs.push({t:"bad", x: wie === "gewicht"
-          ? `Dreimal in Folge verfehlt → ${komma(ZUSATZ_SCHRITT,1)} kg weniger, jetzt „${wieJetzt()}".`
+          ? `Dreimal in Folge verfehlt → ${komma(schrittNow(),1)} kg weniger, jetzt „${wieJetzt()}".`
           : `Dreimal in Folge verfehlt → eine Stufe zurück auf „${wieJetzt()}".`});
         else msgs.push({t:"warn", x:`Dreimal in Folge verfehlt, aber leichter geht es hier `
           + `nicht mehr. Der Richtwert selbst ist dann zu hoch angesetzt — halte einfach, `
@@ -1988,7 +2127,7 @@ function applyRules(session){
       if(wie === "stufe")
         msgs.push({t:"ok", x:`${labelOf(session.exercise, session.side)}: Diese Stufe trägt über 150 Sekunden → eine Stufe höher auf „${wieJetzt()}".`});
       else if(wie === "gewicht")
-        msgs.push({t:"ok", x:`${labelOf(session.exercise, session.side)}: Die oberste Stufe trägt über 150 Sekunden → ${komma(ZUSATZ_SCHRITT,1)} kg dazu, jetzt „${wieJetzt()}".`});
+        msgs.push({t:"ok", x:`${labelOf(session.exercise, session.side)}: Die oberste Stufe trägt über 150 Sekunden → ${komma(schrittNow(),1)} kg dazu, jetzt „${wieJetzt()}".`});
       else
         msgs.push({t:"warn", x:`${labelOf(session.exercise, session.side)}: Diese Position trägt über 150 Sekunden, und schwerer geht sie nicht. Als Kontrollposition ist sie weiter brauchbar — für die Kurve gibt sie nichts mehr her.`});
     }
@@ -2212,7 +2351,15 @@ function sitzungsdauer(bloecke, zone){
 function stufenName(ex, level, kg){
   const L = S.ex[ex] && S.ex[ex].levels[level];
   if(!L) return "—";
-  return kg ? `${L.name} + ${String(kg).replace(".", ",")} kg` : L.name;
+  kg = extraKlemm(ex, kg);
+  if(!kg) return L.name;
+  const e = S.ex[ex] || {};
+  const z = `${String(Math.abs(kg)).replace(".", ",")} kg`;
+  /* Geht das Gewicht in BEIDE Richtungen, steht die Seite im Namen: "−20 kg"
+     liest niemand als Entlastung. */
+  return e.extraSeiten
+    ? `${z} ${kg < 0 ? e.extraSeiten.minus : e.extraSeiten.plus}`
+    : `${L.name} + ${z}`;
 }
 function curBlock(){ return RUN.plan.blocks[RUN.b]; }
 /* ── Stufe, Gewicht, Seitenabgleich ──────────────────────────────
@@ -2241,7 +2388,9 @@ function stufeSetzen(bl, k){
   zielNeu(bl);
 }
 function gewichtSetzen(bl, v){
-  const kg = Math.max(0, Math.min(60, Math.round((+v || 0) / 2.5) * 2.5));
+  const b = extraBereich(bl.exercise);
+  const kg = Math.max(b.lo, Math.min(b.hi,
+    Math.round(Math.round((+v || 0) / b.schritt) * b.schritt * 10) / 10));
   S.extra[keyOf(bl.exercise, bl.side)] = kg;
   bl.extra = kg;
   zielNeu(bl);
@@ -2381,6 +2530,7 @@ function blockIntro(i){
   const tp = f ? predictTime(f, lastVon(bl.exercise, bl.level, bl.extra)) : null;
   const zz = (tp && isFinite(tp)) ? zoneOf(tp) : null;
   const stufen    = verfuegbareStufen(bl.exercise);
+  const eb        = extraBereich(bl.exercise);
   const versteckt = ex.levels.length - stufen.length;
   const partner   = partnerVon(bloecke, bl);
   const syncAn    = !!partner && S.sync[bl.exercise] !== false;
@@ -2400,6 +2550,7 @@ function blockIntro(i){
         ? ` Statt der Workout-Zone wird <b>Zone ${bl.zone}</b> gemessen: die hätte die Rotation
           wiederholt, obwohl sie hier schon steht.` : ""}</p>` : ""}
 
+      ${stufen.length < 2 ? "" : `
       <label class="tiny" for="ivLvl" style="display:block;margin:14px 0 4px">Variante —
         du entscheidest (${stufen.findIndex(st=>st.i===bl.level)+1} von ${stufen.length}${
         versteckt ? `, ${versteckt} ohne Gerät ausgeblendet` : ""})</label>
@@ -2415,20 +2566,21 @@ function blockIntro(i){
         <button class="ghost" id="ivPlus" style="flex:0 0 52px;font-size:22px;padding:0"
           ${bl.level>=stufen[stufen.length-1].i?"disabled":""}
           aria-label="schwerere Variante">+</button>
-      </div>
+      </div>`}
 
-      ${bl.level >= extraAbOf(bl.exercise) ? `
+      ${bl.level >= extraAbOf(bl.exercise) && eb.hi > eb.lo ? `
         <div class="row" style="gap:7px;align-items:center;margin-top:8px">
-          <label class="tiny" for="ivKg" style="flex:1;margin:0">Zusatzgewicht</label>
+          <label class="tiny" for="ivKg" style="flex:1;margin:0">${ex.extraLabel || "Zusatzgewicht"}</label>
           <button class="ghost" id="ivKgMinus" style="flex:0 0 52px;font-size:22px;padding:0"
-            ${(bl.extra||0)<=0?"disabled":""} aria-label="weniger Gewicht">−</button>
-          <input type="number" id="ivKg" value="${bl.extra||0}" min="0" max="60" step="2.5"
-            inputmode="decimal" style="width:76px;text-align:center">
+            ${(bl.extra||0)<=eb.lo?"disabled":""} aria-label="weniger Gewicht">−</button>
+          <input type="number" id="ivKg" value="${bl.extra||0}" min="${eb.lo}" max="${eb.hi}"
+            step="${eb.schritt}" inputmode="decimal" style="width:76px;text-align:center">
           <button class="ghost" id="ivKgPlus" style="flex:0 0 52px;font-size:22px;padding:0"
-            aria-label="mehr Gewicht">+</button>
+            ${(bl.extra||0)>=eb.hi?"disabled":""} aria-label="mehr Gewicht">+</button>
           <span class="tiny" style="flex:0 0 22px">kg</span>
         </div>
-        <p class="tiny" style="margin-top:5px">${ex.extraHint || ""}${bl.extra
+        <p class="tiny" style="margin-top:5px">${ex.extraSeiten && bl.extra
+          ? `<b>${stufenName(bl.exercise, bl.level, bl.extra)}</b>. ` : ""}${ex.extraHint || ""}${bl.extra
           ? ` Wirksame Last <b>${komma(lastVon(bl.exercise, bl.level, bl.extra), 2)}</b>
               statt ${komma(ex.levels[bl.level].load, 2)} — gerechnet auf ${S.bw} kg
               Körpergewicht (<b>Mehr → Messung</b>).` : ""}</p>` : ""}
@@ -2531,13 +2683,19 @@ function blockIntro(i){
     const j = Math.max(0, Math.min(stufen.length - 1, k + richtung));
     return stufen[j].i;
   };
-  el("ivLvl").onchange   = e => { stufeSetzen(bl, +e.target.value); neu(); };
-  el("ivMinus").onclick  = ()=> { stufeSetzen(bl, nachbar(-1)); neu(); };
-  el("ivPlus").onclick   = ()=> { stufeSetzen(bl, nachbar(+1)); neu(); };
+  /* Bei einer einzigen Sprosse gibt es die Variantenzeile nicht — dann auch
+     keine Handler dafuer, sonst bricht das Binden hier ab und die Karte bleibt
+     ohne jede Bedienung stehen. */
+  if(el("ivLvl")){
+    el("ivLvl").onchange   = e => { stufeSetzen(bl, +e.target.value); neu(); };
+    el("ivMinus").onclick  = ()=> { stufeSetzen(bl, nachbar(-1)); neu(); };
+    el("ivPlus").onclick   = ()=> { stufeSetzen(bl, nachbar(+1)); neu(); };
+  }
   if(el("ivKg")){
     el("ivKg").onchange     = e => { gewichtSetzen(bl, e.target.value); neu(); };
-    el("ivKgMinus").onclick = ()=> { gewichtSetzen(bl, (bl.extra||0) - 2.5); neu(); };
-    el("ivKgPlus").onclick  = ()=> { gewichtSetzen(bl, (bl.extra||0) + 2.5); neu(); };
+    const kgS = extraBereich(bl.exercise).schritt;
+    el("ivKgMinus").onclick = ()=> { gewichtSetzen(bl, (bl.extra||0) - kgS); neu(); };
+    el("ivKgPlus").onclick  = ()=> { gewichtSetzen(bl, (bl.extra||0) + kgS); neu(); };
   }
   const setzeSaetze = n => {
     bl.saetze = Math.max(SETS_MIN, Math.min(SETS_MAX, n));
@@ -3011,7 +3169,7 @@ function historySVG(pts){
 const EXPORT_SCHEMA = 2;
 const EXPORT_SPALTEN = [
   "datum","workout","uebung","uebung_name","seite","variante","stufe_nr",
-  "zusatz_kg","koerpergewicht_kg","last","satz","saetze_geplant","sekunden","ziel_sekunden",
+  "zusatz_kg","zusatz_seite","koerpergewicht_kg","last","satz","saetze_geplant","sekunden","ziel_sekunden",
   "schmerz","frisch","in_kurve","zone_geplant","zone_erreicht",
   "selbst_gewaehlt","nachgetragen","fassung"
 ];
@@ -3029,6 +3187,10 @@ function messreihen(){
         variante: ses.levelName || (e && e.levels[ses.level] ? e.levels[ses.level].name : ""),
         stufe_nr: (ses.level == null) ? "" : ses.level + 1,
         zusatz_kg: ses.extra || 0,
+        /* Ohne die Seite ist ein negatives zusatz_kg extern nicht deutbar:
+           dasselbe Gewicht belastet aussen und entlastet innen, mit
+           verschiedenen Hebeln. */
+        zusatz_seite: !ses.extra ? "" : (ses.extra < 0 ? "innen" : "aussen"),
         koerpergewicht_kg: ses.bw || "",
         last: ses.load,
         satz: i + 1,
@@ -3076,7 +3238,9 @@ function messreihenJSON(){
            + "last ist ein Lastverhaeltnis INNERHALB einer Uebung, nicht zwischen Uebungen.",
     rechnung: "last = grundlast_der_stufe * (1 + extra_k * zusatz_kg / koerpergewicht_kg). "
             + "extra_k steht je Uebung dabei — ohne den Faktor laesst sich die Spalte last "
-            + "nicht nachrechnen.",
+            + "nicht nachrechnen. Ist zusatz_kg NEGATIV (zusatz_seite=innen), gilt "
+            + "extra_k_negativ statt extra_k: das Gewicht haengt dann auf der "
+            + "Standbeinseite und wirkt ueber einen kuerzeren Hebel.",
     spalten: EXPORT_SPALTEN,
     zonen: ZONES.map(z=>({id:z.id, name:z.name, von_s:z.lo, bis_s:z.hi})),
     uebungen: Object.entries(S.ex).map(([k,v])=>({
@@ -3084,7 +3248,11 @@ function messreihenJSON(){
       /* extra_k fehlte hier und war damit extern nicht rekonstruierbar: Beim
          Seitstuetz (extra_k = 2) rechnete jeder fremde Konsument falsch. */
       extra_k: (v.extraK != null ? v.extraK : 1),
+      extra_k_negativ: (v.extraKNeg != null ? v.extraKNeg : null),
       zusatzgewicht_ab_stufe: (v.extraAb != null ? v.extraAb : v.levels.length - 1) + 1,
+      zusatzgewicht_von_kg: extraBereich(k).lo,
+      zusatzgewicht_bis_kg: extraBereich(k).hi,
+      zusatzgewicht_schritt_kg: extraBereich(k).schritt,
       art: leiterArt(k),
       stufen: v.levels.map((L,i)=>({nr:i+1, name:L.name, last:L.load,
         geraet: geraetId(L.geraet) || null, verfuegbar: geraetDa(L.geraet)}))
