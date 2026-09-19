@@ -859,8 +859,13 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-19 g";
+const BUILD = "2026-09-19 h";
 const KEY = "isocoach.v1";
+/* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
+   drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
+   steht die Zone der Rotation selbst vorgewaehlt — eine alte gespeicherte Wahl
+   liesse sich davon nicht mehr unterscheiden und wird beim Laden verworfen. */
+const ZW_V = 2;
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
    Update alte Levels kleben. Sessions bleiben dabei immer erhalten. */
@@ -1039,6 +1044,11 @@ function normalize(d){
                                     geraete: ger,
                                     maxBloecke: (d.maxBloecke > 0 ? d.maxBloecke : MAX_BLOECKE),
                                     heute: d.heute || null, heuteTag: d.heuteTag || null,
+                                    /* Siehe ZW_V: Eine Wahl aus der alten
+                                       Oberflaeche war moeglicherweise gar
+                                       keine. */
+                                    zoneWahl: (d.zoneWahl && d.zoneWahl.v === ZW_V)
+                                              ? d.zoneWahl : null,
                                     gefragt: d.gefragt || {},
                                     /* Ein angefangener Lauf ueberlebt das Neuladen. */
                                     lauf: (d.lauf && d.lauf.plan) ? d.lauf : null,
@@ -1523,26 +1533,45 @@ function zoneWahlHeute(gr){
    stuende auf der Zeile "Zone B", waehrend zwei Uebungen still in Zone A
    blieben, und die Karte haette etwas anderes gezeigt als das Workout. */
 function zoneWahlSetzen(gr, zone){
-  const w = zoneWahlGueltig() || {tag: today(), zone: null, je: {}};
-  w.tag = today();
+  const w = zoneWahlGueltig() || {tag: today(), v: ZW_V, zone: null, je: {}};
+  w.tag = today(); w.v = ZW_V;
   if(!w.je) w.je = {};
   if(gr == null){ w.zone = zone || null; w.je = {}; }
   else if(zone) w.je[gr] = zone;
-  else delete w.je[gr];
+  /* "auto" statt loeschen: Eine Wahl fuer ALLE staende sonst weiter im Weg,
+     und die Gruppe kaeme nicht mehr zurueck zur Automatik. "auto" ist kein
+     Zonenkuerzel, also liefert zoneWahlHeute null — und genau das heisst
+     Automatik. */
+  else w.je[gr] = "auto";
   S.zoneWahl = (w.zone || Object.keys(w.je).length) ? w : null;
 }
-/* Drei Zonen und die Rotation, als Zeile. Ohne Gruppe gilt sie fuer alle und
-   steht auf der Workoutkarte und auf dem Pausentag; mit Gruppe steht sie je
-   Uebung in der Auswahlliste und auf der Karte vor der Uebung. */
-function zonenWahlKarte(gr, klasse){
+/* Welche Zone steht heute vorn — und zwar sichtbar, als bereits ausgewaehlter
+   Knopf. Luke, 19.09.2026: „nimm dem user diese entscheidung bitte ab, es wird
+   automatisch die zone trainiert die zur verfuegung steht oder die in letzter
+   zeit am wenigsten trainiert wurde".
+   Ohne Gruppe zaehlt die Rotation ueber ALLE Uebungen: die Zone, die insgesamt
+   am laengsten zurueckliegt. */
+function vorgabeZone(gr){
   const w = zoneWahlHeute(gr);
+  if(w) return w;
+  return (gr != null) ? zoneFuer(gr).zone : rotationsZone(null);
+}
+/* Die drei Zonen als Zeile, eine davon schon ausgewaehlt. Ohne Gruppe gilt sie
+   fuer alle und steht auf der Workoutkarte und auf dem Pausentag; mit Gruppe
+   steht sie je Uebung in der Auswahlliste und auf der Karte vor der Uebung.
+   Der vierte Knopf „Rotation entscheidet" ist weg. Er war der eigentliche
+   Fehler: Solange er markiert stand, sahen die drei Zonen aus wie eine offene
+   Frage — wer eine antippte, hatte eine FESTE Wahl getroffen und bekam bei
+   allen Uebungen, deren Gruppe in dieser Zone noch pausierte, eine Zonenpause
+   statt eines Workouts. Jetzt steht die Antwort schon da; ein Tipp aendert sie
+   nur. */
+function zonenWahlKarte(gr, klasse){
+  const w = vorgabeZone(gr);
   const g = (gr == null) ? "" : gr;
-  return `<div class="zw${klasse ? " " + klasse : ""}" id="zw-${g || "alle"}">
+  return `<div class="zw drei${klasse ? " " + klasse : ""}" id="zw-${g || "alle"}">
     ${ZONES.map(z => `<button class="${w===z.id?"sel":"ghost"}" data-zwg="${g}"
       data-zw="${z.id}">Zone ${z.id}
       <span>${z.lo}–${z.hi} s</span></button>`).join("")}
-    <button class="${w?"ghost":"sel"}" data-zwg="${g}" data-zw="">Rotation<span>${
-      (gr == null) ? "entscheidet" : "wie bisher"}</span></button>
   </div>`;
 }
 /* Eine Zonenwahl wirft den Tagesplan weg und laesst ihn neu bauen — sie kann
@@ -1553,7 +1582,9 @@ function zonenWahlBinden(){
   document.querySelectorAll("[data-zw]").forEach(b => {
     b.onclick = () => {
       const g = b.getAttribute("data-zwg") || null;
-      zoneWahlSetzen(g, b.getAttribute("data-zw"));
+      const z = b.getAttribute("data-zw");
+      /* Nochmal auf die eigene Wahl getippt heisst: zurueck zur Automatik. */
+      zoneWahlSetzen(g, zoneWahlHeute(g) === z ? "" : z);
       S.plan = null; S.planDay = null; save();
       renderAmOrt("zw-" + (g || "alle"));
     };
@@ -1627,6 +1658,15 @@ function zoneLastDay(gr){
     if(d != null && (last[z] === null || d > last[z])) last[z] = d;
   }
   return last;
+}
+/* Welche Zone nimmt die Rotation? Erholte zuerst, darunter die, die am
+   laengsten zurueckliegt. Ist keine erholt, entscheidet allein das Alter —
+   gearbeitet wird dann trotzdem, nur eben bewusst. */
+function rotationsZone(gr){
+  const age = zoneAge(gr || null);
+  const erholt = ZONES.filter(z => age[z.id] >= restOf(z.id));
+  const pool = erholt.length ? erholt : ZONES;
+  return pool.slice().sort((a,b)=> age[b.id]-age[a.id])[0].id;
 }
 function zoneAge(gr){
   const t = today(), zl = zoneLastDay(gr), out = {};
@@ -2067,13 +2107,11 @@ function zoneFuer(gr){
         + `Halte in jedem Block so lange du kannst.`};
   }
   const age = zoneAge(gr);
-  const erholt = ZONES.filter(z => age[z.id] >= restOf(z.id));
-  const pool = erholt.length ? erholt : ZONES;
-  const z = pool.slice().sort((a,b)=> age[b.id]-age[a.id])[0];
+  const z = ZONES.find(x => x.id === rotationsZone(gr));
   return {zone:z.id, target: Math.round((z.lo + z.hi)/2), onboarding:false,
     why:`Zone ${z.id} liegt am längsten zurück`
       + (isFinite(age[z.id]) ? ` (${age[z.id]} Tag${age[z.id]===1?"":"e"})` : "")
-      + ` und ist erholt.`};
+      + (age[z.id] >= restOf(z.id) ? ` und ist erholt.` : ` — erholt ist heute keine.`)};
 }
 
 /* ═══════════ Planung eines Workouts ═══════════
@@ -3083,7 +3121,8 @@ function blockIntro(i){
   document.querySelectorAll("[data-zw]").forEach(b => {
     b.onclick = () => {
       const gr = groupOf(bl.exercise);
-      zoneWahlSetzen(gr, b.getAttribute("data-zw"));
+      const zw = b.getAttribute("data-zw");
+      zoneWahlSetzen(gr, zoneWahlHeute(gr) === zw ? "" : zw);
       const z = zoneFuer(gr);
       const offen = (partner && bloecke.indexOf(partner) > i) ? partner : null;
       [bl, offen].filter(Boolean).forEach(q => {
@@ -3882,9 +3921,9 @@ function renderHome(){
                  Trainiert wird <b>dreimal pro Woche</b>, also frühestens mit ${MIN_GAP_DAYS} Tagen
                  Abstand.`)
           : g.gewaehlt
-          ? `Du hast <b>Zone ${g.gewaehlt}</b> gesetzt. Die ist noch in der Pause — eine andere
-             wäre heute frei. Wähl unten eine andere Zone, lass die Rotation entscheiden,
-             oder geh die Sperre bewusst über.`
+          ? `Du hast <b>Zone ${g.gewaehlt}</b> selbst gesetzt, und die ist noch in der Pause —
+             eine andere wäre heute frei. Wähl unten eine andere Zone oder geh die Sperre
+             bewusst über.`
           : `Jedes Energiesystem kommt <b>einmal pro Woche</b> dran. Drei Zonen, drei Workouts je
              Woche — heute ist keine davon so weit.`}</p>
         <table style="margin-top:12px"><tbody>${ZONES.map(zz=>{
