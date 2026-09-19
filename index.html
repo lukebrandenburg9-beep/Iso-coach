@@ -28,6 +28,11 @@
 body{margin:0;background:var(--bg);color:var(--tx);
   font:15px/1.55 "IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   -webkit-font-smoothing:antialiased;
+  /* Zwei schnelle Tipps auf dieselbe Stelle deutet iOS als Doppeltipp und
+     zoomt hinein — genau das passiert beim Hochtippen des Gewichts. Die
+     Geste hat in dieser App keine Aufgabe; Wischen und Aufziehen mit zwei
+     Fingern bleiben erhalten, nur der Doppeltipp faellt weg. */
+  touch-action:manipulation;
   padding-bottom:calc(90px + env(safe-area-inset-bottom))}
 @supports (padding:env(safe-area-inset-top)){
   .wrap{padding-top:calc(16px + env(safe-area-inset-top))}
@@ -72,7 +77,12 @@ button:disabled{opacity:.4;cursor:not-allowed}
 .row.tight{gap:6px}
 .grow{flex:1}
 .stack>*+*{margin-top:8px}
-select,input[type=number],input[type=text]{font:inherit;background:var(--panel2);color:var(--tx);
+/* 16px ist keine Geschmacksfrage: Safari auf dem iPhone zoomt beim
+   Hineintippen in JEDES Feld, dessen Schrift kleiner ist. Der Fliesstext
+   der App hat 15px — ein Pixel weniger, und das Gewichtsfeld reisst den
+   halben Bildschirm auf. Die Felder tragen darum ihre eigene Groesse. */
+select,input[type=number],input[type=text],input[type=date]{font:inherit;font-size:16px;
+  background:var(--panel2);color:var(--tx);
   border:1px solid var(--line);border-radius:10px;padding:11px 12px;width:100%}
 label{display:block;font-size:12.5px;color:var(--tx2);margin-bottom:5px}
 .screen{display:none}
@@ -849,7 +859,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-19 e";
+const BUILD = "2026-09-19 f";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
@@ -2712,7 +2722,7 @@ function blockIntro(i){
   el("homeTitle").textContent = `Übung ${i+1} von ${bloecke.length}`;
   el("homeSub").textContent = blockLabel(bl);
   el("homeBody").innerHTML = `
-    <div class="card">
+    <div class="card" id="ivKarte">
       <span class="pill ${ZONES.find(z=>z.id===bl.zone).cls}">Zone ${bl.zone}</span>
       <h2 style="margin:11px 0 2px">${blockLabel(bl)}</h2>
       <p class="muted" style="margin:0">${bl.fresh ? "wird gemessen" : "nur Training"}</p>
@@ -2862,8 +2872,13 @@ function blockIntro(i){
     </div>`;
 
   /* Jede Änderung wird sofort gesichert und die Karte neu gezeichnet — sonst
-     stünde nach einem Seitenabgleich die alte Zahl im Feld. */
-  const neu = () => { seitenAbgleich(bloecke, bl); laufSichern(); blockIntro(i); };
+     stünde nach einem Seitenabgleich die alte Zahl im Feld.
+     Neu gezeichnet wird AM ORT: blockIntro() laeuft ueber show("home"), und
+     das scrollt nach oben. Beim Tippen auf Plus oder Minus ist das falsch —
+     die Zahl steht dann am oberen Rand, der Finger aber auf halber Hoehe,
+     und der naechste Tipp landet daneben. */
+  const zeichne = () => amOrt("ivKarte", () => blockIntro(i));
+  const neu = () => { seitenAbgleich(bloecke, bl); laufSichern(); zeichne(); };
   /* Die Knoepfe springen zur naechsten VERFUEGBAREN Sprosse, nicht zum
      naechsten Index — sonst blieben sie an einer ausgeblendeten haengen. */
   const nachbar = richtung => {
@@ -2912,10 +2927,10 @@ function blockIntro(i){
   if(el("ivSync")) el("ivSync").onchange = e => {
     S.sync[bl.exercise] = e.target.checked;
     if(e.target.checked) seitenAbgleich(bloecke, bl);
-    laufSichern(); blockIntro(i);
+    laufSichern(); zeichne();
   };
   if(el("ivMess")) el("ivMess").onchange = e => {
-    bl.fresh = e.target.checked; laufSichern(); blockIntro(i);
+    bl.fresh = e.target.checked; laufSichern(); zeichne();
   };
   /* Zone im laufenden Workout umstellen. Der Block wird neu gebaut statt der
      ganze Plan neu geplant — Neuplanen wuerde den laufenden Lauf verwerfen.
@@ -2939,7 +2954,7 @@ function blockIntro(i){
         Object.keys(q).forEach(k => delete q[k]);
         Object.assign(q, n);
       });
-      save(); laufSichern(); blockIntro(i);
+      save(); laufSichern(); zeichne();
     };
   });
   el("ivGo").onclick = ()=>{ beep(660,60,.05); laufSichern(); startBlock(); };
@@ -4530,15 +4545,22 @@ function show(name){
    render2() und nicht render(): render() heisst intern "zeige Home". Von einem
    anderen Bildschirm aus waere das nicht nur ein Sprung nach oben, sondern ein
    Bildschirmwechsel — genau das passierte bei den Geraete-Haekchen unter Mehr. */
-function renderAmOrt(ankerId){
+function amOrt(ankerId, zeichne){
   const a = el(ankerId);
   const vorher = a ? a.getBoundingClientRect().top : null;
+  /* try/finally, weil halteScroll sonst nach einem Fehler im Neuzeichnen
+     dauerhaft anbliebe — und dann scrollte die App bis zum Neuladen nirgends
+     mehr nach oben, auch beim Bildschirmwechsel nicht. */
   halteScroll = true;
-  render2();
-  halteScroll = false;
+  try { zeichne(); } finally { halteScroll = false; }
   const b = el(ankerId);
-  if(vorher !== null && b) window.scrollBy(0, b.getBoundingClientRect().top - vorher);
+  /* Ist der Anker weg, wurde der Bildschirm gewechselt — dann ist der Sprung
+     nach oben richtig, und zwar genau der, den halteScroll eben unterdrueckt
+     hat. */
+  if(vorher === null || !b) window.scrollTo(0, 0);
+  else window.scrollBy(0, b.getBoundingClientRect().top - vorher);
 }
+function renderAmOrt(ankerId){ amOrt(ankerId, render2); }
 function render(){
   if(!S.onboarded){ el("s-onboard").classList.add("on"); renderOnboard(); }
   else show("home");
