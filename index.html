@@ -859,7 +859,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-19 f";
+const BUILD = "2026-09-19 g";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
@@ -929,6 +929,34 @@ function laeuferFrei(levels, extra, bw, sessions){
   }
   return {levels: lv, extra: ex};
 }
+/* Bis zum 19.09. lief der beidbeinige Halt auf einem eigenen Schluessel ohne
+   Seite ("wade"). Seit er in BEIDE Seitenkurven zaehlt, gehoert auch sein
+   Leiterstand dorthin — bliebe er stehen, waeren Kurve und Stufe getrennt:
+   die Messung zaehlte links und rechts, die naechste Sprosse haenge aber an
+   einem dritten Schluessel, den ausser gemerkteStufe niemand liest.
+   Die Wanderung haengt NICHT an der Fassungsnummer, sondern daran, ob die
+   Zeile noch da ist — auf Lukes Telefon steht die Fassung schon auf 13. */
+function beidUmzug(exDefs, levels, extra, streak){
+  const lv = Object.assign({}, levels || {});
+  const ex = Object.assign({}, extra  || {});
+  const st = Object.assign({}, streak || {});
+  for(const name of Object.keys(exDefs || {})){
+    const e = exDefs[name];
+    if(!e || !e.sides || !(e.levels || []).some(L => L.beid)) continue;
+    if(!(name in lv) && !(name in ex) && !(name in st)) continue;
+    for(const seite of e.sides){
+      const k = keyOf(name, seite);
+      /* Die hoehere Stufe gewinnt — dieselbe Regel, nach der gemerkteStufe
+         bisher schon ueber die drei Schluessel hinweg gelesen hat. Eine
+         bereits erklommene Seite faellt durch den Umzug nicht zurueck. */
+      if(name in lv) lv[k] = Math.max(lv[k] || 0, lv[name] || 0);
+      if(name in ex && ex[k] === undefined) ex[k] = ex[name];
+      if(name in st && st[k] === undefined) st[k] = st[name];
+    }
+    delete lv[name]; delete ex[name]; delete st[name];
+  }
+  return {levels: lv, extra: ex, streak: st};
+}
 let S = load();
 /* Muss nach load() laufen: sidesOf() braucht S.sessions. */
 (function(){ const sd = S.ex[S.exercise] ? sidesOf(S.exercise) : [null];
@@ -983,9 +1011,11 @@ function normalize(d){
   const lvRoh  = leitersturz ? {}
                : bandUmzug ? laeuferUmziehen(d.levels) : (d.levels || {});
   const exRoh  = leitersturz ? {} : (d.extra || {});
-  const umzug  = (freiUmzug && !leitersturz)
+  const roh    = (freiUmzug && !leitersturz)
                ? laeuferFrei(lvRoh, exRoh, bwAlt, d.sessions)
                : {levels: lvRoh, extra: exRoh};
+  const umzug  = beidUmzug(ex, roh.levels, roh.extra,
+                           leitersturz ? {} : (d.streak || {}));
   /* Den Haken "band" gibt es erst seit dem 19.09. Wer vorher "Kettlebell"
      angehakt hatte, hat damit gesagt: Bei dieser Uebung kann ich Gewicht
      anhaengen. Der Guertel ist nur der neue Aufhaengepunkt fuer dasselbe
@@ -1015,7 +1045,7 @@ function normalize(d){
                                     extra: umzug.extra,
                                     bw: (d.bw > 0 ? d.bw : BW_DEFAULT),
                                     levels: umzug.levels,
-                                    streak: leitersturz ? {} : (d.streak || {}),
+                                    streak: umzug.streak,
                                     reaction: (d.reaction == null ? REACTION_DEFAULT : d.reaction),
                                     plan:null, planDay:null});
 }
@@ -1158,14 +1188,14 @@ function sidesOf(ex){
   /* Altdaten aus der Zeit vor der Seitentrennung haben keine Seite. Sie werden
      NICHT auf eine Seite geraten — sie bekommen einen eigenen Eintrag, solange
      es sie gibt, und verschwinden von selbst, sobald keine mehr da sind. */
-  const ohne = S.sessions.some(x => x.exercise === ex && !x.side) || hatBeidStufe(ex);
-  /* Solange die Uebung auf einer beidbeinigen Sprosse steht, gibt es links
-     und rechts noch nicht — sie wuerden als zwei leere Kurven in jeder Liste
-     stehen und nie gefuellt. Eine Seite, die schon Messpunkte hat, bleibt
-     natuerlich drin. */
-  const seiten = e.sides.filter(x => !beidJetzt(ex)
-                                  || S.sessions.some(y => y.exercise === ex && y.side === x));
-  return ohne ? [null].concat(seiten) : seiten.slice();
+  /* Der beidbeinige Halt hat ebenfalls keine Seite, ist aber KEINE eigene
+     Kurve: Er ist eine Sprosse beider Leitern und steht deshalb in der linken
+     UND in der rechten Kurve (siehe zaehltFuer). Eine dritte Zeile daneben
+     wuerde dieselbe Messung ein drittes Mal zeigen und wie mehr Daten
+     aussehen, als gemessen wurden. Befund von Luke, 19.09.2026. */
+  const ohne = S.sessions.some(x => x.exercise === ex && !x.side
+                                 && !beidStufe(ex, x.level));
+  return ohne ? [null].concat(e.sides) : e.sides.slice();
 }
 /* Alle Kurven der App, in Anzeigereihenfolge. */
 function allKeys(){
@@ -1173,10 +1203,16 @@ function allKeys(){
   for(const ex of Object.keys(S.ex)) for(const sd of sidesOf(ex)) out.push({ex, side:sd, key:keyOf(ex,sd)});
   return out;
 }
-function labelOf(ex, side){
+/* Ohne Seite gibt es zwei verschiedene Faelle, und nur die Sprosse
+   unterscheidet sie: der beidbeinige Halt (gewollt, zaehlt fuer beide Seiten)
+   und Altdaten aus der Zeit vor der Seitentrennung (ungewollt, zaehlen fuer
+   keine). Wer die Sprosse nicht kennt — die Kurvenlisten — meint immer die
+   Altdaten, denn eine beidbeinige Kurve gibt es nicht mehr. */
+function labelOf(ex, side, level){
   const e = S.ex[ex], n = e ? e.name : ex;
   if(side) return `${n} · ${side}`;
-  if(e && e.sides) return hatBeidStufe(ex) ? `${n} · beidbeinig` : `${n} · ohne Seite (Altdaten)`;
+  if(e && e.sides) return (level != null && beidStufe(ex, level))
+    ? `${n} · beidbeinig` : `${n} · ohne Seite (Altdaten)`;
   return n;
 }
 
@@ -1207,7 +1243,17 @@ function gemerkteStufe(ex){
 }
 function beidJetzt(ex){
   const e = S.ex[ex];
-  return !!(e && e.sides) && beidStufe(ex, gemerkteStufe(ex));
+  if(!e || !e.sides) return false;
+  const L = S.levels || {};
+  const st = e.sides.map(x => L[keyOf(ex, x)]).filter(Number.isFinite);
+  if(!st.length) return beidStufe(ex, gemerkteStufe(ex));
+  /* EINE Seite genuegt, nicht die hoehere: Eine Seite, die auf der
+     beidbeinigen Sprosse steht, kann nicht allein trainieren — dafuer ist die
+     Sprosse ja beidbeinig. Der Fall ist nicht theoretisch: Wer von "63 % —
+     Waage" zurueckgestuft wird, landet genau dort, und mit der hoeheren Stufe
+     als Massstab haette die App ihm 50 % EINBEINIG vorgelegt — also mehr,
+     nicht weniger, direkt nach einer Rueckstufung wegen Schmerz. */
+  return st.some(v => beidStufe(ex, v));
 }
 /* Die Seiten, die HEUTE geplant werden — nicht die, die die Uebung
    grundsaetzlich hat. Auf einer beidbeinigen Sprosse ist das [null]. */
@@ -1215,6 +1261,38 @@ function planSeiten(ex){
   const e = S.ex[ex];
   if(!e || !e.sides) return [null];
   return beidJetzt(ex) ? [null] : e.sides.slice();
+}
+/* Ist DIESER Block der beidbeinige Halt? Ein Block ohne Seite bei einer
+   zweiseitigen Uebung kann nichts anderes sein. */
+function beidBlock(bl){
+  const e = bl && S.ex[bl.exercise];
+  return !!(e && e.sides && !bl.side && beidStufe(bl.exercise, bl.level));
+}
+/* Auf welche Schluessel schreibt ein BLOCK? Ein beidbeiniger Block gehoert
+   beiden Seiten, also bekommen beide dieselbe Zahl. */
+function seitenKeys(ex, side){
+  const e = S.ex[ex];
+  if(side || !e || !e.sides || !hatBeidStufe(ex)) return [keyOf(ex, side)];
+  return e.sides.map(x => keyOf(ex, x));
+}
+/* Auf welche Leitern wirkt eine SITZUNG? Ein beidbeiniger Halt wirkt auf
+   BEIDE: eine Messung, zwei Leitern. Alles andere auf genau eine. */
+function regelKeys(ses){
+  const e = S.ex[ses.exercise];
+  if(!ses.side && e && e.sides && beidStufe(ses.exercise, ses.level))
+    return e.sides.map(x => keyOf(ses.exercise, x));
+  return [keyOf(ses.exercise, ses.side)];
+}
+/* Auf welcher Leiter STEHT ein beidbeiniger Block? Er hat keine Seite, seine
+   Sprosse steht aber seit dem 19.09. in beiden Seiten-Leitern und nicht mehr
+   auf einem eigenen Schluessel. Massgeblich ist die hoehere der beiden —
+   dieselbe Regel wie in gemerkteStufe. */
+function leiterKey(ex, side){
+  const e = S.ex[ex];
+  if(side || !e || !e.sides || !hatBeidStufe(ex)) return keyOf(ex, side);
+  const L = S.levels || {};
+  return e.sides.map(x => keyOf(ex, x))
+                .reduce((a, b) => ((L[b] || 0) > (L[a] || 0) ? b : a));
 }
 /* Zwei Uebungen, die dieselbe Muskulatur als Hauptlast haben, aber in
    verschiedenen Gruppen stehen: mit und ohne Handtuchrolle hebt beides
@@ -1234,13 +1312,23 @@ const curStreak = () => (S.streak[curKey()] = S.streak[curKey()] || {pain:0, mis
 /* Messpunkte einer Kurve. Vorermuedete Saetze — die zweite Seite im Workout —
    bleiben im Verlauf sichtbar, gehen aber NICHT in den Fit: Sie messen die
    Ermuedung aus dem ersten Block mit, nicht die Belastbarkeit der Seite. */
+/* Gehoert dieser Messpunkt in DIESE Kurve?
+   Normalerweise entscheidet die Seite. Der beidbeinige Halt hat aber keine —
+   er ist EINE Sprosse, die links und rechts gleichzeitig traegt, und gehoert
+   damit in beide Kurven. Gemessen und gespeichert wird er trotzdem nur
+   einmal; er steht nur in zwei Rechnungen. Luke, 19.09.2026:
+   „beidbeinig ist nur eine Stufe sowohl fuer links als auch rechts". */
+function zaehltFuer(s, ex, side){
+  if((s.side || null) === (side || null)) return true;
+  return !!side && s.side == null && beidStufe(ex, s.level);
+}
 function points(ex, side){
   ex = ex === undefined ? S.exercise : ex;
   side = side === undefined ? S.side : side;
   const out = [];
   for(const s of S.sessions){
     if(s.exercise !== ex) continue;
-    if((s.side || null) !== (side || null)) continue;
+    if(!zaehltFuer(s, ex, side)) continue;
     if(s.fresh === false) continue;
     /* s.sets kann bei Import- oder Fremddaten fehlen. Ungeschuetzt wirft der
        Zugriff einen TypeError und das GANZE Profil bleibt leer. */
@@ -1868,8 +1956,19 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
   if(luecke){ zone = luecke.z; target = luecke.t; }
   const f   = fit(points(ex, side));
   const lv  = S.ex[ex].levels;
-  const stufen = verfuegbareStufen(ex);
-  const key = keyOf(ex, side);
+  /* Ein Block OHNE Seite bei einer zweiseitigen Uebung ist der beidbeinige
+     Halt — und den gibt es nur auf den Sprossen, die dafuer gemacht sind.
+     Ohne diese Schranke stellte die Vorhersage ihn auf "63 % — Waage": eine
+     einbeinige Sprosse, beidbeinig gehalten, ohne Seite gespeichert. Von der
+     Leiter herunter kommt man ueber applyRules — steht danach eine einbeinige
+     Sprosse gemerkt, gibt planSeiten wieder links und rechts aus. */
+  const nurBeid = !side && !!S.ex[ex].sides && hatBeidStufe(ex);
+  const stufen = verfuegbareStufen(ex).filter(st => !nurBeid || beidStufe(ex, st.i));
+  const nahe = i => stufen.length
+    ? stufen.reduce((a, b) => Math.abs(b.i - i) < Math.abs(a.i - i) ? b : a).i : i;
+  /* Der beidbeinige Halt hat keinen eigenen Leiterstand mehr — er liest den
+     der weiter fortgeschrittenen Seite. */
+  const key = leiterKey(ex, side);
   let   kg = extraOf(key);
   let level = (S.levels && S.levels[key]) || 0, best = Infinity;
   let herkunft = "stand", anker = null, roh = null;
@@ -1894,7 +1993,7 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
     const ziel = anker.load * (ANNAHME_CP + (1-ANNAHME_CP) * anker.time / target);
     roh   = stufeZuLast(ex, ziel, kg);
     level = Math.min(roh, anker.level + MAX_SPRUNG, lv.length-1);
-    level = naechsteVerfuegbare(ex, level);
+    level = nahe(level);
     herkunft = "anker";
   } else if(herkunft !== "kurve"){
     /* Noch gar nichts gemessen. Dann gespreizte STARTSTUFEN statt dreimal die
@@ -1939,7 +2038,7 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
       neuKg = Math.max(b.lo, Math.min(b.hi,
         Math.round((anteil * extraRealOf(ex)) / b.schritt) * b.schritt));
     }
-    if(neuKg != null && neuKg !== kg){ kg = neuKg; S.extra[key] = kg; }
+    if(neuKg != null && neuKg !== kg){ kg = neuKg; for(const k of seitenKeys(ex, side)) S.extra[k] = kg; }
   }
   const lastJetzt = lastVon(ex, level, kg);
   const tt = (f && imBereich(f, lastJetzt)) ? predictTime(f, lastJetzt) : target;
@@ -2055,7 +2154,47 @@ function planWorkout(){
 }
 
 /* ═══════════ Progressionsregeln (Handoff 4.3) ═══════════ */
-function applyRules(session){
+/* Der beidbeinige Halt ist EINE Messung auf ZWEI Leitern — also laufen die
+   Regeln auch zweimal, je Seite einmal. Dass daraus meistens dasselbe folgt,
+   ist der Normalfall und kein Grund, es zweimal hinzuschreiben: Nur wenn sich
+   die Folgen unterscheiden (etwa weil eine Seite schon weiter oben stand),
+   bekommt jede Seite ihre eigene Meldung. */
+const BEID_PLATZ = "\u0000";
+function regelnAnwenden(ses){
+  if(regelKeys(ses).length < 2) return applyRules(ses);
+  const seiten = S.ex[ses.exercise].sides;
+  const listen = seiten.map(seite => {
+    /* Der Schmerz gehoert der Seite, die ihn gemeldet hat: Wer beim
+       beidbeinigen Halt wegen links abbricht, darf nicht auch rechts
+       zurueckgestuft werden. Ohne Angabe zaehlt er fuer beide — das ist die
+       vorsichtigere Lesart und das bisherige Verhalten. */
+    const ps = (ses.sets[0] || {}).painSeite;
+    const zaehlt = !ps || ps === "beide" || ps === seite;
+    const kopie = Object.assign({}, ses, {side: seite,
+      sets: ses.sets.map((z, i) => (i === 0 && !zaehlt)
+                                 ? Object.assign({}, z, {pain:false}) : z)});
+    return applyRules(kopie, BEID_PLATZ);
+  });
+  const zeile = m => m.t + m.x;
+  const text = l => l.map(zeile).join("|");
+  const setzen = (l, name) => l.map(m => Object.assign({}, m,
+                                {x: m.x.split(BEID_PLATZ).join(name)}));
+  if(text(listen[0]) === text(listen[1]))
+    return setzen(listen[0], labelOf(ses.exercise, null, ses.level));
+  /* Getrennte Meldungen — aber nicht alle nennen ueberhaupt eine Kurve. Was auf
+     beiden Seiten wortgleich herauskommt, hat keinen Seitenbezug; zweimal
+     untereinander gestellt, laese es sich wie ein Fehler der App. */
+  const a = setzen(listen[0], labelOf(ses.exercise, seiten[0]));
+  const b = setzen(listen[1], labelOf(ses.exercise, seiten[1]));
+  const schon = new Set(a.map(zeile));
+  return a.concat(b.filter(m => !schon.has(zeile(m))));
+}
+/* etikett = wie diese Kurve in den Meldungen heisst. Normalerweise ihr eigener
+   Name; beim beidbeinigen Halt laeuft applyRules zweimal, einmal je Seite, und
+   regelnAnwenden entscheidet danach, ob EINE Meldung fuer beide reicht oder
+   zwei getrennte noetig sind. Bis dahin steht hier ein Platzhalter. */
+function applyRules(session, etikett){
+  etikett = etikett || labelOf(session.exercise, session.side, session.level);
   const msgs = [];
   const first = session.sets[0];
   const ex = S.ex[session.exercise];
@@ -2109,13 +2248,13 @@ function applyRules(session){
      sagen nichts ueber die Belastbarkeit dieser Seite — nur die Schmerzregel
      gilt weiter, die ist eine Sicherheitsregel. */
   if(session.fresh === false && !first.pain){
-    msgs.push({t:"ok", x:`${labelOf(session.exercise, session.side)}: ${fmt(first.time)} als zweite Seite — trainiert, nicht gewertet.`});
+    msgs.push({t:"ok", x:`${etikett}: ${fmt(first.time)} als zweite Seite — trainiert, nicht gewertet.`});
     return msgs;
   }
 
   if(first.pain){                                   /* Regel 1 */
     st.pain++; st.miss = 0; st.leer = 0;
-    msgs.push({t:"warn", x:`${labelOf(session.exercise, session.side)}: Satz bei Schmerz beendet. Neue Vorgabe ist ${fmt(first.time)} — nicht mehr.`});
+    msgs.push({t:"warn", x:`${etikett}: Satz bei Schmerz beendet. Neue Vorgabe ist ${fmt(first.time)} — nicht mehr.`});
     if(st.pain >= PAIN_BACK){
       const wie = erleichtern(); st.pain = 0;
       msgs.push({t:"bad", x: wie === "gewicht"
@@ -2205,7 +2344,7 @@ function applyRules(session){
     }
     const kgDelta = Math.round(Math.abs(kgNow() - vorherKg) * 10) / 10;
 
-    msgs.push({t:"warn", x:`${labelOf(session.exercise, session.side)}: `
+    msgs.push({t:"warn", x:`${etikett}: `
       + `${komma(first.time, 1)} s liegt ${zuLeicht ? "über" : "unter"} dem Messfenster `
       + `(${MESS_MIN}–${MESS_MAX} s). Diese Stufe ist zu ${zuLeicht ? "leicht" : "schwer"}, `
       + `um etwas zu messen — der Wert zählt nicht für die Kurve.`});
@@ -2260,10 +2399,10 @@ function applyRules(session){
          dann keine Verfehlung, sondern eine Schaetzung, die danebenlag — und
          genau so ein Messpunkt wie jeder andere. Kein Rueckstufen. */
       st.miss = 0;
-      msgs.push({t:"ok", x:`${labelOf(session.exercise, session.side)}: unter dem Richtwert — bei selbst gewählter Stufe kein Fehlschlag. Der Messpunkt zählt voll.`});
+      msgs.push({t:"ok", x:`${etikett}: unter dem Richtwert — bei selbst gewählter Stufe kein Fehlschlag. Der Messpunkt zählt voll.`});
     } else {
       st.miss++;
-      msgs.push({t:"warn", x:`${labelOf(session.exercise, session.side)}: deutlich unter der Vorgabe. Zählt trotzdem — auch schwache Sätze gehören in die Kurve.`});
+      msgs.push({t:"warn", x:`${etikett}: deutlich unter der Vorgabe. Zählt trotzdem — auch schwache Sätze gehören in die Kurve.`});
       if(st.miss >= MISS_BACK){
         const wie = erleichtern(); st.miss = 0;
         if(wie) msgs.push({t:"bad", x: wie === "gewicht"
@@ -2276,7 +2415,7 @@ function applyRules(session){
     }
   } else {
     st.pain = 0; st.miss = 0; st.leer = 0;
-    msgs.push({t:"ok", x:`${labelOf(session.exercise, session.side)}: Vorgabe getroffen.`});
+    msgs.push({t:"ok", x:`${etikett}: Vorgabe getroffen.`});
   }
 
   /* Regel 4 — schwerer, wenn die Stufe die Obergrenze von Zone C erreicht.
@@ -2289,11 +2428,11 @@ function applyRules(session){
     if(isFinite(t) && t > 150){
       const wie = erschweren();
       if(wie === "stufe")
-        msgs.push({t:"ok", x:`${labelOf(session.exercise, session.side)}: Diese Stufe trägt über 150 Sekunden → eine Stufe höher auf „${wieJetzt()}".`});
+        msgs.push({t:"ok", x:`${etikett}: Diese Stufe trägt über 150 Sekunden → eine Stufe höher auf „${wieJetzt()}".`});
       else if(wie === "gewicht")
-        msgs.push({t:"ok", x:`${labelOf(session.exercise, session.side)}: Die oberste Stufe trägt über 150 Sekunden → ${komma(schrittNow(),1)} kg dazu, jetzt „${wieJetzt()}".`});
+        msgs.push({t:"ok", x:`${etikett}: Die oberste Stufe trägt über 150 Sekunden → ${komma(schrittNow(),1)} kg dazu, jetzt „${wieJetzt()}".`});
       else
-        msgs.push({t:"warn", x:`${labelOf(session.exercise, session.side)}: Diese Position trägt über 150 Sekunden, und schwerer geht sie nicht. Als Kontrollposition ist sie weiter brauchbar — für die Kurve gibt sie nichts mehr her.`});
+        msgs.push({t:"warn", x:`${etikett}: Diese Position trägt über 150 Sekunden, und schwerer geht sie nicht. Als Kontrollposition ist sie weiter brauchbar — für die Kurve gibt sie nichts mehr her.`});
     }
   }
 
@@ -2590,7 +2729,7 @@ function seitenAbgleich(bloecke, bl){
 /* Die Satzzahl haengt am BLOCK, nicht global an der App: Zone A will fuenf
    Saetze, Zone C drei, und der Nutzer darf beides ueberstimmen. */
 function curSets(){ const b = curBlock(); return (b && b.saetze) || SETS; }
-function blockLabel(bl){ return labelOf(bl.exercise, bl.side); }
+function blockLabel(bl){ return labelOf(bl.exercise, bl.side, bl.level); }
 
 function startBlock(){
   const bl = curBlock();
@@ -2648,7 +2787,7 @@ function uebungsbild(key){
 function warnKarte(i, bl, ex){
   show("home");
   el("homeTitle").textContent = ex.warnung.titel;
-  el("homeSub").textContent = labelOf(bl.exercise, bl.side);
+  el("homeSub").textContent = labelOf(bl.exercise, bl.side, bl.level);
   el("homeBody").innerHTML = `
     <div class="card">
       <div class="note warn" style="margin-top:0"><b>${ex.warnung.frage}</b>
@@ -2786,10 +2925,10 @@ function blockIntro(i){
       ${partner ? `<label class="chk" for="ivSync" style="margin-top:9px">
         <input type="checkbox" id="ivSync" ${syncAn?"checked":""}>
         <span class="tiny"><b>Beide Seiten gleich.</b> ${syncAn
-          ? `Was du hier einstellst, gilt auch für ${labelOf(partner.exercise, partner.side)}.
+          ? `Was du hier einstellst, gilt auch für ${labelOf(partner.exercise, partner.side, partner.level)}.
              Die <i>Zielzeit</i> bleibt getrennt — sie kommt aus der Kurve der jeweiligen Seite,
              und die beiden Seiten sind selten gleich stark.`
-          : `Die Seiten sind entkoppelt: ${labelOf(partner.exercise, partner.side)} steht auf
+          : `Die Seiten sind entkoppelt: ${labelOf(partner.exercise, partner.side, partner.level)} steht auf
              „${stufenName(partner.exercise, partner.level, partner.extra)}". Das ist richtig,
              wenn eine Seite Beschwerden hat — sonst hak es wieder an.`}</span></label>` : ""}
 
@@ -3012,6 +3151,12 @@ function afterSet(time, tgt, roh){
   el("homeSub").textContent = blockLabel(curBlock());
 
   const abzug = (roh != null && roh > time) ? Math.round((roh - time)*10)/10 : 0;
+  /* Beim beidbeinigen Halt zaehlt der Satz fuer BEIDE Kurven — dann muss der
+     Schmerz eine Seite haben, sonst stuft eine Meldung aus dem linken Fuss
+     auch die rechte Leiter zurueck. Vorbelegt ist "beide": das ist die
+     vorsichtigere Antwort und das bisherige Verhalten. */
+  const beidFrage = beidBlock(curBlock());
+  let painSeite = "beide";
   const karte = left => `
     <div class="card">
       <div class="kpi" style="margin-bottom:${abzug>0?"8px":"14px"}">
@@ -3026,6 +3171,13 @@ function afterSet(time, tgt, roh){
         <span class="tiny">Nur ankreuzen, wenn der Schmerz der Grund war — nicht bei normaler
         Muskelermüdung.</span></span>
       </label>
+      ${beidFrage ? `<div id="psBox" style="display:none">
+        <p class="tiny" style="margin:8px 0 0 30px">Welche Seite?</p>
+        <div class="zw drei je ein">
+          ${["links","rechts","beide"].map(v =>
+            `<button data-ps="${v}"${v === "beide" ? ` class="sel"` : ``}>${v}</button>`).join("")}
+        </div>
+      </div>` : ""}
       ${left === null
         ? `<button class="primary" style="width:100%;margin-top:14px" id="weiterBtn">Weiter</button>`
         : `<div style="text-align:center;margin-top:16px">
@@ -3047,13 +3199,27 @@ function afterSet(time, tgt, roh){
     </div>`;
 
   const speichern = ()=>{
-    RUN.sets.push({time, target:tgt, pain: el("painChk").checked});
+    const satz = {time, target:tgt, pain: el("painChk").checked};
+    if(beidFrage && satz.pain) satz.painSeite = painSeite;
+    RUN.sets.push(satz);
     RUN.i++;
     laufSichern();
+  };
+  /* Muss nach JEDEM innerHTML laufen — die Karte wird an zwei Stellen
+     geschrieben, mit und ohne Pausenuhr. */
+  const psBinden = ()=>{
+    if(!beidFrage) return;
+    const box = el("psBox"), chk = el("painChk");
+    chk.onchange = ()=>{ box.style.display = chk.checked ? "block" : "none"; };
+    box.querySelectorAll("[data-ps]").forEach(b => b.onclick = ()=>{
+      painSeite = b.dataset.ps;
+      box.querySelectorAll("[data-ps]").forEach(x => x.classList.toggle("sel", x === b));
+    });
   };
 
   if(letzter){
     el("homeBody").innerHTML = karte(null);
+    psBinden();
     el("weiterBtn").onclick = ()=>{ speichern(); endBlock(); };
     /* Der eben gehaltene Satz zählt mit — erst sichern, dann beenden. */
     if(el("wkStop")) el("wkStop").onclick = ()=>{ speichern(); workoutBeenden(); };
@@ -3062,6 +3228,7 @@ function afterSet(time, tgt, roh){
 
   let left = PAUSE_S;
   el("homeBody").innerHTML = karte(left);
+  psBinden();
   let iv = null;
   if(el("wkStop")) el("wkStop").onclick = ()=>{
     clearInterval(iv); speichern(); workoutBeenden();
@@ -3227,12 +3394,13 @@ function finishWorkout(){
     for(const b of RUN.fertig){
       const ses = Object.assign({}, b, {date: jetzt, workout: wid, painEnd: sel});
       S.sessions.push(ses);
-      gespeichert.push({ses, msgs: applyRules(ses)});
+      gespeichert.push({ses, msgs: regelnAnwenden(ses)});
     }
     /* Schmerzwert 7+ stuft jede im Workout belastete Kurve eine Stufe zurueck. */
     if(sel >= 7) for(const {ses} of gespeichert){
-      const k = keyOf(ses.exercise, ses.side);
-      if((S.levels[k]||0) > 0) S.levels[k]--;
+      /* Beim beidbeinigen Halt beide Leitern — es war EINE Belastung fuer
+         beide Seiten. */
+      for(const k of regelKeys(ses)) if((S.levels[k]||0) > 0) S.levels[k]--;
     }
     S.plan = null; S.planDay = null; ignoreRest = false; RUN = null; S.lauf = null; save();
     showWorkoutResult(gespeichert, sel);
@@ -3252,7 +3420,7 @@ function showWorkoutResult(gespeichert, painEnd){
   el("homeBody").innerHTML = `
     ${gespeichert.map(({ses})=>`
       <div class="card">
-        <h3 style="margin-top:0">${labelOf(ses.exercise, ses.side)}
+        <h3 style="margin-top:0">${labelOf(ses.exercise, ses.side, ses.level)}
           ${ses.fresh === false ? '<span class="pill pRest">vorermüdet</span>' : ''}</h3>
         <p class="tiny" style="margin:0 0 8px">${ses.levelName} · Zone ${ses.zone}${
           ses.workoutZone && ses.workoutZone !== ses.zone
@@ -3429,7 +3597,10 @@ function messreihen(){
         workout: ses.workout || "",
         uebung: ses.exercise,
         uebung_name: e ? e.name : ses.exercise,
-        seite: ses.side || "",
+        /* Ein beidbeiniger Halt hat keine Seite und zaehlt trotzdem fuer beide.
+           Bliebe die Spalte leer, waere er im Export von echten Altdaten ohne
+           Seite nicht zu unterscheiden. */
+        seite: ses.side || (beidStufe(ses.exercise, ses.level) ? "beidbeinig" : ""),
         variante: ses.levelName || (e && e.levels[ses.level] ? e.levels[ses.level].name : ""),
         stufe_nr: (ses.level == null) ? "" : ses.level + 1,
         zusatz_kg: ses.extra || 0,
@@ -4259,20 +4430,35 @@ function renderSetup(){
       Kein Medizinprodukt. Keine Diagnose, keine Therapieempfehlung.</p>`;
 
   /* ── Nachtragen ─────────────────────────────────────────── */
+  /* Die Sprosse entscheidet ueber die Seite, nicht der Nutzer: Auf einer
+     beidbeinigen Sprosse gibt es keine zu waehlen, denn der Halt zaehlt
+     ohnehin fuer beide. Solange beide Felder frei standen, liessen sie sich
+     gegeneinander stellen — "100 % — einbeinig" und "beidbeinig" zugleich —,
+     und heraus kam eine Zeile, die keine Kurve haben kann. */
+  const nSeite = ()=>{
+    const ex = el("nEx").value, e = S.ex[ex];
+    if(!e.sides){
+      el("nSide").innerHTML = `<option value="">—</option>`;
+      el("nSide").disabled = true; return;
+    }
+    if(beidStufe(ex, +el("nLvl").value)){
+      el("nSide").innerHTML = `<option value="">beidbeinig — zählt für beide Seiten</option>`;
+      el("nSide").disabled = true; return;
+    }
+    const alt = el("nSide").value;
+    el("nSide").innerHTML = e.sides.map(x=>`<option value="${x}">${x}</option>`).join("");
+    if(e.sides.includes(alt)) el("nSide").value = alt;
+    el("nSide").disabled = false;
+  };
   const nFill = ()=>{
     const ex = el("nEx").value, e = S.ex[ex];
-    /* Eine beidbeinige Sprosse hat keine Seite. Sie muss trotzdem
-       nachtragbar sein, sonst faellt genau der Einstieg durchs Raster. */
-    el("nSide").innerHTML = e.sides
-      ? (hatBeidStufe(ex) ? `<option value="">beidbeinig</option>` : "")
-        + e.sides.map(x=>`<option value="${x}">${x}</option>`).join("")
-      : `<option value="">—</option>`;
-    el("nSide").disabled = !e.sides && !hatBeidStufe(ex);
     el("nLvl").innerHTML = e.levels.map((L,i)=>
       `<option value="${i}">${i+1}. ${L.name}</option>`).join("");
+    nSeite();
     el("nKg").disabled = false;
   };
   el("nEx").onchange = nFill;
+  el("nLvl").onchange = nSeite;
   nFill();
   el("nDate").value = new Date(Date.now() - new Date().getTimezoneOffset()*60000)
                         .toISOString().slice(0,10);
@@ -4303,7 +4489,7 @@ function renderSetup(){
     S.sessions.push(ses);
     S.sessions.sort((a,b)=> new Date(a.date) - new Date(b.date));
     S.plan = null; S.planDay = null; save();
-    hint.innerHTML = `Eingetragen: <b>${labelOf(ex, ses.side)}</b> · ${ses.levelName} ·
+    hint.innerHTML = `Eingetragen: <b>${labelOf(ex, ses.side, ses.level)}</b> · ${ses.levelName} ·
       ${zeiten.map(t=>fmt(t)).join(" · ")}${pre ? " · vorermüdet, nicht in der Kurve" : ""}.`;
     hint.style.color = "var(--ok)";
     ["nT1","nT2","nT3"].forEach(id => el(id).value = "");
@@ -4313,7 +4499,14 @@ function renderSetup(){
   /* ── Messreihen ─────────────────────────────────────────── */
   const stempel = new Date().toISOString().slice(0,10);
   const zeilen = messreihen();
-  const kurven = new Set(zeilen.filter(z=>z.in_kurve).map(z=>z.uebung + (z.seite?"|"+z.seite:"")));
+  /* "beidbeinig" ist keine Kurve, sondern eine Sprosse in beiden — sonst
+     zaehlte die App eine Kurve mit, die es gar nicht gibt. */
+  const kurven = new Set();
+  for(const z of zeilen.filter(z=>z.in_kurve)){
+    if(z.seite === "beidbeinig")
+      (S.ex[z.uebung].sides || []).forEach(x => kurven.add(z.uebung + "|" + x));
+    else kurven.add(z.uebung + (z.seite ? "|" + z.seite : ""));
+  }
   el("expInfo").innerHTML = zeilen.length
     ? `${anzahl(zeilen.length, "Zeile", "Zeilen")} · davon
        <b>${zeilen.filter(z=>z.in_kurve).length}</b> mit <code>in_kurve=1</code> aus
