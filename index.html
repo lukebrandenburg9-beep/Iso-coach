@@ -118,6 +118,10 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
   border-radius:0 10px 10px 0;font-size:13.5px;margin:12px 0}
 .note.warn{border-color:var(--warn)}
 .note.bad{border-color:var(--bad)}
+.zw{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:10px}
+.zw button{padding:9px 2px;font-size:13.5px;line-height:1.3}
+.zw button span{display:block;font-size:11px;color:inherit;opacity:.72}
+.zw button.sel{background:var(--acc);border-color:var(--acc);color:var(--accInk)}
 .scaleBtns{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
 .scaleBtns button{padding:12px 2px;font-size:15px;font-weight:600}
 .scaleBtns button.sel{background:var(--acc);border-color:var(--acc);color:var(--accInk)}
@@ -571,17 +575,29 @@ const DEFAULT_EX = {
      oder vorn oben steht, aendert seine seitliche Lage kaum, und wer das Knie
      ganz hochzieht, zieht es zur Mitte und verkuerzt den Hebel sogar. Dasselbe
      Muster wie die Fersenhoehe bei der Wade: die Kniehoehe wird
-     Ausfuehrungsvorschrift, nicht Lastachse. Die Kettlebell ist die Lastachse. */
+     Ausfuehrungsvorschrift, nicht Lastachse. Der Zug an der freien Huefte ist die
+     Lastachse — seit 19.09.2026 ein Band unter dem Standfuss statt einer Kettlebell
+     in der Hand. Grund: die Griffkraft soll nicht mitentscheiden, wann Schluss ist.
+     Warum das Band SENKRECHT ziehen muss und nicht waagerecht, steht in
+     scratchpad/laeufer-band.mjs: Ein waagerechter Zug auf Hueftenhoehe erzeugt um
+     die Standbeinhuefte fast kein Moment. Was er erzeugt, haengt daran, ob der
+     Nutzer den Rumpf ausweichen laesst (Hebel 0,92 m) oder den Standfuss zum Anker
+     rueckt (Hebel 0,00 m) — beides ist im Gleichgewicht, und die App sieht keines
+     von beiden. Ein senkrechter Zug verhaelt sich dagegen wie ein haengendes
+     Gewicht: fester Hebel, unabhaengig davon, wohin der Koerper als Ganzes
+     ausweicht. */
   laeufer: {
     name:"Aufrechter Läufer", region:"Hüfte", group:"abduct",
-    sides:["links","rechts"], extraAb:3, extraK:3.22,
-    extraHint:"In der Hand der freien Seite, am langen Arm hängend — nicht am Gürtel. "
-             +"Dort wirkt jedes Kilo mehr als dreifach, weil der Arm den Hebel verlängert.",
+    sides:["links","rechts"], extraAb:2, extraK:2.15,
+    extraHint:"Am Gürtel der freien Hüfte, wo auch das Band einhakt. "
+             +"Dort wirkt jedes Kilo gut zweifach.",
     hint:"»Links« heißt: das LINKE Bein steht, das rechte ist angehoben. Aufrecht stehen, "
         +"das freie Knie so weit hoch, dass der Oberschenkel waagerecht ist — und genau "
         +"dort halten. Die Hüften bleiben waagerecht: die freie Seite darf nicht absacken. "
         +"Der Oberkörper bleibt über der Mitte und wandert NICHT über das Standbein, sonst "
-        +"fällt die Last in sich zusammen. Blick geradeaus, ein Fixpunkt an der Wand hilft.",
+        +"fällt die Last in sich zusammen. Blick geradeaus, ein Fixpunkt an der Wand hilft. "
+        +"Das Band läuft unter dem Standfuß durch und hakt seitlich am Gürtel der FREIEN "
+        +"Hüfte ein — nicht in die Hand, nicht vor den Bauch. Beide Hände bleiben frei.",
     seitenHinweis:"Diese Hüfte hat eben noch das Becken waagerecht gehalten, während die "
                  +"andere Seite gearbeitet hat — sie war die ganze Zeit mit im Einsatz.",
     warnung:{
@@ -598,11 +614,16 @@ const DEFAULT_EX = {
            +"das Gelenk selbst, und Ausstrahlung aus dem Rücken auf einen Nerv. Beides lässt "
            +"sich nicht über eine App unterscheiden."
     },
+    /* Hebel der Bandsprossen: Guertelpunkt 0,21 m seitlich der Standbeinhuefte,
+       0,92 m ueber dem Boden, Band unter dem Standfuss — daraus 12,9 Grad
+       Schraeglage und ein wirksamer Hebel von 0,194 m (scratchpad/laeufer-band.mjs).
+       Der glatte Guertelhebel 0,21 waere 8,5 % zu hoch. */
     levels:[
       {name:"Gegengewicht 24 kg in der Hand der Standbeinseite", load:0.057, geraet:"gewicht"},
-      {name:"Frei, ohne Zusatzlast",                             load:0.090, geraet:"gewicht"},
-      {name:"16 kg in der Hand der freien Seite",                load:0.148, geraet:"gewicht"},
-      {name:"32 kg in der Hand der freien Seite",                load:0.206, geraet:"gewicht"}
+      {name:"Frei, ohne Zusatzlast",              load:0.090, geraet:["band","gewicht"]},
+      {name:"12 kg Bandzug am Gürtel der freien Hüfte", load:0.119, geraet:"band"},
+      {name:"26 kg Bandzug am Gürtel der freien Hüfte", load:0.153, geraet:"band"},
+      {name:"48 kg Bandzug am Gürtel der freien Hüfte", load:0.206, geraet:"band"}
     ]
   },
 
@@ -766,9 +787,17 @@ const GERAETE = [
    fuer:"Fersenbrücke, obere Stufe"},
   {id:"ringe", name:"Turnringe", was:"Frei hängende Ringe, in die der Fuß passt.",
    fuer:"Fersenbrücke, oberste Stufe"},
+  {id:"band", name:"Widerstandsband und Zugwaage", was:"Ein kräftiges Band — die oberste Stufe "
+   +"verlangt 48 kg Zug. Dazu eine Zugwaage (Kofferwaage, rund 10 Euro, bis 50 kg): Die Kraft "
+   +"eines Bandes hängt daran, wie weit es gedehnt ist, also muss sie einmal in der "
+   +"Trainingsstellung abgelesen und dann immer gleich eingestellt werden. Ohne die Waage ist "
+   +"der Zug keine Zahl, sondern ein Gefühl.",
+   fuer:"Aufrechter Läufer — Band unter dem Standfuß, seitlich am Gürtel der freien Hüfte"},
   {id:"gewicht", name:"Kettlebell, Hantel oder Scheiben", was:"Etwas Schweres, das du in einer "
-   +"Hand halten kannst. Zwei Stufen brauchen 16 und 32 kg, eine dritte 24 kg als Gegengewicht.",
-   fuer:"Aufrechter Läufer — ohne das entfällt die Übung ganz"},
+   +"Hand halten kannst. Nur noch die unterste Stufe braucht es: 24 kg als Gegengewicht in der "
+   +"Hand der Standbeinseite. Am Gürtel geht diese Stufe nicht — dort säße das Gewicht zu nah "
+   +"an der Mitte und bräuchte 88 kg für dieselbe Entlastung.",
+   fuer:"Aufrechter Läufer, unterste Stufe"},
   {id:"waage", name:"Personenwaage mit Zeiger (analog)", was:"Eine Waage, die du unter den "
    +"Vorfuß legen kannst. Sie ist hier kein Zubehör, sondern das Messgerät: die Zahl auf der "
    +"Anzeige IST die Stufe. Sie muss analog sein — eine Digitalwaage schaltet bei stehender "
@@ -794,12 +823,12 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-18 i";
+const BUILD = "2026-09-19 a";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
    Update alte Levels kleben. Sessions bleiben dabei immer erhalten. */
-const EX_VERSION = 10;
+const EX_VERSION = 11;
 /* Voreinstellung, bis der Nutzer sein Gewicht einträgt. Nur als Bezugsgroesse
    fuer Zusatzlast noetig — die Lastfaktoren selbst sind gewichtsunabhaengige
    Verhaeltniszahlen. */
@@ -809,6 +838,24 @@ const BW_DEFAULT = 80;
    die es nicht mehr gibt. Kommt bloss eine Uebung DAZU (6: Seitstuetz), bleiben
    Liegestuetz und Ausfallschritt stehen, wo sie waren. */
 const LEVELS_RESET_AT = 7;
+/* 2026-09-19: Beim aufrechten Laeufer sind die Handgewichte gegen Bandzug
+   getauscht, und dabei ist EINE Sprosse dazugekommen. Ein Leitersturz fuer
+   alle Uebungen waere dafuer zu grob — er wuerde auch Liegestuetz und Wade
+   auf null zuruecksetzen. Stattdessen zieht nur diese eine Leiter um. Ohne den
+   Umzug zeigte die gespeicherte Stufe auf eine LEICHTERE Sprosse als die
+   zuletzt gehaltene: alt 2 (0,148) liegt zwischen neu 2 (0,119) und neu 3
+   (0,153), und naeher an 3. Die gemessenen Punkte selbst sind nicht betroffen —
+   sie tragen ihre Last als Zahl, nicht als Sprossennummer. */
+const LAEUFER_BAND_AT = 11;
+const LAEUFER_UMZUG = {2:3, 3:4};
+function laeuferUmziehen(lv){
+  const out = {};
+  for(const k of Object.keys(lv || {})){
+    const trifft = (k === "laeufer" || k.indexOf("laeufer|") === 0);
+    out[k] = (trifft && LAEUFER_UMZUG[lv[k]] != null) ? LAEUFER_UMZUG[lv[k]] : lv[k];
+  }
+  return out;
+}
 let S = load();
 /* Muss nach load() laufen: sidesOf() braucht S.sessions. */
 (function(){ const sd = S.ex[S.exercise] ? sidesOf(S.exercise) : [null];
@@ -824,6 +871,8 @@ function fresh(){
        eigenem Stand. Vorher war das global — eine Schmerzserie am Knie stufte
        die Schulter mit zurueck. */
     levels:{}, streak:{}, lauf:null,
+    /* Von Hand gesetzte Zone, gilt nur fuer einen Tag: {tag, zone}. */
+    zoneWahl:null,
     /* Zusatzgewicht in kg, je Kurve gemerkt — wie die Stufe. */
     extra:{}, bw:BW_DEFAULT,
     /* Welche Uebungen gehoeren ueberhaupt ins Workout. Wer heute nur den
@@ -851,6 +900,7 @@ function normalize(d){
   if(!d || typeof d !== "object") return fresh();
   const stale = (d.exVersion || 1) < EX_VERSION;
   const leitersturz = (d.exVersion || 1) < LEVELS_RESET_AT;
+  const bandUmzug = !leitersturz && (d.exVersion || 1) < LAEUFER_BAND_AT;
   const ex = stale ? structuredClone(DEFAULT_EX)
                    : Object.assign(structuredClone(DEFAULT_EX), d.ex || {});
   return Object.assign(fresh(), d, {ex, exVersion:EX_VERSION,
@@ -869,7 +919,9 @@ function normalize(d){
                                     lauf: (d.lauf && d.lauf.plan) ? d.lauf : null,
                                     extra: leitersturz ? {} : (d.extra || {}),
                                     bw: (d.bw > 0 ? d.bw : BW_DEFAULT),
-                                    levels: leitersturz ? {} : (d.levels || {}),
+                                    levels: leitersturz ? {}
+                                          : bandUmzug ? laeuferUmziehen(d.levels)
+                                          : (d.levels || {}),
                                     streak: leitersturz ? {} : (d.streak || {}),
                                     reaction: (d.reaction == null ? REACTION_DEFAULT : d.reaction),
                                     plan:null, planDay:null});
@@ -1137,7 +1189,16 @@ function zoneCoverage(ex, side){
    temporalen Todeszone und haette das ganze Skript mit
    "Cannot access 'geraetDa' before initialization" abgebrochen - die App war dann
    beim Laden tot. Funktionsdeklarationen werden gehoben und haben das Problem nicht. */
-function geraetDa(g){ return !g || !!(S.geraete && S.geraete[g]); }
+/* Eine Sprosse kann mehrere Geraete NEBENEINANDER zulassen — die freie Sprosse
+   des Laeufers braucht weder Band noch Kettlebell, sie steht nur deshalb hinter
+   einem Haken, weil eine Leiter aus einer einzigen Sprosse nichts misst. Dann
+   reicht EINES der genannten. */
+function geraetDa(g){
+  if(!g) return true;
+  if(Array.isArray(g)) return g.some(x => !!(S.geraete && S.geraete[x]));
+  return !!(S.geraete && S.geraete[g]);
+}
+const geraetId = g => Array.isArray(g) ? g[0] : g;
 /* Auf "hier fehlt ein Zwischenschritt" kann die App eine genaue Antwort geben,
    statt auf ein Geraet zu tippen: Sie sieht nach, welche Sprossen zwischen der
    alten und der neuen Stufe liegen und an welchem fehlenden Geraet sie haengen. */
@@ -1146,8 +1207,10 @@ function fehlendeZwischen(ex, von, bis){
   const lo = Math.min(von, bis), hi = Math.max(von, bis);
   const z = {};
   lv.forEach((L, i) => {
-    if(i > lo && i < hi && L.geraet && !geraetDa(L.geraet))
-      z[L.geraet] = (z[L.geraet] || 0) + 1;
+    if(i > lo && i < hi && L.geraet && !geraetDa(L.geraet)){
+      const id = geraetId(L.geraet);
+      z[id] = (z[id] || 0) + 1;
+    }
   });
   return z;
 }
@@ -1230,6 +1293,35 @@ function dayNum(d){
 }
 const today = () => dayNum(new Date());
 const restOf = id => (S.rest && S.rest[id] != null) ? S.rest[id] : DEFAULT_REST[id];
+/* Welche Zone hat der Nutzer fuer HEUTE von Hand gesetzt? Die Rotation bleibt
+   der Normalfall — sie waehlt die Zone, die am laengsten zurueckliegt, und das
+   ist fast immer richtig. Sie hat nur keinen Weg zurueck, wenn ein Workout
+   schiefgeht: Wer eine Uebung abbricht und es nochmal in DERSELBEN Zone
+   versuchen will, bekam bisher beim naechsten Start eine andere. Die Wahl gilt
+   nur fuer den Tag und wird bewusst nicht gemerkt. */
+function zoneWahlHeute(){
+  const w = S.zoneWahl;
+  return (w && w.tag === today() && ZONES.some(z => z.id === w.zone)) ? w.zone : null;
+}
+/* Drei Zonen und die Rotation, als Zeile. Steht auf der Workoutkarte und auf
+   dem Pausentag — dort wird sie gebraucht, weil dort der Weg zurueck fehlte. */
+function zonenWahlKarte(){
+  const w = zoneWahlHeute();
+  return `<div class="zw">
+    ${ZONES.map(z => `<button class="${w===z.id?"sel":"ghost"}" data-zw="${z.id}">Zone ${z.id}
+      <span>${z.lo}–${z.hi} s</span></button>`).join("")}
+    <button class="${w?"ghost":"sel"}" data-zw="">Rotation<span>entscheidet</span></button>
+  </div>`;
+}
+function zonenWahlBinden(){
+  document.querySelectorAll("[data-zw]").forEach(b => {
+    b.onclick = () => {
+      const v = b.getAttribute("data-zw");
+      S.zoneWahl = v ? {tag: today(), zone: v} : null;
+      S.plan = null; S.planDay = null; save(); render();
+    };
+  });
+}
 
 /* ═══════════ Erholung, je MUSKELGRUPPE ═══════════
    Zwischenzeitlich lief das auf Workout-Ebene: ein Workout enthielt ohnehin
@@ -1244,16 +1336,34 @@ function groupOf(key){
   const e = S.ex && S.ex[key];
   return (e && e.group) ? e.group : key;
 }
+/* Hat diese Einheit ueberhaupt etwas hinterlassen?
+   Ein Halt unter MESS_MIN geht nicht in die Kurve — points() wirft ihn raus und
+   Regel 2a stuft die Sprosse neu. Trotzdem verbrauchte er bisher die Zone und
+   den Trainingstag: blockSichern() speichert jeden Block mit mindestens einem
+   Satz, und zoneLastDay() las ihn. Genau darin hing Luke am 18.09.2026 fest —
+   Uebung nach zwoelf Sekunden abgebrochen, und dieselbe Zone war eine Woche zu.
+   Seit 19.09.2026 zaehlt eine Einheit ohne einen einzigen messbaren Satz weder
+   fuer die Zone noch fuer den Tag noch fuer die Einstiegsphase. Sie bleibt in
+   der Historie und im Export stehen — sie ist passiert, sie hat nur nichts
+   gemessen.
+   EINE Ausnahme: ein Schmerzabbruch zaehlt immer, auch nach acht Sekunden. Wer
+   wegen Schmerz aufhoert, hat kein Nicht-Ereignis hinter sich, und ein zweiter
+   Anlauf am selben Tag ist das Letzte, was die App dann freigeben sollte. */
+function ergiebig(ses){
+  const st = (ses && ses.sets) || [];
+  return st.some(s => s && (s.pain || messbar(s.time)));
+}
 /* Wie viele Workouts sind bisher gelaufen? */
 function workoutCount(){
   const ids = new Set();
-  for(const ses of S.sessions) if(ses.workout) ids.add(ses.workout);
+  for(const ses of S.sessions) if(ses.workout && ergiebig(ses)) ids.add(ses.workout);
   return ids.size;
 }
 function lastWorkoutDay(gr){
   let best = null;
   for(const ses of S.sessions){
     if(gr && groupOf(ses.exercise) !== gr) continue;
+    if(!ergiebig(ses)) continue;
     const d = dayNum(ses.date);
     if(d != null && (best === null || d > best)) best = d;
   }
@@ -1263,7 +1373,7 @@ function lastWorkoutDay(gr){
 function groupWorkoutCount(gr){
   const ids = new Set();
   for(const ses of S.sessions)
-    if(ses.workout && (!gr || groupOf(ses.exercise) === gr)) ids.add(ses.workout);
+    if(ses.workout && ergiebig(ses) && (!gr || groupOf(ses.exercise) === gr)) ids.add(ses.workout);
   return ids.size;
 }
 /* Letzter Tag je Zone — nach der ZIELZONE des Workouts, nicht nach der
@@ -1273,6 +1383,7 @@ function zoneLastDay(gr){
   const last = {A:null, B:null, C:null};
   for(const ses of S.sessions){
     if(gr && groupOf(ses.exercise) !== gr) continue;
+    if(!ergiebig(ses)) continue;
     const z = ses.workoutZone || ses.zone;
     if(!z || last[z] === undefined) continue;
     const d = dayNum(ses.date);
@@ -1294,10 +1405,15 @@ function gateGroup(gr){
     return {ok:false, kind:"day", wait: gap - (t - la), lastDay: la, onboarding, group:gr};
   if(onboarding) return {ok:true, onboarding, group:gr};
   const age = zoneAge(gr);
-  const waits = ZONES.map(z => Math.max(0, restOf(z.id) - age[z.id]));
+  /* Hat der Nutzer eine Zone gesetzt, wird auch NUR die geprueft. Sonst waere
+     die Wahl keine: Die Rotation haette weiter eine andere Zone freigegeben,
+     und das Tor haette gemeldet, es sei alles in Ordnung. */
+  const gewaehlt = zoneWahlHeute();
+  const kand = gewaehlt ? ZONES.filter(z => z.id === gewaehlt) : ZONES;
+  const waits = kand.map(z => Math.max(0, restOf(z.id) - age[z.id]));
   const wait = Math.min(...waits);
-  if(wait > 0) return {ok:false, kind:"zone", wait, age, group:gr};
-  return {ok:true, group:gr};
+  if(wait > 0) return {ok:false, kind:"zone", wait, age, group:gr, gewaehlt};
+  return {ok:true, group:gr, gewaehlt};
 }
 /* Eine Zeile je Uebung: angehakt? Gruppe frei? Warum nicht? */
 /* Eine Uebung, von der keine einzige Sprosse ausfuehrbar ist, hat im Workout
@@ -1485,14 +1601,17 @@ function stufeZuLast(ex, ziel, kg){
   return k;
 }
 
-function mkBlock(ex, side, zone, target, fresh, workoutOnb){
+function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
   /* Laeuft das Workout selbst noch im Onboarding, gibt es die Zone vor — dann
      ziehen alle Bloecke am selben Strang.
      Danach gilt: Die Rotation bleibt der Normalfall. Abgewichen wird nur, wenn
      sie eine Zone anfordert, die diese Kurve SCHON hat, waehrend eine andere
      noch leer ist — dann waere die Messung verschenkt. Eine neue Uebung trifft
      das in jedem Workout, bis ihre drei Zonen stehen; eine eingefahrene nie. */
-  const fehlt = workoutOnb ? [] : fehlendeZonen(ex, side);
+  /* fest = der Nutzer hat die Zone selbst gesetzt. Dann darf die Lueckenlogik
+     sie nicht wieder wegdrehen — sonst stuende auf der Karte eine Zone, die er
+     nicht gewaehlt hat, und die App haette ihm widersprochen, ohne es zu sagen. */
+  const fehlt = (workoutOnb || fest) ? [] : fehlendeZonen(ex, side);
   const luecke = (fehlt.length && zoneCoverage(ex, side)[zone] > 0) ? fehlt[0] : null;
   if(luecke){ zone = luecke.z; target = luecke.t; }
   const f   = fit(points(ex, side));
@@ -1549,6 +1668,12 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb){
 /* Welche Zone fordert diese Muskelgruppe heute an? Je Gruppe, weil auch die
    Erholung je Gruppe gezaehlt wird. */
 function zoneFuer(gr){
+  const w = zoneWahlHeute();
+  if(w){
+    const z = ZONES.find(x => x.id === w);
+    return {zone:z.id, target: Math.round((z.lo + z.hi)/2), onboarding:false, fest:true,
+      why:`Zone ${z.id} (${z.lo}–${z.hi} s) hast du für heute selbst gesetzt.`};
+  }
   const n = groupWorkoutCount(gr);
   if(n < 3){
     const o = ONB_ORDER[n];
@@ -1608,17 +1733,17 @@ function planWorkout(){
        Sprosse aus der Kurve kennt — landet er doch einbeinig, gilt wieder
        der Normalfall mit zwei Bloecken. */
     if(beidJetzt(u.ex)){
-      const b = mkBlock(u.ex, null, zf.zone, zf.target, true, zf.onboarding);
+      const b = mkBlock(u.ex, null, zf.zone, zf.target, true, zf.onboarding, zf.fest);
       if(beidStufe(u.ex, b.level)){ A.push(b); continue; }
     }
     const erste  = startSeite(u.ex);
     const zweite = S.ex[u.ex].sides.find(x => x !== erste);
-    A.push(mkBlock(u.ex, erste,  zf.zone, zf.target, true,  zf.onboarding));
-    B.push(mkBlock(u.ex, zweite, zf.zone, zf.target, false, zf.onboarding));
+    A.push(mkBlock(u.ex, erste,  zf.zone, zf.target, true,  zf.onboarding, zf.fest));
+    B.push(mkBlock(u.ex, zweite, zf.zone, zf.target, false, zf.onboarding, zf.fest));
   }
   for(const u of ein){
     const zf = zoneFuer(u.group);
-    A.push(mkBlock(u.ex, null, zf.zone, zf.target, true, zf.onboarding));
+    A.push(mkBlock(u.ex, null, zf.zone, zf.target, true, zf.onboarding, zf.fest));
   }
   const blocks = A.concat(B);
   const zonen  = [...new Set(blocks.map(b => b.zone))];
@@ -2962,7 +3087,7 @@ function messreihenJSON(){
       zusatzgewicht_ab_stufe: (v.extraAb != null ? v.extraAb : v.levels.length - 1) + 1,
       art: leiterArt(k),
       stufen: v.levels.map((L,i)=>({nr:i+1, name:L.name, last:L.load,
-        geraet: L.geraet || null, verfuegbar: geraetDa(L.geraet)}))
+        geraet: geraetId(L.geraet) || null, verfuegbar: geraetDa(L.geraet)}))
     })),
     messungen: messreihen()
   }, null, 2);
@@ -3157,6 +3282,10 @@ function renderHome(){
               : `Das letzte Workout war vor ${today()-g.lastDay} Tag${today()-g.lastDay===1?"":"en"}.
                  Trainiert wird <b>dreimal pro Woche</b>, also frühestens mit ${MIN_GAP_DAYS} Tagen
                  Abstand.`)
+          : g.gewaehlt
+          ? `Du hast <b>Zone ${g.gewaehlt}</b> gesetzt. Die ist noch in der Pause — eine andere
+             wäre heute frei. Wähl unten eine andere Zone, lass die Rotation entscheiden,
+             oder geh die Sperre bewusst über.`
           : `Jedes Energiesystem kommt <b>einmal pro Woche</b> dran. Drei Zonen, drei Workouts je
              Woche — heute ist keine davon so weit.`}</p>
         <table style="margin-top:12px"><tbody>${ZONES.map(zz=>{
@@ -3167,6 +3296,7 @@ function renderHome(){
               ? `<span style="color:var(--ok)">frei</span>`
               : `<span style="color:var(--tx3)">noch ${r-a} Tag${r-a===1?"":"e"}</span>`}</td></tr>`;
         }).join("")}</tbody></table>
+        ${zonenWahlKarte()}
         <p class="tiny" style="margin-top:10px">Die Wartezeiten stehen unter
         <b>Mehr → Erholung</b> und sind änderbar. Es sind grobe Richtwerte.</p>
       </div>
@@ -3179,6 +3309,7 @@ function renderHome(){
       ${auswahlKarte()}`;
     el("ignoreBtn").onclick = ()=>{ ignoreRest = true; render(); };
     auswahlBinden();
+    zonenWahlBinden();
     return;
   }
 
@@ -3214,6 +3345,7 @@ function renderHome(){
           font-family:var(--mono)"> · rund ${planDauer(p.blocks)} min</span>` : ""}</h2>
       <p class="muted" style="margin:0">${p.blocks.map(blockLabel).join("  →  ")}</p>
       <p class="tiny" style="margin-top:11px">${p.why}</p>
+      ${zonenWahlKarte()}
       ${(p.paar && p.paar.length) ? `<p class="tiny"><b>Heute nicht dabei:</b> ${
         p.paar.map(o => S.ex[o.ex].name).join(", ")}. Dieselbe Muskulatur trägt heute schon in
         einem anderen Block — »${[...new Set(p.paar.map(o => S.ex[o.wegen].name))].join("«, »")}«.
@@ -3267,6 +3399,7 @@ function renderHome(){
         }).join("")}</tbody></table></div>` : ""; })()}`;
 
   auswahlBinden();
+  zonenWahlBinden();
   if(el("goSess")) el("goSess").onclick = ()=>{ beep(660,60,.05); startWorkout(); };
 }
 
