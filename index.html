@@ -849,7 +849,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-19 d";
+const BUILD = "2026-09-19 e";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
@@ -976,6 +976,18 @@ function normalize(d){
   const umzug  = (freiUmzug && !leitersturz)
                ? laeuferFrei(lvRoh, exRoh, bwAlt, d.sessions)
                : {levels: lvRoh, extra: exRoh};
+  /* Den Haken "band" gibt es erst seit dem 19.09. Wer vorher "Kettlebell"
+     angehakt hatte, hat damit gesagt: Bei dieser Uebung kann ich Gewicht
+     anhaengen. Der Guertel ist nur der neue Aufhaengepunkt fuer dasselbe
+     Gewicht, kein zweiter Wunsch — EINE Anforderung in ZWEI Haken zu zerlegen
+     und den alten dann verfallen zu lassen, ist der Fehler der Umstellung und
+     nicht die Entscheidung des Nutzers. Die Folge war still und darum schlimm:
+     extraBereich faellt auf null, und mit ihm verschwinden Seitenwahl und
+     Gewichtsfeld von der Karte, ohne dass irgendwo steht, warum.
+     Nur wenn ueber "band" noch NIE entschieden wurde — ein abgewaehltes Band
+     bleibt abgewaehlt, denn der Haken schreibt false, nicht undefined. */
+  const ger = Object.assign({zug:true}, d.geraete || {});
+  if(ger.band === undefined && ger.gewicht) ger.band = true;
   return Object.assign(fresh(), d, {ex, exVersion:EX_VERSION,
                                     rest: stale ? {...DEFAULT_REST}
                                                 : Object.assign({...DEFAULT_REST}, d.rest||{}),
@@ -984,7 +996,7 @@ function normalize(d){
                                     /* Zugpunkt ist voreingestellt an — eine stabile
                                        Tischkante reicht und hat praktisch jeder. Rolle und
                                        Ringe muessen ausdruecklich angehakt werden. */
-                                    geraete: Object.assign({zug:true}, d.geraete || {}),
+                                    geraete: ger,
                                     maxBloecke: (d.maxBloecke > 0 ? d.maxBloecke : MAX_BLOECKE),
                                     heute: d.heute || null, heuteTag: d.heuteTag || null,
                                     gefragt: d.gefragt || {},
@@ -1752,6 +1764,15 @@ function extraBereich(ex){
   if(!da) return {lo:0, hi:0, schritt};
   return {lo: (e.extraMin != null ? e.extraMin : 0),
           hi: (e.extraMax != null ? e.extraMax : 60), schritt};
+}
+/* Welches Geraet fehlt, damit die Uebung ueberhaupt Gewicht anbieten kann.
+   Gebraucht wird das fuer die Karte: Eine Uebung mit EINER Sprosse und ohne
+   Gewichtsspanne hat nichts einzustellen — und eine Karte, auf der nichts zu
+   bedienen ist und nichts erklaert, warum, ist eine Sackgasse. */
+function extraFehltGeraet(ex){
+  const g = (S.ex[ex] || {}).extraGeraet;
+  if(!g) return [];
+  return (Array.isArray(g) ? g : [g]).filter(x => !(S.geraete && S.geraete[x]));
 }
 /* Was sich zu Hause wirklich umhaengen laesst — nicht das Feldmaximum. */
 function extraRealOf(ex){
@@ -2677,6 +2698,11 @@ function blockIntro(i){
   const kgNow     = zwei ? Math.abs(bl.extra || 0) : (bl.extra || 0);
   const kgLo      = zwei ? 0 : eb.lo;
   const kgHi      = zwei ? (vz < 0 ? -eb.lo : eb.hi) : eb.hi;
+  /* Eine Sprosse und keine Gewichtsspanne: Auf dieser Karte gibt es dann weder
+     Variante noch Seitenwahl noch Feld. Das darf nicht stumm passieren. */
+  const fehltGer  = extraFehltGeraet(bl.exercise);
+  const nixZuTun  = stufen.length < 2
+                 && !(bl.level >= extraAbOf(bl.exercise) && eb.hi > eb.lo);
   const versteckt = ex.levels.length - stufen.length;
   const partner   = partnerVon(bloecke, bl);
   const syncAn    = !!partner && S.sync[bl.exercise] !== false;
@@ -2742,6 +2768,10 @@ function blockIntro(i){
           ? ` Wirksame Last <b>${komma(lastVon(bl.exercise, bl.level, bl.extra), 2)}</b>
               statt ${komma(ex.levels[bl.level].load, 2)} — gerechnet auf ${S.bw} kg
               Körpergewicht (<b>Mehr → Messung</b>).` : ""}</p>` : ""}
+
+      ${(nixZuTun && fehltGer.length) ? `<p class="tiny" style="margin-top:12px">Nichts
+        einzustellen: ${ex.extraLabel || "Zusatzgewicht"} braucht ${
+        fehltGer.map(geraetName).join(" und ")} — unter „Mehr → Geräte" anhaken.</p>` : ""}
 
       ${partner ? `<label class="chk" for="ivSync" style="margin-top:9px">
         <input type="checkbox" id="ivSync" ${syncAn?"checked":""}>
