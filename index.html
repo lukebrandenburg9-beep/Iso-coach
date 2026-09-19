@@ -126,6 +126,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .zw.je.ein{margin:-3px 0 9px 30px}
 .zw.je button{padding:6px 2px;font-size:12.5px}
 .zw.je button span{font-size:10.5px}
+.zw.drei{grid-template-columns:repeat(3,1fr)}
 .scaleBtns{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
 .scaleBtns button{padding:12px 2px;font-size:15px;font-weight:600}
 .scaleBtns button.sel{background:var(--acc);border-color:var(--acc);color:var(--accInk)}
@@ -617,9 +618,10 @@ const DEFAULT_EX = {
     extraGeraet:["band","gewicht"],
     extraLabel:"Gewicht am Gürtel",
     extraSeiten:{plus:"am Gürtel der freien Seite",
-                 minus:"am Gürtel der Standbeinseite"},
+                 minus:"am Gürtel der Standbeinseite",
+                 plusKurz:"Freie Seite", minusKurz:"Standbeinseite"},
     extraHint:"Das Gewicht hängt am Gürtel seitlich an der Hüfte, rund 22 cm neben der "
-             +"Körpermitte. Minus heißt: auf der Standbeinseite — das entlastet.",
+             +"Körpermitte.",
     hint:"»Links« heißt: das LINKE Bein steht, das rechte ist angehoben. Aufrecht stehen, "
         +"das freie Knie so weit hoch, dass der Oberschenkel waagerecht ist — und genau "
         +"dort halten. Die Hüften bleiben waagerecht: die freie Seite darf nicht absacken. "
@@ -847,12 +849,12 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-19 c";
+const BUILD = "2026-09-19 d";
 const KEY = "isocoach.v1";
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
    Update alte Levels kleben. Sessions bleiben dabei immer erhalten. */
-const EX_VERSION = 12;
+const EX_VERSION = 13;
 /* Voreinstellung, bis der Nutzer sein Gewicht einträgt. Nur als Bezugsgroesse
    fuer Zusatzlast noetig — die Lastfaktoren selbst sind gewichtsunabhaengige
    Verhaeltniszahlen. */
@@ -1675,6 +1677,22 @@ const MAX_ZUSATZ_ANTEIL = 0.5;
    (extraK = 2). Dasselbe Kilo am Brustkorb waere fast wirkungslos; deshalb
    steht der Ort in der Bedienung und nicht nur im Kleingedruckten. */
 const extraOf = key => (S.extra && S.extra[key]) || 0;
+/* Geht das Gewicht in BEIDE Richtungen, war die Bedienung bisher ein
+   vorzeichenbehaftetes Zahlenfeld: -10 kg hiess "am Guertel der Standbeinseite".
+   Das liest niemand so. Stattdessen drei Knoepfe fuer die Seite und darunter der
+   Betrag — dieselbe Zahl, nur in zwei Fragen zerlegt, die man beantworten kann.
+   Das Vorzeichen bleibt intern die Wahrheit: die ganze Rechnung (extraK nach
+   aussen, extraKNeg nach innen) haengt daran, und der Verlauf auch. */
+function seitenWahl(ex){
+  const e = S.ex[ex] || {}, st = e.extraSeiten || {};
+  return [{v:-1, titel: st.minusKurz || "Gegenseite",   unter:"leichter"},
+          {v: 0, titel: "Ohne Gewicht",                 unter:"Körpergewicht"},
+          {v:+1, titel: st.plusKurz  || "Gleiche Seite", unter:"schwerer"}];
+}
+/* Wer kurz auf "Ohne Gewicht" geht, will beim Zurueckschalten nicht wieder von
+   null hochtippen. Nur fuer diese Sitzung gemerkt, nicht gespeichert: eine
+   Bequemlichkeit, kein Zustand, der eine Migration wert waere. */
+const letzteLast = {};
 /* Hat der Nutzer das Gewicht HEUTE selbst eingestellt?
    Bei einer Leiter aus einer Sprosse rechnet der Planer das Gewicht aus der
    Zielzone (siehe mkBlock). Das ist richtig, solange niemand widerspricht —
@@ -2652,6 +2670,13 @@ function blockIntro(i){
   const zz = (tp && isFinite(tp)) ? zoneOf(tp) : null;
   const stufen    = verfuegbareStufen(bl.exercise);
   const eb        = extraBereich(bl.exercise);
+  /* Zwei Richtungen: die Seite kommt in die Knoepfe, das Feld traegt nur noch
+     den Betrag. Betrag null IST "Ohne Gewicht" — dann gibt es auch kein Feld. */
+  const zwei      = !!(ex.extraSeiten && eb.lo < 0 && eb.hi > 0);
+  const vz        = (bl.extra || 0) < 0 ? -1 : 1;
+  const kgNow     = zwei ? Math.abs(bl.extra || 0) : (bl.extra || 0);
+  const kgLo      = zwei ? 0 : eb.lo;
+  const kgHi      = zwei ? (vz < 0 ? -eb.lo : eb.hi) : eb.hi;
   const versteckt = ex.levels.length - stufen.length;
   const partner   = partnerVon(bloecke, bl);
   const syncAn    = !!partner && S.sync[bl.exercise] !== false;
@@ -2691,16 +2716,25 @@ function blockIntro(i){
       </div>`}
 
       ${bl.level >= extraAbOf(bl.exercise) && eb.hi > eb.lo ? `
+        ${!zwei ? "" : `
+        <label class="tiny" style="display:block;margin:14px 0 4px">${
+          ex.extraLabel || "Zusatzgewicht"} — du entscheidest</label>
+        <div class="zw drei" id="sw-${keyOf(bl.exercise, bl.side)}">${
+          seitenWahl(bl.exercise).map(o => `<button class="${
+            Math.sign(bl.extra||0) === o.v ? "sel" : "ghost"}" data-sw="${o.v}">${
+            o.titel}<span>${o.unter}</span></button>`).join("")}</div>`}
+        ${(zwei && !bl.extra) ? "" : `
         <div class="row" style="gap:7px;align-items:center;margin-top:8px">
-          <label class="tiny" for="ivKg" style="flex:1;margin:0">${ex.extraLabel || "Zusatzgewicht"}</label>
+          <label class="tiny" for="ivKg" style="flex:1;margin:0">${zwei ? "Wie viel"
+            : (ex.extraLabel || "Zusatzgewicht")}</label>
           <button class="ghost" id="ivKgMinus" style="flex:0 0 52px;font-size:22px;padding:0"
-            ${(bl.extra||0)<=eb.lo?"disabled":""} aria-label="weniger Gewicht">−</button>
-          <input type="number" id="ivKg" value="${bl.extra||0}" min="${eb.lo}" max="${eb.hi}"
+            ${kgNow<=kgLo?"disabled":""} aria-label="weniger Gewicht">−</button>
+          <input type="number" id="ivKg" value="${kgNow}" min="${kgLo}" max="${kgHi}"
             step="${eb.schritt}" inputmode="decimal" style="width:76px;text-align:center">
           <button class="ghost" id="ivKgPlus" style="flex:0 0 52px;font-size:22px;padding:0"
-            ${(bl.extra||0)>=eb.hi?"disabled":""} aria-label="mehr Gewicht">+</button>
+            ${kgNow>=kgHi?"disabled":""} aria-label="mehr Gewicht">+</button>
           <span class="tiny" style="flex:0 0 22px">kg</span>
-        </div>
+        </div>`}
         <p class="tiny" style="margin-top:5px">${ex.extraSeiten && bl.extra
           ? `<b>${stufenName(bl.exercise, bl.level, bl.extra)}</b>. ` : ""}${ex.extraHint || ""}${
           (stufen.length < 2 && extraSelbstGesetzt(keyOf(bl.exercise, bl.side)))
@@ -2815,11 +2849,29 @@ function blockIntro(i){
     el("ivMinus").onclick  = ()=> { stufeSetzen(bl, nachbar(-1)); neu(); };
     el("ivPlus").onclick   = ()=> { stufeSetzen(bl, nachbar(+1)); neu(); };
   }
+  /* Die drei Knoepfe setzen nur die Seite. Der Betrag bleibt, was er war —
+     wer von "freie Seite" auf "Standbeinseite" wechselt, haengt dieselbe
+     Kettlebell um und tippt sie nicht neu ein. */
+  document.querySelectorAll("[data-sw]").forEach(b => {
+    b.onclick = () => {
+      const key = keyOf(bl.exercise, bl.side);
+      const betrag = Math.abs(bl.extra || 0);
+      if(betrag) letzteLast[key] = betrag;
+      gewichtSetzen(bl, (+b.getAttribute("data-sw"))
+        * (betrag || letzteLast[key] || extraBereich(bl.exercise).schritt));
+      neu();
+    };
+  });
   if(el("ivKg")){
-    el("ivKg").onchange     = e => { gewichtSetzen(bl, e.target.value); neu(); };
-    const kgS = extraBereich(bl.exercise).schritt;
-    el("ivKgMinus").onclick = ()=> { gewichtSetzen(bl, (bl.extra||0) - kgS); neu(); };
-    el("ivKgPlus").onclick  = ()=> { gewichtSetzen(bl, (bl.extra||0) + kgS); neu(); };
+    const kgS  = extraBereich(bl.exercise).schritt;
+    const setz = betrag => {
+      gewichtSetzen(bl, zwei ? vz * Math.max(0, betrag) : betrag);
+      neu();
+    };
+    el("ivKg").onchange     = e => setz(zwei ? Math.abs(+e.target.value || 0)
+                                             : e.target.value);
+    el("ivKgMinus").onclick = ()=> setz(kgNow - kgS);
+    el("ivKgPlus").onclick  = ()=> setz(kgNow + kgS);
   }
   const setzeSaetze = n => {
     bl.saetze = Math.max(SETS_MIN, Math.min(SETS_MAX, n));
