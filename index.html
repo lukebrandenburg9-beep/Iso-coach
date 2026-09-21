@@ -450,18 +450,46 @@ const DEFAULT_EX = {
     name:"Ausfallschritt", region:"Knie", group:"legs", sides:["links","rechts"],
     extraAb:5, extraK:1,
     extraHint:"Rucksack oder Weste, körpernah getragen.",
-    hint:"Vorderes Knie über dem Mittelfuß, Rumpf aufrecht. Das hintere Knie senkt sich bis zum "
-        +"genannten Gegenstand — der macht die Tiefe wiederholbar. Keine Handstütze; ein "
-        +"Fingerkontakt an der Wand fürs Gleichgewicht ist in Ordnung. Zwischen zwei Stufen "
-        +"stellst du am feinsten über einen Rucksack nach.",
+    hint:"Zwei Stellungen in einer Leiter — die Sprosse sagt, welche. STEHEND AN DER WAND: "
+        +"vorderer Fuß mit den Zehen an die Wand, hinterer Fuß im angegebenen Abstand dahinter, "
+        +"in eigenen Fußlängen von der Wand weg abgezählt; absenken, bis die Kniescheibe des "
+        +"vorderen Beins die Wand fast berührt, hinteres Bein gestreckt, Ferse hoch. "
+        +"KNIESTAND: aufgebrochener Kniestand, vorderes Knie rechtwinklig, Rumpf aufrecht, das "
+        +"hintere Knie senkt sich bis knapp über die genannte Höhe und berührt sie nicht. "
+        +"Beides Mal: keine Handstütze; ein Fingerkontakt an der Wand fürs Gleichgewicht ist in "
+        +"Ordnung. Zwischen zwei Sprossen stellst du am feinsten über einen Rucksack nach.",
+    /* 21.09.2026: Leiter neu gebaut. Sie traegt jetzt ZWEI Stellungen, weil Lukes
+       Messpunkte in der einen liegen und seine neue Sprosse in der anderen.
+       Frueher stufte die Tiefe ueber eine Ablage unter dem hinteren Knie; Luke hat
+       "bis Stuhlsitz" und "bis Hocker" verworfen — sie verlangen einen Unterschenkel,
+       den kaum jemand hat. Die uebrigen Ablagen sind durch seinen Stepper ersetzt
+       (drei Hoehen: 3 Stufen = 20 cm, 2 = 15 cm, 1 = 10 cm; hoeher heisst leichter).
+
+       Warum der Stand leichter ist als der Kniestand bei gleicher Kniebeugung: im
+       aufgebrochenen Kniestand schwebt das hintere Knie und der hintere Fuss traegt
+       nur ueber die Zehen, im Stand traegt das hintere Bein ueber den Ballen mit.
+       Gerechnet liegen im Stand 62-67 % des Koerpergewichts vorn (Modell
+       scratchpad/lunge4.py, H=1,80 m) — daher der Faktor 0,65 auf die Stand-Sprossen.
+
+       HERKUNFT JEDER ZAHL:
+       - Sprossen 5 bis 10 tragen Lukes bisherige Faktoren unveraendert (0,55 / 0,72 /
+         0,90 / 1,05 / 1,25); neu dazwischen ist nur 0,63 fuer die mittlere Stepperhoehe,
+         interpoliert. Seine gemessenen Punkte behalten damit ihre Last.
+       - Sprossen 1 bis 4 sind GERECHNET, nicht gemessen: aus dem vorderen Kniewinkel,
+         den die Wandstellung erzwingt (56° / 64° / 72° / 82°), linear skaliert und ueber
+         den 0,65-Faktor an die Kniestand-Sprossen angeschlossen.
+       Vor dem ersten Training auf einer neuen Sprosse muss gemessen werden. */
     levels:[
-      {name:"Hinteres Knie bis Stuhlsitz (~45 cm)",        load:0.25},
-      {name:"bis Hocker (~30 cm)",                         load:0.40},
-      {name:"bis Kiste / Bücherstapel (~20 cm)",           load:0.55},
-      {name:"bis dickes Kissen (~12 cm)",                  load:0.72},
-      {name:"knapp über den Boden (Standard)",             load:0.90},
-      {name:"Hinterer Fuß ~20 cm erhöht, bis Kissen",      load:1.05},
-      {name:"Hinterer Fuß ~30 cm erhöht, voll",            load:1.25}
+      {name:"Stehend an der Wand · hinterer Fuß 1,5 Fußlängen",  load:0.36},
+      {name:"Stehend an der Wand · 2 Fußlängen",                 load:0.41},
+      {name:"Stehend an der Wand · 2,5 Fußlängen",               load:0.46},
+      {name:"Stehend an der Wand · 3 Fußlängen",                 load:0.52},
+      {name:"Kniestand · Knie bis Stepper, 3 Stufen (20 cm)",    load:0.55},
+      {name:"Kniestand · Knie bis Stepper, 2 Stufen (15 cm)",    load:0.63},
+      {name:"Kniestand · Knie bis Stepper, 1 Stufe (10 cm)",     load:0.72},
+      {name:"Kniestand · Knie knapp über den Boden",             load:0.90},
+      {name:"Hinterer Fuß auf dem Stepper (20 cm) · Knie bis 1 Stufe", load:1.05},
+      {name:"Hinterer Fuß auf dem Stepper (20 cm) · Knie knapp über den Boden", load:1.25}
     ]
   },
   /* Seitstuetz. Die Leiter ist gerechnet, nicht geschaetzt: Das Biegemoment an
@@ -984,7 +1012,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-21 g";
+const BUILD = "2026-09-21 h";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -997,7 +1025,7 @@ const AW_V = 1;
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
    Update alte Levels kleben. Sessions bleiben dabei immer erhalten. */
-const EX_VERSION = 16;
+const EX_VERSION = 17;
 /* Voreinstellung, bis der Nutzer sein Gewicht einträgt. Nur als Bezugsgroesse
    fuer Zusatzlast noetig — die Lastfaktoren selbst sind gewichtsunabhaengige
    Verhaeltniszahlen. */
@@ -1097,6 +1125,40 @@ const ROW_UMZUG  = {0:0, 1:0, 2:0, 3:2, 4:4, 5:6};
    feste zu lesen. */
 const ROW_MESS_AT    = 15;
 const ROW_MESS_UMZUG = {0:0, 1:1, 2:2, 3:3, 4:4, 5:6, 6:7};
+/* 21.09.2026, abends — die Ausfallschritt-Leiter traegt jetzt ZWEI Stellungen.
+   Vorn sind vier stehende Sprossen an der Wand dazugekommen, hinten sind die
+   Ablagen durch Lukes Stepper ersetzt; "bis Stuhlsitz" und "bis Hocker" sind
+   ersatzlos weg. Die LASTEN der gemessenen Sprossen sind dabei unveraendert
+   geblieben (0,55 / 0,72 / 0,90 / 1,05 / 1,25) — nur ihre NUMMER ist um drei
+   gewandert.
+   Ohne Umzug waere das still und teuer: ankerpunkt() gibt die Sprossennummer
+   des juengsten Punktes zurueck, und daraus baut zielNeu() die Obergrenze
+   anker.level + MAX_SPRUNG. MAX_SPRUNG ist 3 — genau die Verschiebung. Wer
+   zuletzt "knapp ueber den Boden" gehalten hat (alt 4, 0,90 — neu 7), bekaeme
+   als schwerste erreichbare Sprosse die neue 7 statt der neuen 10 und damit im
+   naechsten Workout eine zu leichte. Darum ziehen hier auch die Sessions um.
+   Die beiden gestrichenen Sprossen zeigen auf die neuen leichtesten; wer dort
+   stand, faengt in der Wandstellung an. */
+const LUNGE_WAND_AT = 17;
+const LUNGE_UMZUG   = {0:0, 1:1, 2:4, 3:6, 4:7, 5:8, 6:9};
+function lungeUmziehen(lv){
+  const out = {};
+  for(const k of Object.keys(lv || {})){
+    const trifft = (k === "lunge" || k.indexOf("lunge|") === 0);
+    out[k] = (trifft && LUNGE_UMZUG[lv[k]] != null) ? LUNGE_UMZUG[lv[k]] : lv[k];
+  }
+  return out;
+}
+/* Dieselbe Tabelle auf die gespeicherten Saetze. Die Last bleibt unberuehrt —
+   sie ist gemessen und gilt weiter; umgeschrieben wird nur die Nummer, unter
+   der sie in der Leiter steht. Kein ausKurve: Luke hat am 21.09. ausdruecklich
+   entschieden, dass diese Punkte in der Kurve bleiben. */
+function lungeSessions(sessions){
+  return (sessions || []).map(s =>
+    (s && s.exercise === "lunge" && LUNGE_UMZUG[s.level] != null)
+      ? Object.assign({}, s, {level: LUNGE_UMZUG[s.level]})
+      : s);
+}
 function rowUmziehen(lv, tab){
   const out = {};
   for(const k of Object.keys(lv || {})){
@@ -1194,6 +1256,7 @@ function normalize(d){
   const rowUmzug  = !leitersturz && (d.exVersion || 1) < ROW_NEU_AT;
   const rowMess   = !leitersturz && (d.exVersion || 1) < ROW_MESS_AT;
   const rowSkala  = !leitersturz && (d.exVersion || 1) < ROW_SKALA_AT;
+  const lungeUmzug = !leitersturz && (d.exVersion || 1) < LUNGE_WAND_AT;
   const ex = stale ? structuredClone(DEFAULT_EX)
                    : Object.assign(structuredClone(DEFAULT_EX), d.ex || {});
   /* Erst die Band-Verschiebung von Fassung 11, dann der Umzug auf das freie
@@ -1207,6 +1270,7 @@ function normalize(d){
                : {levels: lvRoh, extra: exRoh};
   if(rowUmzug) roh.levels = rowUmziehen(roh.levels, ROW_UMZUG);
   if(rowMess)  roh.levels = rowUmziehen(roh.levels, ROW_MESS_UMZUG);
+  if(lungeUmzug) roh.levels = lungeUmziehen(roh.levels);
   const umzug  = beidUmzug(ex, roh.levels, roh.extra,
                            leitersturz ? {} : (d.streak || {}));
   /* Den Haken "band" gibt es erst seit dem 19.09. Wer vorher "Kettlebell"
@@ -1228,8 +1292,9 @@ function normalize(d){
                                     /* Siehe ROW_SKALA_AT: Schraegzug-Messungen
                                        von vor dem Faktorwechsel stehen auf der
                                        alten Skala und traegen die Kurve nicht. */
-                                    sessions: rowSkala ? rowSkalaVerwerfen(d.sessions)
-                                                       : (d.sessions || []),
+                                    sessions: (ses => lungeUmzug ? lungeSessions(ses) : ses)(
+                                                rowSkala ? rowSkalaVerwerfen(d.sessions)
+                                                         : (d.sessions || [])),
                                     sync: d.sync || {},
                                     /* Zugpunkt ist voreingestellt an — eine stabile
                                        Tischkante reicht und hat praktisch jeder. Rolle und
