@@ -527,40 +527,51 @@ const DEFAULT_EX = {
 
      21.09.2026, mittags — GEMESSEN MIT DEM TINDEQ, nicht mehr gerechnet.
      Luke hat jede Stellung zweimal gezogen: einmal im Hang mit gestreckten
-     Armen, einmal oben in der Zugposition. Koerpergewicht 83,6 kg,
-     Ringhoehe 85 cm.
+     Armen, einmal in der ARBEITSPOSITION — Ellenbogen rechtwinklig, Oberarme
+     rund 45° vom Rumpf, genau wie es der hint vorschreibt. Koerpergewicht
+     83,6 kg, Ringhoehe 85 cm.
 
-         Stellung                         Hang    oben    Mitte
-         2 Fuesse vor, stehend            24 kg    6 kg   0,179
-         3 Fuesse vor, stehend            30 kg   16 kg   0,275
-         4 Fuesse vor, stehend            36 kg   24 kg   0,359
-         5 Fuesse vor, stehend            44 kg   36 kg   0,478
-         1 Fuss vor dem Anker, Knie 90°   47 kg   42 kg   0,532
-         Fuesse unter dem Anker, Knie 90° 52 kg   50 kg   0,610
-         Schultern unter dem Anker, 90°  54 kg   60 kg   0,682
-         Schultern unter dem Anker, lang  62 kg   70 kg   0,789
+         Stellung                          Hang   Arbeit  Faktor
+         2 Fuesse vor, stehend            24 kg    6 kg   0,072
+         3 Fuesse vor, stehend            30 kg   16 kg   0,191
+         4 Fuesse vor, stehend            36 kg   24 kg   0,287
+         5 Fuesse vor, stehend            44 kg   36 kg   0,431
+         1 Fuss vor dem Anker, Knie 90°   47 kg   42 kg   0,502
+         Fuesse unter dem Anker, Knie 90° 52 kg   50 kg   0,598
+         Schultern unter dem Anker, 90°   54 kg   60 kg   0,718
+         Schultern unter dem Anker, lang  62 kg   70 kg   0,837
 
-     WARUM DIE MITTE. Die Uebung wird laut hint in der Mitte gehalten —
-     Ellenbogen rechtwinklig, nicht haengend und nicht oben angeklebt. Die
-     beiden gemessenen Zahlen sind die Enden dieser Bewegung, der Lastfaktor
-     ist ihr Mittel. Das ist eine Schaetzung: die Last laeuft ueber den Weg
-     nicht exakt linear. Die Spanne zwischen beiden Zahlen ist zugleich der
-     Preis einer schlampigen Ellenbogenstellung — unten 4-fach, oben 10 %.
+     DER LASTFAKTOR IST DIE ARBEITSSPALTE, nicht der Hang und nicht ihr
+     Mittel. Das war am 21.09. kurzzeitig anders eingebaut (Mittel aus beiden
+     Spalten), weil die Excel-Ueberschrift "Pull up position" nach dem oberen
+     Umkehrpunkt klang. Lukes Korrektur: "Ich habe die Zugposition mit
+     Ellenbogen 45° neben dem Koerper gemessen, also genau das, was du
+     vorgegeben hattest." Die Hang-Spalte ist damit keine Skala, sondern eine
+     Gegenprobe — und der Preis einer schlampigen Ellenbogenstellung.
 
-     WIE GUT DIE ALTE RECHNUNG WAR. Faktor = 0,746 * cos θ hat die
-     Hang-Spalte auf 1 bis 4 % genau getroffen (geschaetzt 0,370 / 0,450 /
-     0,520 / 0,580 / 0,620 / 0,660 / 0,750 gegen gemessen 0,359 / 0,431 /
-     0,526 / 0,562 / 0,622 / 0,646 / 0,742). Der Kosinus war richtig, der
-     Bezugspunkt nicht: gerechnet war der Hang, gehalten wird die Mitte.
+     DIE ALTE RECHNUNG HAT DIE FALSCHE POSITION GETROFFEN. Faktor =
+     0,746 * cos θ lag auf der Hang-Spalte 1 bis 4 % genau (0,370 / 0,450 /
+     0,520 / 0,620 / 0,660 / 0,750 gegen 0,359 / 0,431 / 0,526 / 0,622 /
+     0,646 / 0,742). Der Kosinus war also richtig gerechnet — nur fuer den
+     Hang, und gehalten wird in der Arbeitsposition. Stellung fuer Stellung
+     lag die App deshalb zu hoch: 1,94-fach bei "3 Fuesse vor", 1,57-fach bei
+     "4 Fuesse", 1,21-fach bei "5 Fuesse". Ab "Schultern unter dem Anker"
+     kippt es: dort lag sie 8 bis 10 % zu NIEDRIG, weil der Schwerpunkt beim
+     Anziehen ueber die Ringebene gehoben wird, statt unter ihr zu pendeln.
+     Genau deshalb sind die Messpunkte von vor dem 21.09. verworfen (siehe
+     ROW_SKALA_AT): sie standen auf einer Skala, die je nach Sprosse bis zum
+     Doppelten danebenlag.
 
      DER GEDRAENGE-BEFUND HAT SICH BESTAETIGT UND AUFGELOEST. Im Hang liegen
      die Sprossen 5 und 7 nur 7 % und 4 % auseinander — das waeren tatsaechlich
-     keine eigenen Sprossen gewesen. In der Mitte sind es 11 bis 16 %, weil die
-     Zugposition oben staerker spreizt als der Hang. Die Leiter traegt.
+     keine eigenen Sprossen gewesen. In der Arbeitsposition sind die vier
+     oberen Spruenge 16, 19, 20 und 17 % und damit die gleichmaessigste Leiter
+     der App. Unten ist sie grob: +165 %, +50 %, +50 %. Sprosse 1 traegt nur
+     6 kg — fast nichts, und genau als Einstieg gedacht.
 
      WAS SIE NICHT TRAEGT: eine andere Ringhoehe. 85 cm sind Teil der
-     Messung, nicht Zubehoer. Haengt Luke die Ringe um, verschieben sich die
-     vier liegenden Sprossen und muessen neu gemessen werden.
+     Messung, nicht Zubehoer — von Luke am 21.09. bestaetigt: er verschiebt
+     den Koerper gegen den Anker, nicht die Ringe.
 
      Messreihe: ISO-Coach_Schraegzug-Messung_2026-09-21.md,
      Rohdaten: Australian Pull up Progressionen.xlsx. */
@@ -581,14 +592,14 @@ const DEFAULT_EX = {
         +"Schultern darunter. Die Ringe hängen dabei auf 85 cm; hängst du sie um, stimmen "
         +"die vier liegenden Sprossen nicht mehr.",
     levels:[
-      {name:"2 Füße vor · stehend",                       load:0.179, geraet:"zug"},
-      {name:"3 Füße vor · stehend",                       load:0.275, geraet:"zug"},
-      {name:"4 Füße vor · stehend",                       load:0.359, geraet:"zug"},
-      {name:"5 Füße vor · stehend",                       load:0.478, geraet:"zug"},
-      {name:"1 Fuß vor der Aufhängung · Knie 90°",        load:0.532, geraet:"zug"},
-      {name:"Füße unter der Aufhängung · Knie 90°",     load:0.610, geraet:"zug"},
-      {name:"Schultern unter der Aufhängung · Knie 90°", load:0.682, geraet:"zug"},
-      {name:"Schultern unter der Aufhängung · gestreckt", load:0.789, geraet:"zug"}
+      {name:"2 Füße vor · stehend",                       load:0.072, geraet:"zug"},
+      {name:"3 Füße vor · stehend",                       load:0.191, geraet:"zug"},
+      {name:"4 Füße vor · stehend",                       load:0.287, geraet:"zug"},
+      {name:"5 Füße vor · stehend",                       load:0.431, geraet:"zug"},
+      {name:"1 Fuß vor der Aufhängung · Knie 90°",        load:0.502, geraet:"zug"},
+      {name:"Füße unter der Aufhängung · Knie 90°",       load:0.598, geraet:"zug"},
+      {name:"Schultern unter der Aufhängung · Knie 90°",  load:0.718, geraet:"zug"},
+      {name:"Schultern unter der Aufhängung · gestreckt", load:0.837, geraet:"zug"}
     ]
   },
   /* ── Fersenbruecke ────────────────────────────────────────────
@@ -973,7 +984,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-21 e";
+const BUILD = "2026-09-21 f";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -986,7 +997,7 @@ const AW_V = 1;
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
    Update alte Levels kleben. Sessions bleiben dabei immer erhalten. */
-const EX_VERSION = 15;
+const EX_VERSION = 16;
 /* Voreinstellung, bis der Nutzer sein Gewicht einträgt. Nur als Bezugsgroesse
    fuer Zusatzlast noetig — die Lastfaktoren selbst sind gewichtsunabhaengige
    Verhaeltniszahlen. */
@@ -1094,6 +1105,25 @@ function rowUmziehen(lv, tab){
   }
   return out;
 }
+/* Der Faktorwechsel vom 21.09.2026 abends ist KEIN Sprossenumzug: Die acht
+   Stellungen bleiben, nur ihre Last wird neu beziffert — vom Hang auf die
+   Arbeitsposition. Sprossen zu verschieben waere hier falsch.
+
+   Was aber nicht mitwandert, sind die Messpunkte: points() liest die beim
+   Speichern EINGEFRORENE Last (ses.load), und die stand auf einer Skala, die
+   je nach Sprosse bis zum Doppelten danebenlag. Luke hat entschieden, sie zu
+   verwerfen statt umzurechnen. Verworfen heisst hier: aus der KURVE, nicht
+   aus dem Verlauf — die Blocks bleiben sichtbar, abgeblendet und mit Grund,
+   weil ein still verschwundener Trainingstag schlimmer ist als ein
+   erklaerter. Das Feld heisst ausKurve und traegt den Grund als Text, damit
+   der naechste Skalenwechsel nicht dasselbe Flag ueberschreibt. */
+const ROW_SKALA_AT = 16;
+function rowSkalaVerwerfen(sessions){
+  return (sessions || []).map(s =>
+    (s && s.exercise === "row" && !s.ausKurve)
+      ? Object.assign({}, s, {ausKurve:"alte Skala"})
+      : s);
+}
 function beidUmzug(exDefs, levels, extra, streak){
   const lv = Object.assign({}, levels || {});
   const ex = Object.assign({}, extra  || {});
@@ -1163,6 +1193,7 @@ function normalize(d){
   const freiUmzug = !leitersturz && (d.exVersion || 1) < LAEUFER_FREI_AT;
   const rowUmzug  = !leitersturz && (d.exVersion || 1) < ROW_NEU_AT;
   const rowMess   = !leitersturz && (d.exVersion || 1) < ROW_MESS_AT;
+  const rowSkala  = !leitersturz && (d.exVersion || 1) < ROW_SKALA_AT;
   const ex = stale ? structuredClone(DEFAULT_EX)
                    : Object.assign(structuredClone(DEFAULT_EX), d.ex || {});
   /* Erst die Band-Verschiebung von Fassung 11, dann der Umzug auf das freie
@@ -1194,6 +1225,11 @@ function normalize(d){
                                     rest: stale ? {...DEFAULT_REST}
                                                 : Object.assign({...DEFAULT_REST}, d.rest||{}),
                                     aktiv: d.aktiv || {},
+                                    /* Siehe ROW_SKALA_AT: Schraegzug-Messungen
+                                       von vor dem Faktorwechsel stehen auf der
+                                       alten Skala und traegen die Kurve nicht. */
+                                    sessions: rowSkala ? rowSkalaVerwerfen(d.sessions)
+                                                       : (d.sessions || []),
                                     sync: d.sync || {},
                                     /* Zugpunkt ist voreingestellt an — eine stabile
                                        Tischkante reicht und hat praktisch jeder. Rolle und
@@ -1638,6 +1674,8 @@ function points(ex, side){
     if(s.exercise !== ex) continue;
     if(!zaehltFuer(s, ex, side)) continue;
     if(s.fresh === false) continue;
+    /* Auf einer alten Lastskala gemessen — siehe ROW_SKALA_AT. */
+    if(s.ausKurve) continue;
     /* s.sets kann bei Import- oder Fremddaten fehlen. Ungeschuetzt wirft der
        Zugriff einen TypeError und das GANZE Profil bleibt leer. */
     const first = s.sets && s.sets[0];
@@ -4744,9 +4782,9 @@ function renderHistory(){
     <div class="card">
       <table><thead><tr><th>Datum</th><th>Stufe</th><th class="n">Satz 1</th>
         <th class="n">Ziel</th><th class="n">Ampel</th></tr></thead>
-      <tbody>${mine.slice().reverse().map(s=>`<tr${s.fresh===false?' style="opacity:.55"':""}>
+      <tbody>${mine.slice().reverse().map(s=>`<tr${(s.fresh===false||s.ausKurve)?' style="opacity:.55"':""}>
         <td>${new Date(s.date).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"})}</td>
-        <td class="tiny">${s.levelName}${s.fresh===false?'<br><span class="tiny">vorermüdet</span>':""}</td>
+        <td class="tiny">${s.levelName}${s.fresh===false?'<br><span class="tiny">vorermüdet</span>':""}${s.ausKurve?`<br><span class="tiny">${s.ausKurve}</span>`:""}</td>
         <td class="n">${s.sets[0]?fmt(s.sets[0].time):"–"}${s.sets[0]&&s.sets[0].pain
           ?' <span style="color:var(--bad)">!</span>':""}${s.sets[0]&&s.sets[0].time
             &&!messbar(s.sets[0].time)?' <span style="color:var(--warn)">×</span>':""}</td>
@@ -4755,7 +4793,8 @@ function renderHistory(){
           ${s.painEnd}</td></tr>`).join("")}
       </tbody></table>
       <p class="tiny" style="margin-top:9px">! = Satz wegen Schmerzen beendet ·
-      abgeblendet = vorermüdete zweite Seite, zählt nicht in die Kurve ·
+      abgeblendet = zählt nicht in die Kurve: vorermüdete zweite Seite, oder auf einer
+      alten Lastskala gemessen (der Block bleibt stehen, nur die Zahl trägt nicht mehr) ·
       × = außerhalb von ${MESS_MIN}–${MESS_MAX} s, zählt nicht in die Kurve (die Stufe war
       zu leicht oder zu schwer, der Wert ist keine maximale Haltezeit)</p>
     </div>`;
