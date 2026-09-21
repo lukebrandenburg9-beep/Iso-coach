@@ -984,7 +984,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-21 f";
+const BUILD = "2026-09-21 g";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -2336,6 +2336,12 @@ function ankerpunkt(ex){
        taugt auch als Anker nicht — die Ankerrechnung rechnet mit ihm
        genauso weiter, als waere er ein Maximalhalt. */
     if(!messbar(e.time)) continue;
+    /* Und dieselbe Schranke fuer eine verworfene Lastskala. Ohne sie lenkte
+       ein Punkt, der die Kurve nicht mehr tragen darf, weiterhin die
+       Sprossenwahl — und zwar ueber ses.load, also ueber genau die Zahl, die
+       verworfen wurde. Beim Schraegzug hiess das nach dem Faktorwechsel vom
+       21.09. eine bis zu 2,6-fach zu schwere Sprosse im ersten Workout. */
+    if(ses.ausKurve) continue;
     (ses.fresh === false ? vorermuedet : frisch).push(ses);
   }
   const pool = frisch.length ? frisch : vorermuedet;
@@ -2493,13 +2499,42 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
     if(neuKg != null && neuKg !== kg){ kg = neuKg; for(const k of seitenKeys(ex, side)) S.extra[k] = kg; }
   }
   const lastJetzt = lastVon(ex, level, kg);
-  const tt = (f && imBereich(f, lastJetzt)) ? predictTime(f, lastJetzt) : target;
-  return {exercise:ex, side, zone, fresh, zweiteSeite: !fresh, level, levelVorschlag:level,
-          extra: kg, saetze: SETS_ZONE[zone] || SETS,
+  /* ZWEI Zahlen, bis hierher unter EINEM Namen. Bis zu dieser Zeile ist
+     "target" der SOLLWERT der Zone — ihre Mitte, also das, wofuer der Block
+     da ist. Ab hier ist es die ERWARTUNG fuer die Sprosse, die tatsaechlich
+     gewaehlt wurde. Auf der Karte stand beides unter demselben Wort
+     "Richtwert", direkt neben dem Zonenfenster. Trifft die Leiter die Zone
+     zwischen zwei Sprossen nicht, stand dort "Zone A" neben "90 s".
+     Befund von Luke, 21.09.2026: "das wiederspricht sich".
+
+     Die Erwartung bleibt die Zahl, die zaehlt, und sie wird NICHT auf das
+     Zonenfenster geklemmt. Sie geht als session.target in die Sitzung
+     (siehe satzFertig) und ist dort der Massstab von Regel 2 und 3; eine
+     geklemmte 60 statt 90 verschoebe die Verfehlungsschwelle von 72 auf
+     48 Sekunden und legte damit genau die Nachsteuerung still, die die
+     Sprosse irgendwann in die Zone schiebt. Ausserdem fuehrt der Export sie
+     als ziel_sekunden — eine gespeicherte Spalte umzudeuten ist teurer als
+     eine Beschriftung.
+
+     Was sich aendert, ist zweierlei: Die Zahl sagt jetzt, DASS sie eine
+     Erwartung ist, und die Satzzahl richtet sich nach ihr statt nach dem
+     Etikett. Fuenf Saetze a 90 s sind kein Zone-A-Block — das sind acht
+     Minuten Haltezeit in einem Block, der fuer dreieinhalb geplant war, und
+     der Deckel von 30 bis 70 Minuten rechnete mit der falschen Grundlage. */
+  const vorhergesagt = !!f && imBereich(f, lastJetzt)
+                       && isFinite(predictTime(f, lastJetzt));
+  const tt = vorhergesagt ? predictTime(f, lastJetzt) : target;
+  const erwartet = Math.max(15, Math.round(isFinite(tt) ? tt : target));
+  /* Ohne Vorhersage IST der Sollwert die Erwartung — dann sind beide Zonen
+     dieselbe und auf der Karte steht nichts Zusaetzliches. */
+  const zoneErwartet = vorhergesagt ? zoneOf(erwartet).id : zone;
+  return {exercise:ex, side, zone, zoneErwartet, soll: target,
+          fresh, zweiteSeite: !fresh, level, levelVorschlag:level,
+          extra: kg, saetze: SETS_ZONE[zoneErwartet] || SETS,
           art: leiterArt(ex), ausserhalb,
           fehlt: fehlt.map(o=>o.z), abgewichen: !!luecke,
           herkunft, anker, rohStufe: roh,
-          target: Math.max(15, Math.round(isFinite(tt) ? tt : target))};
+          target: erwartet};
 }
 
 /* Welche Zone fordert diese Muskelgruppe heute an? Je Gruppe, weil auch die
@@ -3177,7 +3212,18 @@ function zielNeu(bl){
   bl.ausserhalb = !!f && !imBereich(f, last);
   if(!f || bl.ausserhalb) return;
   const t = predictTime(f, last);
-  if(isFinite(t)) bl.target = Math.max(15, Math.round(t));
+  if(!isFinite(t)) return;
+  bl.target = Math.max(15, Math.round(t));
+  /* Dieselbe Trennung wie am Ende von mkBlock: Stellt der Nutzer hier Stufe
+     oder Gewicht um, wandert die erwartete Zone mit. Ohne diese drei Zeilen
+     stuende der Widerspruch beim ersten Handgriff auf der Karte wieder da. */
+  const vorher = bl.zoneErwartet || bl.zone;
+  bl.zoneErwartet = zoneOf(bl.target).id;
+  /* Die Satzzahl folgt nur nach, solange sie noch auf der Vorgabe steht. Wer
+     sie selbst hochgestellt hat, hat damit etwas gesagt — das wird nicht
+     stillschweigend ueberschrieben. */
+  if(bl.saetze === (SETS_ZONE[vorher] || SETS))
+    bl.saetze = SETS_ZONE[bl.zoneErwartet] || SETS;
 }
 function stufeSetzen(bl, k){
   const lv = S.ex[bl.exercise].levels;
@@ -3377,9 +3423,19 @@ function blockIntro(i){
   if(ex.warnung && !S.gefragt[bl.exercise]){ warnKarte(i, bl, ex); return; }
   /* Ein Plan aus einer aelteren Fassung kennt die Satzzahl noch nicht. */
   if(bl.saetze == null) bl.saetze = SETS_ZONE[bl.zone] || SETS;
+  /* Und er kennt die erwartete Zone nicht. Ein unterbrochener Lauf ueberlebt
+     das Neuladen mitsamt seinem Plan (siehe S.lauf in normalize) — ohne diese
+     Zeile stuende dort "undefined". Gleicher Block, gleiche Zone: der Fall
+     ohne Widerspruch. */
+  if(bl.zoneErwartet == null) bl.zoneErwartet = bl.zone;
   const f  = curFit(bl.exercise, bl.side);
-  const tp = f ? predictTime(f, lastVon(bl.exercise, bl.level, bl.extra)) : null;
-  const zz = (tp && isFinite(tp)) ? zoneOf(tp) : null;
+  /* Der Landeplatz kommt aus DERSELBEN Quelle wie die Zahl auf der Karte und
+     wie die Satzzahl: bl.zoneErwartet. Frueher stand hier zoneOf(tp) ohne
+     imBereich-Pruefung — dann behauptete die Zeile einen Landeplatz, den die
+     App zwei Absaetze weiter unten selbst zurueckzieht ("Die App sagt deshalb
+     keine Zeit voraus"). */
+  const zEcht = bl.zoneErwartet || bl.zone;
+  const zz = (zEcht !== bl.zone) ? ZONES.find(z => z.id === zEcht) : null;
   /* Dieselbe Regel wie in mkBlock: Die beidbeinige Sprosse gehoert auf einen
      Block OHNE Seite und dort auch allein — sonst boete die Liste "50 % —
      beidbeinig" unter der Ueberschrift "links" an, und genau diesen Messpunkt
@@ -3419,7 +3475,7 @@ function blockIntro(i){
   el("homeSub").textContent = blockLabel(bl);
   el("homeBody").innerHTML = `
     <div class="card" id="ivKarte">
-      <span class="pill ${ZONES.find(z=>z.id===bl.zone).cls}">Zone ${bl.zone}</span>
+      <span class="pill ${(ZONES.find(z=>z.id===zEcht)||ZONES[0]).cls}">Zone ${zEcht}</span>
       <h2 style="margin:11px 0 2px">${blockLabel(bl)}</h2>
       <p class="muted" style="margin:0">${bl.fresh ? "wird gemessen" : "nur Training"}</p>
       ${bl.fehlt && bl.fehlt.length ? `<p class="tiny" style="margin:10px 0 0"><span
@@ -3492,8 +3548,9 @@ function blockIntro(i){
 
       <div class="row" style="gap:7px;align-items:center;margin-top:12px">
         <label class="tiny" for="ivSets" style="flex:1;margin:0">Sätze${
-          bl.saetze !== (SETS_ZONE[bl.zone]||SETS) ? ` <span class="muted">· Vorgabe für Zone
-          ${bl.zone} wäre ${SETS_ZONE[bl.zone]||SETS}</span>` : ""}</label>
+          bl.saetze !== (SETS_ZONE[bl.zoneErwartet||bl.zone]||SETS)
+          ? ` <span class="muted">· Vorgabe bei ${fmt(bl.target)} wäre ${
+          SETS_ZONE[bl.zoneErwartet||bl.zone]||SETS}</span>` : ""}</label>
         <button class="ghost" id="ivSetsMinus" style="flex:0 0 52px;font-size:22px;padding:0"
           ${bl.saetze<=SETS_MIN?"disabled":""} aria-label="weniger Sätze">−</button>
         <b id="ivSets" style="flex:0 0 40px;text-align:center;font-size:20px">${bl.saetze}</b>
@@ -3502,11 +3559,15 @@ function blockIntro(i){
       </div>
 
       <div class="kpi" style="margin-top:14px">
-        <div><b>${fmt(bl.target)}</b><small>Richtwert erster Satz</small></div>
+        <div><b>${fmt(bl.target)}</b><small>${
+          zz ? "erwartete Haltezeit" : "Richtwert erster Satz"}</small></div>
         <div><b>${bl.saetze}</b><small>${bl.saetze===1?"Satz":"Sätze"} · ${PAUSE_S}s Pause</small></div>
       </div>
-      ${zz ? `<p class="tiny" style="margin-top:9px">Erwarteter Landeplatz
-        <span class="pill ${zz.cls}">Zone ${zz.id}</span> — geplant ist Zone ${bl.zone}.</p>` : ""}
+      ${zz ? `<p class="tiny" style="margin-top:9px">Geplant war
+        <span class="pill ${(ZONES.find(z=>z.id===bl.zone)||ZONES[0]).cls}">Zone ${bl.zone}</span>
+        ${bl.soll ? `(${fmt(bl.soll)})` : ""} — dazwischen hat diese Leiter keine Sprosse.
+        Erwartet wird <span class="pill ${zz.cls}">Zone ${zz.id}</span>, und danach richtet sich
+        auch die Satzzahl.</p>` : ""}
       ${(f && !imBereich(f, lastVon(bl.exercise, bl.level, bl.extra))) ? `<p class="tiny"
         style="margin-top:9px"><b>Außerhalb des gemessenen Bereichs.</b> Deine Kurve steht auf
         Lasten zwischen ${komma(f.lo,2)} und ${komma(f.hi,2)}; diese Variante liegt daneben.
@@ -4226,7 +4287,8 @@ function messreihen(){
         ziel_sekunden: satz.target != null ? satz.target : ses.target,
         schmerz: satz.pain ? 1 : 0,
         frisch: ses.fresh === false ? 0 : 1,
-        in_kurve: (i === 0 && ses.fresh !== false && messbar(satz.time)) ? 1 : 0,
+        in_kurve: (i === 0 && ses.fresh !== false && !ses.ausKurve
+                   && messbar(satz.time)) ? 1 : 0,
         zone_geplant: ses.workoutZone || "",
         zone_erreicht: ses.zone || "",
         selbst_gewaehlt: ses.userPicked ? 1 : 0,
@@ -4532,18 +4594,28 @@ function renderHome(){
      ersten Satz auszufüllen. */
   const blockKarte = (bl, i) => {
     const ex = S.ex[bl.exercise];
-    const zz = ZONES.find(z=>z.id===bl.zone);
+    /* Die Pille zeigt die Zone, die dieser Block tatsaechlich anlaeuft, nicht
+       die, die die Rotation angefordert hat. Stehen beide auseinander, sagt
+       die Zeile darunter, welche geplant war — vorher stand hier das
+       Planetikett neben einer Zahl aus einer anderen Zone, ohne ein Wort
+       dazu. Befund von Luke, 21.09.2026. */
+    const zEcht  = bl.zoneErwartet || bl.zone;
+    const anders = zEcht !== bl.zone;
+    const zz = ZONES.find(z=>z.id===zEcht) || ZONES[0];
     return `
       <div class="card flat" style="padding:12px 14px">
         <div class="row" style="justify-content:space-between;align-items:baseline;gap:9px">
           <b>${i+1}. ${blockLabel(bl)}</b>
-          <span class="pill ${zz.cls}" style="flex:0 0 auto">Zone ${bl.zone}</span>
+          <span class="pill ${zz.cls}" style="flex:0 0 auto">Zone ${zEcht}</span>
         </div>
         <p class="tiny" style="margin:4px 0 0">${stufenName(bl.exercise, bl.level, bl.extra)}</p>
-        <p class="tiny" style="margin:2px 0 0;color:var(--tx3)">Richtwert ${fmt(bl.target)} ·
+        <p class="tiny" style="margin:2px 0 0;color:var(--tx3)">${
+          anders ? "erwartet" : "Richtwert"} ${fmt(bl.target)} ·
           ${anzahl(bl.saetze || SETS, "Satz", "Sätze")} ·
           ${bl.fresh ? "wird gemessen" : "nur Training"}${
           bl.fehlt && bl.fehlt.length ? " · Einstieg" : ""}</p>
+        ${anders ? `<p class="tiny" style="margin:2px 0 0">Geplant war Zone ${bl.zone}${
+          bl.soll ? ` (${fmt(bl.soll)})` : ""} — dazwischen hat diese Leiter keine Sprosse.</p>` : ""}
         ${bl.zweiteSeite ? "" : zonenWahlKarte(groupOf(bl.exercise), "je")}
         ${p.blocks.slice(0, i).some(b => b.exercise === bl.exercise)
           ? "" : ausfWahlKarte(bl.exercise, bl.zone, "je")}
