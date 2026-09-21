@@ -137,6 +137,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .zw.je button{padding:6px 2px;font-size:12.5px}
 .zw.je button span{font-size:10.5px}
 .zw.drei{grid-template-columns:repeat(3,1fr)}
+.zw.zwei{grid-template-columns:repeat(2,1fr)}
 .scaleBtns{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
 .scaleBtns button{padding:12px 2px;font-size:15px;font-weight:600}
 .scaleBtns button.sel{background:var(--acc);border-color:var(--acc);color:var(--accInk)}
@@ -403,6 +404,16 @@ const DEFAULT_REST     = {A:7, B:7, C:7};
    sind meist einseitig — links und rechts sind deshalb zwei Messreihen, nicht eine.
    Wer beide in eine Kurve wirft, mittelt genau den Seitenunterschied weg, der
    klinisch am meisten sagt.
+
+   seitenParallel = die beiden Seiten ermueden einander NICHT. Der Normalfall
+   ist das Gegenteil: Seitstuetz und Ausfallschritt laufen ueber den Rumpf
+   beziehungsweise ueber beide Beine gleichzeitig, deshalb liegt die zweite
+   Seite ans Ende des Workouts und geht nicht in die Kurve. Beim isometrischen
+   Wadenheben traegt jeweils EIN Unterschenkel und sonst nichts — da ist die
+   Trennung ein erfundener Preis. Luke, 21.09.2026: "man kann isometrisches
+   wadenheben links/rechts direkt hintereinander trainieren und auch messen
+   ohne vorermuedung". Folge: beide Bloecke stehen nebeneinander, beide sind
+   fresh, und zwischen ihnen steht keine Blockpause.
 
    group = Muskelgruppe. Uebungen mit derselben Gruppe sperren sich
    gegenseitig; ueberschneidungsfreie duerfen am selben Tag getestet
@@ -684,7 +695,7 @@ const DEFAULT_EX = {
      Befund von Luke, 18.09.2026. */
   wade: {
     name:"Isometrisches Wadenheben", region:"Wade", group:"calf",
-    sides:["links","rechts"], extraAb:4, extraK:1, nichtMit:["handtuch"],
+    sides:["links","rechts"], seitenParallel:true, extraAb:4, extraK:1, nichtMit:["handtuch"],
     extraHint:"Trägst du das Gewicht in der Hand, dann ZWINGEND auf der Standbeinseite — "
              +"in der Hand über dem Fuß, auf dem du stehst. Hängt es auf der freien Seite, "
              +"zieht es das Becken dorthin, und die Hüfte muss dagegenhalten: Dann begrenzt "
@@ -699,12 +710,14 @@ const DEFAULT_EX = {
         +"Stellung IST die Übung, und sie ist der Unterschied zur Variante mit Handtuchrolle, "
         +"die ganz oben gehalten wird. Keine Wiederholungen. Die Fersenhöhe bleibt über "
         +"die ganze Leiter gleich, sie ist kein Teil der Last. Zwei Stufen brauchen nichts "
-        +"weiter: Bei 50 % stehst du auf beiden Vorfüßen — »links« und »rechts« sind dann "
-        +"derselbe Halt, einmal frisch und einmal vorermüdet. Bei 100 % trägt der genannte "
-        +"Fuß allein. Für die drei Stufen dazwischen liegt die Waage unter seinem Vorfuß — "
+        +"weiter: Bei 50 % stehst du auf beiden Vorfüßen — das ist EIN Halt, links und rechts "
+        +"gibt es dort nicht. Bei 100 % trägt der genannte Fuß allein, und dann kommen beide "
+        +"Seiten direkt nacheinander dran: Eine Wade ermüdet die andere nicht, beide Sätze "
+        +"werden gemessen. Für die drei Stufen dazwischen liegt die Waage unter seinem Vorfuß — "
         +"die Zahl auf der Anzeige IST die Stufe, und du nimmst dir über die Hände auf einer "
         +"Auflage so viel Gewicht ab, bis sie stimmt.",
-    seitenHinweis:"Diese Wade hat eben noch mitgehalten, während die andere Seite gearbeitet hat.",
+    /* Kein seitenHinweis mehr: Er behauptete eine Vorermuedung, die es hier nicht
+       gibt — siehe seitenParallel. Luke, 21.09.2026. */
     warnung:{
       titel:"Bevor du das isometrische Wadenheben zum ersten Mal machst",
       frage:"Trifft eines davon auf dich zu?",
@@ -745,7 +758,7 @@ const DEFAULT_EX = {
      sondern eine bewusste Setzung. Beide bleiben drin. */
   handtuch: {
     name:"Isometrisches Wadenheben mit Handtuchrolle", region:"Fußsohle", group:"arch",
-    sides:["links","rechts"], extraAb:4, extraK:1, nichtMit:["wade"],
+    sides:["links","rechts"], seitenParallel:true, extraAb:4, extraK:1, nichtMit:["wade"],
     extraHint:"Wie beim isometrischen Wadenheben: Gewicht in der Hand gehört ZWINGEND auf "
              +"die Standbeinseite. Auf der freien Seite zieht es das Becken dorthin, die "
              +"Hüfte hält dagegen, und dann begrenzt der Gluteus den Halt statt der Wade. "
@@ -759,8 +772,11 @@ const DEFAULT_EX = {
         +"die Wade statt die Fußsohle. Zweitens wird hier OBEN gehalten: Du drückst die Ferse "
         +"so weit hoch, wie das Sprunggelenk hergibt, und die Zehen stehen dabei fast maximal "
         +"aufgestellt. Das Wadenheben ohne Handtuch wird waagerecht gehalten — zusammen decken "
-        +"die beiden zwei verschiedene Gelenkstellungen ab. Auch hier: keine Wiederholungen.",
-    seitenHinweis:"Dieser Fuß hat eben noch mitgehalten, während die andere Seite gearbeitet hat.",
+        +"die beiden zwei verschiedene Gelenkstellungen ab. Auch hier: keine Wiederholungen. "
+        +"Und auch hier gilt: Bei 50 % stehst du auf beiden Füßen, das ist EIN Halt. Einbeinig "
+        +"kommen links und rechts direkt nacheinander dran, beide Sätze werden gemessen.",
+    /* Kein seitenHinweis mehr — dieselbe Bewegung wie beim Wadenheben ohne
+       Handtuch, also dieselbe Begruendung: siehe seitenParallel. */
     warnung:{
       titel:"Bevor du das Wadenheben mit Handtuchrolle zum ersten Mal machst",
       frage:"Trifft eines davon auf dich zu?",
@@ -859,13 +875,16 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-19 h";
+const BUILD = "2026-09-21 a";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
    steht die Zone der Rotation selbst vorgewaehlt — eine alte gespeicherte Wahl
    liesse sich davon nicht mehr unterscheiden und wird beim Laden verworfen. */
 const ZW_V = 2;
+/* Marke der Ausfuehrungswahl (beidbeinig / einbeinig). Eigene Marke, damit eine
+   spaetere Bedeutungsaenderung nicht die Zonenwahl mitreisst. */
+const AW_V = 1;
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
    Update alte Levels kleben. Sessions bleiben dabei immer erhalten. */
@@ -978,7 +997,7 @@ function fresh(){
        die Schulter mit zurueck. */
     levels:{}, streak:{}, lauf:null,
     /* Von Hand gesetzte Zone, gilt nur fuer einen Tag: {tag, zone}. */
-    zoneWahl:null,
+    zoneWahl:null, ausfWahl:null,
     /* Zusatzgewicht in kg, je Kurve gemerkt — wie die Stufe. */
     extra:{}, bw:BW_DEFAULT,
     /* Welche Uebungen gehoeren ueberhaupt ins Workout. Wer heute nur den
@@ -1049,6 +1068,8 @@ function normalize(d){
                                        keine. */
                                     zoneWahl: (d.zoneWahl && d.zoneWahl.v === ZW_V)
                                               ? d.zoneWahl : null,
+                                    ausfWahl: (d.ausfWahl && d.ausfWahl.v === AW_V)
+                                              ? d.ausfWahl : null,
                                     gefragt: d.gefragt || {},
                                     /* Ein angefangener Lauf ueberlebt das Neuladen. */
                                     lauf: (d.lauf && d.lauf.plan) ? d.lauf : null,
@@ -1251,7 +1272,7 @@ function gemerkteStufe(ex){
   const st = verfuegbareStufen(ex);
   return st.length ? st[0].i : 0;
 }
-function beidJetzt(ex){
+function beidGemerkt(ex){
   const e = S.ex[ex];
   if(!e || !e.sides) return false;
   const L = S.levels || {};
@@ -1264,6 +1285,145 @@ function beidJetzt(ex){
      als Massstab haette die App ihm 50 % EINBEINIG vorgelegt — also mehr,
      nicht weniger, direkt nach einer Rueckstufung wegen Schmerz. */
   return st.some(v => beidStufe(ex, v));
+}
+/* Der Index der beidbeinigen Sprosse — es gibt hoechstens eine. */
+function beidIndex(ex){
+  const L = (S.ex[ex] && S.ex[ex].levels) || [];
+  const i = L.findIndex(x => x && x.beid);
+  return i < 0 ? null : i;
+}
+/* Die leichteste verfuegbare Sprosse, die EIN Bein allein traegt. Kommt keine
+   in Frage — etwa weil alle einbeinigen Sprossen an der Waage haengen und die
+   fehlt — bleibt nur die beidbeinige, und dann ist die Frage entschieden. */
+function einStufe(ex){
+  const st = verfuegbareStufen(ex).filter(x => !beidStufe(ex, x.i));
+  return st.length ? st[0].i : null;
+}
+/* ── Traegt der beidbeinige Halt die geplante Zone ueberhaupt? ─────────
+   Die beidbeinige Sprosse ist die LEICHTESTE freie: ein halbes Koerpergewicht
+   je Wade, und mehr gibt sie nicht her. Wer dort laenger haelt, als die Zone
+   oben zulaesst, kann diese Zone beidbeinig gar nicht treffen — die App
+   schriebe eine Zielzeit auf die Karte, die die Sprosse nie erreicht.
+   Genau das war der Befund: "in der iso app wird mir heute isometrisches
+   wadenheben beidbeinig in zone A empfohlen, das kann nicht sein da ich
+   beidbeinig das letzte mal mehr als 3 minuten halten konnte" (Luke,
+   21.09.2026).
+   Entschieden wird an der MESSUNG, nicht an der Kurve: Wer nur beidbeinig
+   gemessen hat, hat nur eine einzige Last in der Reihe, und aus einer Last
+   entsteht keine Kurve. Die Rueckstufungsregel greift auch nicht — sie
+   verlangt einen Wert AUSSERHALB des Messfensters, und 244 s liegen mit
+   MESS_MAX = 300 noch drin. Ohne diesen Weg bliebe die Uebung auf der
+   beidbeinigen Sprosse stehen, solange es sie gibt.
+   Massgeblich ist der JUENGSTE Halt, nicht der beste: Die Sprosse wird nicht
+   schwerer, der Nutzer aber staerker. */
+function beidLetzte(ex){
+  const i = beidIndex(ex);
+  if(i == null) return null;
+  let letzte = null;
+  for(const s of S.sessions){
+    if(s.exercise !== ex || s.side || s.level !== i) continue;
+    const t = s.sets && s.sets[0] && s.sets[0].time;
+    if(t) letzte = t;
+  }
+  return letzte;
+}
+function beidZuLang(ex, zone){
+  const z = ZONES.find(x => x.id === zone);
+  const t = beidLetzte(ex);
+  return !!z && t != null && t > z.hi;
+}
+/* ── Die Wahl des Nutzers fuer HEUTE ──────────────────────────────────
+   Dieselbe Bauart wie die Zonenwahl und aus demselben Grund nur fuer den Tag:
+   Ob heute beidbeinig oder einbeinig gehalten wird, haengt an der Tagesform
+   und an der Zone, nicht am Nutzer. Gemerkt wird stattdessen, was gemessen
+   wurde — daraus entscheidet die App beim naechsten Mal selbst. */
+function ausfWahlGueltig(){
+  const w = S.ausfWahl;
+  return (w && w.tag === today()) ? w : null;
+}
+function ausfWahlHeute(ex){
+  const w = ausfWahlGueltig();
+  const v = w && w.je ? w.je[ex] : null;
+  return (v === "beid" || v === "ein") ? v : null;
+}
+/* Leerer Wert heisst: zurueck zur Automatik. Wie bei der Zonenwahl steht dann
+   "auto" im Feld und nicht gar nichts — geloescht liesse sich "nie gewaehlt"
+   nicht von "wieder freigegeben" unterscheiden. */
+function ausfWahlSetzen(ex, wert){
+  const w = ausfWahlGueltig() || {tag: today(), v: AW_V, je: {}};
+  w.tag = today(); w.v = AW_V;
+  if(!w.je) w.je = {};
+  w.je[ex] = (wert === "beid" || wert === "ein") ? wert : "auto";
+  S.ausfWahl = Object.keys(w.je).length ? w : null;
+}
+/* Kann diese Uebung ueberhaupt zwischen beidbeinig und einbeinig wechseln? */
+function ausfWaehlbar(ex){
+  const e = S.ex[ex];
+  return !!(e && e.sides && hatBeidStufe(ex) && beidIndex(ex) != null
+            && einStufe(ex) != null);
+}
+/* ── Die Karte: beidbeinig oder einbeinig ─────────────────────────────
+   Dieselbe Bauform wie die Zonenwahl und aus demselben Grund: Die App
+   entscheidet vor, der richtige Knopf steht schon gewaehlt da, und wer anders
+   will, tippt daneben. Luke, 21.09.2026: "baue die funktion ein beidbeiniges
+   wadenheben in einbeiniges wadenheben zu aendern". */
+function ausfWahlKarte(ex, zone, klasse){
+  if(!ausfWaehlbar(ex)) return "";
+  const beid = beidJetzt(ex);
+  const selbst = ausfWahlHeute(ex);
+  const t = beidLetzte(ex);
+  const z = ZONES.find(x => x.id === zone);
+  const zuLang = !!z && t != null && t > z.hi;
+  /* Der Grund gehoert unter die Knoepfe, nicht in eine Hilfe: Wer hier steht,
+     hat gerade eine Zonenpause oder einen unerreichbaren Richtwert gesehen und
+     will wissen, warum die App das eine und nicht das andere vorschlaegt. */
+  const grund = selbst
+    ? `Von dir gesetzt. Nochmal auf denselben Knopf tippen heißt: zurück zur Automatik.`
+    : (zuLang
+       ? `Beidbeinig hast du zuletzt <b>${fmt(t)}</b> gehalten${z ? ` — Zone ${z.id} geht bis
+          ${fmt(z.hi)}` : ""}. Auf der beidbeinigen Sprosse steht ein halbes Körpergewicht je
+          Seite, mehr gibt sie nicht her; diese Zone ist damit beidbeinig nicht erreichbar.
+          Deshalb steht einbeinig vorn.`
+       : (beid
+          ? `Beidbeinig ist EIN Halt ohne Seite — er zählt für links und rechts zugleich.`
+          : `Links und rechts laufen direkt nacheinander, beide werden gemessen: Eine Seite
+             ermüdet die andere hier nicht.`));
+  return `<label class="tiny" style="display:block;margin:14px 0 4px">Ausführung — ${
+      selbst ? "von dir gesetzt" : "die App hat vorgewählt"}</label>
+    <div class="zw zwei${klasse ? " " + klasse : ""}" id="aw-${ex}">
+      <button class="${beid ? "sel" : "ghost"}" data-awx="${ex}" data-aw="beid">Beidbeinig
+        <span>ein Halt</span></button>
+      <button class="${beid ? "ghost" : "sel"}" data-awx="${ex}" data-aw="ein">Einbeinig
+        <span>links und rechts</span></button>
+    </div>
+    <p class="tiny" style="margin:5px 0 0">${grund}</p>`;
+}
+/* fn = was nach der Umstellung passieren soll. Ohne Angabe wird der Plan
+   verworfen und neu gezeichnet; im laufenden Workout baut blockIntro den
+   Ablauf stattdessen an Ort und Stelle um. */
+function ausfWahlBinden(fn){
+  document.querySelectorAll("[data-aw]").forEach(b => {
+    b.onclick = () => {
+      const ex = b.getAttribute("data-awx");
+      const w  = b.getAttribute("data-aw");
+      /* Nochmal auf die eigene Wahl getippt heisst: zurueck zur Automatik. */
+      ausfWahlSetzen(ex, ausfWahlHeute(ex) === w ? "" : w);
+      if(fn){ fn(ex); return; }
+      S.plan = null; S.planDay = null; save(); render();
+    };
+  });
+}
+/* Wird diese Uebung HEUTE beidbeinig gehalten? Drei Instanzen in dieser
+   Reihenfolge: die Wahl des Nutzers fuer heute, dann der Leiterstand, dann
+   die Messung. Die Messung kann den Leiterstand nur nach OBEN korrigieren —
+   von beidbeinig zu einbeinig, nie umgekehrt: Wer einbeinig steht, hat die
+   Sprosse ueber die Regeln erreicht, und die kennen mehr als eine Zahl. */
+function beidJetzt(ex){
+  const w = ausfWaehlbar(ex) ? ausfWahlHeute(ex) : null;
+  if(w) return w === "beid";
+  if(!beidGemerkt(ex)) return false;
+  if(!ausfWaehlbar(ex)) return true;
+  return !beidZuLang(ex, vorgabeZone(groupOf(ex)));
 }
 /* Die Seiten, die HEUTE geplant werden — nicht die, die die Uebung
    grundsaetzlich hat. Auf einer beidbeinigen Sprosse ist das [null]. */
@@ -2003,7 +2163,19 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
      Leiter herunter kommt man ueber applyRules — steht danach eine einbeinige
      Sprosse gemerkt, gibt planSeiten wieder links und rechts aus. */
   const nurBeid = !side && !!S.ex[ex].sides && hatBeidStufe(ex);
-  const stufen = verfuegbareStufen(ex).filter(st => !nurBeid || beidStufe(ex, st.i));
+  /* Und die Gegenrichtung, seit die Ausfuehrung waehlbar ist: Ein Block MIT
+     Seite darf NIE auf der beidbeinigen Sprosse landen. "50 % — beidbeinig ·
+     links" ist keine Uebung, sondern ein Widerspruch, und gespeichert wuerde
+     daraus ein Messpunkt auf der falschen Last. Der Fall trat auf, sobald der
+     Leiterstand noch beidbeinig war und einbeinig gewaehlt wurde. */
+  const ohneBeid = !!side && hatBeidStufe(ex);
+  const alle = verfuegbareStufen(ex);
+  const gefiltert = alle.filter(st => nurBeid ? beidStufe(ex, st.i)
+                                    : (ohneBeid ? !beidStufe(ex, st.i) : true));
+  /* Bleibt nichts uebrig — etwa weil alle einbeinigen Sprossen an der Waage
+     haengen und die fehlt — gilt die ungefilterte Leiter. Eine leere Auswahl
+     waere schlechter als eine unpassende. */
+  const stufen = gefiltert.length ? gefiltert : alle;
   const nahe = i => stufen.length
     ? stufen.reduce((a, b) => Math.abs(b.i - i) < Math.abs(a.i - i) ? b : a).i : i;
   /* Der beidbeinige Halt hat keinen eigenen Leiterstand mehr — er liest den
@@ -2162,7 +2334,15 @@ function planWorkout(){
     const erste  = startSeite(u.ex);
     const zweite = S.ex[u.ex].sides.find(x => x !== erste);
     A.push(mkBlock(u.ex, erste,  zf.zone, zf.target, true,  zf.onboarding, zf.fest));
-    B.push(mkBlock(u.ex, zweite, zf.zone, zf.target, false, zf.onboarding, zf.fest));
+    /* Ermueden die Seiten einander nicht, gehoert die zweite NICHT ans Ende
+       des Workouts: Sie stuende dort ohne Grund, waere vom Rest des Workouts
+       vorermuedet und zaehlte deshalb nicht — die Trennung wuerde die Messung
+       erst kaputt machen, die sie schuetzen soll. Also direkt daneben, und
+       beide werden gemessen. Siehe seitenParallel. */
+    if(S.ex[u.ex].seitenParallel)
+      A.push(mkBlock(u.ex, zweite, zf.zone, zf.target, true,  zf.onboarding, zf.fest));
+    else
+      B.push(mkBlock(u.ex, zweite, zf.zone, zf.target, false, zf.onboarding, zf.fest));
   }
   for(const u of ein){
     const zf = zoneFuer(u.group);
@@ -2858,6 +3038,39 @@ function warnKarte(i, bl, ex){
 /* Alle Bloecke einer Uebung aus einem laufenden Plan nehmen. */
 function bloeckeOhne(blocks, ex){ return blocks.filter(b => b.exercise !== ex); }
 
+/* ── Ausfuehrung im laufenden Workout umstellen ───────────────────────
+   Aus EINEM beidbeinigen Block werden ZWEI Seitenbloecke und umgekehrt. Das
+   ist der Teil, den Luke mit "hier muss sich dann auch ablauf des workouts und
+   workoutzeit veraendert werden" meint: Die Umstellung aendert die Zahl der
+   Bloecke, und damit die Reihenfolge, die Zaehlung "Uebung 2 von 5" und die
+   geschaetzte Dauer.
+   Umgebaut wird AN ORT UND STELLE. Neu zu planen waere einfacher, wuerde aber
+   den laufenden Lauf verwerfen — samt allem, was schon gemessen ist.
+   Nach vorn wird nichts angefasst: Was vor dem aktuellen Block liegt, ist
+   gelaufen. Deshalb bietet die Karte die Umstellung auch nur an, solange von
+   dieser Uebung noch kein Block dran war. */
+function ausfUmbauen(i){
+  const B = RUN.plan.blocks, ex = B[i].exercise;
+  const vor  = B.slice(0, i);
+  const nach = B.slice(i + 1).filter(b => b.exercise !== ex);
+  const zf = zoneFuer(groupOf(ex));
+  const onb = !!RUN.plan.onboarding;
+  let neu;
+  if(beidJetzt(ex)){
+    neu = [mkBlock(ex, null, zf.zone, zf.target, true, onb, zf.fest)];
+  } else {
+    const e1 = startSeite(ex), e2 = S.ex[ex].sides.find(x => x !== e1);
+    const par = !!S.ex[ex].seitenParallel;
+    neu = [mkBlock(ex, e1, zf.zone, zf.target, true, onb, zf.fest)];
+    const zweiter = mkBlock(ex, e2, zf.zone, zf.target, par, onb, zf.fest);
+    /* Ohne seitenParallel gehoert die zweite Seite ans Ende — dort steht sie
+       auch in der normalen Planung, und aus demselben Grund. */
+    if(par) neu.push(zweiter); else nach.push(zweiter);
+  }
+  RUN.plan.blocks = vor.concat(neu, nach);
+  RUN.b = i; RUN.sets = []; RUN.i = 0;
+  save(); laufSichern();
+}
 /* ═══════════ Die Karte vor der Übung ═══════════
    Die Variante wird HIER eingestellt, unmittelbar vor der Übung, die sie
    betrifft — nicht alle drei bis fünf auf einmal auf der Startseite. Dort
@@ -2876,7 +3089,17 @@ function blockIntro(i){
   const f  = curFit(bl.exercise, bl.side);
   const tp = f ? predictTime(f, lastVon(bl.exercise, bl.level, bl.extra)) : null;
   const zz = (tp && isFinite(tp)) ? zoneOf(tp) : null;
-  const stufen    = verfuegbareStufen(bl.exercise);
+  /* Dieselbe Regel wie in mkBlock: Die beidbeinige Sprosse gehoert auf einen
+     Block OHNE Seite und dort auch allein — sonst boete die Liste "50 % —
+     beidbeinig" unter der Ueberschrift "links" an, und genau diesen Messpunkt
+     gibt es nicht. Die Ausfuehrung wird eine Zeile hoeher umgestellt, nicht
+     hier. */
+  const alleStufen = verfuegbareStufen(bl.exercise);
+  const gefStufen  = hatBeidStufe(bl.exercise)
+    ? alleStufen.filter(st => bl.side ? !beidStufe(bl.exercise, st.i)
+                                      : beidStufe(bl.exercise, st.i))
+    : alleStufen;
+  const stufen    = gefStufen.length ? gefStufen : alleStufen;
   const eb        = extraBereich(bl.exercise);
   /* Zwei Richtungen: die Seite kommt in die Knoepfe, das Feld traegt nur noch
      den Betrag. Betrag null IST "Ohne Gewicht" — dann gibt es auch kein Feld. */
@@ -2890,11 +3113,16 @@ function blockIntro(i){
   const fehltGer  = extraFehltGeraet(bl.exercise);
   const nixZuTun  = stufen.length < 2
                  && !(bl.level >= extraAbOf(bl.exercise) && eb.hi > eb.lo);
-  const versteckt = ex.levels.length - stufen.length;
+  const versteckt = ex.levels.length - alleStufen.length;
   const partner   = partnerVon(bloecke, bl);
   const syncAn    = !!partner && S.sync[bl.exercise] !== false;
   const gemessen  = RUN.fertig.length > 0;
   const letzter   = i + 1 >= bloecke.length;
+  /* Die Umstellung beidbeinig/einbeinig baut den Ablauf um und darf deshalb
+     nur dastehen, solange von dieser Uebung noch kein Block gelaufen ist —
+     sonst wuerde sie eine bereits gemessene Seite entwerten. */
+  const awZeigen  = ausfWaehlbar(bl.exercise)
+                 && !bloecke.slice(0, i).some(b => b.exercise === bl.exercise);
   show("home");
   el("homeTitle").textContent = `Übung ${i+1} von ${bloecke.length}`;
   el("homeSub").textContent = blockLabel(bl);
@@ -2909,6 +3137,7 @@ function blockIntro(i){
         ? ` Statt der Workout-Zone wird <b>Zone ${bl.zone}</b> gemessen: die hätte die Rotation
           wiederholt, obwohl sie hier schon steht.` : ""}</p>` : ""}
       ${bl.zweiteSeite ? "" : zonenWahlKarte(groupOf(bl.exercise), "je")}
+      ${awZeigen ? ausfWahlKarte(bl.exercise, bl.zone, "je") : ""}
 
       ${stufen.length < 2 ? "" : `
       <label class="tiny" for="ivLvl" style="display:block;margin:14px 0 4px">Variante —
@@ -3135,6 +3364,10 @@ function blockIntro(i){
       save(); laufSichern(); zeichne();
     };
   });
+  /* Umstellung beidbeinig/einbeinig: Der Ablauf wird umgebaut, danach steht
+     die Karte des Blocks an derselben Stelle wieder da — nur eben mit der
+     anderen Ausfuehrung und, bei einbeinig, mit einem Block mehr dahinter. */
+  if(awZeigen) ausfWahlBinden(() => { ausfUmbauen(i); zeichne(); });
   el("ivGo").onclick = ()=>{ beep(660,60,.05); laufSichern(); startBlock(); };
   if(el("ivSkip")) el("ivSkip").onclick = ()=> endBlock();
   if(el("ivEnde")) el("ivEnde").onclick = ()=> workoutBeenden();
@@ -3971,6 +4204,8 @@ function renderHome(){
           ${bl.fresh ? "wird gemessen" : "nur Training"}${
           bl.fehlt && bl.fehlt.length ? " · Einstieg" : ""}</p>
         ${bl.zweiteSeite ? "" : zonenWahlKarte(groupOf(bl.exercise), "je")}
+        ${p.blocks.slice(0, i).some(b => b.exercise === bl.exercise)
+          ? "" : ausfWahlKarte(bl.exercise, bl.zone, "je")}
       </div>`;
   };
 
@@ -4007,7 +4242,9 @@ function renderHome(){
         <p class="tiny"><b>Die Minutenzahl oben ist geschätzt.</b> Drin stecken die Richtwerte
         aller Blöcke, ${PAUSE_S} Sekunden zwischen den Sätzen und ${
         Math.round(PAUSE_BLOCK_S/60)} Minuten zwischen zwei Blöcken — die Blockpause misst die
-        App nicht und schreibt sie auch nicht vor, sie ist nur angenommen. Nicht drin steckt,
+        App nicht und schreibt sie auch nicht vor, sie ist nur angenommen. Zwischen links und
+        rechts derselben Übung rechnet sie nur ${PAUSE_S} Sekunden, wo eine Seite die andere
+        nicht ermüdet — beim Wadenheben etwa. Nicht drin steckt,
         dass Satz 2 und 3 vorermüdet kürzer laufen; dafür fehlen Aufbau und
         Ergebnisbildschirm. Beides ist nicht gemessen, also wird beides nicht verrechnet.</p>
         <p class="tiny">Ton einschalten — die Ansagen kommen akustisch, damit du nicht aufs
@@ -4039,6 +4276,7 @@ function renderHome(){
 
   auswahlBinden();
   zonenWahlBinden();
+  ausfWahlBinden();
   if(el("goSess")) el("goSess").onclick = ()=>{ beep(660,60,.05); startWorkout(); };
 }
 
@@ -4231,14 +4469,24 @@ function renderHistory(){
    und 3 laufen vorermuedet kuerzer als der Richtwert (zu hoch geschaetzt),
    dafuer fehlen Aufbau, Stufenwahl und Ergebnisbildschirm (zu niedrig).
    Keiner von beiden ist gemessen, also wird keiner verrechnet. */
+/* Wie lange liegt zwischen zwei Bloecken? Normalerweise die Blockpause — es
+   ist dieselbe Muskulatur, und die muss sich erholen. Die beiden Seiten einer
+   Uebung mit seitenParallel liegen dagegen direkt hintereinander: Dort
+   arbeitet im zweiten Block das andere Bein, und eine Blockpause waere
+   erfundene Zeit. Es bleibt die Satzpause zum Umstellen. */
+function blockPauseS(vorher, jetzt){
+  return (vorher && jetzt && vorher.exercise === jetzt.exercise
+          && (S.ex[jetzt.exercise] || {}).seitenParallel) ? PAUSE_S : PAUSE_BLOCK_S;
+}
 function planDauer(bloecke){
   if(!bloecke || !bloecke.length) return null;
-  const summe = bloecke.reduce((sum, bl) => {
+  const summe = bloecke.reduce((sum, bl, i) => {
     const z = ZONES.find(x => x.id === bl.zone) || ZONES[0];
     const n = bl.saetze || SETS_ZONE[bl.zone] || SETS;
     const t = bl.target || Math.round((z.lo + z.hi) / 2);
-    return sum + LEAD_IN + n * t + (n - 1) * PAUSE_S;
-  }, 0) + (bloecke.length - 1) * PAUSE_BLOCK_S;
+    return sum + (i ? blockPauseS(bloecke[i-1], bl) : 0)
+               + LEAD_IN + n * t + (n - 1) * PAUSE_S;
+  }, 0);
   const min = summe / 60;
   return min < 30 ? Math.max(1, Math.round(min)) : Math.round(min / 5) * 5;
 }
@@ -4263,7 +4511,9 @@ function dauerHTML(bloecke){
     ${zeilen}
     <p class="tiny" style="margin-top:9px">Angenommen sind <b>${
       Math.round(PAUSE_BLOCK_S / 60)} Minuten</b> Pause zwischen zwei Blöcken — die App misst sie
-    nicht und schreibt sie nicht vor. Innerhalb eines Blocks sind es ${PAUSE_S} Sekunden.
+    nicht und schreibt sie nicht vor. Innerhalb eines Blocks sind es ${PAUSE_S} Sekunden, und
+    ebenso zwischen links und rechts derselben Übung, wo die eine Seite die andere nicht
+    ermüdet.
     Die Spanne ist die Haltezeit selbst: sie steht nicht fest, sondern ist das, was du schaffst.
     Satz 2 und 3 laufen vorermüdet kürzer als Satz 1 — eine echte Sitzung landet deshalb eher
     im unteren Teil der Spanne.</p>`;
