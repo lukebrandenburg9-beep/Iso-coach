@@ -519,7 +519,27 @@ const DEFAULT_EX = {
 
      Am Schlingentrainer stellt der Fussabstand den Winkel allein ein: Die
      Gurte schwenken um die Verankerung und folgen dir, wenn du dich
-     zuruecklehnst. Deshalb sind die Sprossen Fussabstaende, keine Hoehen. */
+     zuruecklehnst. Deshalb sind die Sprossen Fussabstaende, keine Hoehen.
+
+     21.09.2026 — Lukes Leiter. Er trainiert die Uebung an Ringen und hat die
+     sieben Stellungen benannt, die er tatsaechlich einnimmt: vier ueber den
+     Schrittabstand, drei im Liegen unter der Aufhaengung. Die alte Leiter war
+     nach Winkeln benannt, die niemand abmisst.
+
+     DIE FAKTOREN SIND VORLAEUFIG. Sprossen 1 bis 4 sind zurueckgerechnet aus
+     Faktor = 0,746 * cos θ, mit θ = 60,3° / 52,9° / 45,8° / 39,0° — ein
+     Schritt macht rund 7° flacher. Sprosse 7 ist k selbst (flach, gestreckt).
+     Sprossen 5 und 6 liegen darunter, weil die angewinkelten Knie den
+     Drehpunkt von der Ferse zum Knie holen und damit rund 11 % Last nehmen
+     (Winter-Segmentmassen, wie in Teil 4 Punkt 26 des Raffa-Papiers).
+
+     ZWEI BEFUNDE, die beim Nachmessen zu pruefen sind. Erstens draengen sich
+     die Sprossen 4 bis 6 innerhalb von 13 %: cos θ ist nahe der Waagerechten
+     flach, genau wie beim Seitstuetz (P20). Es kann sein, dass das keine drei
+     Sprossen sind, sondern eine. Zweitens frieren Messpunkte ihre Last beim
+     Speichern ein — was jetzt auf diesen Zahlen gemessen wird, behaelt sie
+     dauerhaft. Die Tindeq-Messung aus
+     ISO-Coach_Schraegzug-Messung_2026-09-21.md ersetzt sie. */
   row: {
     name:"Schrägzug", region:"Rücken", group:"pull", sides:null,
     extraAb:3, extraK:1.3,
@@ -531,14 +551,17 @@ const DEFAULT_EX = {
         +"wird in der Mitte: Ellenbogen etwa rechtwinklig, Oberarme rund 45° vom Rumpf weg — "
         +"nicht mit gestreckten Armen hängen und nicht oben am Griff kleben. Den Winkel "
         +"stellst du über den Fußabstand ein: je weiter die Füße nach vorn, desto flacher "
-        +"liegst du und desto schwerer wird es.",
+        +"liegst du und desto schwerer wird es. Ab Sprosse 5 zählst du keine Schritte mehr: "
+        +"Du liegst flach unter der Aufhängung, und die Sprosse ist die Höhe der Ringe und "
+        +"die Stellung der Beine.",
     levels:[
-      {name:"Fast aufrecht, nur leicht zurückgelehnt (~78°)",          load:0.155, geraet:"zug"},
-      {name:"Deutlich zurückgelehnt · Füße eine Fußlänge vor (~68°)",  load:0.280, geraet:"zug"},
-      {name:"Halber Weg zur Waagerechten (~57°)",                      load:0.406, geraet:"zug"},
-      {name:"Knapp über der Diagonale (~46°)",                         load:0.518, geraet:"zug"},
-      {name:"Flach · Schultern etwa auf Kniehöhe (~33°)",              load:0.626, geraet:"zug"},
-      {name:"Fast waagerecht (~15°)",                                  load:0.721, geraet:"zug"}
+      {name:"3 Schritte vor",                                 load:0.370, geraet:"zug"},
+      {name:"4 Schritte vor",                                 load:0.450, geraet:"zug"},
+      {name:"5 Schritte vor",                                 load:0.520, geraet:"zug"},
+      {name:"6 Schritte vor",                                 load:0.580, geraet:"zug"},
+      {name:"Flach · Aufhängung auf Schulterhöhe · Knie 90°", load:0.620, geraet:"zug"},
+      {name:"Flach · Aufhängung tief · Knie 90°",             load:0.660, geraet:"zug"},
+      {name:"Flach · Beine gestreckt",                        load:0.750, geraet:"zug"}
     ]
   },
   /* ── Fersenbruecke ────────────────────────────────────────────
@@ -878,7 +901,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-21 c";
+const BUILD = "2026-09-21 d";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -891,7 +914,7 @@ const AW_V = 1;
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
    Update alte Levels kleben. Sessions bleiben dabei immer erhalten. */
-const EX_VERSION = 13;
+const EX_VERSION = 14;
 /* Voreinstellung, bis der Nutzer sein Gewicht einträgt. Nur als Bezugsgroesse
    fuer Zusatzlast noetig — die Lastfaktoren selbst sind gewichtsunabhaengige
    Verhaeltniszahlen. */
@@ -963,6 +986,31 @@ function laeuferFrei(levels, extra, bw, sessions){
    einem dritten Schluessel, den ausser gemerkteStufe niemand liest.
    Die Wanderung haengt NICHT an der Fassungsnummer, sondern daran, ob die
    Zeile noch da ist — auf Lukes Telefon steht die Fassung schon auf 13. */
+/* 21.09.2026: Der Schraegzug hat eine neue Leiter — sieben Stellungen statt
+   sechs Winkelnamen, und sie faengt WEITER OBEN an: die alte Sprosse 1 lag bei
+   0,155, die neue bei 0,370. Ohne Umzug zeigte die gespeicherte Nummer auf eine
+   voellig andere Last. Umgezogen wird nach naechstgelegener Last:
+     alt 0 (0,155) -> neu 0 (0,370)    alt 3 (0,518) -> neu 2 (0,520)
+     alt 1 (0,280) -> neu 0 (0,370)    alt 4 (0,626) -> neu 4 (0,620)
+     alt 2 (0,406) -> neu 0 (0,370)    alt 5 (0,721) -> neu 6 (0,750)
+   Die drei untersten alten Sprossen fallen zusammen, weil es unter 0,370 in der
+   neuen Leiter nichts mehr gibt. Wer da stand, findet die erste Sprosse jetzt
+   schwerer vor als die, die er zuletzt gehalten hat — das ist kein Fehler des
+   Umzugs, sondern die Folge davon, dass die neue Leiter unten aufhoert. Die
+   gemessenen Punkte selbst sind nicht betroffen: sie tragen ihre Last als Zahl,
+   nicht als Sprossennummer.
+   Ein Leitersturz waere hier wieder das falsche Werkzeug — er wuerde auch die
+   sieben anderen Uebungen auf null zuruecksetzen. */
+const ROW_NEU_AT = 14;
+const ROW_UMZUG  = {0:0, 1:0, 2:0, 3:2, 4:4, 5:6};
+function rowUmziehen(lv){
+  const out = {};
+  for(const k of Object.keys(lv || {})){
+    const trifft = (k === "row" || k.indexOf("row|") === 0);
+    out[k] = (trifft && ROW_UMZUG[lv[k]] != null) ? ROW_UMZUG[lv[k]] : lv[k];
+  }
+  return out;
+}
 function beidUmzug(exDefs, levels, extra, streak){
   const lv = Object.assign({}, levels || {});
   const ex = Object.assign({}, extra  || {});
@@ -1030,6 +1078,7 @@ function normalize(d){
   const leitersturz = (d.exVersion || 1) < LEVELS_RESET_AT;
   const bandUmzug = !leitersturz && (d.exVersion || 1) < LAEUFER_BAND_AT;
   const freiUmzug = !leitersturz && (d.exVersion || 1) < LAEUFER_FREI_AT;
+  const rowUmzug  = !leitersturz && (d.exVersion || 1) < ROW_NEU_AT;
   const ex = stale ? structuredClone(DEFAULT_EX)
                    : Object.assign(structuredClone(DEFAULT_EX), d.ex || {});
   /* Erst die Band-Verschiebung von Fassung 11, dann der Umzug auf das freie
@@ -1041,6 +1090,7 @@ function normalize(d){
   const roh    = (freiUmzug && !leitersturz)
                ? laeuferFrei(lvRoh, exRoh, bwAlt, d.sessions)
                : {levels: lvRoh, extra: exRoh};
+  if(rowUmzug) roh.levels = rowUmziehen(roh.levels);
   const umzug  = beidUmzug(ex, roh.levels, roh.extra,
                            leitersturz ? {} : (d.streak || {}));
   /* Den Haken "band" gibt es erst seit dem 19.09. Wer vorher "Kettlebell"
@@ -1717,7 +1767,11 @@ function zoneWahlSetzen(gr, zone){
 function vorgabeZone(gr){
   const w = zoneWahlHeute(gr);
   if(w) return w;
-  return (gr != null) ? zoneFuer(gr).zone : rotationsZone(null);
+  if(gr != null) return zoneFuer(gr).zone;
+  /* Ohne Gruppe — die Plankarte. Auch sie muss den Nachholfall kennen, sonst
+     zeigt sie "Zone A" vorgewaehlt, waehrend der einzige Block in B laeuft. */
+  const nz = nachholZone(null);
+  return nz ? nz.zone : rotationsZone(null);
 }
 /* Die drei Zonen als Zeile, eine davon schon ausgewaehlt. Ohne Gruppe gilt sie
    fuer alle und steht auf der Workoutkarte und auf dem Pausentag; mit Gruppe
@@ -1860,16 +1914,67 @@ function gateGroup(gr){
    nichts verloren — die App wuerde sonst eine Variante vorschlagen, fuer die
    der Gegenstand fehlt. */
 function ausfuehrbar(ex){ return verfuegbareStufen(ex).length > 0; }
+/* ═══════════ Offene Gegenseite ═══════════
+   Luke, 21.09.2026: Sein Workout war Ausfallschritt links, Wade links,
+   Liegestuetz, Schraegzug, Ausfallschritt rechts, Wade rechts. Er brach nach
+   dem Schraegzug ab — links gemessen, rechts nie. Am naechsten Tag sperrte die
+   Erholungsregel beide Uebungen, weil die GRUPPE trainiert war, und die rechte
+   Seite fiel still unter den Tisch: "die rechte Seite wird nicht nachgeholt".
+
+   Eine halb gemessene Uebung ist aber kein erholungsbeduerftiger Muskel,
+   sondern ein Loch in der Kurve. Die Sperre schuetzt die Seite, die gearbeitet
+   hat; die andere hat nichts zu erholen. Darum hat die offene Seite Vorrang vor
+   der Sperre — Lukes Entscheidung, und sie kostet nichts, weil der gesperrten
+   Seite nichts zugemutet wird.
+
+   Das Fenster ist so lang wie die Sperre selbst. Danach ist die Uebung ohnehin
+   wieder dran, und startSeite() stellt die Seite mit weniger Messpunkten von
+   sich aus nach vorn. Der Vorrang ist ein Nachholfenster, keine Dauerregel. */
+function offeneSeite(ex){
+  const e = S.ex[ex];
+  if(!e || !e.sides || e.sides.length < 2) return null;
+  let tag = null;
+  for(const ses of S.sessions){
+    if(ses.exercise !== ex || !ergiebig(ses)) continue;
+    const d = dayNum(ses.date);
+    if(d != null && (tag === null || d > tag)) tag = d;
+  }
+  if(tag === null) return null;
+  const gr  = groupOf(ex);
+  const gap = groupWorkoutCount(gr) < 3 ? ONBOARD_GAP_DAYS : MIN_GAP_DAYS;
+  if((today() - tag) >= gap) return null;
+  /* Ein Block OHNE Seite ist der beidbeinige Halt. Der zaehlt fuer BEIDE
+     Kurven (Lukes Festlegung vom 19.09.) und laesst also nichts offen. */
+  const hat = new Set(), bezug = {};
+  for(const ses of S.sessions){
+    if(ses.exercise !== ex || !ergiebig(ses)) continue;
+    if(dayNum(ses.date) !== tag) continue;
+    if(ses.side == null) e.sides.forEach(x => hat.add(x));
+    else { hat.add(ses.side); bezug[ses.side] = ses; }
+  }
+  const fehlt = e.sides.filter(x => !hat.has(x));
+  if(fehlt.length !== 1) return null;
+  /* Die schon gemessene Seite gibt Zone und Zielzeit vor. Ohne das liefe die
+     Nachholmessung womoeglich in einer anderen Zone als ihre Gegenseite, und
+     die beiden Zahlen liessen sich nicht mehr nebeneinanderlegen — genau das,
+     wofuer das Nachholen ueberhaupt da ist. */
+  const vor = bezug[e.sides.find(x => hat.has(x))] || null;
+  return {seite: fehlt[0], tag,
+          zone:   (vor && vor.workoutZone) || null,
+          target: (vor && vor.target > 0 ? vor.target : null)};
+}
 function uebungslage(){
   return Object.keys(S.ex).map(ex => {
     const gr = groupOf(ex);
     return {ex, group:gr, aktiv: S.aktiv[ex] !== false && ausfuehrbar(ex),
-            ohneGeraet: !ausfuehrbar(ex), tor: gateGroup(gr)};
+            ohneGeraet: !ausfuehrbar(ex), tor: gateGroup(gr), offen: offeneSeite(ex)};
   });
 }
 /* Was heute tatsaechlich trainiert wird. */
 function heuteDran(){
-  return uebungslage().filter(u => u.aktiv && (u.tor.ok || ignoreRest));
+  /* u.offen schlaegt das Tor: siehe offeneSeite(). Nicht die Uebung ist frei,
+     sondern genau die eine Seite, die noch nie an der Reihe war. */
+  return uebungslage().filter(u => u.aktiv && (u.tor.ok || ignoreRest || !!u.offen));
 }
 /* Seit wie vielen Tagen wartet diese Uebung auf eine Messung? Gezaehlt ueber
    BEIDE Seiten: wer links vor drei Tagen und rechts vor zehn gemessen hat,
@@ -1898,8 +2003,13 @@ function auswahlHeute(dran){
     return gewaehlt.filter((u, i) => !gewaehlt.some((v, j) => j < i && konflikt(v.ex, u.ex)));
   }
   const deckel = (S.maxBloecke > 0) ? S.maxBloecke : MAX_BLOECKE;
-  const kosten = u => planSeiten(u.ex).length;
-  const nachWartezeit = dran.slice().sort((a,b) => uebungWartet(b.ex) - uebungWartet(a.ex));
+  /* Ein Nachholblock ist EINE Seite, nicht zwei — er kostet den halben Platz. */
+  const kosten = u => u.offen ? 1 : planSeiten(u.ex).length;
+  /* Und er steht vor allem anderen: Wer eine Seite offen hat, hat sie seit
+     gestern offen, waehrend die Wartezeit-Liste nach Tagen sortiert und den
+     Nachholfall genau deshalb ans Ende stellen wuerde. */
+  const nachWartezeit = dran.slice().sort((a,b) =>
+    ((b.offen ? 1 : 0) - (a.offen ? 1 : 0)) || (uebungWartet(b.ex) - uebungWartet(a.ex)));
   const drin = []; let n = 0;
   for(const u of nachWartezeit){
     /* Das Paar zuerst: wer heute schon einen Partner im Plan hat, faellt
@@ -1919,7 +2029,11 @@ function auswahlHeute(dran){
 function gate(){
   const an = uebungslage().filter(u => u.aktiv);
   if(!an.length) return {ok:false, kind:"leer", wait:0};
-  const frei = an.filter(u => u.tor.ok);
+  /* Eine offene Gegenseite oeffnet den Tag genauso wie ein abgelaufenes Tor.
+     Ohne diese Zeile stuende hier "Pausentag — heute nicht", waehrend
+     planWorkout den Nachholblock schon gebaut hat und heuteDran ihn fuehrt:
+     zwei Teile derselben App, die einander widersprechen. Siehe offeneSeite(). */
+  const frei = an.filter(u => u.tor.ok || u.offen);
   if(frei.length) return {ok:true, onboarding: frei.some(u=>u.tor.onboarding)};
   const beste = an.slice().sort((a,b)=> a.tor.wait - b.tor.wait)[0].tor;
   return Object.assign({}, beste, {ok:false});
@@ -2267,12 +2381,39 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
 
 /* Welche Zone fordert diese Muskelgruppe heute an? Je Gruppe, weil auch die
    Erholung je Gruppe gezaehlt wird. */
+/* Die Zone, die ein Nachholblock erbt — die der schon gemessenen Gegenseite.
+   Ohne gr: die erste, die sich findet (fuer die Plankarte, die nur EINE
+   Vorgabe anzeigen kann). */
+function nachholZone(gr){
+  for(const ex of Object.keys(S.ex)){
+    if(S.aktiv[ex] === false || !ausfuehrbar(ex)) continue;
+    if(gr != null && groupOf(ex) !== gr) continue;
+    const o = offeneSeite(ex);
+    if(o && o.zone) return o;
+  }
+  return null;
+}
 function zoneFuer(gr){
   const w = zoneWahlHeute(gr);
   if(w){
     const z = ZONES.find(x => x.id === w);
     return {zone:z.id, target: Math.round((z.lo + z.hi)/2), onboarding:false, fest:true,
       why:`Zone ${z.id} (${z.lo}–${z.hi} s) hast du für heute selbst gesetzt.`};
+  }
+  /* Nachholfall vor der Rotation. Die Gegenseite hat in einer bestimmten Zone
+     gemessen; misst diese Seite in einer anderen, stehen am Ende zwei Zahlen
+     nebeneinander, die sich nicht vergleichen lassen — und genau dafuer wird
+     nachgeholt. "fest" haelt die Lueckenlogik in mkBlock davon ab, sie wieder
+     wegzudrehen; sonst stuende auf der Karte eine Zone und im Block eine
+     andere. Ein Nachholfall kann nur in einer gesperrten Gruppe auftreten, und
+     dort kommt ausser dem Nachholer ohnehin nichts durch. */
+  const nz = (gr === undefined) ? null : nachholZone(gr);
+  if(nz){
+    const z = ZONES.find(x => x.id === nz.zone);
+    return {zone:z.id, target: (nz.target > 0 ? nz.target : Math.round((z.lo + z.hi)/2)),
+      onboarding:false, fest:true,
+      why:`Zone ${z.id} — dieselbe, in der die Gegenseite zuletzt gemessen hat. `
+        + `Zwei Seiten in zwei Zonen ließen sich nicht nebeneinanderlegen.`};
   }
   const n = groupWorkoutCount(gr);
   if(n < 3){
@@ -2326,6 +2467,17 @@ function planWorkout(){
   const A = [], B = [];
   for(const u of zwei){
     const zf = zoneFuer(u.group);
+    /* Nachholfall: Eine Seite wurde zuletzt gemessen, die andere nicht — dann
+       steht heute genau diese eine Seite im Plan, und zwar in der Zone der
+       Gegenseite. Kein zweiter Block: Die gemessene Seite ist in der Erholung,
+       und sie ein zweites Mal dazuzustellen, waere genau die Zumutung, vor der
+       die Sperre schuetzen soll. "fest" schaltet die Lueckenlogik ab, damit sie
+       die uebernommene Zone nicht wegdreht. */
+    if(u.offen){
+      A.push(mkBlock(u.ex, u.offen.seite, zf.zone, zf.target, true,
+                     zf.onboarding, zf.fest));
+      continue;
+    }
     /* Traegt die geplante Sprosse beide Seiten, ist es EIN Halt: ein Block,
        keine Seite. Der Probeblock hat das letzte Wort, weil erst er die
        Sprosse aus der Kurve kennt — landet er doch einbeinig, gilt wieder
@@ -2367,6 +2519,10 @@ function planWorkout(){
     /* Kein stiller Deckel: Was heute nicht mehr passt, wird benannt — und
        zwar mit dem richtigen Grund. Am Deckel gescheitert ist etwas anderes
        als vom Partner verdraengt. */
+    /* Warum heute etwas im Plan steht, das die Erholungsregel eigentlich
+       sperrt, muss dastehen — sonst liest sich der Plan wie ein Fehler. */
+    nachhol: dran.filter(u => u.offen && !u.tor.ok)
+                 .map(u => ({ex: u.ex, seite: u.offen.seite})),
     spaeter: spaeter.filter(u => !dran.some(v => konflikt(v.ex, u.ex))).map(u => u.ex),
     paar:    spaeter.filter(u =>  dran.some(v => konflikt(v.ex, u.ex)))
                     .map(u => ({ex: u.ex, wegen: dran.find(v => konflikt(v.ex, u.ex)).ex})),
@@ -3279,6 +3435,11 @@ function blockIntro(i){
         es nichts zu verlieren — die Übung rückt in der Reihenfolge nach vorn.</p>` : ""}
       ${(gemessen || !letzter) ? `<button class="ghost" style="width:100%;margin-top:8px"
         id="ivEnde">Workout hier beenden${gemessen ? " und speichern" : ""}</button>` : ""}
+      ${gemessen ? `<button class="ghost" style="width:100%;margin-top:8px"
+        id="ivPause">Für später unterbrechen</button>
+        <p class="tiny" style="margin:6px 0 0">Nichts wird gespeichert und nichts geht verloren.
+        Bis Mitternacht kommst du hierher zurück — mit denselben Übungen in derselben Reihenfolge,
+        also auch mit der zweiten Seite.</p>` : ""}
     </div>`;
 
   /* Jede Änderung wird sofort gesichert und die Karte neu gezeichnet — sonst
@@ -3375,6 +3536,7 @@ function blockIntro(i){
   el("ivGo").onclick = ()=>{ beep(660,60,.05); laufSichern(); startBlock(); };
   if(el("ivSkip")) el("ivSkip").onclick = ()=> endBlock();
   if(el("ivEnde")) el("ivEnde").onclick = ()=> workoutBeenden();
+  if(el("ivPause")) el("ivPause").onclick = ()=> workoutUnterbrechen();
 }
 /* Zielzeit des naechsten Satzes.
    Satz 1  — aus der Kurve (oder der Zone, solange es keine gibt).
@@ -3471,7 +3633,11 @@ function afterSet(time, tgt, roh){
         Trainingsumfang, keine Messung.</p>` : ""}
       ${mehrKommt ? `<button class="ghost" style="width:100%;margin-top:${
         left===null?"8px":(blockStop?"8px":"14px")}"
-        id="wkStop">Workout hier beenden und speichern</button>` : ""}
+        id="wkStop">Workout hier beenden und speichern</button>
+        <button class="ghost" style="width:100%;margin-top:8px" id="wkPause">Für später
+          unterbrechen</button>
+        <p class="tiny" style="margin:6px 0 0">Der eben gehaltene Satz bleibt im Lauf, gespeichert
+        wird noch nichts. Bis Mitternacht machst du hier weiter.</p>` : ""}
     </div>`;
 
   const speichern = ()=>{
@@ -3499,6 +3665,7 @@ function afterSet(time, tgt, roh){
     el("weiterBtn").onclick = ()=>{ speichern(); endBlock(); };
     /* Der eben gehaltene Satz zählt mit — erst sichern, dann beenden. */
     if(el("wkStop")) el("wkStop").onclick = ()=>{ speichern(); workoutBeenden(); };
+    if(el("wkPause")) el("wkPause").onclick = ()=>{ speichern(); workoutUnterbrechen(); };
     return;
   }
 
@@ -3557,7 +3724,12 @@ function satzVerworfen(){
                überspringen</button>` : "")}
       ${(hatBloecke || hatSaetze)
         ? `<button class="ghost" style="width:100%;margin-top:8px" id="wkEnde">Workout hier
-             beenden und speichern</button>` : ""}
+             beenden und speichern</button>
+           <button class="ghost" style="width:100%;margin-top:8px" id="wkPauseE">Für später
+             unterbrechen</button>
+           <p class="tiny" style="margin:6px 0 0">Gespeichert wird nichts, verloren geht nichts.
+           Bis Mitternacht führt die Startseite hierher zurück — mit den Blöcken, die noch
+           offen sind.</p>` : ""}
       <button class="ghost" style="width:100%;margin-top:8px" id="wkWeg">Workout ganz
         verwerfen</button>
     </div>`;
@@ -3565,6 +3737,7 @@ function satzVerworfen(){
   if(el("blkEnde")) el("blkEnde").onclick = ()=> endBlock();
   if(el("blkSkip")) el("blkSkip").onclick = ()=> endBlock();
   if(el("wkEnde")) el("wkEnde").onclick = ()=> workoutBeenden();
+  if(el("wkPauseE")) el("wkPauseE").onclick = ()=> workoutUnterbrechen();
   el("wkWeg").onclick = ()=>{
     if(confirm("Das ganze Workout verwerfen? Alle heute gemessenen Blöcke gehen verloren."))
       { laufVerwerfen(); render(); }
@@ -3627,6 +3800,32 @@ function workoutBeenden(){
   blockSichern();
   if(!RUN.fertig.length){ laufVerwerfen(); render(); return; }
   finishWorkout();
+}
+/* Fuer spaeter unterbrechen — der dritte Weg neben "beenden" und "verwerfen".
+   Luke, 21.09.2026: Er brach ein Workout nach dem vierten Block ab (Ausfall-
+   schritt links, Wade links, Liegestuetz, Schraegzug) und wollte abends
+   weitermachen. "Beenden und speichern" hat genau das unmoeglich gemacht: es
+   schreibt die Sitzungen, loescht Plan und Lauf, und am Abend stand ein voellig
+   neues Workout da — die rechte Seite von Ausfallschritt und Wade war nie
+   gemessen und wurde auch nicht nachgeholt.
+   Unterbrechen laesst alles stehen, wo es ist: den halb gelaufenen Block, die
+   Reihenfolge, die eingestellten Varianten, die Seitenzuordnung. Gespeichert
+   wird NICHTS — es gibt keine halbe Sitzung, und genau darum gibt es auch
+   keinen Bruch in der Kurve. Die Home-Karte "Workout laeuft noch" fuehrt
+   zurueck.
+   Die Grenze ist Mitternacht (Lukes Entscheidung): renderHome bietet
+   "Weitermachen" nur an, solange L.tag === today(). Was aelter ist, laesst sich
+   nur noch abschliessen — eine Messung von gestern gehoert nicht in dieselbe
+   Sitzung wie eine von heute. */
+function workoutUnterbrechen(){
+  laufSichern();
+  /* RUN muss weg, sonst ist der Lauf nicht unterbrochen, sondern laeuft
+     unsichtbar weiter: renderHome zeigt die Karte "Workout laeuft noch" nur
+     bei !RUN, und ohne diese Zeile stuende stattdessen der normale Tagesplan
+     da — also genau die Anzeige, die Luke gemeldet hat. Der Lauf lebt jetzt in
+     S.lauf; laufFortsetzen() baut RUN daraus wieder auf. */
+  RUN = null;
+  render();
 }
 
 function finishWorkout(){
@@ -4072,16 +4271,22 @@ function renderHome(){
       ${lage.map(u=>{
         const e = S.ex[u.ex];
         const frei = u.tor.ok;
-        const wartet = !frei ? (u.tor.kind === "day"
+        /* Die Sperre gilt der Gruppe, aber eine Seite, die nie an der Reihe war,
+           hat nichts zu erholen. Stuende hier "heute schon trainiert", waehrend
+           dieselbe Uebung oben im Plan steht, laese sich das nur als Fehler der
+           App lesen. Siehe offeneSeite(). */
+        const wartet = u.offen
+          ? `${u.offen.seite} ist noch offen — wird heute nachgeholt`
+          : (!frei ? (u.tor.kind === "day"
           ? `heute schon trainiert — wieder in ${u.tor.wait} Tag${u.tor.wait===1?"":"en"}`
-          : `Zonenpause — noch ${u.tor.wait} Tag${u.tor.wait===1?"":"e"}`) : "";
+          : `Zonenpause — noch ${u.tor.wait} Tag${u.tor.wait===1?"":"e"}`) : "");
         return `<label class="chk" for="ak-${u.ex}">
           <input type="checkbox" id="ak-${u.ex}" data-ex="${u.ex}" ${u.aktiv?"checked":""}>
           <span><b>${e.name}</b> <span class="muted">· ${e.region}</span><br>
           <span class="tiny" style="color:${u.ohneGeraet ? "var(--warn)"
-            : frei?"var(--ok)":"var(--tx3)"}">${
+            : (frei || u.offen) ? "var(--ok)" : "var(--tx3)"}">${
             u.ohneGeraet ? "keine ausführbare Variante — Gerät fehlt (Mehr → Geräte)"
-            : frei ? "frei" : wartet}</span></span></label>${
+            : (frei && !u.offen) ? "frei" : wartet}</span></span></label>${
         /* Die Zone haengt an der Muskelgruppe, und jede Uebung hat hier ihre
            eigene — deshalb ist "je Uebung" und "je Gruppe" hier dasselbe.
            Keine Zeile, wo sie heute nichts aendern kann: bei fehlendem Geraet,
@@ -4223,6 +4428,12 @@ function renderHome(){
           font-family:var(--mono)"> · rund ${planDauer(p.blocks)} min</span>` : ""}</h2>
       <p class="muted" style="margin:0">${p.blocks.map(blockLabel).join("  →  ")}</p>
       <p class="tiny" style="margin-top:11px">${p.why}</p>
+      ${(p.nachhol && p.nachhol.length) ? `<p class="tiny"><b>Nachgeholt:</b> ${
+        p.nachhol.map(o => `${S.ex[o.ex].name} · ${o.seite}`).join(", ")}. ${
+        p.nachhol.length===1 ? "Diese Seite war" : "Diese Seiten waren"} beim letzten Mal
+        nicht mehr dran — ${p.nachhol.length===1 ? "sie hat" : "sie haben"} nichts zu erholen
+        und ${p.nachhol.length===1 ? "steht" : "stehen"} deshalb heute vorn, in derselben Zone
+        wie die Gegenseite. Die Seite, die schon gemessen ist, bleibt in der Pause.</p>` : ""}
       ${zonenWahlKarte()}
       ${(p.paar && p.paar.length) ? `<p class="tiny"><b>Heute nicht dabei:</b> ${
         p.paar.map(o => S.ex[o.ex].name).join(", ")}. Dieselbe Muskulatur trägt heute schon in
