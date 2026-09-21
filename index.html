@@ -875,7 +875,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-21 a";
+const BUILD = "2026-09-21 b";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -3259,7 +3259,8 @@ function blockIntro(i){
         der Punkt zählt, wie er kommt.</p>` : ""}
       ${ex.hint ? `<p class="tiny" style="margin-top:9px">${ex.hint}</p>` : ""}
       ${uebungsbild(bl.exercise)}
-      ${(!ex.sides && bloecke.length > 2 && i > 0 && i < bloecke.length-1) ? `<p class="tiny"
+      ${(!ex.sides && bloecke.length > 2 && i > 0 && i < bloecke.length-1
+          && bloecke.some(b => b.side && b.fresh === false)) ? `<p class="tiny"
         style="margin-top:9px">Dieser Block steht bewusst in der Mitte: Er trennt bei den
         zweiseitigen Übungen die erste von der zweiten Seite und gibt ihr einige Minuten
         Erholung.</p>` : ""}
@@ -3418,6 +3419,19 @@ function afterSet(time, tgt, roh){
      von dieser Uebung noch Saetze kaemen UND danach noch ein Block steht. Nach
      dem letzten Satz fuehrt "Weiter" ohnehin zum naechsten Block. */
   const blockStop = !letzter && RUN.b + 1 < RUN.plan.blocks.length;
+  /* Zwei Seiten, die einander nicht ermueden, gehoeren nicht nur nebeneinander
+     in den Plan — sie sollen auch nebeneinander LAUFEN. Nach dem letzten Satz
+     links laeuft dieselbe Satzpause weiter, und der erste Satz rechts beginnt
+     von allein. Ohne das stuende hier "Weiter", danach die volle Karte vor der
+     Uebung und darauf noch einmal "Los": drei Tipps fuer einen Fusswechsel,
+     und dazwischen eine Karte, auf der es fuer die zweite Seite nichts mehr zu
+     entscheiden gibt. Das Mass ist dasselbe wie in der Dauerrechnung —
+     blockPauseS() sagt fuer dieses Paar die Satzpause voraus, also laeuft hier
+     auch die Satzpause. Luke, 21.09.2026: "mach es noch so das das
+     isometrische wadenheben links und rechts direkt hintereinander laeuft". */
+  const folge = RUN.plan.blocks[RUN.b + 1];
+  const durchlauf = (letzter && folge && blockPauseS(curBlock(), folge) === PAUSE_S)
+                  ? folge : null;
   show("home");
   el("homeTitle").textContent = `Satz ${RUN.i+1} von ${curSets()}`;
   el("homeSub").textContent = blockLabel(curBlock());
@@ -3454,12 +3468,21 @@ function afterSet(time, tgt, roh){
         ? `<button class="primary" style="width:100%;margin-top:14px" id="weiterBtn">Weiter</button>`
         : `<div style="text-align:center;margin-top:16px">
              <div class="big" id="pauseNum" style="font-size:64px;line-height:1">${left}</div>
-             <p class="tiny" style="margin:4px 0 0">Sekunden bis zum nächsten Satz</p>
+             <p class="tiny" style="margin:4px 0 0">Sekunden bis ${durchlauf
+             ? "zur anderen Seite" : "zum nächsten Satz"}</p>
            </div>
-           <p class="tiny" style="margin-top:12px">Die Pause läuft durch und ist immer gleich
+           ${durchlauf ? `<p class="tiny" style="margin-top:12px"><b>Seite wechseln.</b> Gleich
+             geht es ohne weiteren Tipp mit <b>${blockLabel(durchlauf)}</b> weiter —
+             ${stufenName(durchlauf.exercise, durchlauf.level, durchlauf.extra)}. Diese Seite hat
+             eben nicht mitgearbeitet; sie wird deshalb genauso gemessen wie die erste.</p>
+           <p class="tiny">Das Häkchen kannst du währenddessen setzen — es hält die Uhr nicht
+           an.</p>
+           <button class="ghost" style="width:100%;margin-top:12px" id="seiteEinst">Erst noch
+             einstellen</button>`
+           : `<p class="tiny" style="margin-top:12px">Die Pause läuft durch und ist immer gleich
            lang. Das Häkchen kannst du währenddessen setzen — es hält die Uhr nicht an.</p>
            <p class="tiny">Die Vorgabe für den nächsten Satz rechnet sich aus dem, was du eben
-           tatsächlich geschafft hast — nicht aus dem Wert vom Sessionbeginn.</p>`}
+           tatsächlich geschafft hast — nicht aus dem Wert vom Sessionbeginn.</p>`}`}
       ${blockStop ? `<button class="ghost" style="width:100%;margin-top:14px" id="blkStop">
         Übung hier beenden und zur nächsten</button>
         <p class="tiny" style="margin:6px 0 0">Der eben gehaltene Satz ist gespeichert. Für Kurve
@@ -3489,7 +3512,7 @@ function afterSet(time, tgt, roh){
     });
   };
 
-  if(letzter){
+  if(letzter && !durchlauf){
     el("homeBody").innerHTML = karte(null);
     psBinden();
     el("weiterBtn").onclick = ()=>{ speichern(); endBlock(); };
@@ -3511,11 +3534,17 @@ function afterSet(time, tgt, roh){
   if(el("blkStop")) el("blkStop").onclick = ()=>{
     clearInterval(iv); speichern(); endBlock();
   };
+  /* Der Ausstieg aus dem Durchlauf: Wer an der zweiten Seite doch etwas
+     aendern will, kommt ueber den gewohnten Weg auf die Karte davor. */
+  if(el("seiteEinst")) el("seiteEinst").onclick = ()=>{
+    clearInterval(iv); speichern(); endBlock();
+  };
   iv = setInterval(()=>{
     left--;
     if(left <= 0){
       clearInterval(iv);
       speichern();
+      if(durchlauf){ blockDurchlaufen(); return; }
       nextSet();
       return;
     }
@@ -3606,6 +3635,19 @@ function seiteNachruecken(bl){
   if(j < 0) return null;
   RUN.plan.blocks[j].fresh = true;
   return RUN.plan.blocks[j];
+}
+/* Blockwechsel OHNE die Karte davor — der Fall zweier Seiten, die einander
+   nicht ermueden. blockSichern() legt den fertigen Block ab und setzt RUN.b
+   weiter; danach faengt der naechste unmittelbar an. Die Sicherheitsfrage ist
+   hier nie faellig: Sie gehoert zur Uebung, und die lief eben schon. */
+function blockDurchlaufen(){
+  blockSichern();
+  const bl = curBlock();
+  if(!bl){ finishWorkout(); return; }
+  /* Ein Plan aus einer aelteren Fassung kennt die Satzzahl noch nicht —
+     dieselbe Nachruestung wie in blockIntro(). */
+  if(bl.saetze == null) bl.saetze = SETS_ZONE[bl.zone] || SETS;
+  startBlock();
 }
 function endBlock(){
   if(!blockSichern()){
