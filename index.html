@@ -412,8 +412,11 @@ const DEFAULT_REST     = {A:7, B:7, C:7};
    Wadenheben traegt jeweils EIN Unterschenkel und sonst nichts — da ist die
    Trennung ein erfundener Preis. Luke, 21.09.2026: "man kann isometrisches
    wadenheben links/rechts direkt hintereinander trainieren und auch messen
-   ohne vorermuedung". Folge: beide Bloecke stehen nebeneinander, beide sind
-   fresh, und zwischen ihnen steht keine Blockpause.
+   ohne vorermuedung". Folge: beide Bloecke stehen nebeneinander und beide sind
+   fresh — die zweite Seite wird also gemessen statt am Ende des Workouts
+   vorermuedet mitzulaufen. Die PAUSE dazwischen ist die normale Blockpause;
+   sie war in Build 2026-09-21 b kurz die Satzpause, bis Luke am 21.09.2026
+   sagte: "bau wieder die normale pause zwischen links/rechts wadenheben ein".
 
    group = Muskelgruppe. Uebungen mit derselben Gruppe sperren sich
    gegenseitig; ueberschneidungsfreie duerfen am selben Tag getestet
@@ -712,7 +715,7 @@ const DEFAULT_EX = {
         +"die ganze Leiter gleich, sie ist kein Teil der Last. Zwei Stufen brauchen nichts "
         +"weiter: Bei 50 % stehst du auf beiden Vorfüßen — das ist EIN Halt, links und rechts "
         +"gibt es dort nicht. Bei 100 % trägt der genannte Fuß allein, und dann kommen beide "
-        +"Seiten direkt nacheinander dran: Eine Wade ermüdet die andere nicht, beide Sätze "
+        +"Seiten nacheinander dran: Eine Wade ermüdet die andere nicht, beide Sätze "
         +"werden gemessen. Für die drei Stufen dazwischen liegt die Waage unter seinem Vorfuß — "
         +"die Zahl auf der Anzeige IST die Stufe, und du nimmst dir über die Hände auf einer "
         +"Auflage so viel Gewicht ab, bis sie stimmt.",
@@ -774,7 +777,7 @@ const DEFAULT_EX = {
         +"aufgestellt. Das Wadenheben ohne Handtuch wird waagerecht gehalten — zusammen decken "
         +"die beiden zwei verschiedene Gelenkstellungen ab. Auch hier: keine Wiederholungen. "
         +"Und auch hier gilt: Bei 50 % stehst du auf beiden Füßen, das ist EIN Halt. Einbeinig "
-        +"kommen links und rechts direkt nacheinander dran, beide Sätze werden gemessen.",
+        +"kommen links und rechts nacheinander dran, beide Sätze werden gemessen.",
     /* Kein seitenHinweis mehr — dieselbe Bewegung wie beim Wadenheben ohne
        Handtuch, also dieselbe Begruendung: siehe seitenParallel. */
     warnung:{
@@ -875,7 +878,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-21 b";
+const BUILD = "2026-09-21 c";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -1386,7 +1389,7 @@ function ausfWahlKarte(ex, zone, klasse){
           Deshalb steht einbeinig vorn.`
        : (beid
           ? `Beidbeinig ist EIN Halt ohne Seite — er zählt für links und rechts zugleich.`
-          : `Links und rechts laufen direkt nacheinander, beide werden gemessen: Eine Seite
+          : `Links und rechts stehen nacheinander im Workout, beide werden gemessen: Eine Seite
              ermüdet die andere hier nicht.`));
   return `<label class="tiny" style="display:block;margin:14px 0 4px">Ausführung — ${
       selbst ? "von dir gesetzt" : "die App hat vorgewählt"}</label>
@@ -3419,19 +3422,6 @@ function afterSet(time, tgt, roh){
      von dieser Uebung noch Saetze kaemen UND danach noch ein Block steht. Nach
      dem letzten Satz fuehrt "Weiter" ohnehin zum naechsten Block. */
   const blockStop = !letzter && RUN.b + 1 < RUN.plan.blocks.length;
-  /* Zwei Seiten, die einander nicht ermueden, gehoeren nicht nur nebeneinander
-     in den Plan — sie sollen auch nebeneinander LAUFEN. Nach dem letzten Satz
-     links laeuft dieselbe Satzpause weiter, und der erste Satz rechts beginnt
-     von allein. Ohne das stuende hier "Weiter", danach die volle Karte vor der
-     Uebung und darauf noch einmal "Los": drei Tipps fuer einen Fusswechsel,
-     und dazwischen eine Karte, auf der es fuer die zweite Seite nichts mehr zu
-     entscheiden gibt. Das Mass ist dasselbe wie in der Dauerrechnung —
-     blockPauseS() sagt fuer dieses Paar die Satzpause voraus, also laeuft hier
-     auch die Satzpause. Luke, 21.09.2026: "mach es noch so das das
-     isometrische wadenheben links und rechts direkt hintereinander laeuft". */
-  const folge = RUN.plan.blocks[RUN.b + 1];
-  const durchlauf = (letzter && folge && blockPauseS(curBlock(), folge) === PAUSE_S)
-                  ? folge : null;
   show("home");
   el("homeTitle").textContent = `Satz ${RUN.i+1} von ${curSets()}`;
   el("homeSub").textContent = blockLabel(curBlock());
@@ -3468,21 +3458,12 @@ function afterSet(time, tgt, roh){
         ? `<button class="primary" style="width:100%;margin-top:14px" id="weiterBtn">Weiter</button>`
         : `<div style="text-align:center;margin-top:16px">
              <div class="big" id="pauseNum" style="font-size:64px;line-height:1">${left}</div>
-             <p class="tiny" style="margin:4px 0 0">Sekunden bis ${durchlauf
-             ? "zur anderen Seite" : "zum nächsten Satz"}</p>
+             <p class="tiny" style="margin:4px 0 0">Sekunden bis zum nächsten Satz</p>
            </div>
-           ${durchlauf ? `<p class="tiny" style="margin-top:12px"><b>Seite wechseln.</b> Gleich
-             geht es ohne weiteren Tipp mit <b>${blockLabel(durchlauf)}</b> weiter —
-             ${stufenName(durchlauf.exercise, durchlauf.level, durchlauf.extra)}. Diese Seite hat
-             eben nicht mitgearbeitet; sie wird deshalb genauso gemessen wie die erste.</p>
-           <p class="tiny">Das Häkchen kannst du währenddessen setzen — es hält die Uhr nicht
-           an.</p>
-           <button class="ghost" style="width:100%;margin-top:12px" id="seiteEinst">Erst noch
-             einstellen</button>`
-           : `<p class="tiny" style="margin-top:12px">Die Pause läuft durch und ist immer gleich
+           <p class="tiny" style="margin-top:12px">Die Pause läuft durch und ist immer gleich
            lang. Das Häkchen kannst du währenddessen setzen — es hält die Uhr nicht an.</p>
            <p class="tiny">Die Vorgabe für den nächsten Satz rechnet sich aus dem, was du eben
-           tatsächlich geschafft hast — nicht aus dem Wert vom Sessionbeginn.</p>`}`}
+           tatsächlich geschafft hast — nicht aus dem Wert vom Sessionbeginn.</p>`}
       ${blockStop ? `<button class="ghost" style="width:100%;margin-top:14px" id="blkStop">
         Übung hier beenden und zur nächsten</button>
         <p class="tiny" style="margin:6px 0 0">Der eben gehaltene Satz ist gespeichert. Für Kurve
@@ -3512,7 +3493,7 @@ function afterSet(time, tgt, roh){
     });
   };
 
-  if(letzter && !durchlauf){
+  if(letzter){
     el("homeBody").innerHTML = karte(null);
     psBinden();
     el("weiterBtn").onclick = ()=>{ speichern(); endBlock(); };
@@ -3534,17 +3515,11 @@ function afterSet(time, tgt, roh){
   if(el("blkStop")) el("blkStop").onclick = ()=>{
     clearInterval(iv); speichern(); endBlock();
   };
-  /* Der Ausstieg aus dem Durchlauf: Wer an der zweiten Seite doch etwas
-     aendern will, kommt ueber den gewohnten Weg auf die Karte davor. */
-  if(el("seiteEinst")) el("seiteEinst").onclick = ()=>{
-    clearInterval(iv); speichern(); endBlock();
-  };
   iv = setInterval(()=>{
     left--;
     if(left <= 0){
       clearInterval(iv);
       speichern();
-      if(durchlauf){ blockDurchlaufen(); return; }
       nextSet();
       return;
     }
@@ -3635,19 +3610,6 @@ function seiteNachruecken(bl){
   if(j < 0) return null;
   RUN.plan.blocks[j].fresh = true;
   return RUN.plan.blocks[j];
-}
-/* Blockwechsel OHNE die Karte davor — der Fall zweier Seiten, die einander
-   nicht ermueden. blockSichern() legt den fertigen Block ab und setzt RUN.b
-   weiter; danach faengt der naechste unmittelbar an. Die Sicherheitsfrage ist
-   hier nie faellig: Sie gehoert zur Uebung, und die lief eben schon. */
-function blockDurchlaufen(){
-  blockSichern();
-  const bl = curBlock();
-  if(!bl){ finishWorkout(); return; }
-  /* Ein Plan aus einer aelteren Fassung kennt die Satzzahl noch nicht —
-     dieselbe Nachruestung wie in blockIntro(). */
-  if(bl.saetze == null) bl.saetze = SETS_ZONE[bl.zone] || SETS;
-  startBlock();
 }
 function endBlock(){
   if(!blockSichern()){
@@ -4284,9 +4246,8 @@ function renderHome(){
         <p class="tiny"><b>Die Minutenzahl oben ist geschätzt.</b> Drin stecken die Richtwerte
         aller Blöcke, ${PAUSE_S} Sekunden zwischen den Sätzen und ${
         Math.round(PAUSE_BLOCK_S/60)} Minuten zwischen zwei Blöcken — die Blockpause misst die
-        App nicht und schreibt sie auch nicht vor, sie ist nur angenommen. Zwischen links und
-        rechts derselben Übung rechnet sie nur ${PAUSE_S} Sekunden, wo eine Seite die andere
-        nicht ermüdet — beim Wadenheben etwa. Nicht drin steckt,
+        App nicht und schreibt sie auch nicht vor, sie ist nur angenommen. Das gilt auch
+        zwischen links und rechts derselben Übung. Nicht drin steckt,
         dass Satz 2 und 3 vorermüdet kürzer laufen; dafür fehlen Aufbau und
         Ergebnisbildschirm. Beides ist nicht gemessen, also wird beides nicht verrechnet.</p>
         <p class="tiny">Ton einschalten — die Ansagen kommen akustisch, damit du nicht aufs
@@ -4511,22 +4472,20 @@ function renderHistory(){
    und 3 laufen vorermuedet kuerzer als der Richtwert (zu hoch geschaetzt),
    dafuer fehlen Aufbau, Stufenwahl und Ergebnisbildschirm (zu niedrig).
    Keiner von beiden ist gemessen, also wird keiner verrechnet. */
-/* Wie lange liegt zwischen zwei Bloecken? Normalerweise die Blockpause — es
-   ist dieselbe Muskulatur, und die muss sich erholen. Die beiden Seiten einer
-   Uebung mit seitenParallel liegen dagegen direkt hintereinander: Dort
-   arbeitet im zweiten Block das andere Bein, und eine Blockpause waere
-   erfundene Zeit. Es bleibt die Satzpause zum Umstellen. */
-function blockPauseS(vorher, jetzt){
-  return (vorher && jetzt && vorher.exercise === jetzt.exercise
-          && (S.ex[jetzt.exercise] || {}).seitenParallel) ? PAUSE_S : PAUSE_BLOCK_S;
-}
+/* Zwischen zwei Bloecken steht immer die Blockpause — auch zwischen links und
+   rechts derselben Uebung. Bis Build 2026-09-21 b bekam das Seitenpaar hier
+   nur die Satzpause, weil die eine Seite die andere nicht ermuedet. Luke,
+   21.09.2026: "bau wieder die normale pause zwischen links/rechts wadenheben
+   ein". Was seitenParallel weiter regelt, ist die REIHENFOLGE: beide Seiten
+   stehen nebeneinander im vorderen Teil, damit auch die zweite frisch gemessen
+   wird. Nur die Pause dazwischen ist wieder die normale. */
 function planDauer(bloecke){
   if(!bloecke || !bloecke.length) return null;
   const summe = bloecke.reduce((sum, bl, i) => {
     const z = ZONES.find(x => x.id === bl.zone) || ZONES[0];
     const n = bl.saetze || SETS_ZONE[bl.zone] || SETS;
     const t = bl.target || Math.round((z.lo + z.hi) / 2);
-    return sum + (i ? blockPauseS(bloecke[i-1], bl) : 0)
+    return sum + (i ? PAUSE_BLOCK_S : 0)
                + LEAD_IN + n * t + (n - 1) * PAUSE_S;
   }, 0);
   const min = summe / 60;
@@ -4553,9 +4512,8 @@ function dauerHTML(bloecke){
     ${zeilen}
     <p class="tiny" style="margin-top:9px">Angenommen sind <b>${
       Math.round(PAUSE_BLOCK_S / 60)} Minuten</b> Pause zwischen zwei Blöcken — die App misst sie
-    nicht und schreibt sie nicht vor. Innerhalb eines Blocks sind es ${PAUSE_S} Sekunden, und
-    ebenso zwischen links und rechts derselben Übung, wo die eine Seite die andere nicht
-    ermüdet.
+    nicht und schreibt sie nicht vor; das gilt auch zwischen links und rechts derselben Übung.
+    Innerhalb eines Blocks sind es ${PAUSE_S} Sekunden.
     Die Spanne ist die Haltezeit selbst: sie steht nicht fest, sondern ist das, was du schaffst.
     Satz 2 und 3 laufen vorermüdet kürzer als Satz 1 — eine echte Sitzung landet deshalb eher
     im unteren Teil der Spanne.</p>`;
