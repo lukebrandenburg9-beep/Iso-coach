@@ -1012,7 +1012,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-21 h";
+const BUILD = "2026-09-21 i";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -1025,7 +1025,7 @@ const AW_V = 1;
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
    Update alte Levels kleben. Sessions bleiben dabei immer erhalten. */
-const EX_VERSION = 17;
+const EX_VERSION = 18;
 /* Voreinstellung, bis der Nutzer sein Gewicht einträgt. Nur als Bezugsgroesse
    fuer Zusatzlast noetig — die Lastfaktoren selbst sind gewichtsunabhaengige
    Verhaeltniszahlen. */
@@ -1159,6 +1159,42 @@ function lungeSessions(sessions){
       ? Object.assign({}, s, {level: LUNGE_UMZUG[s.level]})
       : s);
 }
+/* ── 21.09.2026 abends: EINE Sitzung traegt das falsche Etikett ───────────
+   Luke hat am 21.09. um 07:08 den Ausfallschritt links in der WANDSTELLUNG
+   trainiert — vorderer Fuss mit den Zehen an der Wand, hinterer Fuss zwei
+   Fusslaengen dahinter — um in Zone C zu landen. In der App stand dabei noch
+   die alte Leiter, und die Sitzung wurde unter "knapp ueber den Boden"
+   gespeichert: Sprosse 8, Last 0,90. Gehalten hat er 179,2 s bei einem Ziel
+   von 91 s.
+
+   Diese eine Zahl unter dem falschen Etikett verbiegt die ganze linke Kurve.
+   Nachgerechnet mit dem Fit dieser App:
+
+       mit Last 0,90   CP = 0,669   W' = 35,2   rmse = 0,241
+       mit Last 0,41   CP = 0,000   W' = 79,0   rmse = 0,090
+
+   Bei 0,90 rutscht CP ueber die halbe Leiter: der Geltungsbereich schrumpft
+   auf 0,90-1,25, sieben von zehn Sprossen bekommen links gar keine Zielzeit
+   mehr, und Sprosse 8 — die Stellung, die er gar nicht trainiert hat —
+   bekaeme kuenftig 152 s statt 91 s. Auf ihrer richtigen Sprosse fuegt sich
+   dieselbe Messung dagegen ohne Bruch ein (rmse 0,090, exakt so gut wie die
+   Kurve ohne sie) und traegt sie von 0,41 bis 1,25, also ueber neun Sprossen.
+
+   Das ist KEIN Verwerfen und kein Umrechnen einer gemessenen Last: Die
+   Haltezeit bleibt, wie sie steht. Korrigiert wird nur, welcher Stellung sie
+   zugeschrieben ist — und die hat Luke selbst beschrieben, nicht ich
+   erschlossen. Die Last 0,41 ist der Leiterwert von Sprosse 2 und GERECHNET,
+   nicht gemessen; siehe das Papier zum 21.09. Deshalb trifft die Korrektur
+   ueber die workout-ID genau diese eine Sitzung und nichts sonst. */
+const LUNGE_WAND_MESS_AT = 18;
+const LUNGE_WAND_WID     = "w1789975559980";
+const LUNGE_WAND_ZIEL    = {level: 1, load: 0.41};
+function lungeWandMessung(sessions){
+  return (sessions || []).map(s =>
+    (s && s.exercise === "lunge" && s.workout === LUNGE_WAND_WID)
+      ? Object.assign({}, s, LUNGE_WAND_ZIEL)
+      : s);
+}
 function rowUmziehen(lv, tab){
   const out = {};
   for(const k of Object.keys(lv || {})){
@@ -1257,6 +1293,7 @@ function normalize(d){
   const rowMess   = !leitersturz && (d.exVersion || 1) < ROW_MESS_AT;
   const rowSkala  = !leitersturz && (d.exVersion || 1) < ROW_SKALA_AT;
   const lungeUmzug = !leitersturz && (d.exVersion || 1) < LUNGE_WAND_AT;
+  const lungeMess  = !leitersturz && (d.exVersion || 1) < LUNGE_WAND_MESS_AT;
   const ex = stale ? structuredClone(DEFAULT_EX)
                    : Object.assign(structuredClone(DEFAULT_EX), d.ex || {});
   /* Erst die Band-Verschiebung von Fassung 11, dann der Umzug auf das freie
@@ -1292,9 +1329,15 @@ function normalize(d){
                                     /* Siehe ROW_SKALA_AT: Schraegzug-Messungen
                                        von vor dem Faktorwechsel stehen auf der
                                        alten Skala und traegen die Kurve nicht. */
-                                    sessions: (ses => lungeUmzug ? lungeSessions(ses) : ses)(
-                                                rowSkala ? rowSkalaVerwerfen(d.sessions)
-                                                         : (d.sessions || [])),
+                                    /* Reihenfolge: erst die Sprossen umziehen
+                                       (LUNGE_WAND_AT), dann das Etikett der
+                                       einen Wand-Sitzung richtigstellen
+                                       (LUNGE_WAND_MESS_AT) — sie laeuft auf
+                                       der schon umgezogenen Nummer. */
+                                    sessions: (ses => lungeMess ? lungeWandMessung(ses) : ses)(
+                                                (ses => lungeUmzug ? lungeSessions(ses) : ses)(
+                                                  rowSkala ? rowSkalaVerwerfen(d.sessions)
+                                                           : (d.sessions || []))),
                                     sync: d.sync || {},
                                     /* Zugpunkt ist voreingestellt an — eine stabile
                                        Tischkante reicht und hat praktisch jeder. Rolle und
