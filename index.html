@@ -138,6 +138,19 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .zw.je button span{font-size:10.5px}
 .zw.drei{grid-template-columns:repeat(3,1fr)}
 .zw.zwei{grid-template-columns:repeat(2,1fr)}
+/* Karte vor der Uebung: eine Zeile je Seite, darunter die zwei Stepper. */
+.teil{padding:13px 0 2px;border-top:1px solid var(--line);margin-top:12px}
+.teil .kopf{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.teil .zeit{font-family:var(--mono);font-size:20px;font-weight:500;
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.teil select{margin-top:9px}
+.teil .zw{margin-top:9px}
+.stps{display:flex;gap:8px 14px;flex-wrap:wrap;margin-top:10px}
+.stp{display:flex;align-items:center;gap:6px;flex:1 1 150px}
+.stp .tiny{flex:1}
+.stp button{flex:0 0 42px;height:40px;padding:0;font-size:20px}
+.stp b{min-width:74px;text-align:center;font-family:var(--mono);font-weight:500;
+  font-variant-numeric:tabular-nums}
 .scaleBtns{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
 .scaleBtns button{padding:12px 2px;font-size:15px;font-weight:600}
 .scaleBtns button.sel{background:var(--acc);border-color:var(--acc);color:var(--accInk)}
@@ -1012,7 +1025,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-21 i";
+const BUILD = "2026-09-24 a";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -1649,7 +1662,9 @@ function ausfWaehlbar(ex){
    entscheidet vor, der richtige Knopf steht schon gewaehlt da, und wer anders
    will, tippt daneben. Luke, 21.09.2026: "baue die funktion ein beidbeiniges
    wadenheben in einbeiniges wadenheben zu aendern". */
-function ausfWahlKarte(ex, zone, klasse){
+/* knapp = nur die zwei Knoepfe, ohne Ueberschrift und Begruendung — so steht
+   die Wahl auf der Karte vor der Uebung (Luke, 24.09.2026: „mehr nicht"). */
+function ausfWahlKarte(ex, zone, klasse, knapp){
   if(!ausfWaehlbar(ex)) return "";
   const beid = beidJetzt(ex);
   const selbst = ausfWahlHeute(ex);
@@ -1670,14 +1685,16 @@ function ausfWahlKarte(ex, zone, klasse){
           ? `Beidbeinig ist EIN Halt ohne Seite — er zählt für links und rechts zugleich.`
           : `Links und rechts stehen nacheinander im Workout, beide werden gemessen: Eine Seite
              ermüdet die andere hier nicht.`));
-  return `<label class="tiny" style="display:block;margin:14px 0 4px">Ausführung — ${
-      selbst ? "von dir gesetzt" : "die App hat vorgewählt"}</label>
-    <div class="zw zwei${klasse ? " " + klasse : ""}" id="aw-${ex}">
+  const knoepfe = `<div class="zw zwei${klasse ? " " + klasse : ""}" id="aw-${ex}">
       <button class="${beid ? "sel" : "ghost"}" data-awx="${ex}" data-aw="beid">Beidbeinig
         <span>ein Halt</span></button>
       <button class="${beid ? "ghost" : "sel"}" data-awx="${ex}" data-aw="ein">Einbeinig
         <span>links und rechts</span></button>
-    </div>
+    </div>`;
+  if(knapp) return knoepfe;
+  return `<label class="tiny" style="display:block;margin:14px 0 4px">Ausführung — ${
+      selbst ? "von dir gesetzt" : "die App hat vorgewählt"}</label>
+    ${knoepfe}
     <p class="tiny" style="margin:5px 0 0">${grund}</p>`;
 }
 /* fn = was nach der Umstellung passieren soll. Ohne Angabe wird der Plan
@@ -2022,23 +2039,6 @@ function zonenWahlKarte(gr, klasse){
       <span>${z.lo}–${z.hi} s</span></button>`).join("")}
   </div>`;
 }
-/* Eine Zonenwahl wirft den Tagesplan weg und laesst ihn neu bauen — sie kann
-   Uebungen hinzunehmen (eine Zonenpause faellt weg) oder herausfallen lassen.
-   Gescrollt wird dabei nicht: Die Zeile, die geklickt wurde, bleibt stehen, wo
-   sie war. Sonst spraenge man bei acht Uebungen nach jedem Klick nach oben. */
-function zonenWahlBinden(){
-  document.querySelectorAll("[data-zw]").forEach(b => {
-    b.onclick = () => {
-      const g = b.getAttribute("data-zwg") || null;
-      const z = b.getAttribute("data-zw");
-      /* Nochmal auf die eigene Wahl getippt heisst: zurueck zur Automatik. */
-      zoneWahlSetzen(g, zoneWahlHeute(g) === z ? "" : z);
-      S.plan = null; S.planDay = null; save();
-      renderAmOrt("zw-" + (g || "alle"));
-    };
-  });
-}
-
 /* ═══════════ Erholung, je MUSKELGRUPPE ═══════════
    Zwischenzeitlich lief das auf Workout-Ebene: ein Workout enthielt ohnehin
    alle Gruppen, also genuegte der Abstand zwischen zwei Workouts.
@@ -2495,6 +2495,82 @@ function stufeZuLast(ex, ziel, kg){
   return k;
 }
 
+/* Die Sprossen, die fuer DIESEN Block in Frage kommen. Ein Block OHNE Seite
+   bei einer zweiseitigen Uebung ist der beidbeinige Halt — und den gibt es nur
+   auf den Sprossen, die dafuer gemacht sind. Ohne diese Schranke stellte die
+   Vorhersage ihn auf "63 % — Waage": eine einbeinige Sprosse, beidbeinig
+   gehalten, ohne Seite gespeichert. Von der Leiter herunter kommt man ueber
+   applyRules — steht danach eine einbeinige Sprosse gemerkt, gibt planSeiten
+   wieder links und rechts aus.
+   Und die Gegenrichtung, seit die Ausfuehrung waehlbar ist: Ein Block MIT
+   Seite darf NIE auf der beidbeinigen Sprosse landen. "50 % — beidbeinig ·
+   links" ist keine Uebung, sondern ein Widerspruch, und gespeichert wuerde
+   daraus ein Messpunkt auf der falschen Last.
+   Bleibt nichts uebrig — etwa weil alle einbeinigen Sprossen an der Waage
+   haengen und die fehlt — gilt die ungefilterte Leiter. Eine leere Auswahl
+   waere schlechter als eine unpassende.
+   Planer und Karte vor der Uebung lesen beide HIER. Vorher stand der Filter
+   zweimal da, einmal mit und einmal ohne Blick auf S.ex[ex].sides. */
+function stufenFuerSeite(ex, side){
+  const alle = verfuegbareStufen(ex);
+  if(!hatBeidStufe(ex)) return alle;
+  const nurBeid  = !side && !!S.ex[ex].sides;
+  const ohneBeid = !!side;
+  const gefiltert = alle.filter(st => nurBeid ? beidStufe(ex, st.i)
+                                    : (ohneBeid ? !beidStufe(ex, st.i) : true));
+  return gefiltert.length ? gefiltert : alle;
+}
+/* ═══════════ Auf der obersten Sprosse traegt das Gewicht die Zone ═══════════
+   Luke, 24.09.2026: Zone B gewaehlt, Wade links stand auf "100 % — einbeinig
+   + 20 kg" und die Karte sagte 112 s — Zone C. Die Leiter hatte ueber der
+   einbeinigen Sprosse keine weitere, und das Gewicht rechnete die App bis
+   dahin nur bei Leitern aus EINER Sprosse (dem aufrechten Laeufer) auf die
+   Zone. Bei laengeren Leitern blieb es auf dem Stand, den Regel 2a nach der
+   letzten Messung hinterlassen hatte. Seine Entscheidung: "Gewicht passt sich
+   an" — auf der obersten Sprosse stellt die App das Gewicht so ein, dass die
+   gewaehlte Zone herauskommt, wie beim Laeufer.
+   Gilt nur, solange der Nutzer das Gewicht heute nicht selbst gesetzt hat
+   (extraSelbstGesetzt) — sonst naehme ihm die Zonenwahl genau das Gewicht,
+   das er eben eingestellt hat. */
+function gewichtFolgt(ex, side, level){
+  const b = extraBereich(ex);
+  if(!(b.hi > b.lo) || level < extraAbOf(ex)) return false;
+  const st = stufenFuerSeite(ex, side);
+  return !!st.length && st[st.length - 1].i === level;
+}
+/* Darf die Kurve auf dieser Sprosse ueber ihren gemessenen Bereich hinaus
+   rechnen? Nur auf der obersten Sprosse mit Gewicht, und nur, wenn die
+   Gewichtsspanne dieser Sprosse den gemessenen Bereich ueberhaupt erreicht.
+   Wadenheben mit +25 kg gemessen: ja, das Gewicht verschiebt die Last nur
+   innerhalb dessen, was die Kurve kennt. Eine Sprosse, die selbst mit dem
+   kleinsten Gewicht schon weit ueber allem Gemessenen liegt, bleibt ohne
+   Vorhersage wie jede andere. */
+function gewichtRechnet(f, ex, side, level){
+  if(!f || !gewichtFolgt(ex, side, level)) return false;
+  const b = extraBereich(ex);
+  const bw = (S.bw > 0 ? S.bw : BW_DEFAULT);
+  const deckel = Math.min(b.hi, MAX_ZUSATZ_ANTEIL * bw);
+  const a = lastVon(ex, level, b.lo), z = lastVon(ex, level, deckel);
+  return Math.max(a, z) >= f.lo / BEREICH_SAUM && Math.min(a, z) <= f.hi * BEREICH_SAUM;
+}
+/* Welches Gewicht bringt diese Sprosse auf die Zielzeit? Mit Kurve exakt
+   ueber ihre Umkehrung, ohne Kurve ueber den Anker (dieselbe Annahme wie beim
+   Einstieg). Die Umkehrung wird NICHT auf den gemessenen Bereich geklemmt:
+   Sie ist die Vorhersage, die die App auch sonst trifft, und ein geklemmtes
+   Gewicht haette genau den Fall vom 24.09. wiederholt — Zone B gewaehlt,
+   Zone C auf der Karte. Gedeckelt wird wie ueberall ueber kgFuerLast (Spanne
+   der Uebung, hoechstens ein halbes Koerpergewicht). */
+function zielKg(ex, level, f, anker, target){
+  let zielLast = null;
+  if(f){
+    const roh = lastZuZeit(f, target);
+    if(isFinite(roh) && roh > 0) zielLast = roh;
+  } else if(anker){
+    zielLast = anker.load * (ANNAHME_CP + (1-ANNAHME_CP) * anker.time / target);
+  }
+  return (zielLast != null) ? kgFuerLast(ex, level, zielLast) : null;
+}
+
 function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
   /* Laeuft das Workout selbst noch im Onboarding, gibt es die Zone vor — dann
      ziehen alle Bloecke am selben Strang.
@@ -2510,32 +2586,20 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
   if(luecke){ zone = luecke.z; target = luecke.t; }
   const f   = fit(points(ex, side));
   const lv  = S.ex[ex].levels;
-  /* Ein Block OHNE Seite bei einer zweiseitigen Uebung ist der beidbeinige
-     Halt — und den gibt es nur auf den Sprossen, die dafuer gemacht sind.
-     Ohne diese Schranke stellte die Vorhersage ihn auf "63 % — Waage": eine
-     einbeinige Sprosse, beidbeinig gehalten, ohne Seite gespeichert. Von der
-     Leiter herunter kommt man ueber applyRules — steht danach eine einbeinige
-     Sprosse gemerkt, gibt planSeiten wieder links und rechts aus. */
-  const nurBeid = !side && !!S.ex[ex].sides && hatBeidStufe(ex);
-  /* Und die Gegenrichtung, seit die Ausfuehrung waehlbar ist: Ein Block MIT
-     Seite darf NIE auf der beidbeinigen Sprosse landen. "50 % — beidbeinig ·
-     links" ist keine Uebung, sondern ein Widerspruch, und gespeichert wuerde
-     daraus ein Messpunkt auf der falschen Last. Der Fall trat auf, sobald der
-     Leiterstand noch beidbeinig war und einbeinig gewaehlt wurde. */
-  const ohneBeid = !!side && hatBeidStufe(ex);
-  const alle = verfuegbareStufen(ex);
-  const gefiltert = alle.filter(st => nurBeid ? beidStufe(ex, st.i)
-                                    : (ohneBeid ? !beidStufe(ex, st.i) : true));
-  /* Bleibt nichts uebrig — etwa weil alle einbeinigen Sprossen an der Waage
-     haengen und die fehlt — gilt die ungefilterte Leiter. Eine leere Auswahl
-     waere schlechter als eine unpassende. */
-  const stufen = gefiltert.length ? gefiltert : alle;
+  const stufen = stufenFuerSeite(ex, side);
   const nahe = i => stufen.length
     ? stufen.reduce((a, b) => Math.abs(b.i - i) < Math.abs(a.i - i) ? b : a).i : i;
   /* Der beidbeinige Halt hat keinen eigenen Leiterstand mehr — er liest den
      der weiter fortgeschrittenen Seite. */
   const key = leiterKey(ex, side);
   let   kg = extraOf(key);
+  /* Unter extraAb traegt keine Sprosse Gewicht. Gerechnet wurde bis zum
+     24.09. trotzdem mit dem gespeicherten: Stand die Wade oben auf + 20 kg,
+     wurden die Waage-Sprossen in der Auswahl als "Waage + 20 kg" bewertet —
+     eine Last, die es nicht gibt. */
+  const kgAuf = i => (i >= extraAbOf(ex)) ? kg : 0;
+  const kgFrei = !extraSelbstGesetzt(key);
+  const folgt = i => kgFrei && gewichtFolgt(ex, side, i);
   let level = (S.levels && S.levels[key]) || 0, best = Infinity;
   let herkunft = "stand", anker = null, roh = null;
   let ausserhalb = false;
@@ -2543,10 +2607,16 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
     /* Nur Sprossen, die im GELTUNGSBEREICH der Kurve liegen: ausserhalb ist
        die Vorhersage eine Verlaengerung ins Leere. Findet sich dort keine,
        faellt der Block auf die Ankerrechnung zurueck — die sagt ehrlich, dass
-       sie schaetzt, statt eine Zahl auszugeben, die nach Messung aussieht. */
+       sie schaetzt, statt eine Zahl auszugeben, die nach Messung aussieht.
+       Die oberste Sprosse wird mit dem Gewicht bewertet, das sie auf die Zone
+       bringt (gewichtFolgt). Sie zaehlt, sobald die Kurve die Sprosse selbst
+       kennt — ohne Gewicht oder mit dem gerechneten. */
     stufen.forEach(st => {
-      const last = lastVon(ex, st.i, kg);
-      if(!imBereich(f, last)) return;
+      let kgSt = kgAuf(st.i);
+      if(folgt(st.i)){ const k2 = zielKg(ex, st.i, f, null, target); if(k2 != null) kgSt = k2; }
+      const last = lastVon(ex, st.i, kgSt);
+      const drin = imBereich(f, last) || (folgt(st.i) && gewichtRechnet(f, ex, side, st.i));
+      if(!drin) return;
       const t = predictTime(f, last);
       if(!isFinite(t)) return;
       const d = Math.abs(Math.log(t/target));
@@ -2572,27 +2642,17 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
     level = stufen.length ? stufen[Math.min(pos, n-1)].i : 0;
     herkunft = "start";
   }
-  /* Eine Leiter aus EINER Sprosse kann die Zone nicht treffen — dort IST das
-     Gewicht die Leiter. Ohne diesen Schritt stuende auf der Karte eine Zone,
-     die der Block gar nicht anlaeuft: Der aufrechte Laeufer bliebe auf dem
-     Gewicht des letzten Workouts stehen, egal ob A, B oder C gefordert ist.
-     (Bis zum 19.09. hatte er fuenf Sprossen und brauchte das nicht.)
-     Bei laengeren Leitern bleibt es bei der Sprossenwahl: dort sind die
-     Abstaende fest, das Gewicht sitzt nur obendrauf, und die Nachsteuerung
-     macht Regel 2a nach der Messung. */
-  if(stufen.length < 2 && level >= extraAbOf(ex) && !extraSelbstGesetzt(key)){
-    let zielLast = null;
-    if(f){
-      const roh = lastZuZeit(f, target);
-      /* Nur innerhalb des gemessenen Bereichs — ausserhalb ist die Umkehrung
-         eine Verlaengerung ins Leere, genau wie die Vorhersage. */
-      if(isFinite(roh) && roh > 0)
-        zielLast = Math.min(f.hi * BEREICH_SAUM, Math.max(f.lo / BEREICH_SAUM, roh));
-    } else if(anker){
-      zielLast = anker.load * (ANNAHME_CP + (1-ANNAHME_CP) * anker.time / target);
-    }
-    let neuKg = (zielLast != null) ? kgFuerLast(ex, level, zielLast) : null;
-    if(neuKg == null && herkunft === "start"){
+  if(level < extraAbOf(ex)) kg = 0;
+  /* Auf der obersten Sprosse IST das Gewicht die Leiter — siehe gewichtFolgt.
+     Bei einer Leiter aus EINER Sprosse (dem aufrechten Laeufer) war das schon
+     so; seit dem 24.09. gilt es fuer jede Leiter an ihrem oberen Ende. Ohne
+     diesen Schritt stuende auf der Karte eine Zone, die der Block gar nicht
+     anlaeuft. Unterhalb der obersten Sprosse sind die Abstaende fest, das
+     Gewicht sitzt nur obendrauf, und die Nachsteuerung macht Regel 2a nach
+     der Messung. */
+  if(folgt(level)){
+    let neuKg = zielKg(ex, level, f, (herkunft === "anker") ? anker : null, target);
+    if(neuKg == null && herkunft === "start" && stufen.length < 2){
       /* Noch gar nichts gemessen. Die Einstiegsphase spreizt sonst ueber die
          SPROSSEN — bei einer Leiter aus einer Sprosse gaebe das dreimal
          dieselbe Last und daraus keinen Fit. Gespreizt wird deshalb ueber das
@@ -2629,7 +2689,11 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
      Etikett. Fuenf Saetze a 90 s sind kein Zone-A-Block — das sind acht
      Minuten Haltezeit in einem Block, der fuer dreieinhalb geplant war, und
      der Deckel von 30 bis 70 Minuten rechnete mit der falschen Grundlage. */
-  const vorhergesagt = !!f && imBereich(f, lastJetzt)
+  /* Auf der obersten Sprosse sagt die Kurve auch ueber den gemessenen Bereich
+     hinaus voraus — dort rechnet sie das Gewicht, und die Zahl auf der Karte
+     muss dieselbe sein, aus der das Gewicht kam. Das gilt auch fuer ein von
+     Hand gesetztes Gewicht: dieselbe Kurve, dieselbe Sprosse. */
+  const vorhergesagt = !!f && (imBereich(f, lastJetzt) || gewichtRechnet(f, ex, side, level))
                        && isFinite(predictTime(f, lastJetzt));
   const tt = vorhergesagt ? predictTime(f, lastJetzt) : target;
   const erwartet = Math.max(15, Math.round(isFinite(tt) ? tt : target));
@@ -3246,30 +3310,6 @@ function startWorkout(){
   laufSichern();
   blockIntro(0);
 }
-const ZAHLWORT = ["null","Ein","Zwei","Drei","Vier","Fünf","Sechs","Sieben","Acht",
-                  "Neun","Zehn","Elf","Zwölf"];
-/* "Workout aus einem Block" / "... aus fünf Blöcken" — ohne Zahlendeutsch von Hand. */
-function bloeckeText(n, prefix){
-  if(!n) return "Heute nichts geplant";
-  const wort = ZAHLWORT[n] ? ZAHLWORT[n].toLowerCase() : String(n);
-  return n === 1 ? `${prefix}einem Block` : `${prefix}${wort} Blöcken`;
-}
-/* Warum die zweite Seite nicht in die Kurve geht — das ist je Uebung ein
-   anderer Grund, und der Unterschied ist fachlich erheblich. */
-function zweiteSeiteGrund(ex, bloecke){
-  /* Der Grund steht bei der Uebung, wenn sie einen mitbringt — sonst erbte
-     jede neue zweiseitige Uebung stillschweigend den Seitstuetz-Text. */
-  const eigen = S.ex[ex] && S.ex[ex].seitenHinweis;
-  if(eigen) return eigen;
-  if(ex === "lunge")
-    return `Dieses Bein war eben schon als hinteres Bein belastet — beim Ausfallschritt
-            arbeiten vorderes und hinteres Bein zu rund 60/40 überlappend.`;
-  return bloecke > 2
-    ? `Die andere Rumpfseite arbeitet zwar mit eigenen Muskeln, dieser Satz steht aber am
-       Ende eines langen Workouts.`
-    : `Die andere Rumpfseite arbeitet mit eigenen Muskeln, und heute läuft nur diese eine
-       Übung — viel spricht hier nicht gegen eine Messung.`;
-}
 /* Stufenbezeichnung inklusive Zusatzgewicht. Die Zahl gehoert an den Namen,
    sonst steht im Verlauf zweimal dieselbe Stufe bei verschiedenen Lasten. */
 const komma = (v, n) => v.toFixed(n).replace(".", ",");
@@ -3316,8 +3356,10 @@ function zielNeu(bl){
   const f = curFit(bl.exercise, bl.side);
   const last = lastVon(bl.exercise, bl.level, bl.extra);
   /* Ausserhalb des gemessenen Bereichs bleibt der Richtwert stehen: eine
-     hochgerechnete Zahl saehe genauso aus wie eine gemessene. */
-  bl.ausserhalb = !!f && !imBereich(f, last);
+     hochgerechnete Zahl saehe genauso aus wie eine gemessene. Ausnahme ist
+     die oberste Sprosse mit Gewicht — dieselbe Regel wie in mkBlock. */
+  bl.ausserhalb = !!f && !imBereich(f, last)
+               && !gewichtRechnet(f, bl.exercise, bl.side, bl.level);
   if(!f || bl.ausserhalb) return;
   const t = predictTime(f, last);
   if(!isFinite(t)) return;
@@ -3340,6 +3382,20 @@ function stufeSetzen(bl, k){
   bl.level = naechsteVerfuegbare(bl.exercise, Math.max(0, Math.min(lv.length-1, k)));
   if(bl.level < extraAbOf(bl.exercise)){     /* Feld verschwindet — Last auch */
     bl.extra = 0; S.extra[keyOf(bl.exercise, bl.side)] = 0;
+  }
+  /* Auf die oberste Sprosse getippt: Das Gewicht stellt sich auf die Zone ein,
+     genau wie beim Planen (gewichtFolgt). Wer es heute schon selbst gesetzt
+     hat, behaelt seins. */
+  const key = keyOf(bl.exercise, bl.side);
+  if(gewichtFolgt(bl.exercise, bl.side, bl.level) && !extraSelbstGesetzt(key)){
+    const f = curFit(bl.exercise, bl.side);
+    const zz = ZONES.find(z => z.id === bl.zone) || ZONES[1];
+    const soll = bl.soll || Math.round((zz.lo + zz.hi) / 2);
+    const kg = zielKg(bl.exercise, bl.level, f, f ? null : ankerpunkt(bl.exercise), soll);
+    if(kg != null){
+      bl.extra = kg;
+      for(const k of seitenKeys(bl.exercise, bl.side)) S.extra[k] = kg;
+    }
   }
   bl.userPicked = (bl.level !== bl.levelVorschlag);
   zielNeu(bl);
@@ -3517,327 +3573,196 @@ function ausfUmbauen(i){
   save(); laufSichern();
 }
 /* ═══════════ Die Karte vor der Übung ═══════════
-   Die Variante wird HIER eingestellt, unmittelbar vor der Übung, die sie
-   betrifft — nicht alle drei bis fünf auf einmal auf der Startseite. Dort
-   stand ein Formular, das man vor dem ersten Satz einmal komplett durchgehen
-   musste und dessen untere Hälfte zwanzig Minuten später noch stimmen sollte.
-   Zwischen zwei Blöcken liegt ohnehin eine Pause; diese Karte füllt sie mit
-   der einen Entscheidung, die jetzt ansteht. */
+   Luke, 24.09.2026: „ich muss mich zusätzlich durch 3 menü´s klicken bis der
+   timer läuft". Jetzt gibt es zwei: Heute (was ist dabei) und diese Karte
+   (wie wird es gehalten). Eine Karte je ÜBUNG, nicht je Block — beide Seiten
+   stehen untereinander, jede mit ihrer Variante, ihrem Gewicht, ihren Sätzen
+   und ihrer vorhergesagten Zeit. Zone und Ausführung sind vorgewählt und
+   gelten für die ganze Übung.
+   Folgt die zweite Seite direkt (Wade, Handtuch), startet sie nach dem letzten
+   Satz der ersten ohne neue Karte — dafür das Merkmal eingestellt, siehe
+   endBlock(). Beim Ausfallschritt liegt die zweite Seite am Ende des Workouts;
+   sie steht hier trotzdem schon, damit man beide Seiten nebeneinander sieht,
+   und bekommt vor ihrem Start die Karte noch einmal.
+   Was hier früher stand und bewusst fehlt: der Ausführungstext, die
+   Erklärabsätze (Einstieg, Anker, außerhalb des Bereichs, Kontrollposition,
+   zweite Seite), der Haken „Beide Seiten gleich" und „trotzdem messen", die
+   −/+-Knöpfe neben der Variante. Keine Erklärkästen für Endkunden. */
 function blockIntro(i){
   RUN.b = i;
   const bl = curBlock(), ex = S.ex[bl.exercise], bloecke = RUN.plan.blocks;
   /* Sicherheitsfrage vor der ersten Ausfuehrung — sie steht VOR der Karte,
      nicht daneben, weil sie beantwortet gehoert, bevor gehalten wird. */
   if(ex.warnung && !S.gefragt[bl.exercise]){ warnKarte(i, bl, ex); return; }
-  /* Ein Plan aus einer aelteren Fassung kennt die Satzzahl noch nicht. */
-  if(bl.saetze == null) bl.saetze = SETS_ZONE[bl.zone] || SETS;
-  /* Und er kennt die erwartete Zone nicht. Ein unterbrochener Lauf ueberlebt
-     das Neuladen mitsamt seinem Plan (siehe S.lauf in normalize) — ohne diese
-     Zeile stuende dort "undefined". Gleicher Block, gleiche Zone: der Fall
-     ohne Widerspruch. */
-  if(bl.zoneErwartet == null) bl.zoneErwartet = bl.zone;
-  const f  = curFit(bl.exercise, bl.side);
-  /* Der Landeplatz kommt aus DERSELBEN Quelle wie die Zahl auf der Karte und
-     wie die Satzzahl: bl.zoneErwartet. Frueher stand hier zoneOf(tp) ohne
-     imBereich-Pruefung — dann behauptete die Zeile einen Landeplatz, den die
-     App zwei Absaetze weiter unten selbst zurueckzieht ("Die App sagt deshalb
-     keine Zeit voraus"). */
-  const zEcht = bl.zoneErwartet || bl.zone;
-  const zz = (zEcht !== bl.zone) ? ZONES.find(z => z.id === zEcht) : null;
-  /* Dieselbe Regel wie in mkBlock: Die beidbeinige Sprosse gehoert auf einen
-     Block OHNE Seite und dort auch allein — sonst boete die Liste "50 % —
-     beidbeinig" unter der Ueberschrift "links" an, und genau diesen Messpunkt
-     gibt es nicht. Die Ausfuehrung wird eine Zeile hoeher umgestellt, nicht
-     hier. */
-  const alleStufen = verfuegbareStufen(bl.exercise);
-  const gefStufen  = hatBeidStufe(bl.exercise)
-    ? alleStufen.filter(st => bl.side ? !beidStufe(bl.exercise, st.i)
-                                      : beidStufe(bl.exercise, st.i))
-    : alleStufen;
-  const stufen    = gefStufen.length ? gefStufen : alleStufen;
-  const eb        = extraBereich(bl.exercise);
-  /* Zwei Richtungen: die Seite kommt in die Knoepfe, das Feld traegt nur noch
-     den Betrag. Betrag null IST "Ohne Gewicht" — dann gibt es auch kein Feld. */
-  const zwei      = !!(ex.extraSeiten && eb.lo < 0 && eb.hi > 0);
-  const vz        = (bl.extra || 0) < 0 ? -1 : 1;
-  const kgNow     = zwei ? Math.abs(bl.extra || 0) : (bl.extra || 0);
-  const kgLo      = zwei ? 0 : eb.lo;
-  const kgHi      = zwei ? (vz < 0 ? -eb.lo : eb.hi) : eb.hi;
-  /* Eine Sprosse und keine Gewichtsspanne: Auf dieser Karte gibt es dann weder
-     Variante noch Seitenwahl noch Feld. Das darf nicht stumm passieren. */
-  const fehltGer  = extraFehltGeraet(bl.exercise);
-  const nixZuTun  = stufen.length < 2
-                 && !(bl.level >= extraAbOf(bl.exercise) && eb.hi > eb.lo);
-  const versteckt = ex.levels.length - alleStufen.length;
-  const partner   = partnerVon(bloecke, bl);
-  const syncAn    = !!partner && S.sync[bl.exercise] !== false;
+  const exKey = bl.exercise, gr = groupOf(exKey);
+  const teile = bloecke.filter((b, j) => j >= i && b.exercise === exKey);
+  for(const q of teile){
+    /* Ein Plan aus einer aelteren Fassung kennt Satzzahl und erwartete Zone
+       noch nicht. Ein unterbrochener Lauf ueberlebt das Neuladen mitsamt
+       seinem Plan (siehe S.lauf in normalize) — ohne diese Zeilen stuende
+       dort "undefined". Gleicher Block, gleiche Zone: der Fall ohne
+       Widerspruch. */
+    if(q.saetze == null) q.saetze = SETS_ZONE[q.zone] || SETS;
+    if(q.zoneErwartet == null) q.zoneErwartet = q.zone;
+  }
+  /* Zone und Ausfuehrung stehen nur, solange von dieser Uebung noch nichts
+     gelaufen ist. Danach wuerden sie eine schon gemessene Seite entwerten:
+     die zweite Seite laege in einer anderen Zone als die erste. */
+  const schonDran = bloecke.slice(0, i).some(b => b.exercise === exKey);
+  const awZeigen  = ausfWaehlbar(exKey) && !schonDran;
   const gemessen  = RUN.fertig.length > 0;
-  const letzter   = i + 1 >= bloecke.length;
-  /* Die Umstellung beidbeinig/einbeinig baut den Ablauf um und darf deshalb
-     nur dastehen, solange von dieser Uebung noch kein Block gelaufen ist —
-     sonst wuerde sie eine bereits gemessene Seite entwerten. */
-  const awZeigen  = ausfWaehlbar(bl.exercise)
-                 && !bloecke.slice(0, i).some(b => b.exercise === bl.exercise);
+  const danach    = bloecke.some((b, j) => j > i && b.exercise !== exKey);
+  /* Gezaehlt werden Uebungen, nicht Bloecke: Wade links und rechts direkt
+     hintereinander sind EINE Uebung und EINE Karte. */
+  const neuAb = j => j === 0 || bloecke[j-1].exercise !== bloecke[j].exercise;
+  const von = bloecke.filter((_, j) => neuAb(j)).length;
+  const nr  = bloecke.slice(0, i + 1).filter((_, j) => neuAb(j)).length;
+
+  /* Eine Seite: Kopfzeile mit Seite und Zeit, darunter Variante, Seite des
+     Gewichts (nur der Laeufer), Gewicht und Saetze. Der Variantenname steht in
+     der Kopfzeile nur, wenn es keine Auswahl gibt, und ohne das Gewicht, wenn
+     der Stepper es zeigt — sonst stuende beides doppelt. */
+  const teilHTML = (q, t) => {
+    const zE     = ZONES.find(z => z.id === (q.zoneErwartet || q.zone)) || ZONES[0];
+    /* Die beidbeinige Sprosse gehoert auf einen Block OHNE Seite und dort
+       allein — sonst stuende "beidbeinig" unter "links". */
+    const stufen = stufenFuerSeite(q.exercise, q.side);
+    const eb     = extraBereich(q.exercise);
+    const mitKg  = q.level >= extraAbOf(q.exercise) && eb.hi > eb.lo;
+    /* Zwei Richtungen: die Seite kommt in die drei Knoepfe, der Stepper traegt
+       nur den Betrag. Betrag null IST "Ohne Gewicht" — dann kein Stepper. */
+    const zwei   = !!(ex.extraSeiten && eb.lo < 0 && eb.hi > 0);
+    const kgNow  = zwei ? Math.abs(q.extra || 0) : (q.extra || 0);
+    const kgLo   = zwei ? 0 : eb.lo;
+    const kgHi   = zwei ? ((q.extra || 0) < 0 ? -eb.lo : eb.hi) : eb.hi;
+    const knopf  = (a, zeichen, aus, aria) => `<button class="ghost" data-t="${t}"
+      data-a="${a}" aria-label="${aria}"${aus ? " disabled" : ""}>${zeichen}</button>`;
+    return `<div class="teil">
+      <div class="kopf">
+        <span>${q.side ? `<b>${q.side}</b>` : ""}${stufen.length < 2
+          ? `${q.side ? " · " : ""}${mitKg ? ex.levels[q.level].name
+                                           : stufenName(q.exercise, q.level, q.extra)}` : ""}</span>
+        <span>${zE.id !== q.zone ? `<span class="pill ${zE.cls}">Zone ${zE.id}</span> ` : ""}<b
+          class="zeit">${fmt(q.target)}</b></span>
+      </div>
+      ${stufen.length < 2 ? "" : `<select data-t="${t}" data-a="stufe" aria-label="Variante">${
+        stufen.map(st => `<option value="${st.i}"${st.i === q.level ? " selected" : ""}>${
+          st.name}</option>`).join("")}</select>`}
+      ${(mitKg && zwei) ? `<div class="zw drei">${seitenWahl(q.exercise).map(o => `<button
+        class="${Math.sign(q.extra || 0) === o.v ? "sel" : "ghost"}" data-t="${t}"
+        data-sw="${o.v}">${o.titel}<span>${o.unter}</span></button>`).join("")}</div>` : ""}
+      <div class="stps">
+        ${(mitKg && !(zwei && !q.extra)) ? `<div class="stp"><span class="tiny">${
+          ex.extraLabel || "Gewicht"}</span>
+          ${knopf("kg-", "−", kgNow <= kgLo, "weniger Gewicht")}
+          <b>${String(kgNow).replace(".", ",")} kg</b>
+          ${knopf("kg+", "+", kgNow >= kgHi, "mehr Gewicht")}</div>` : ""}
+        <div class="stp"><span class="tiny">Sätze</span>
+          ${knopf("s-", "−", q.saetze <= SETS_MIN, "weniger Sätze")}
+          <b>${q.saetze}</b>
+          ${knopf("s+", "+", q.saetze >= SETS_MAX, "mehr Sätze")}</div>
+      </div>
+    </div>`;
+  };
+
   show("home");
-  el("homeTitle").textContent = `Übung ${i+1} von ${bloecke.length}`;
-  el("homeSub").textContent = blockLabel(bl);
+  el("homeTitle").textContent = `Übung ${nr} von ${von}`;
+  el("homeSub").textContent = "";
   el("homeBody").innerHTML = `
     <div class="card" id="ivKarte">
-      <span class="pill ${(ZONES.find(z=>z.id===zEcht)||ZONES[0]).cls}">Zone ${zEcht}</span>
-      <h2 style="margin:11px 0 2px">${blockLabel(bl)}</h2>
-      <p class="muted" style="margin:0">${bl.fresh ? "wird gemessen" : "nur Training"}</p>
-      ${bl.fehlt && bl.fehlt.length ? `<p class="tiny" style="margin:10px 0 0"><span
-        class="pill pB">Einstieg — ${bl.fehlt.length===1 ? `Zone ${bl.fehlt[0]} fehlt noch`
-        : `noch ${bl.fehlt.length} Zonen offen`}</span>${bl.abgewichen
-        ? ` Statt der Workout-Zone wird <b>Zone ${bl.zone}</b> gemessen: die hätte die Rotation
-          wiederholt, obwohl sie hier schon steht.` : ""}</p>` : ""}
-      ${bl.zweiteSeite ? "" : zonenWahlKarte(groupOf(bl.exercise), "je")}
-      ${awZeigen ? ausfWahlKarte(bl.exercise, bl.zone, "je") : ""}
-
-      ${stufen.length < 2 ? "" : `
-      <label class="tiny" for="ivLvl" style="display:block;margin:14px 0 4px">Variante —
-        du entscheidest (${stufen.findIndex(st=>st.i===bl.level)+1} von ${stufen.length}${
-        versteckt ? `, ${versteckt} ohne Gerät ausgeblendet` : ""})</label>
-      <div class="row" style="gap:7px;align-items:stretch">
-        <button class="ghost" id="ivMinus" style="flex:0 0 52px;font-size:22px;padding:0"
-          ${bl.level<=stufen[0].i?"disabled":""} aria-label="leichtere Variante">−</button>
-        <select id="ivLvl" style="flex:1">${stufen.map(st=>{
-          const last = lastVon(bl.exercise, st.i, bl.extra);
-          const t = imBereich(f, last) ? predictTime(f, last) : null;
-          const hint = (t && isFinite(t)) ? ` · erwartet ${fmt(t)}` : "";
-          return `<option value="${st.i}" ${st.i===bl.level?"selected":""}>${st.name}${hint}</option>`;
-        }).join("")}</select>
-        <button class="ghost" id="ivPlus" style="flex:0 0 52px;font-size:22px;padding:0"
-          ${bl.level>=stufen[stufen.length-1].i?"disabled":""}
-          aria-label="schwerere Variante">+</button>
-      </div>`}
-
-      ${bl.level >= extraAbOf(bl.exercise) && eb.hi > eb.lo ? `
-        ${!zwei ? "" : `
-        <label class="tiny" style="display:block;margin:14px 0 4px">${
-          ex.extraLabel || "Zusatzgewicht"} — du entscheidest</label>
-        <div class="zw drei" id="sw-${keyOf(bl.exercise, bl.side)}">${
-          seitenWahl(bl.exercise).map(o => `<button class="${
-            Math.sign(bl.extra||0) === o.v ? "sel" : "ghost"}" data-sw="${o.v}">${
-            o.titel}<span>${o.unter}</span></button>`).join("")}</div>`}
-        ${(zwei && !bl.extra) ? "" : `
-        <div class="row" style="gap:7px;align-items:center;margin-top:8px">
-          <label class="tiny" for="ivKg" style="flex:1;margin:0">${zwei ? "Wie viel"
-            : (ex.extraLabel || "Zusatzgewicht")}</label>
-          <button class="ghost" id="ivKgMinus" style="flex:0 0 52px;font-size:22px;padding:0"
-            ${kgNow<=kgLo?"disabled":""} aria-label="weniger Gewicht">−</button>
-          <input type="number" id="ivKg" value="${kgNow}" min="${kgLo}" max="${kgHi}"
-            step="${eb.schritt}" inputmode="decimal" style="width:76px;text-align:center">
-          <button class="ghost" id="ivKgPlus" style="flex:0 0 52px;font-size:22px;padding:0"
-            ${kgNow>=kgHi?"disabled":""} aria-label="mehr Gewicht">+</button>
-          <span class="tiny" style="flex:0 0 22px">kg</span>
-        </div>`}
-        <p class="tiny" style="margin-top:5px">${ex.extraSeiten && bl.extra
-          ? `<b>${stufenName(bl.exercise, bl.level, bl.extra)}</b>. ` : ""}${ex.extraHint || ""}${
-          (stufen.length < 2 && extraSelbstGesetzt(keyOf(bl.exercise, bl.side)))
-          ? ` Von dir eingestellt — die Zonenwahl verschiebt es nicht mehr.` : ""}${bl.extra
-          ? ` Wirksame Last <b>${komma(lastVon(bl.exercise, bl.level, bl.extra), 2)}</b>
-              statt ${komma(ex.levels[bl.level].load, 2)} — gerechnet auf ${S.bw} kg
-              Körpergewicht (<b>Mehr → Messung</b>).` : ""}</p>` : ""}
-
-      ${(nixZuTun && fehltGer.length) ? `<p class="tiny" style="margin-top:12px">Nichts
-        einzustellen: ${ex.extraLabel || "Zusatzgewicht"} braucht ${
-        fehltGer.map(geraetName).join(" und ")} — unter „Mehr → Geräte" anhaken.</p>` : ""}
-
-      ${partner ? `<label class="chk" for="ivSync" style="margin-top:9px">
-        <input type="checkbox" id="ivSync" ${syncAn?"checked":""}>
-        <span class="tiny"><b>Beide Seiten gleich.</b> ${syncAn
-          ? `Was du hier einstellst, gilt auch für ${labelOf(partner.exercise, partner.side, partner.level)}.
-             Die <i>Zielzeit</i> bleibt getrennt — sie kommt aus der Kurve der jeweiligen Seite,
-             und die beiden Seiten sind selten gleich stark.`
-          : `Die Seiten sind entkoppelt: ${labelOf(partner.exercise, partner.side, partner.level)} steht auf
-             „${stufenName(partner.exercise, partner.level, partner.extra)}". Das ist richtig,
-             wenn eine Seite Beschwerden hat — sonst hak es wieder an.`}</span></label>` : ""}
-
-      <div class="row" style="gap:7px;align-items:center;margin-top:12px">
-        <label class="tiny" for="ivSets" style="flex:1;margin:0">Sätze${
-          bl.saetze !== (SETS_ZONE[bl.zoneErwartet||bl.zone]||SETS)
-          ? ` <span class="muted">· Vorgabe bei ${fmt(bl.target)} wäre ${
-          SETS_ZONE[bl.zoneErwartet||bl.zone]||SETS}</span>` : ""}</label>
-        <button class="ghost" id="ivSetsMinus" style="flex:0 0 52px;font-size:22px;padding:0"
-          ${bl.saetze<=SETS_MIN?"disabled":""} aria-label="weniger Sätze">−</button>
-        <b id="ivSets" style="flex:0 0 40px;text-align:center;font-size:20px">${bl.saetze}</b>
-        <button class="ghost" id="ivSetsPlus" style="flex:0 0 52px;font-size:22px;padding:0"
-          ${bl.saetze>=SETS_MAX?"disabled":""} aria-label="mehr Sätze">+</button>
-      </div>
-
-      <div class="kpi" style="margin-top:14px">
-        <div><b>${fmt(bl.target)}</b><small>${
-          zz ? "erwartete Haltezeit" : "Richtwert erster Satz"}</small></div>
-        <div><b>${bl.saetze}</b><small>${bl.saetze===1?"Satz":"Sätze"} · ${PAUSE_S}s Pause</small></div>
-      </div>
-      ${zz ? `<p class="tiny" style="margin-top:9px">Geplant war
-        <span class="pill ${(ZONES.find(z=>z.id===bl.zone)||ZONES[0]).cls}">Zone ${bl.zone}</span>
-        ${bl.soll ? `(${fmt(bl.soll)})` : ""} — dazwischen hat diese Leiter keine Sprosse.
-        Erwartet wird <span class="pill ${zz.cls}">Zone ${zz.id}</span>, und danach richtet sich
-        auch die Satzzahl.</p>` : ""}
-      ${(f && !imBereich(f, lastVon(bl.exercise, bl.level, bl.extra))) ? `<p class="tiny"
-        style="margin-top:9px"><b>Außerhalb des gemessenen Bereichs.</b> Deine Kurve steht auf
-        Lasten zwischen ${komma(f.lo,2)} und ${komma(f.hi,2)}; diese Variante liegt daneben.
-        Die App sagt deshalb keine Zeit voraus — halte einfach, so lange du kannst. Genau so ein
-        Punkt erweitert den Bereich.</p>` : ""}
-      ${bl.art === "punkt" ? `<p class="tiny" style="margin-top:9px"><b>Kontrollposition.</b>
-        Diese Position hat nur eine ausführbare Variante — daraus lässt sich keine Kurve rechnen
-        (dafür braucht es mindestens zwei verschiedene Lasten). Sie wird trotzdem gemessen und
-        als Verlauf über die Wochen geführt.</p>` : ""}
-
-      ${bl.zweiteSeite ? `<div class="note warn" style="margin-top:12px"><b>Zweite Seite${
-        bl.fresh ? "" : " — wird trainiert, nicht gemessen"}.</b>
-        ${zweiteSeiteGrund(bl.exercise, bloecke.length)}
-        ${bl.fresh ? `Du hast entschieden, ihn trotzdem zu messen — er geht in die Kurve.`
-          : `Der Satz wird aufgezeichnet und im Verlauf als <i>vorermüdet</i> geführt, geht aber
-             nicht in die Kurve ein. Weniger zu schaffen als vorhin ist hier normal und kein
-             Rückschritt.`}</div>
-        <label class="chk" for="ivMess" style="margin-top:6px">
-          <input type="checkbox" id="ivMess" ${bl.fresh?"checked":""}>
-          <span class="tiny">Diesen Satz trotzdem messen.
-          ${bl.exercise==="lunge"
-            ? `Beim Ausfallschritt war dieses Bein eben schon hinteres Bein; hier ist der
-               Einwand fachlich schwerer.`
-            : `Die andere Seite arbeitet mit eigenen Muskeln — der Einwand ist die Ermüdung
-               aus dem bisherigen Workout, nicht die Überschneidung.`}</span></label>` : ""}
-
-      ${bl.userPicked ? `<p class="tiny" style="margin-top:9px">Von dir gewählt — Vorschlag war
-        <b>${ex.levels[bl.levelVorschlag].name}</b>.</p>` : ""}
-      ${bl.herkunft === "anker" ? `<p class="tiny" style="margin-top:9px"><b>Noch keine Kurve.</b>
-        Der Vorschlag ist hochgerechnet aus deinem jüngsten Punkt (${fmt(bl.anker.time)} auf
-        „${ex.levels[bl.anker.level] ? ex.levels[bl.anker.level].name : "—"}"${
-        bl.anker.quelle === "vorermüdet" ? ", vorermüdet" : ""}) — mit der <i>Annahme</i>,
-        dass die Dauerleistung bei ${Math.round(ANNAHME_CP*100)} % dieser Last liegt. Das ist
-        gesetzt, nicht gemessen.${bl.rohStufe > bl.level
-        ? ` Die Rechnung landet bei <b>„${ex.levels[bl.rohStufe].name}"</b>; ohne Kurve gehe ich
-           höchstens ${MAX_SPRUNG} Stufen auf einmal hoch. Wenn du dir sicher bist, stell oben
-           direkt darauf.` : ""}</p>` : ""}
-      ${bl.herkunft === "start" ? `<p class="tiny" style="margin-top:9px"><b>Erste Messung dieser
-        Kurve.</b> Die Stufe ist bewusst nicht die leichteste: Drei Tests bei derselben Last
-        ergeben drei Punkte übereinander und daraus keine Kurve. Halte, so lange du kannst —
-        der Punkt zählt, wie er kommt.</p>` : ""}
-      ${ex.hint ? `<p class="tiny" style="margin-top:9px">${ex.hint}</p>` : ""}
+      <h2 style="margin:0">${ex.name}</h2>
+      ${schonDran ? "" : zonenWahlKarte(gr)}
+      ${awZeigen ? ausfWahlKarte(exKey, bl.zone, "", true) : ""}
+      ${teile.map(teilHTML).join("")}
       ${uebungsbild(bl.exercise, bl.level)}
-      ${(!ex.sides && bloecke.length > 2 && i > 0 && i < bloecke.length-1
-          && bloecke.some(b => b.side && b.fresh === false)) ? `<p class="tiny"
-        style="margin-top:9px">Dieser Block steht bewusst in der Mitte: Er trennt bei den
-        zweiseitigen Übungen die erste von der zweiten Seite und gibt ihr einige Minuten
-        Erholung.</p>` : ""}
-      ${!bl.fresh && bloecke.length === 2 ? `<p class="tiny" style="margin-top:9px">Weil heute nur
-        diese eine Übung läuft, folgt die zweite Seite direkt. Lass dir vor dem Start ruhig ein
-        paar Minuten — die Karte wartet.</p>` : ""}
-
       <button class="primary" style="width:100%;margin-top:14px;padding:16px" id="ivGo">
         Übung starten</button>
-      ${!letzter ? `<button class="ghost" style="width:100%;margin-top:8px" id="ivSkip">
-        Diese Übung heute auslassen</button>
-        <p class="tiny" style="margin:6px 0 0">Der Rest des Workouts läuft weiter. Ohne Satz gibt
-        es nichts zu verlieren — die Übung rückt in der Reihenfolge nach vorn.</p>` : ""}
-      ${(gemessen || !letzter) ? `<button class="ghost" style="width:100%;margin-top:8px"
-        id="ivEnde">Workout hier beenden${gemessen ? " und speichern" : ""}</button>` : ""}
-      ${gemessen ? `<button class="ghost" style="width:100%;margin-top:8px"
-        id="ivPause">Für später unterbrechen</button>
-        <p class="tiny" style="margin:6px 0 0">Nichts wird gespeichert und nichts geht verloren.
-        Bis Mitternacht kommst du hierher zurück — mit denselben Übungen in derselben Reihenfolge,
-        also auch mit der zweiten Seite.</p>` : ""}
+      <div class="row" style="margin-top:8px">
+        ${danach ? `<button class="ghost" style="flex:1 1 140px" id="ivSkip">Übung
+          auslassen</button>` : ""}
+        <button class="ghost" style="flex:1 1 140px" id="ivEnde">Workout beenden</button>
+        ${gemessen ? `<button class="ghost" style="flex:1 1 140px" id="ivPause">Später
+          weitermachen</button>` : ""}
+      </div>
     </div>`;
 
-  /* Jede Änderung wird sofort gesichert und die Karte neu gezeichnet — sonst
-     stünde nach einem Seitenabgleich die alte Zahl im Feld.
-     Neu gezeichnet wird AM ORT: blockIntro() laeuft ueber show("home"), und
-     das scrollt nach oben. Beim Tippen auf Plus oder Minus ist das falsch —
-     die Zahl steht dann am oberen Rand, der Finger aber auf halber Hoehe,
-     und der naechste Tipp landet daneben. */
+  /* Jede Änderung wird sofort gesichert und die Karte AM ORT neu gezeichnet:
+     show("home") scrollt nach oben, und beim Tippen auf Plus oder Minus stuende
+     die Zahl dann am oberen Rand, der Finger aber auf halber Hoehe.
+     Die Seiten werden nicht mehr gleichgezogen — beide stehen untereinander
+     auf derselben Karte, und jede hat ihre eigene Kurve. */
   const zeichne = () => amOrt("ivKarte", () => blockIntro(i));
-  const neu = () => { seitenAbgleich(bloecke, bl); laufSichern(); zeichne(); };
-  /* Die Knoepfe springen zur naechsten VERFUEGBAREN Sprosse, nicht zum
-     naechsten Index — sonst blieben sie an einer ausgeblendeten haengen. */
-  const nachbar = richtung => {
-    const k = stufen.findIndex(st => st.i === bl.level);
-    const j = Math.max(0, Math.min(stufen.length - 1, k + richtung));
-    return stufen[j].i;
-  };
-  /* Bei einer einzigen Sprosse gibt es die Variantenzeile nicht — dann auch
-     keine Handler dafuer, sonst bricht das Binden hier ab und die Karte bleibt
-     ohne jede Bedienung stehen. */
-  if(el("ivLvl")){
-    el("ivLvl").onchange   = e => { stufeSetzen(bl, +e.target.value); neu(); };
-    el("ivMinus").onclick  = ()=> { stufeSetzen(bl, nachbar(-1)); neu(); };
-    el("ivPlus").onclick   = ()=> { stufeSetzen(bl, nachbar(+1)); neu(); };
-  }
-  /* Die drei Knoepfe setzen nur die Seite. Der Betrag bleibt, was er war —
-     wer von "freie Seite" auf "Standbeinseite" wechselt, haengt dieselbe
-     Kettlebell um und tippt sie nicht neu ein. */
-  document.querySelectorAll("[data-sw]").forEach(b => {
+  const neu = () => { laufSichern(); zeichne(); };
+  document.querySelectorAll("#ivKarte [data-a]").forEach(b => {
+    const q = teile[+b.getAttribute("data-t")], a = b.getAttribute("data-a");
+    if(a === "stufe"){ b.onchange = e => { stufeSetzen(q, +e.target.value); neu(); }; return; }
     b.onclick = () => {
-      const key = keyOf(bl.exercise, bl.side);
-      const betrag = Math.abs(bl.extra || 0);
-      if(betrag) letzteLast[key] = betrag;
-      gewichtSetzen(bl, (+b.getAttribute("data-sw"))
-        * (betrag || letzteLast[key] || extraBereich(bl.exercise).schritt));
+      if(a === "s-" || a === "s+"){
+        q.saetze = Math.max(SETS_MIN, Math.min(SETS_MAX, q.saetze + (a === "s+" ? 1 : -1)));
+      } else {
+        const eb   = extraBereich(q.exercise);
+        const zwei = !!(ex.extraSeiten && eb.lo < 0 && eb.hi > 0);
+        const vz   = (q.extra || 0) < 0 ? -1 : 1;
+        const betrag = (zwei ? Math.abs(q.extra || 0) : (q.extra || 0))
+                     + (a === "kg+" ? eb.schritt : -eb.schritt);
+        gewichtSetzen(q, zwei ? vz * Math.max(0, betrag) : betrag);
+      }
       neu();
     };
   });
-  if(el("ivKg")){
-    const kgS  = extraBereich(bl.exercise).schritt;
-    const setz = betrag => {
-      gewichtSetzen(bl, zwei ? vz * Math.max(0, betrag) : betrag);
+  /* Die drei Knoepfe setzen nur die Seite. Der Betrag bleibt, was er war —
+     wer von "freie Seite" auf "Standbeinseite" wechselt, haengt dieselbe
+     Kettlebell um und tippt sie nicht neu ein. */
+  document.querySelectorAll("#ivKarte [data-sw]").forEach(b => {
+    b.onclick = () => {
+      const q = teile[+b.getAttribute("data-t")];
+      const key = keyOf(q.exercise, q.side);
+      const betrag = Math.abs(q.extra || 0);
+      if(betrag) letzteLast[key] = betrag;
+      gewichtSetzen(q, (+b.getAttribute("data-sw"))
+        * (betrag || letzteLast[key] || extraBereich(q.exercise).schritt));
       neu();
     };
-    el("ivKg").onchange     = e => setz(zwei ? Math.abs(+e.target.value || 0)
-                                             : e.target.value);
-    el("ivKgMinus").onclick = ()=> setz(kgNow - kgS);
-    el("ivKgPlus").onclick  = ()=> setz(kgNow + kgS);
-  }
-  const setzeSaetze = n => {
-    bl.saetze = Math.max(SETS_MIN, Math.min(SETS_MAX, n));
-    neu();
-  };
-  el("ivSetsMinus").onclick = ()=> setzeSaetze(bl.saetze - 1);
-  el("ivSetsPlus").onclick  = ()=> setzeSaetze(bl.saetze + 1);
-  if(el("ivSync")) el("ivSync").onchange = e => {
-    S.sync[bl.exercise] = e.target.checked;
-    if(e.target.checked) seitenAbgleich(bloecke, bl);
-    laufSichern(); zeichne();
-  };
-  if(el("ivMess")) el("ivMess").onchange = e => {
-    bl.fresh = e.target.checked; laufSichern(); zeichne();
-  };
-  /* Zone im laufenden Workout umstellen. Der Block wird neu gebaut statt der
-     ganze Plan neu geplant — Neuplanen wuerde den laufenden Lauf verwerfen.
-     mkBlock bekommt die Wahl als FEST mit, damit die Lueckenlogik sie nicht
-     wieder wegdreht.
-     Die zweite Seite derselben Uebung geht mit, solange sie noch aussteht:
-     Erholung und Zonenalter zaehlen je Muskelgruppe, und beide Seiten teilen
-     sich eine. Stuenden sie in verschiedenen Zonen, waeren nach dem Workout
-     zwei Zonen dieser Gruppe als trainiert gezaehlt. Eine bereits gemessene
-     Seite bleibt unangetastet — die ist passiert. */
-  document.querySelectorAll("[data-zw]").forEach(b => {
+  });
+  /* Zone im laufenden Workout umstellen. Die Bloecke dieser Uebung werden neu
+     gebaut statt der ganze Plan neu geplant — Neuplanen wuerde den laufenden
+     Lauf verwerfen. mkBlock bekommt die Wahl als FEST mit, damit die
+     Lueckenlogik sie nicht wieder wegdreht. Beide Seiten gehen mit: Erholung
+     und Zonenalter zaehlen je Muskelgruppe. */
+  document.querySelectorAll("#ivKarte [data-zw]").forEach(b => {
     b.onclick = () => {
-      const gr = groupOf(bl.exercise);
       const zw = b.getAttribute("data-zw");
       zoneWahlSetzen(gr, zoneWahlHeute(gr) === zw ? "" : zw);
       const z = zoneFuer(gr);
-      const offen = (partner && bloecke.indexOf(partner) > i) ? partner : null;
-      [bl, offen].filter(Boolean).forEach(q => {
+      for(const q of teile){
         const n = mkBlock(q.exercise, q.side, z.zone, z.target, q.fresh,
                           !!z.onboarding, !!z.fest);
         n.zweiteSeite = q.zweiteSeite;
         Object.keys(q).forEach(k => delete q[k]);
         Object.assign(q, n);
-      });
+      }
       save(); laufSichern(); zeichne();
     };
   });
   /* Umstellung beidbeinig/einbeinig: Der Ablauf wird umgebaut, danach steht
-     die Karte des Blocks an derselben Stelle wieder da — nur eben mit der
-     anderen Ausfuehrung und, bei einbeinig, mit einem Block mehr dahinter. */
+     die Karte an derselben Stelle wieder da — bei einbeinig mit zwei Seiten. */
   if(awZeigen) ausfWahlBinden(() => { ausfUmbauen(i); zeichne(); });
-  el("ivGo").onclick = ()=>{ beep(660,60,.05); laufSichern(); startBlock(); };
-  if(el("ivSkip")) el("ivSkip").onclick = ()=> endBlock();
-  if(el("ivEnde")) el("ivEnde").onclick = ()=> workoutBeenden();
-  if(el("ivPause")) el("ivPause").onclick = ()=> workoutUnterbrechen();
+  el("ivGo").onclick = () => {
+    teile.forEach(q => { q.eingestellt = true; });
+    beep(660,60,.05); laufSichern(); startBlock();
+  };
+  /* Auslassen nimmt die ganze Uebung heraus, beide Seiten. Ohne Satz gibt es
+     nichts zu verlieren — die Uebung rueckt beim naechsten Mal nach vorn,
+     weil sie am laengsten wartet. Die naechste Uebung bekommt eine neue
+     Karte, also darf show() hier nach oben scrollen. */
+  if(el("ivSkip")) el("ivSkip").onclick = () => {
+    RUN.plan.blocks = bloecke.filter((b, j) => j < i || b.exercise !== exKey);
+    RUN.sets = []; RUN.i = 0; laufSichern();
+    if(RUN.b >= RUN.plan.blocks.length){ workoutBeenden(); return; }
+    blockIntro(RUN.b);
+  };
+  el("ivEnde").onclick = () => workoutBeenden();
+  if(el("ivPause")) el("ivPause").onclick = () => workoutUnterbrechen();
 }
 /* Zielzeit des naechsten Satzes.
    Satz 1  — aus der Kurve (oder der Zone, solange es keine gibt).
@@ -3878,6 +3803,11 @@ function nextSet(){
    nicht mehr vergleichbar. Der Abfall ist aber selbst ein Messwert. */
 function afterSet(time, tgt, roh){
   const letzter = RUN.i + 1 >= curSets();
+  /* Beide Seiten standen auf EINER Karte. Folgt die zweite direkt, fuehrt
+     "Weiter" ohne Umweg auf die Uhr — der Knopf sagt, wohin. */
+  const naechster = RUN.plan.blocks[RUN.b + 1];
+  const direkt = !!(naechster && naechster.eingestellt
+                 && naechster.exercise === curBlock().exercise);
   /* Abbrechen lohnt nur, solange noch etwas käme — nach dem letzten Satz des
      letzten Blocks ist "beenden" ohnehin der nächste Schritt. */
   const mehrKommt = !letzter || RUN.b + 1 < RUN.plan.blocks.length;
@@ -3918,7 +3848,8 @@ function afterSet(time, tgt, roh){
         </div>
       </div>` : ""}
       ${left === null
-        ? `<button class="primary" style="width:100%;margin-top:14px" id="weiterBtn">Weiter</button>`
+        ? `<button class="primary" style="width:100%;margin-top:14px" id="weiterBtn">${
+            direkt && naechster.side ? `Weiter mit ${naechster.side}` : "Weiter"}</button>`
         : `<div style="text-align:center;margin-top:16px">
              <div class="big" id="pauseNum" style="font-size:64px;line-height:1">${left}</div>
              <p class="tiny" style="margin:4px 0 0">Sekunden bis zum nächsten Satz</p>
@@ -3963,7 +3894,7 @@ function afterSet(time, tgt, roh){
   if(letzter){
     el("homeBody").innerHTML = karte(null);
     psBinden();
-    el("weiterBtn").onclick = ()=>{ speichern(); endBlock(); };
+    el("weiterBtn").onclick = ()=>{ speichern(); endBlock(direkt); };
     /* Der eben gehaltene Satz zählt mit — erst sichern, dann beenden. */
     if(el("wkStop")) el("wkStop").onclick = ()=>{ speichern(); workoutBeenden(); };
     if(el("wkPause")) el("wkPause").onclick = ()=>{ speichern(); workoutUnterbrechen(); };
@@ -4085,15 +4016,22 @@ function seiteNachruecken(bl){
   RUN.plan.blocks[j].fresh = true;
   return RUN.plan.blocks[j];
 }
-function endBlock(){
+/* direkt = der Weiter-Knopf nach dem letzten Satz. Ist der naechste Block die
+   andere Seite derselben Uebung und auf deren Karte schon eingestellt, laeuft
+   die Uhr ohne neue Karte an. Jeder andere Weg hierher (Uebung abgebrochen,
+   Satz verworfen) zeigt die Karte — dort ist etwas passiert, das man sehen
+   soll. */
+function endBlock(direkt){
+  const vorher = curBlock();
   if(!blockSichern()){
-    const uebersprungen = curBlock();
     RUN.b++; RUN.sets = []; RUN.i = 0;
-    seiteNachruecken(uebersprungen);
+    seiteNachruecken(vorher);
     laufSichern();
   }
-  if(RUN.b < RUN.plan.blocks.length) blockIntro(RUN.b);
-  else finishWorkout();
+  if(RUN.b >= RUN.plan.blocks.length){ finishWorkout(); return; }
+  const n = curBlock();
+  if(direkt && n.eingestellt && vorher && n.exercise === vorher.exercise){ startBlock(); return; }
+  blockIntro(RUN.b);
 }
 /* Workout vorzeitig beenden. Der angefangene Block geht mit — wer nach dem
    ersten Satz merkt, dass es heute nicht mehr geht, hat trotzdem gemessen. */
@@ -4552,258 +4490,126 @@ function renderHome(){
 
   const p = (S.plan && S.planDay === today()) ? S.plan : planWorkout();
   S.plan = p; S.planDay = today(); save();
-  const z = ZONES.find(x=>x.id===p.zone);
   const g = gate();
-  el("homeSub").textContent = bloeckeText(p.blocks.length, "Workout aus ");
+  const dauer = planDauer(p.blocks);
+  el("homeSub").textContent = dauer ? `rund ${dauer} min` : "";
 
-  /* ── Welche Übungen sind heute dabei ─────────────────────── */
-  /* schonGezeigt = Uebungen, die ihre Zonenzeile weiter oben schon haben
-     (die Bloecke des heutigen Workouts). Zweimal dieselbe Zeile auf einem
-     Bildschirm waere nicht doppelt bedienbar, sondern doppelt verwirrend. */
-  const auswahlKarte = (schonGezeigt) => {
-    const lage = uebungslage();
-    return `<div class="card flat">
-      <h3 style="margin-top:0">Was heute dabei ist</h3>
-      ${hilfe("auswahl", "Häkchen und Sperre — was ist was?", `
-        <p class="tiny">Häkchen weg heißt: Die Übung bleibt draußen, bis du sie wieder anhakst.
-        <b>Gesperrt</b> ist etwas anderes — das ist die Pause der Muskelgruppe und geht
-        vorbei.</p>
-        <p class="tiny">Die Zonenknöpfe unter einer Übung gelten nur für diese eine — und nur
-        für heute.</p>`)}
-      ${lage.map(u=>{
-        const e = S.ex[u.ex];
-        const frei = u.tor.ok;
-        /* Die Sperre gilt der Gruppe, aber eine Seite, die nie an der Reihe war,
-           hat nichts zu erholen. Stuende hier "heute schon trainiert", waehrend
-           dieselbe Uebung oben im Plan steht, laese sich das nur als Fehler der
-           App lesen. Siehe offeneSeite(). */
-        const wartet = u.offen
-          ? `${u.offen.seite} ist noch offen — wird heute nachgeholt`
-          : (!frei ? (u.tor.kind === "day"
-          ? `heute schon trainiert — wieder in ${u.tor.wait} Tag${u.tor.wait===1?"":"en"}`
-          : `Zonenpause — noch ${u.tor.wait} Tag${u.tor.wait===1?"":"e"}`) : "");
-        return `<label class="chk" for="ak-${u.ex}">
-          <input type="checkbox" id="ak-${u.ex}" data-ex="${u.ex}" ${u.aktiv?"checked":""}>
-          <span><b>${e.name}</b> <span class="muted">· ${e.region}</span><br>
-          <span class="tiny" style="color:${u.ohneGeraet ? "var(--warn)"
-            : (frei || u.offen) ? "var(--ok)" : "var(--tx3)"}">${
-            u.ohneGeraet ? "keine ausführbare Variante — Gerät fehlt (Mehr → Geräte)"
-            : (frei && !u.offen) ? "frei" : wartet}</span></span></label>${
-        /* Die Zone haengt an der Muskelgruppe, und jede Uebung hat hier ihre
-           eigene — deshalb ist "je Uebung" und "je Gruppe" hier dasselbe.
-           Keine Zeile, wo sie heute nichts aendern kann: bei fehlendem Geraet,
-           bei abgehaktem Haekchen und wenn die Gruppe wegen des TAGES pausiert
-           (dann hilft auch eine andere Zone nicht). Bei einer Zonenpause hilft
-           sie sehr wohl — das ist gerade der Ausweg. */
-        (u.aktiv && !u.ohneGeraet && u.tor.kind !== "day"
-          && !(schonGezeigt && schonGezeigt.has(u.ex)))
-          ? zonenWahlKarte(u.group, "je ein") : ""}`;
-      }).join("")}
-      ${lage.some(u=>u.aktiv && !u.tor.ok) ? `<p class="tiny">Angehakte Übungen, deren Gruppe
-        noch pausiert, bleiben heute außen vor — das Workout läuft mit dem Rest.</p>` : ""}
-    </div>
-    <div class="card flat">
-      <h3 style="margin-top:0">Heute selbst zusammenstellen</h3>
-      ${hilfe("selbst", "Wonach die Rotation sonst entscheidet", `
-        <p class="tiny">Sonst entscheidet die Rotation: Sie nimmt die Übungen, die am längsten
-        auf eine Messung warten, bis ${anzahl(S.maxBloecke || MAX_BLOECKE, "Block", "Blöcke")}
-        voll sind. Du kannst das für heute übergehen — der Deckel gilt dann nicht.</p>`)}
-      ${heuteDran().map((u,i)=>`<label class="chk" for="hd${i}">
-        <input type="checkbox" id="hd${i}" data-ex="${u.ex}"
-          ${(S.heuteTag===today() && Array.isArray(S.heute))
-            ? (S.heute.indexOf(u.ex)>=0 ? "checked" : "") : "checked"}>
-        <span>${S.ex[u.ex].name} <span class="tiny muted">· wartet ${
-          uebungWartet(u.ex)===Infinity ? "noch auf die erste Messung"
-          : anzahl(uebungWartet(u.ex), "Tag", "Tage")}</span></span></label>`).join("")}
-      <div class="row" style="gap:7px;margin-top:8px">
-        <button class="ghost" style="flex:1" id="hdSet">Für heute übernehmen</button>
-        <button class="ghost" style="flex:1" id="hdWeg">Rotation entscheiden lassen</button>
-      </div>
-    </div>`;
-  };
-  const auswahlBinden = () => {
-    uebungslage().forEach(u=>{
-      const b = el("ak-"+u.ex); if(!b) return;
-      b.onchange = e => {
-        S.aktiv[u.ex] = e.target.checked;
+  /* ── Menü 1: Reihenfolge, Startknopf, EINE Häkchenliste ──────────
+     Luke, 24.09.2026: „das menü ist komplett überladen. block 1 und block 2
+     ist komplett redundant." Hier standen zwei Listen mit denselben Übungen
+     („Was heute dabei ist" und „Heute selbst zusammenstellen"), dazu je Block
+     eine Karte mit Zonen- und Ausführungswahl — dieselbe Wahl, die auf der
+     Karte vor der Übung noch einmal kam. Jetzt steht die Wahl nur noch dort.
+     Die App hakt vor. Was gesperrt ist, lässt sich nicht anhaken und sagt,
+     wie lange noch. Ein Häkchen gilt nur für heute; morgen entscheidet wieder
+     die Rotation. Eine Ausnahme ist anhakbar, obwohl die Gruppe pausiert: die
+     eigene Zonenwahl — das Häkchen stellt die Zone zurück auf die Rotation,
+     und dann ist die Gruppe frei. */
+  const drin = new Set(p.blocks.map(b => b.exercise));
+  const tage = n => n === 1 ? "morgen" : `in ${n} Tagen`;
+  const listeKarte = () => `<div class="card flat" id="heuteListe">
+    ${uebungslage().map(u => {
+      const e = S.ex[u.ex];
+      const eigeneZone = !u.tor.ok && u.tor.kind === "zone" && !!u.tor.gewaehlt;
+      const frei = !u.ohneGeraet && (u.tor.ok || ignoreRest || !!u.offen || eigeneZone);
+      /* Wer mit einer angehakten Übung nicht an denselben Tag darf, sagt es.
+         Das Häkchen tauscht die beiden dann. */
+      const partner = drin.has(u.ex) ? null : [...drin].find(x => konflikt(x, u.ex));
+      const status = u.ohneGeraet ? "Gerät fehlt"
+        : u.offen ? `${u.offen.seite} offen`
+        : (!u.tor.ok && !ignoreRest)
+          ? (eigeneZone ? `Zone ${u.tor.gewaehlt} ${tage(u.tor.wait)}` : tage(u.tor.wait))
+        : partner ? `nicht zusammen mit ${S.ex[partner].name}` : "";
+      return `<label class="chk" for="ak-${u.ex}"${frei ? "" : ` style="opacity:.55"`}>
+        <input type="checkbox" id="ak-${u.ex}" ${drin.has(u.ex) ? "checked" : ""}
+          ${frei ? "" : "disabled"}>
+        <span><b>${e.name}</b>${status ? `<br><span class="tiny" style="color:${
+          u.ohneGeraet ? "var(--warn)" : u.offen ? "var(--ok)" : "var(--tx3)"}">${
+          status}</span>` : ""}</span></label>`;
+    }).join("")}
+  </div>`;
+  const listeBinden = () => {
+    uebungslage().forEach(u => {
+      const b = el("ak-" + u.ex); if(!b) return;
+      b.onchange = ev => {
+        const sel = new Set(drin);
+        if(ev.target.checked){
+          S.aktiv[u.ex] = true;
+          if(!u.tor.ok && u.tor.kind === "zone" && u.tor.gewaehlt) zoneWahlSetzen(u.group, "");
+          for(const x of [...sel]) if(konflikt(x, u.ex)) sel.delete(x);
+          sel.add(u.ex);
+        } else sel.delete(u.ex);
+        S.heute = [...sel]; S.heuteTag = today();
         S.plan = null; S.planDay = null; save();
-        renderAmOrt("ak-"+u.ex);
+        renderAmOrt("ak-" + u.ex);
       };
     });
-    if(el("hdSet")) el("hdSet").onclick = ()=>{
-      const gewaehlt = heuteDran().map((u,i)=>({u, b: el("hd"+i)}))
-        .filter(x => x.b && x.b.checked).map(x => x.u.ex);
-      /* Leere Auswahl waere ein Workout ohne Bloecke — dann lieber die
-         Rotation entscheiden lassen. */
-      S.heute = gewaehlt.length ? gewaehlt : null;
-      S.heuteTag = gewaehlt.length ? today() : null;
-      S.plan = null; S.planDay = null; save(); render();
-    };
-    if(el("hdWeg")) el("hdWeg").onclick = ()=>{
-      S.heute = null; S.heuteTag = null;
-      S.plan = null; S.planDay = null; save(); render();
-    };
   };
 
   /* ── Pausentag ───────────────────────────────────────────── */
   if(!g.ok && !ignoreRest){
-    const age = zoneAge(g.group);
     const dat = new Date(Date.now() + g.wait*86400000)
       .toLocaleDateString("de-DE", {weekday:"long", day:"numeric", month:"long"});
+    el("homeSub").textContent = "";
     el("homeBody").innerHTML = `
       <div class="card">
         <span class="pill pRest">Pausentag</span>
-        <h2 style="margin:11px 0 2px">Heute nicht</h2>
-        <p class="muted" style="margin:0">Nächstes Workout: ${dat}</p>
-        <p class="tiny" style="margin-top:12px">${g.kind === "leer"
-          ? `Es ist keine Übung angehakt. Setz unten mindestens ein Häkchen.`
-          : g.kind === "day"
-          ? (g.onboarding
-              ? `Das letzte Einstiegs-Workout liegt noch keine 24 Stunden zurück. Die drei
-                 gehören an drei verschiedene Tage.`
-              : `Das letzte Workout war vor ${today()-g.lastDay} Tag${today()-g.lastDay===1?"":"en"}.
-                 Trainiert wird <b>dreimal pro Woche</b>, also frühestens mit ${MIN_GAP_DAYS} Tagen
-                 Abstand.`)
-          : g.gewaehlt
-          ? `Du hast <b>Zone ${g.gewaehlt}</b> selbst gesetzt, und die ist noch in der Pause —
-             eine andere wäre heute frei. Wähl unten eine andere Zone oder geh die Sperre
-             bewusst über.`
-          : `Jedes Energiesystem kommt <b>einmal pro Woche</b> dran. Drei Zonen, drei Workouts je
-             Woche — heute ist keine davon so weit.`}</p>
-        <table style="margin-top:12px"><tbody>${ZONES.map(zz=>{
-          const a = age[zz.id], r = restOf(zz.id), frei = a >= r;
-          return `<tr><td style="white-space:nowrap"><span class="pill ${zz.cls}">${zz.id}</span>
-              ${zz.lo}–${zz.hi} s</td>
-            <td class="n" style="white-space:nowrap">${frei
-              ? `<span style="color:var(--ok)">frei</span>`
-              : `<span style="color:var(--tx3)">noch ${r-a} Tag${r-a===1?"":"e"}</span>`}</td></tr>`;
-        }).join("")}</tbody></table>
-        ${zonenWahlKarte()}
-        <p class="tiny" style="margin-top:10px">Die Wartezeiten stehen unter
-        <b>Mehr → Erholung</b> und sind änderbar. Es sind grobe Richtwerte.</p>
+        <h2 style="margin:11px 0 2px">${g.kind === "leer" ? "Nichts angehakt" : "Heute nicht"}</h2>
+        ${g.kind === "leer" ? "" : `<p class="muted" style="margin:0">Nächstes Workout: ${dat}</p>
+        <button class="ghost" style="width:100%;margin-top:14px" id="ignoreBtn">Trotzdem
+          trainieren</button>`}
       </div>
-      <div class="card flat">
-        <p class="tiny" style="margin-top:0">Wenn du dir sicher bist, dass du erholt bist, kannst
-        du die Sperre für heute übergehen. Die Messung wird dann trotzdem gewertet — mit dem
-        Wissen, dass sie unter Vorermüdung entstanden ist.</p>
-        <button class="ghost" style="width:100%" id="ignoreBtn">Trotzdem trainieren</button>
-      </div>
-      ${auswahlKarte(null)}`;
-    el("ignoreBtn").onclick = ()=>{ ignoreRest = true; render(); };
-    auswahlBinden();
-    zonenWahlBinden();
+      ${listeKarte()}`;
+    /* Der Plan von eben ist leer — ohne das Wegwerfen stuende nach dem Knopf
+       weiter kein Block da. */
+    if(el("ignoreBtn")) el("ignoreBtn").onclick = ()=>{
+      ignoreRest = true; S.plan = null; S.planDay = null; render();
+    };
+    listeBinden();
     return;
   }
 
-  /* ── Workoutkarte ──────────────────────────────────────────
-     Nur die Übersicht. Eingestellt wird jede Variante dort, wo sie gebraucht
-     wird: auf der Karte unmittelbar vor der Übung (blockIntro). Hier stand
-     vorher ein Formular pro Block — fünf Stück untereinander, alle vor dem
-     ersten Satz auszufüllen. */
-  const blockKarte = (bl, i) => {
-    const ex = S.ex[bl.exercise];
-    /* Die Pille zeigt die Zone, die dieser Block tatsaechlich anlaeuft, nicht
-       die, die die Rotation angefordert hat. Stehen beide auseinander, sagt
-       die Zeile darunter, welche geplant war — vorher stand hier das
-       Planetikett neben einer Zahl aus einer anderen Zone, ohne ein Wort
-       dazu. Befund von Luke, 21.09.2026. */
-    const zEcht  = bl.zoneErwartet || bl.zone;
-    const anders = zEcht !== bl.zone;
-    const zz = ZONES.find(z=>z.id===zEcht) || ZONES[0];
-    return `
-      <div class="card flat" style="padding:12px 14px">
-        <div class="row" style="justify-content:space-between;align-items:baseline;gap:9px">
-          <b>${i+1}. ${blockLabel(bl)}</b>
-          <span class="pill ${zz.cls}" style="flex:0 0 auto">Zone ${zEcht}</span>
-        </div>
-        <p class="tiny" style="margin:4px 0 0">${stufenName(bl.exercise, bl.level, bl.extra)}</p>
-        <p class="tiny" style="margin:2px 0 0;color:var(--tx3)">${
-          anders ? "erwartet" : "Richtwert"} ${fmt(bl.target)} ·
-          ${anzahl(bl.saetze || SETS, "Satz", "Sätze")} ·
-          ${bl.fresh ? "wird gemessen" : "nur Training"}${
-          bl.fehlt && bl.fehlt.length ? " · Einstieg" : ""}</p>
-        ${anders ? `<p class="tiny" style="margin:2px 0 0">Geplant war Zone ${bl.zone}${
-          bl.soll ? ` (${fmt(bl.soll)})` : ""} — dazwischen hat diese Leiter keine Sprosse.</p>` : ""}
-        ${bl.zweiteSeite ? "" : zonenWahlKarte(groupOf(bl.exercise), "je")}
-        ${p.blocks.slice(0, i).some(b => b.exercise === bl.exercise)
-          ? "" : ausfWahlKarte(bl.exercise, bl.zone, "je")}
-      </div>`;
-  };
-
   el("homeBody").innerHTML = `
     <div class="card">
-      ${(p.zonen||[p.zone]).map(id=>{ const zz = ZONES.find(x=>x.id===id);
-         return `<span class="pill ${zz.cls}">Zone ${zz.id} · ${zz.name}</span> `; }).join("")}
-      <h2 style="margin:11px 0 2px">${ZAHLWORT[p.blocks.length]||p.blocks.length} ${
-        p.blocks.length === 1 ? "Block" : "Blöcke"}${
-        planDauer(p.blocks) ? `<span style="color:var(--tx3);font-size:15px;font-weight:400;
-          font-family:var(--mono)"> · rund ${planDauer(p.blocks)} min</span>` : ""}</h2>
-      <p class="muted" style="margin:0">${p.blocks.map(blockLabel).join("  →  ")}</p>
-      <p class="tiny" style="margin-top:11px">${p.why}</p>
-      ${(p.nachhol && p.nachhol.length) ? `<p class="tiny"><b>Nachgeholt:</b> ${
-        p.nachhol.map(o => `${S.ex[o.ex].name} · ${o.seite}`).join(", ")}. ${
-        p.nachhol.length===1 ? "Diese Seite war" : "Diese Seiten waren"} beim letzten Mal
-        nicht mehr dran — ${p.nachhol.length===1 ? "sie hat" : "sie haben"} nichts zu erholen
-        und ${p.nachhol.length===1 ? "steht" : "stehen"} deshalb heute vorn, in derselben Zone
-        wie die Gegenseite. Die Seite, die schon gemessen ist, bleibt in der Pause.</p>` : ""}
-      ${zonenWahlKarte()}
-      ${(p.paar && p.paar.length) ? `<p class="tiny"><b>Heute nicht dabei:</b> ${
-        p.paar.map(o => S.ex[o.ex].name).join(", ")}. Dieselbe Muskulatur trägt heute schon in
-        einem anderen Block — »${[...new Set(p.paar.map(o => S.ex[o.wegen].name))].join("«, »")}«.
-        Die beiden ergänzen sich, gehören aber auf verschiedene Tage — sonst misst die zweite
-        nur die Ermüdung der ersten.</p>` : ""}
-      ${(p.spaeter && p.spaeter.length) ? `<p class="tiny"><b>Heute zurückgestellt:</b> ${
-        p.spaeter.map(ex => S.ex[ex].name).join(", ")}. ${
-        p.spaeter.length===1 ? "Diese Übung wäre" : "Diese Übungen wären"} frei, ${
-        p.selbst
-          ? `${p.spaeter.length===1 ? "steht" : "stehen"} aber unten nicht angehakt.`
-          : `${p.spaeter.length===1 ? "passt" : "passen"} aber nicht mehr unter ${
-             anzahl(S.maxBloecke || MAX_BLOECKE, "Block", "Blöcke")}. Beim nächsten Mal ${
-             p.spaeter.length===1 ? "steht sie" : "stehen sie"} vorn — oder du stellst die
-             Einheit unten selbst zusammen.`}</p>` : ""}
-      ${p.blocks.length ? `<button class="primary" style="width:100%;margin-top:12px;padding:16px"
-        id="goSess">Workout starten</button>`
-      : `<p class="tiny"><b>Kein Block übrig.</b> Hak unten mindestens eine Übung an, deren
-         Muskelgruppe heute frei ist.</p>`}
-      ${hilfe("plan", "Wie das Workout gemeint ist", `
-        <p class="tiny"><b>Die Minutenzahl oben ist geschätzt.</b> Drin stecken die Richtwerte
-        aller Blöcke, ${PAUSE_S} Sekunden zwischen den Sätzen und ${
-        Math.round(PAUSE_BLOCK_S/60)} Minuten zwischen zwei Blöcken — die Blockpause misst die
-        App nicht und schreibt sie auch nicht vor, sie ist nur angenommen. Das gilt auch
-        zwischen links und rechts derselben Übung. Nicht drin steckt,
-        dass Satz 2 und 3 vorermüdet kürzer laufen; dafür fehlen Aufbau und
-        Ergebnisbildschirm. Beides ist nicht gemessen, also wird beides nicht verrechnet.</p>
-        <p class="tiny">Ton einschalten — die Ansagen kommen akustisch, damit du nicht aufs
-        Display schauen musst.</p>
-        <p class="tiny"><b>Variante und Satzzahl stellst du vor jeder Übung ein</b> — auf der
-        Karte, die direkt davor kommt. Hier steht nur, was geplant ist.</p>
-        <p class="tiny"><b>Der Richtwert ist kein Ziel.</b> Halte so lange du kannst. Der
-        Messpunkt zählt so, wie er herauskommt — ob du dich über- oder unterschätzt, ist
-        gleichgültig. Genau aus der Streuung entsteht die Kurve.</p>
-        <p class="tiny">Abbrechen geht jederzeit: In jeder Satzpause steht <b>Workout hier
-        beenden</b>. Alles bis dahin Gemessene wird gespeichert, auch ein einzelner Satz.</p>`)}
+      ${p.blocks.length ? `
+        <h2 style="margin:0;font-size:19px;line-height:1.4;text-wrap:balance">${
+          reihenfolge(p.blocks)}</h2>
+        <button class="primary" style="width:100%;margin-top:14px;padding:16px"
+          id="goSess">Workout starten</button>`
+      : `<h2 style="margin:0">Nichts angehakt</h2>`}
     </div>
-    ${p.blocks.map(blockKarte).join("")}
-    ${auswahlKarte(new Set(p.blocks.map(b => b.exercise)))}
-    ${(()=>{ const offen = allKeys().filter(k => !profileReady(k.ex, k.side));
-      return offen.length ? `<div class="card flat">
-        <h3 style="margin-top:0">Bis zum vollständigen Profil</h3>
-        ${hilfe("profilrest", "Warum gespreizte Messungen zählen", `
-          <p class="tiny">Die Kurve entsteht nicht durch viele Messungen, sondern durch
-          <b>gespreizte</b>. Solange eine Zone leer ist, bleibt die Kurve dort eine
-          Vermutung.</p>`)}
-        <table><tbody>${allKeys().map(k=>{
-          const cov = zoneCoverage(k.ex, k.side);
-          const n = Object.values(cov).filter(v=>v>0).length;
-          return `<tr><td>${labelOf(k.ex, k.side)}</td>
-            <td class="n">${n===3 ? '<span style="color:var(--ok)">✓ alle 3 Zonen</span>'
-              : `<span style="color:var(--tx3)">${n} von 3 Zonen</span>`}</td></tr>`;
-        }).join("")}</tbody></table></div>` : ""; })()}`;
-
-  auswahlBinden();
-  zonenWahlBinden();
-  ausfWahlBinden();
+    ${listeKarte()}`;
+  listeBinden();
   if(el("goSess")) el("goSess").onclick = ()=>{ beep(660,60,.05); startWorkout(); };
+}
+/* Die Reihenfolge in einer Zeile: „Isometrisches Wadenheben links → rechts →
+   Liegestütz". Stehen beide Seiten derselben Übung direkt hintereinander,
+   steht der Name nur einmal da. */
+function reihenfolge(blocks){
+  return blocks.map((bl, i) => {
+    const vor = blocks[i - 1];
+    if(vor && vor.exercise === bl.exercise && bl.side) return bl.side;
+    return blockLabel(bl).replace(" · ", " ");
+  }).join(" → ");
+}
+/* Wie weit jede Kurve ist — stand bis 24.09.2026 unter dem Workout auf Heute.
+   Dort war es eine dritte Liste derselben Übungen; es gehört zum Profil. */
+function profilRestKarte(){
+  const offen = allKeys().filter(k => !profileReady(k.ex, k.side));
+  if(!offen.length) return "";
+  return `<div class="card flat">
+    <h3 style="margin-top:0">Bis zum vollständigen Profil</h3>
+    ${hilfe("profilrest", "Warum gespreizte Messungen zählen", `
+      <p class="tiny">Die Kurve entsteht nicht durch viele Messungen, sondern durch
+      <b>gespreizte</b>. Solange eine Zone leer ist, bleibt die Kurve dort eine
+      Vermutung.</p>`)}
+    <table><tbody>${allKeys().map(k=>{
+      const cov = zoneCoverage(k.ex, k.side);
+      const n = Object.values(cov).filter(v=>v>0).length;
+      return `<tr><td>${labelOf(k.ex, k.side)}</td>
+        <td class="n">${n===3 ? '<span style="color:var(--ok);white-space:nowrap">✓ alle 3 Zonen</span>'
+          : `<span style="color:var(--tx3);white-space:nowrap">${n} von 3 Zonen</span>`}</td></tr>`;
+    }).join("")}</tbody></table></div>`;
 }
 
 /* Waehler ueber alle Kurven: Liegestuetz, Ausfallschritt links, Ausfallschritt rechts. */
@@ -4888,7 +4694,8 @@ function renderProfile(){
       : `<div class="card"><p>Noch keine Kurve.</p>
           <p class="tiny">Dafür braucht die App mindestens zwei Messungen in
           <b>verschiedenen</b> Stufen. Zwei Messungen in derselben Stufe ergeben keine Kurve —
-          das ist keine Ungenauigkeit, sondern rechnerisch nicht lösbar.</p></div>`);
+          das ist keine Ungenauigkeit, sondern rechnerisch nicht lösbar.</p></div>`)
+      + profilRestKarte();
     wireCurveSelect("profCurve");
     return;
   }
@@ -4936,7 +4743,8 @@ function renderProfile(){
       <p class="tiny" style="margin-top:8px">Die Kurve ist zwischen <b>${komma(f.lo,2)}</b> und
       <b>${komma(f.hi,2)}</b> gemessen. Was außerhalb liegt, bekommt keine Vorhersage — eine
       hochgerechnete Zahl sähe genauso aus wie eine gemessene, und das wäre der Fehler.</p>
-    </div>`;
+    </div>
+    ${profilRestKarte()}`;
   wireCurveSelect("profCurve");
 }
 
