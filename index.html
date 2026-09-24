@@ -789,47 +789,48 @@ const DEFAULT_EX = {
      Bis zum 24.09.2026 stand die Leiter deshalb auf fuenf Sprossen: 40, 63 und
      79 % mit der Waage unter dem Vorfuss, dazwischen beidbeinig und oben
      einbeinig, und erst ueber der einbeinigen Sprosse kam Zusatzgewicht. Luke,
-     24.09.2026: Einbeinig ist die KERNVARIANTE und die erste Stufe — viele
-     steigen dort direkt ein. Darunter gibt es eine leichtere Form mit
-     "Minusgewicht" ueber die Waage, darueber geht es nur noch mit Gewicht
-     weiter, stufenlos wie bei Grip Gains: ein Rucksack voller Gewichte, vorne
-     an die Brust geschnallt; 50 bis 60 kg sind fuer Trainierte kein Problem,
-     ab 30 kg wird es ordentlich schwer. Beidbeinig bleibt als leichte Stufe.
+     24.09.2026: Einbeinig ist die KERNVARIANTE — viele steigen dort direkt ein.
+     Darueber geht es mit Gewicht weiter, stufenlos wie bei Grip Gains: ein
+     Rucksack voller Gewichte, vorne an die Brust geschnallt; 50 bis 60 kg sind
+     fuer Trainierte kein Problem, ab 30 kg wird es ordentlich schwer.
 
-     Daraus wird: ZWEI Sprossen, und das Gewicht an der einbeinigen geht in
-     beide Richtungen — nach oben der Rucksack, nach unten die Waage. Die Waage
-     ist dabei kein Umweg, sondern die exakteste Last der ganzen App: Ihre
-     Anzeige IST die Last auf der Wade. "Minus 20 kg" heisst also: Die Waage
-     zeigt dein Koerpergewicht weniger 20 kg, und extraK = 1 gilt in beiden
-     Richtungen ohne Hebel dazwischen. Die drei alten Waage-Sprossen waren nichts
-     anderes als drei feste Punkte auf dieser Strecke.
-
-     Die Waage muss ANALOG sein. Digitalwaagen schalten bei stehender Last nach
-     Sekunden ab oder frieren die Anzeige ein; ein Halt dauert 35 bis 120 s.
-     Befund von Luke, 18.09.2026. Fehlt sie, bleibt nur die Plus-Richtung —
-     darunter liegt dann direkt die beidbeinige Sprosse. */
+     Noch am selben Tag (Build c) die zweite Haelfte: "man kann doch die
+     beidbeinige variante auch mit dem rucksack zuladen und so lueckenlos
+     skalieren bis man stark genug fuer einbeinig ist. Dann ist eine
+     personenwaage garnicht noetig". Richtig — der Rucksack traegt jetzt BEIDE
+     Sprossen, die Waage (Build b: Minusgewicht an der einbeinigen) entfaellt.
+     Die Strecke, in Koerpergewicht je Wade:
+        beidbeinig  0,50 bis 0,50 x (1 + Deckel/KG)   bei 80 kg: bis 0,875
+        einbeinig   1,00 bis 1,00 x (1 + Deckel/KG)   bei 80 kg: bis 1,75
+     Zwischen 0,875 und 1,00 bleibt eine Luecke von Faktor 1,14 (bei 100 kg
+     Koerpergewicht 1,25) — feiner als jeder Sprossenabstand der alten Leiter
+     und weit unter Tor 3 (1,82). Der Preis: Die obere Haelfte der Bruecke
+     verlangt 30 bis 60 kg vor der Brust, und wer einbeinig ohne Gewicht zu
+     schwer findet, steht danach beidbeinig mit vollem Rucksack.
+     Weil beide Sprossen Gewicht tragen, hat jede ihr EIGENES (kgKey): Der
+     Rucksack fuer beidbeinig ist ein anderer als der fuer einbeinig, und
+     dieselben 30 kg waeren einbeinig fast doppelt so schwer. */
   wade: {
     name:"Isometrisches Wadenheben", region:"Wade", group:"calf",
     sides:["links","rechts"], seitenParallel:true, nichtMit:["handtuch"],
     /* Neue Nutzer beginnen einbeinig, nicht auf der leichtesten Sprosse. */
     startStufe:1,
-    extraAb:1, extraK:1,
-    /* Minus nur mit Waage: ohne Anzeige laesst sich eine Entlastung nicht
-       einstellen, und eine geschaetzte waere keine Last, sondern ein Gefuehl. */
-    extraMin:-40, extraMinAnteil:0.5, extraMinGeraet:"waage", extraMax:60, extraReal:60,
+    /* Gewicht ab der ersten Sprosse: beidbeinig und einbeinig tragen den
+       Rucksack. Nach unten geht nichts — leichter als beidbeinig ohne Gewicht
+       wird es nicht. */
+    extraAb:0, extraK:1, extraMax:60, extraReal:60,
+    /* Beidbeinig und einbeinig merken sich ihr Gewicht getrennt — siehe kgKey. */
+    kgJeSprosse:true,
     /* 60 kg bei 80 kg Koerpergewicht — der allgemeine Deckel von einem halben
        Koerpergewicht (MAX_ZUSATZ_ANTEIL) waere hier bei 40 kg zu Ende. */
     extraAnteil:0.75,
     extraLabel:"Rucksack",
-    extraSeiten:{plus:"Rucksack", minus:"entlastet", plusKurz:"Rucksack", minusKurz:"Waage",
-                 amStufenNamen:true, waage:true},
     extraHint:"Der Rucksack sitzt vorne an der Brust, eng geschnallt und mittig. So zieht er "
              +"weder nach vorn noch zur Seite, und kein Griff gibt vorzeitig auf — 50 bis "
              +"60 kg lassen sich so tragen. Trägst du das Gewicht stattdessen in der Hand, "
              +"dann ZWINGEND auf der Standbeinseite: Hängt es auf der freien Seite, zieht es "
-             +"das Becken dorthin, dann begrenzt der Gluteus den Halt und nicht die Wade. Die "
-             +"Rechnung ist in beiden Fällen exakt: dein Körpergewicht plus das, was du "
-             +"trägst, steht auf einer Wade.",
+             +"das Becken dorthin, dann begrenzt der Gluteus den Halt und nicht die Wade. "
+             +"Beidbeinig teilen sich beide Waden das Gewicht, einbeinig trägt eine alles.",
     hint:"Der Vorfuß steht auf einer Erhöhung, die Ferse hängt frei. Heb die Ferse genau so "
         +"weit, dass die Fußsohle waagerecht steht — Ferse und Vorfuß auf einer Höhe — und "
         +"BLEIB dort. Nicht tiefer absinken lassen und nicht höher drücken: diese mittlere "
@@ -837,10 +838,9 @@ const DEFAULT_EX = {
         +"die ganz oben gehalten wird. Keine Wiederholungen. Einbeinig ist die Grundform: Der "
         +"genannte Fuß trägt allein, und beide Seiten kommen nacheinander dran — eine Wade "
         +"ermüdet die andere nicht, beide Sätze werden gemessen. Schwerer wird es mit einem "
-        +"Rucksack voller Gewichte, vorne an die Brust geschnallt. Leichter wird es mit der "
-        +"Waage unter dem Vorfuß: Du nimmst dir über die Hände auf einer Auflage so viel "
-        +"Gewicht ab, bis die Anzeige die Zahl zeigt, die auf der Karte steht. Beidbeinig "
-        +"stehst du auf beiden Vorfüßen — das ist EIN Halt, links und rechts gibt es dort nicht.",
+        +"Rucksack voller Gewichte, vorne an die Brust geschnallt. Leichter ist beidbeinig: "
+        +"Du stehst auf beiden Vorfüßen — das ist EIN Halt, links und rechts gibt es dort "
+        +"nicht —, und auch hier kommt der Rucksack dazu, bis du stark genug für einbeinig bist.",
     /* Kein seitenHinweis mehr: Er behauptete eine Vorermuedung, die es hier nicht
        gibt — siehe seitenParallel. Luke, 21.09.2026. */
     warnung:{
@@ -863,9 +863,9 @@ const DEFAULT_EX = {
   },
 
   /* Dieselbe Bewegung, ZWEI Unterschiede. (Die Leiter war bis zum 24.09.2026
-     auch dieselbe; das Wadenheben ohne Handtuch steht seitdem auf zwei Sprossen
-     mit Gewicht in beide Richtungen. Diese hier bleibt auf den fuenf, bis Luke
-     fuer sie entscheidet.) Erstens das Handtuch:
+     auch dieselbe; das Wadenheben ohne Handtuch steht seitdem auf zwei Sprossen,
+     beide mit Rucksack. Diese hier bleibt auf den fuenf, bis Luke fuer sie
+     entscheidet.) Erstens das Handtuch:
      stehen die Zehen aufgestellt, wickelt sich die Plantarfaszie ueber die
      Mittelfusskoepfe und traegt mit (Windenmechanismus); liegen sie flach, ist
      sie schlaff und die Last geht in die Achillessehne. Der Aufbau stammt aus
@@ -1024,8 +1024,8 @@ const GERAETE = [
    +"Vorfuß legen kannst. Sie ist hier kein Zubehör, sondern das Messgerät: die Zahl auf der "
    +"Anzeige IST die Stufe. Sie muss analog sein — eine Digitalwaage schaltet bei stehender "
    +"Last nach Sekunden ab oder friert die Anzeige ein, und ein Halt dauert 35 bis 120 s.",
-   fuer:"Isometrisches Wadenheben: einbeinig mit Entlastung. Mit Handtuchrolle: die drei "
-       +"Zwischenstufen. Beidbeinig und einbeinig gehen ohne."}
+   fuer:"Isometrisches Wadenheben mit Handtuchrolle: die drei Zwischenstufen. Ohne "
+       +"Handtuchrolle brauchst du sie nicht — dort trägt der Rucksack die Leiter."}
 ];
 
 const RED_FLAGS = [
@@ -1045,7 +1045,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-24 b";
+const BUILD = "2026-09-24 c";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -1058,7 +1058,7 @@ const AW_V = 1;
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
    Update alte Levels kleben. Sessions bleiben dabei immer erhalten. */
-const EX_VERSION = 19;
+const EX_VERSION = 20;
 /* Voreinstellung, bis der Nutzer sein Gewicht einträgt. Nur als Bezugsgroesse
    fuer Zusatzlast noetig — die Lastfaktoren selbst sind gewichtsunabhaengige
    Verhaeltniszahlen. */
@@ -1283,6 +1283,51 @@ function wadeLauf(lauf, bwAlt){
     plan: Object.assign({}, lauf.plan, {blocks: (lauf.plan.blocks || []).map(um)}),
     fertig: (lauf.fertig || []).map(um)});
 }
+/* ── 24.09.2026, Build c: Die Waage geht, der Rucksack kommt auf beide Sprossen ──
+   Build b liess das Gewicht an der einbeinigen Sprosse in beide Richtungen
+   laufen: plus der Rucksack, minus die Waage. Seit Build c traegt auch die
+   beidbeinige Sprosse den Rucksack, und entlastet wird nicht mehr. Ein
+   gemerkter Stand "einbeinig, x kg entlastet" wird deshalb zu "beidbeinig
+   + y kg" auf derselben Last:
+       einbeinig  1 + x/bw   =   beidbeinig  0,5 * (1 + y/bw)   ->   y = bw + 2x
+   Bei 80 kg wird aus "29,6 kg entlastet" (der alten 63-%-Sprosse) beidbeinig
+   + 20 kg. Verlangt y mehr, als die App beidbeinig vorschlaegt (drei Viertel
+   Koerpergewicht, hoechstens 60 kg), liegt die Last in der Luecke zwischen den
+   Ausfuehrungen; dann gewinnt die naehere — dieselbe Regel wie in
+   beidPerKurve.
+   Die beidbeinige Sprosse bekommt dabei ihren eigenen Speicherplatz
+   ("wade|links#0", siehe kgKey); der alte Platz gehoert weiter der
+   einbeinigen und faellt auf 0 kg.
+   Gemessene Saetze bleiben, wie sie sind: Ihre Last steht an der Sitzung und
+   stimmt weiter ("Messpunkte verwirft nur Luke"). Um ziehen nur der Stand und
+   ein angefangener Lauf. */
+const WADE_RUCKSACK_AT = 20;
+function wadeRucksack(lv, extra, bw, e){
+  const L = Object.assign({}, lv || {}), E = Object.assign({}, extra || {});
+  const deckel = Math.min(e.extraMax,
+                          Math.round(e.extraAnteil * bw / WADE_SCHRITT) * WADE_SCHRITT);
+  const oben = 0.5 * (1 + deckel / bw);
+  for(const k of Object.keys(E)){
+    if(!wadeKey(k) || String(k).indexOf("#") >= 0 || !(E[k] < 0)) continue;
+    const x = E[k];
+    E[k] = 0;
+    /* Auf der beidbeinigen Sprosse wirkte das Gewicht in Build b gar nicht. */
+    if(L[k] !== 1) continue;
+    const last = 1 + x / bw;
+    const y = Math.max(0, Math.round((bw + 2 * x) / WADE_SCHRITT) * WADE_SCHRITT);
+    if(y <= deckel){ L[k] = 0; E[k + "#0"] = y; }
+    else if(Math.log(last / oben) < Math.log(1 / last)){ L[k] = 0; E[k + "#0"] = deckel; }
+  }
+  return {levels: L, extra: E};
+}
+/* Ein angefangener Lauf: Entlastung gibt es nicht mehr, der Block steht
+   einbeinig ohne Gewicht, und die Karte vor der Uebung stellt ihn neu. */
+function wadeRucksackLauf(lauf){
+  if(!lauf || !lauf.plan) return lauf;
+  const um = o => (o && o.exercise === "wade" && o.extra < 0) ? Object.assign({}, o, {extra: 0}) : o;
+  return Object.assign({}, lauf, {
+    plan: Object.assign({}, lauf.plan, {blocks: (lauf.plan.blocks || []).map(um)})});
+}
 function rowUmziehen(lv, tab){
   const out = {};
   for(const k of Object.keys(lv || {})){
@@ -1401,6 +1446,12 @@ function normalize(d){
                  roh.levels = w.levels; roh.extra = w.extra; }
   const umzug  = beidUmzug(ex, roh.levels, roh.extra,
                            leitersturz ? {} : (d.streak || {}));
+  /* Nach beidUmzug: Erst dann stehen alle Wadenschluessel je Seite. */
+  const rucksackUmzug = !leitersturz && (d.exVersion || 1) < WADE_RUCKSACK_AT;
+  if(rucksackUmzug && ex.wade){
+    const w = wadeRucksack(umzug.levels, umzug.extra, bwAlt, ex.wade);
+    umzug.levels = w.levels; umzug.extra = w.extra;
+  }
   /* Den Haken "band" gibt es erst seit dem 19.09. Wer vorher "Kettlebell"
      angehakt hatte, hat damit gesagt: Bei dieser Uebung kann ich Gewicht
      anhaengen. Der Guertel ist nur der neue Aufhaengepunkt fuer dasselbe
@@ -1447,7 +1498,9 @@ function normalize(d){
                                     gefragt: d.gefragt || {},
                                     /* Ein angefangener Lauf ueberlebt das Neuladen. */
                                     lauf: (d.lauf && d.lauf.plan)
-                                          ? (wadeUmzug ? wadeLauf(d.lauf, bwAlt) : d.lauf) : null,
+                                          ? (l => rucksackUmzug ? wadeRucksackLauf(l) : l)(
+                                              wadeUmzug ? wadeLauf(d.lauf, bwAlt) : d.lauf)
+                                          : null,
                                     extra: umzug.extra,
                                     bw: (d.bw > 0 ? d.bw : BW_DEFAULT),
                                     levels: umzug.levels,
@@ -1705,21 +1758,69 @@ function einStufe(ex){
    beidbeinigen Sprosse stehen, solange es sie gibt.
    Massgeblich ist der JUENGSTE Halt, nicht der beste: Die Sprosse wird nicht
    schwerer, der Nutzer aber staerker. */
-function beidLetzte(ex){
+function beidLetzteSitzung(ex){
   const i = beidIndex(ex);
   if(i == null) return null;
   let letzte = null;
   for(const s of S.sessions){
     if(s.exercise !== ex || s.side || s.level !== i) continue;
     const t = s.sets && s.sets[0] && s.sets[0].time;
-    if(t) letzte = t;
+    if(t) letzte = s;
   }
   return letzte;
 }
+function beidLetzte(ex){
+  const s = beidLetzteSitzung(ex);
+  return s ? s.sets[0].time : null;
+}
+/* Traegt die beidbeinige Sprosse Gewicht (Wadenheben seit Build c), reicht
+   "zuletzt laenger als die Zone" nicht mehr als Urteil: Der Rucksack kann die
+   Zeit noch druecken. Zu lang ist der Halt dann erst, wenn selbst der volle
+   Rucksack ihn nicht unter die Zonengrenze bringt — gerechnet mit derselben
+   Annahme wie der Einstieg ohne Kurve (siehe ankerpunkt). */
 function beidZuLang(ex, zone){
   const z = ZONES.find(x => x.id === zone);
-  const t = beidLetzte(ex);
-  return !!z && t != null && t > z.hi;
+  const s = beidLetzteSitzung(ex);
+  if(!z || !s || !(s.sets[0].time > z.hi)) return false;
+  const bi = beidIndex(ex), b = extraBereich(ex);
+  if(bi < extraAbOf(ex) || !(b.hi > b.lo)) return true;
+  const ist = (s.load > 0) ? s.load : lastVon(ex, bi, s.extra || 0);
+  const noetig = ist * (ANNAHME_CP + (1 - ANNAHME_CP) * s.sets[0].time / z.hi);
+  return noetig > lastVon(ex, bi, kgDeckel(ex)) + 1e-9;
+}
+/* ── Beidbeinig oder einbeinig: die Kurve entscheidet je Zone ──────────
+   Luke, 24.09.2026: "man kann doch die beidbeinige variante auch mit dem
+   rucksack zuladen und so lueckenlos skalieren bis man stark genug fuer
+   einbeinig ist". Traegt die beidbeinige Sprosse Gewicht, ueberlappen sich
+   die beiden Ausfuehrungen fast: beidbeinig reicht von einem halben bis zu
+   rund 0,9 Koerpergewichten je Wade, einbeinig beginnt bei einem ganzen.
+   Welche die Zone trifft, ist dann eine Rechnung und keine Frage des
+   Leiterstands: die Last, die die Kurve fuer die Zonenmitte verlangt, gegen
+   das, was beidbeinig mit vollem Rucksack geht. Liegt sie in der Luecke
+   dazwischen, gewinnt die naehere Ausfuehrung.
+   Hat nur EINE Seite Bedarf fuer beidbeinig, wird beidbeinig gehalten: Der
+   Halt ist einer fuer beide Seiten, und die schwaechere bestimmt, was geht
+   (dieselbe Regel wie in beidGemerkt).
+   null = keine Kurve oder eine beidbeinige Sprosse ohne Gewicht; dann
+   entscheidet beidJetzt wie bisher ueber Leiterstand und Messung. */
+function beidPerKurve(ex, zone){
+  const e = S.ex[ex], bi = beidIndex(ex), ei = einStufe(ex);
+  const z = ZONES.find(x => x.id === zone);
+  if(!e || !e.sides || bi == null || ei == null || !z || bi < extraAbOf(ex)) return null;
+  const b = extraBereich(ex);
+  if(!(b.hi > b.lo)) return null;
+  const oben = lastVon(ex, bi, kgDeckel(ex)), unten = lastVon(ex, ei, b.lo);
+  const ziel = Math.round((z.lo + z.hi) / 2);
+  let urteil = null;
+  for(const sd of e.sides){
+    const f = curFit(ex, sd);
+    if(!f) continue;
+    const L = lastZuZeit(f, ziel);
+    if(!(isFinite(L) && L > 0)) continue;
+    if(L <= oben || (L < unten && Math.log(L / oben) < Math.log(unten / L))) return true;
+    urteil = false;
+  }
+  return urteil;
 }
 /* ── Die Wahl des Nutzers fuer HEUTE ──────────────────────────────────
    Dieselbe Bauart wie die Zonenwahl und aus demselben Grund nur fuer den Tag:
@@ -1764,17 +1865,22 @@ function ausfWahlKarte(ex, zone, klasse, knapp){
   const selbst = ausfWahlHeute(ex);
   const t = beidLetzte(ex);
   const z = ZONES.find(x => x.id === zone);
-  const zuLang = !!z && t != null && t > z.hi;
+  const kurve = beidPerKurve(ex, zone);
+  const zuLang = kurve == null && beidZuLang(ex, zone);
+  const bi = beidIndex(ex);
+  const voll = (bi != null && bi >= extraAbOf(ex) && kgDeckel(ex) > 0)
+    ? ` mit ${String(kgDeckel(ex)).replace(".", ",")} kg` : "";
   /* Der Grund gehoert unter die Knoepfe, nicht in eine Hilfe: Wer hier steht,
      hat gerade eine Zonenpause oder einen unerreichbaren Richtwert gesehen und
      will wissen, warum die App das eine und nicht das andere vorschlaegt. */
   const grund = selbst
     ? `Von dir gesetzt. Nochmal auf denselben Knopf tippen heißt: zurück zur Automatik.`
-    : (zuLang
+    : (kurve === false && z
+       ? `Zone ${z.id} braucht mehr, als beidbeinig${voll} geht. Deshalb steht einbeinig vorn.`
+       : zuLang
        ? `Beidbeinig hast du zuletzt <b>${fmt(t)}</b> gehalten${z ? ` — Zone ${z.id} geht bis
-          ${fmt(z.hi)}` : ""}. Auf der beidbeinigen Sprosse steht ein halbes Körpergewicht je
-          Seite, mehr gibt sie nicht her; diese Zone ist damit beidbeinig nicht erreichbar.
-          Deshalb steht einbeinig vorn.`
+          ${fmt(z.hi)}` : ""}. ${voll ? `Auch${voll} wäre das beidbeinig nicht zu schaffen`
+          : `Mehr gibt die beidbeinige Sprosse nicht her`}. Deshalb steht einbeinig vorn.`
        : (beid
           ? `Beidbeinig ist EIN Halt ohne Seite — er zählt für links und rechts zugleich.`
           : `Links und rechts stehen nacheinander im Workout, beide werden gemessen: Eine Seite
@@ -1814,9 +1920,14 @@ function ausfWahlBinden(fn){
 function beidJetzt(ex){
   const w = ausfWaehlbar(ex) ? ausfWahlHeute(ex) : null;
   if(w) return w === "beid";
+  const zone = vorgabeZone(groupOf(ex));
+  /* Traegt auch die beidbeinige Sprosse Gewicht, rechnet die Kurve — siehe
+     beidPerKurve. Ohne Kurve gilt, was hier schon vorher galt. */
+  const k = ausfWaehlbar(ex) ? beidPerKurve(ex, zone) : null;
+  if(k != null) return k;
   if(!beidGemerkt(ex)) return false;
   if(!ausfWaehlbar(ex)) return true;
-  return !beidZuLang(ex, vorgabeZone(groupOf(ex)));
+  return !beidZuLang(ex, zone);
 }
 /* Die Seiten, die HEUTE geplant werden — nicht die, die die Uebung
    grundsaetzlich hat. Auf einer beidbeinigen Sprosse ist das [null]. */
@@ -2510,24 +2621,10 @@ function extraBereich(ex){
   const da = !g || (Array.isArray(g) ? g : [g])
                      .every(x => !!(S.geraete && S.geraete[x]));
   if(!da) return {lo:0, hi:0, schritt};
-  /* Die Minus-Richtung kann an einem EIGENEN Geraet haengen: Beim Wadenheben
-     traegt der Rucksack nach oben, nach unten braucht es die Waage, sonst
-     laesst sich die Entlastung nicht ablesen. Ohne sie endet die Spanne bei
-     null — die Plus-Richtung bleibt. */
-  const gm = e.extraMinGeraet;
-  const minDa = !gm || (Array.isArray(gm) ? gm : [gm])
-                         .every(x => !!(S.geraete && S.geraete[x]));
-  let lo = (e.extraMin != null ? e.extraMin : 0);
-  /* Nach unten hoechstens so weit, dass die Last nicht unter die naechste
-     Sprosse faellt: Beim Wadenheben ist einbeinig mit halbem Koerpergewicht
-     entlastet genau beidbeinig. Ein fester Deckel (40 kg) laege bei 60 kg
-     Koerpergewicht darunter — "leichter" hiesse dann, auf beidbeinig
-     zurueckzustufen und SCHWERER zu stehen. */
-  if(e.extraMinAnteil != null){
-    const bw = (S.bw > 0 ? S.bw : BW_DEFAULT);
-    lo = Math.max(lo, -Math.floor(e.extraMinAnteil * bw / schritt) * schritt);
-  }
-  return {lo: minDa ? lo : Math.max(0, lo),
+  /* Build 2026-09-24 b hatte hier noch eine Minus-Richtung mit eigenem Geraet
+     (die Waage unter dem Vorfuss beim Wadenheben). Seit Build c traegt dort
+     der Rucksack auch die beidbeinige Sprosse, und die Waage ist weg. */
+  return {lo: (e.extraMin != null ? e.extraMin : 0),
           hi: (e.extraMax != null ? e.extraMax : 60), schritt};
 }
 /* Welches Geraet fehlt, damit die Uebung ueberhaupt Gewicht anbieten kann.
@@ -2602,9 +2699,53 @@ function kgFuerLast(ex, level, zielLast){
   const eK = (r < 0 && e.extraKNeg != null) ? e.extraKNeg
            : ((e.extraK != null) ? e.extraK : 1);
   if(!(eK > 0)) return null;
-  const deckel = Math.min(b.hi, Math.round(zusatzDeckel(ex) / b.schritt) * b.schritt);
   const roh = Math.round((bw * r / eK) / b.schritt) * b.schritt;
-  return Math.max(b.lo, Math.min(deckel, Math.round(roh * 10) / 10));
+  return Math.max(b.lo, Math.min(kgDeckel(ex), Math.round(roh * 10) / 10));
+}
+/* Das meiste, was die App an Gewicht vorschlaegt: die Spanne der Uebung,
+   gedeckelt auf den Anteil am Koerpergewicht, aufs Raster gerundet. Eine
+   Zahl fuer alle, die rechnen — kgFuerLast, Regel 2a und das Erschweren auf
+   einer Sprosse, ueber der noch eine liegt. */
+function kgDeckel(ex){
+  const b = extraBereich(ex);
+  return Math.min(b.hi, Math.round(zusatzDeckel(ex) / b.schritt) * b.schritt);
+}
+/* ── Eigenes Gewicht je Sprosse ───────────────────────────────────────
+   Ab extraAb traegt jede Sprosse Gewicht, und bei Liegestuetz, Ausfallschritt,
+   Schraegzug und Hueftstrecker teilen sich diese Sprossen EIN Feld: Ihre
+   Lasten liegen nah beieinander, und das Gewicht wandert beim Hochstufen mit.
+   Beim Wadenheben geht das nicht: Seit dem 24.09.2026 (Build c) traegt auch
+   die beidbeinige Sprosse den Rucksack — und dieselben 30 kg sind einbeinig
+   fast doppelt so schwer wie beidbeinig. Ein gemeinsames Feld haette bei
+   jedem Wechsel die falsche Zahl auf die Karte gebracht.
+   Uebungen mit kgJeSprosse bekommen deshalb fuer jede Sprosse UNTER der
+   obersten ein eigenes Feld: "wade|links#0" ist der Rucksack fuer
+   beidbeinig, "wade|links" bleibt der fuer einbeinig. Fuer alle anderen
+   aendert sich nichts. */
+function kgJeSprosse(ex){
+  const e = S.ex[ex], b = extraBereich(ex);
+  return !!(e && e.kgJeSprosse) && b.hi > b.lo;
+}
+function kgKey(ex, key, level){
+  const e = S.ex[ex];
+  return (e && e.kgJeSprosse && level >= extraAbOf(ex) && level < e.levels.length - 1)
+    ? `${key}#${level}` : key;
+}
+/* Das Gewicht, das auf dieser Sprosse gemerkt ist — unter extraAb keins. */
+function kgAufStufe(ex, key, level){
+  return (level >= extraAbOf(ex)) ? extraOf(kgKey(ex, key, level)) : 0;
+}
+/* Dieselbe Last auf einer anderen Sprosse. Gebraucht nur, wo BEIDE Sprossen
+   Gewicht tragen: beidbeinig mit vollem Rucksack (0,875 bei 80 kg) wird
+   einbeinig ohne Gewicht (1,00) — der kleinste Schritt nach oben; einbeinig
+   ohne Gewicht wird beidbeinig mit vollem Rucksack — der kleinste nach unten.
+   Liegt eine der beiden unter extraAb, bleibt die Zahl, wie sie ist: Dort war
+   das Gewicht schon immer das der obersten Sprosse. */
+function kgUmrechnen(ex, von, kg, nach){
+  const ab = extraAbOf(ex);
+  if(von === nach || von < ab || nach < ab) return kg;
+  const k2 = kgFuerLast(ex, nach, lastVon(ex, von, kg));
+  return (k2 == null) ? kg : k2;
 }
 function stufeZuLast(ex, ziel, kg){
   const stufen = verfuegbareStufen(ex);
@@ -2710,14 +2851,19 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
   /* Der beidbeinige Halt hat keinen eigenen Leiterstand mehr — er liest den
      der weiter fortgeschrittenen Seite. */
   const key = leiterKey(ex, side);
-  let   kg = extraOf(key);
   /* Unter extraAb traegt keine Sprosse Gewicht. Gerechnet wurde bis zum
      24.09. trotzdem mit dem gespeicherten: Stand die Wade oben auf + 20 kg,
      wurden die Waage-Sprossen in der Auswahl als "Waage + 20 kg" bewertet —
-     eine Last, die es nicht gibt. */
-  const kgAuf = i => (i >= extraAbOf(ex)) ? kg : 0;
-  const kgFrei = !extraSelbstGesetzt(key);
-  const folgt = i => kgFrei && gewichtFolgt(ex, side, i);
+     eine Last, die es nicht gibt. Tragen mehrere Sprossen Gewicht, liest
+     jede ihr eigenes (kgKey). */
+  /* Beidbeinig liest das Gewicht der Seite, die auf dieser Sprosse eines hat.
+     Die weiter fortgeschrittene Seite steht oft einbeinig und hat fuer die
+     beidbeinige Sprosse nichts gemerkt — dann stuende der Block auf 0 kg,
+     waehrend die andere Seite beidbeinig + 60 kg traegt. */
+  const quelle = i => (side || S.extra[kgKey(ex, key, i)] != null) ? key
+    : (seitenKeys(ex, side).find(k => S.extra[kgKey(ex, k, i)] != null) || key);
+  const kgAuf = i => kgAufStufe(ex, quelle(i), i);
+  const folgt = i => !extraSelbstGesetzt(kgKey(ex, quelle(i), i)) && gewichtFolgt(ex, side, i);
   let level = standOf(key), best = Infinity;
   let herkunft = "stand", anker = null, roh = null;
   let ausserhalb = false;
@@ -2745,7 +2891,7 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
   }
   if(herkunft !== "kurve" && (anker = ankerpunkt(ex))){
     const ziel = anker.load * (ANNAHME_CP + (1-ANNAHME_CP) * anker.time / target);
-    roh   = stufeZuLast(ex, ziel, kg);
+    roh   = stufeZuLast(ex, ziel, extraOf(key));
     level = Math.min(roh, anker.level + MAX_SPRUNG, lv.length-1);
     level = nahe(level);
     herkunft = "anker";
@@ -2760,7 +2906,7 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
     level = stufen.length ? stufen[Math.min(pos, n-1)].i : 0;
     herkunft = "start";
   }
-  if(level < extraAbOf(ex)) kg = 0;
+  let kg = kgAuf(level);
   /* Auf der obersten Sprosse IST das Gewicht die Leiter — siehe gewichtFolgt.
      Bei einer Leiter aus EINER Sprosse (dem aufrechten Laeufer) war das schon
      so; seit dem 24.09. gilt es fuer jede Leiter an ihrem oberen Ende. Ohne
@@ -2782,7 +2928,10 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
       neuKg = Math.max(b.lo, Math.min(b.hi,
         Math.round((anteil * extraRealOf(ex)) / b.schritt) * b.schritt));
     }
-    if(neuKg != null && neuKg !== kg){ kg = neuKg; for(const k of seitenKeys(ex, side)) S.extra[k] = kg; }
+    if(neuKg != null && neuKg !== kg){
+      kg = neuKg;
+      for(const k of seitenKeys(ex, side)) S.extra[kgKey(ex, k, level)] = kg;
+    }
   }
   const lastJetzt = lastVon(ex, level, kg);
   /* ZWEI Zahlen, bis hierher unter EINEM Namen. Bis zu dieser Zeile ist
@@ -3034,10 +3183,35 @@ function applyRules(session, etikett){
      der KURVE, die diesen Wert ohnehin nicht enthaelt; sie greift beim naechsten
      Durchgang unveraendert. */
   let unmessbar = false;
+  /* Merkt sich jede Sprosse ihr eigenes Gewicht (kgJeSprosse, Wadenheben
+     seit Build c), zaehlt, was GEHALTEN wurde, nicht der gemerkte Stand: Die
+     Kurve waehlt je Zone
+     zwischen beidbeinig und einbeinig, und wer heute einbeinig + 5 kg stand,
+     soll "2,5 kg dazu" lesen und nicht "eine Stufe hoeher" auf genau das, was
+     er eben gehalten hat. Bei allen anderen Uebungen bleibt der Stand, wie er
+     ist. */
+  if(kgJeSprosse(session.exercise) && ex.levels[session.level]
+     && session.level >= extraAbOf(session.exercise)){
+    S.levels[key] = session.level;
+    S.extra[kgKey(session.exercise, key, session.level)] =
+      extraKlemm(session.exercise, session.extra || 0);
+  }
   const lvNow = () => standOf(key);
-  const kgNow = () => extraKlemm(session.exercise, extraOf(key));
+  const kgSchluessel = () => kgKey(session.exercise, key, lvNow());
+  const kgNow = () => extraKlemm(session.exercise, extraOf(kgSchluessel()));
   const schrittNow = () => extraBereich(session.exercise).schritt;
   const wieJetzt = () => stufenName(session.exercise, lvNow(), kgNow());
+  /* Sprossenwechsel. Tragen beide Sprossen Gewicht, zieht die LAST mit um,
+     nicht die Zahl: beidbeinig + 60 kg wird einbeinig ohne Gewicht, und
+     einbeinig ohne Gewicht wird beidbeinig + 60 kg (bei 80 kg Koerpergewicht).
+     Sonst bleibt das Gewicht, wo es ist. */
+  const stufeWechseln = neu => {
+    const alt = lvNow(), kg = kgNow();
+    S.levels[key] = neu;
+    if(kgJeSprosse(session.exercise) && alt >= extraAbOf(session.exercise)
+       && neu >= extraAbOf(session.exercise))
+      S.extra[kgSchluessel()] = kgUmrechnen(session.exercise, alt, kg, neu);
+  };
   /* Erleichtern und Erschweren laufen ueber ZWEI Bahnen: die Leiter und das
      Zusatzgewicht. Bei einer kurzen Leiter ist das Gewicht oft die einzige —
      vorher stoppte die Rueckstufung an Sprosse 0 und die Hochstufung an der
@@ -3049,21 +3223,32 @@ function applyRules(session, etikett){
        geht es unter 0 kg weiter, weil dasselbe Gewicht auf der Standbeinseite
        entlastet. Uebungen ohne negative Spanne stoppen wie bisher bei 0. */
     if(kgNow() > b.lo){
-      S.extra[key] = Math.max(b.lo, Math.round((kgNow() - b.schritt) * 10) / 10);
+      S.extra[kgSchluessel()] = Math.max(b.lo, Math.round((kgNow() - b.schritt) * 10) / 10);
       return "gewicht";
     }
     const tiefer = verfuegbareStufen(session.exercise).filter(st => st.i < lvNow());
-    if(tiefer.length){ S.levels[key] = tiefer[tiefer.length - 1].i; return "stufe"; }
+    if(tiefer.length){ stufeWechseln(tiefer[tiefer.length - 1].i); return "stufe"; }
     return null;
   };
   const erschweren = () => {
     const stufen = verfuegbareStufen(session.exercise);
     const hoeher = stufen.filter(st => st.i > lvNow());
-    if(hoeher.length){ S.levels[key] = hoeher[0].i; return "stufe"; }
-    const oben = stufen[stufen.length - 1];
     const b = extraBereich(session.exercise);
+    /* Hat die jetzige Sprosse ihr eigenes Gewicht (kgJeSprosse), wird erst
+       sie voll beladen — beidbeinig bis zum Deckel, dann einbeinig. Sonst
+       waere der Rucksack an der beidbeinigen nie mehr als ein
+       Durchgangsposten. Alle anderen Leitern steigen wie bisher erst die
+       Sprossen hoch und legen oben Gewicht auf. */
+    if(hoeher.length && kgJeSprosse(session.exercise) && lvNow() >= extraAbOf(session.exercise)
+       && kgNow() < kgDeckel(session.exercise)){
+      S.extra[kgSchluessel()] = Math.min(kgDeckel(session.exercise),
+                                         Math.round((kgNow() + b.schritt) * 10) / 10);
+      return "gewicht";
+    }
+    if(hoeher.length){ stufeWechseln(hoeher[0].i); return "stufe"; }
+    const oben = stufen[stufen.length - 1];
     if(oben && oben.i >= extraAbOf(session.exercise) && kgNow() < b.hi){
-      S.extra[key] = Math.min(b.hi, Math.round((kgNow() + b.schritt) * 10) / 10);
+      S.extra[kgSchluessel()] = Math.min(b.hi, Math.round((kgNow() + b.schritt) * 10) / 10);
       return "gewicht";
     }
     return null;
@@ -3135,7 +3320,7 @@ function applyRules(session, etikett){
        Abstaende fest und die Zwischenwerte nicht frei waehlbar sind. */
     let zusatzBedarf = 0;                 /* was die Rechnung ungedeckelt verlangt */
     let amDeckel = false;                 /* mehr Gewicht schlaegt die App nicht vor */
-    const gewichtDirekt = () => {
+    const gewichtDirekt = vor => {
       const e   = S.ex[session.exercise];
       const bw  = (S.bw > 0 ? S.bw : BW_DEFAULT);
       const bas = e.levels[lvNow()] ? e.levels[lvNow()].load : 0;
@@ -3156,26 +3341,43 @@ function applyRules(session, etikett){
       if(zuLeicht){
         const deckel = klemm(rnd(zusatzDeckel(session.exercise)));
         zusatzBedarf = Math.max(zusatzBedarf, rnd(roh));
-        amDeckel = rnd(roh) > deckel;
-        S.extra[key] = klemm(Math.max(vorherKg + b.schritt,
+        /* Am Deckel ist nur Schluss, wenn darueber keine Sprosse mehr liegt —
+           beidbeinig mit vollem Rucksack geht es einbeinig weiter. */
+        amDeckel = rnd(roh) > deckel
+                && !verfuegbareStufen(session.exercise).some(st => st.i > lvNow());
+        /* Die Untergrenze ist das Gewicht VOR diesem Schritt auf dieser
+           Sprosse, nicht das vor der ganzen Regel: Nach einem Sprossenwechsel
+           gehoert jenes zu einer anderen Sprosse. */
+        S.extra[kgSchluessel()] = klemm(Math.max(vor + b.schritt,
                                       Math.min(klemm(rnd(roh)), deckel)));
       } else {
-        S.extra[key] = klemm(Math.min(kgNow(), rnd(roh)));
+        S.extra[kgSchluessel()] = klemm(Math.min(kgNow(), rnd(roh)));
       }
     };
 
-    let wie = null, stufenAuf = 0;
+    let wie = null, stufenAuf = 0, umgerechnet = false;
     for(let k = 0; k < MAX_SPRUNG; k++){
       if(k > 0){
         const jetzt = lastVon(session.exercise, lvNow(), kgNow());
         if(zuLeicht ? jetzt >= zielLast : jetzt <= zielLast) break;
       }
+      const vor = kgNow(), stufeVor = lvNow();
       const w = zuLeicht ? erschweren() : erleichtern();
       if(!w) break;
       wie = w;
-      if(w === "stufe") stufenAuf++; else { gewichtDirekt(); if(amDeckel) break; }
+      if(w === "stufe"){
+        stufenAuf++;
+        /* Was die Rechnung auf der alten Sprosse an Gewicht verlangt hat,
+           gilt fuer die neue nicht. */
+        if(kgJeSprosse(session.exercise) && stufeVor >= extraAbOf(session.exercise)){
+          umgerechnet = true; zusatzBedarf = 0;
+        }
+      } else { gewichtDirekt(vor); if(amDeckel) break; }
     }
-    const kgDelta = Math.round(Math.abs(kgNow() - vorherKg) * 10) / 10;
+    /* Nach einem umgerechneten Sprossenwechsel vergleicht die Differenz das
+       Gewicht zweier verschiedener Sprossen — die Meldung nennt dann nur die
+       Stufe, und "jetzt ..." sagt, was gilt. */
+    const kgDelta = umgerechnet ? 0 : Math.round(Math.abs(kgNow() - vorherKg) * 10) / 10;
 
     msgs.push({t:"warn", x:`${etikett}: `
       + `${komma(first.time, 1)} s liegt ${zuLeicht ? "über" : "unter"} dem Messfenster `
@@ -3263,7 +3465,7 @@ function applyRules(session, etikett){
       if(wie === "stufe")
         msgs.push({t:"ok", x:`${etikett}: Diese Stufe trägt über 150 Sekunden → eine Stufe höher auf „${wieJetzt()}".`});
       else if(wie === "gewicht")
-        msgs.push({t:"ok", x:`${etikett}: Die oberste Stufe trägt über 150 Sekunden → ${komma(schrittNow(),1)} kg dazu, jetzt „${wieJetzt()}".`});
+        msgs.push({t:"ok", x:`${etikett}: Diese Stufe trägt über 150 Sekunden → ${komma(schrittNow(),1)} kg dazu, jetzt „${wieJetzt()}".`});
       else
         msgs.push({t:"warn", x:`${etikett}: Diese Position trägt über 150 Sekunden, und schwerer geht sie nicht. Als Kontrollposition ist sie weiter brauchbar — für die Kurve gibt sie nichts mehr her.`});
     }
@@ -3468,12 +3670,8 @@ function stufenName(ex, level, kg){
   const e = S.ex[ex] || {};
   const z = `${String(Math.abs(kg)).replace(".", ",")} kg`;
   /* Geht das Gewicht in BEIDE Richtungen, steht die Seite im Namen: "−20 kg"
-     liest niemand als Entlastung. Beim Wadenheben bleibt die Sprosse dabei
-     vorn stehen — es gibt zwei, und ohne sie wuesste niemand, ob "20 kg
-     entlastet" einbeinig oder beidbeinig gemeint ist. */
+     liest niemand als Entlastung. */
   const es = e.extraSeiten;
-  if(es && es.amStufenNamen)
-    return kg < 0 ? `${L.name}, ${z} ${es.minus}` : `${L.name} + ${z}`;
   return es
     ? `${z} ${kg < 0 ? es.minus : es.plus}`
     : `${L.name} + ${z}`;
@@ -3513,11 +3711,14 @@ function stufeSetzen(bl, k){
   bl.level = naechsteVerfuegbare(bl.exercise, Math.max(0, Math.min(lv.length-1, k)));
   if(bl.level < extraAbOf(bl.exercise)){     /* Feld verschwindet — Last auch */
     bl.extra = 0; S.extra[keyOf(bl.exercise, bl.side)] = 0;
+  } else if(kgJeSprosse(bl.exercise)){
+    /* Jede Sprosse hat ihr eigenes Gewicht — das der neuen gilt. */
+    bl.extra = kgAufStufe(bl.exercise, leiterKey(bl.exercise, bl.side), bl.level);
   }
   /* Auf die oberste Sprosse getippt: Das Gewicht stellt sich auf die Zone ein,
      genau wie beim Planen (gewichtFolgt). Wer es heute schon selbst gesetzt
      hat, behaelt seins. */
-  const key = keyOf(bl.exercise, bl.side);
+  const key = kgKey(bl.exercise, leiterKey(bl.exercise, bl.side), bl.level);
   if(gewichtFolgt(bl.exercise, bl.side, bl.level) && !extraSelbstGesetzt(key)){
     const f = curFit(bl.exercise, bl.side);
     const zz = ZONES.find(z => z.id === bl.zone) || ZONES[1];
@@ -3525,7 +3726,7 @@ function stufeSetzen(bl, k){
     const kg = zielKg(bl.exercise, bl.level, f, f ? null : ankerpunkt(bl.exercise), soll);
     if(kg != null){
       bl.extra = kg;
-      for(const k of seitenKeys(bl.exercise, bl.side)) S.extra[k] = kg;
+      for(const k of seitenKeys(bl.exercise, bl.side)) S.extra[kgKey(bl.exercise, k, bl.level)] = kg;
     }
   }
   bl.userPicked = (bl.level !== bl.levelVorschlag);
@@ -3535,9 +3736,14 @@ function gewichtSetzen(bl, v){
   const b = extraBereich(bl.exercise);
   const kg = Math.max(b.lo, Math.min(b.hi,
     Math.round(Math.round((+v || 0) / b.schritt) * b.schritt * 10) / 10));
-  const key = keyOf(bl.exercise, bl.side);
-  S.extra[key] = kg;
-  extraSelbstMerken(key);
+  /* Der beidbeinige Halt gehoert beiden Seiten — und bis Build c trug er kein
+     Gewicht, deshalb stand hier nur EIN Schluessel, und zwar "wade" ohne
+     Seite, den beim Planen niemand liest. */
+  for(const k of seitenKeys(bl.exercise, bl.side)){
+    const kk = kgKey(bl.exercise, k, bl.level);
+    S.extra[kk] = kg;
+    extraSelbstMerken(kk);
+  }
   bl.extra = kg;
   zielNeu(bl);
 }
@@ -3558,11 +3764,12 @@ function seitenAbgleich(bloecke, bl){
   q.level = bl.level;
   q.userPicked = (q.level !== q.levelVorschlag);
   const kg = (q.level >= extraAbOf(q.exercise)) ? (bl.extra || 0) : 0;
-  const qk = keyOf(q.exercise, q.side);
+  const qk = kgKey(q.exercise, keyOf(q.exercise, q.side), q.level);
   q.extra = kg; S.extra[qk] = kg;
   /* Was fuer die eine Seite von Hand gesetzt ist, ist es fuer die andere auch —
      sonst rechnete der Planer der zweiten Seite das Gewicht wieder weg. */
-  if(extraSelbstGesetzt(keyOf(bl.exercise, bl.side))) extraSelbstMerken(qk);
+  if(extraSelbstGesetzt(kgKey(bl.exercise, keyOf(bl.exercise, bl.side), bl.level)))
+    extraSelbstMerken(qk);
   q.saetze = bl.saetze;
   zielNeu(q);
   return q;
@@ -3763,16 +3970,12 @@ function blockIntro(i){
     /* Zwei Richtungen: die Seite kommt in die drei Knoepfe, der Stepper traegt
        nur den Betrag. Betrag null IST "Ohne Gewicht" — dann kein Stepper. */
     const zwei   = !!(ex.extraSeiten && eb.lo < 0 && eb.hi > 0);
-    /* Beim Wadenheben ist die Entlastung keine Zahl, die man umhaengt, sondern
-       eine, die man ABLIEST: Die Waage unter dem Vorfuss soll dein
-       Koerpergewicht weniger die Entlastung zeigen. Genau diese Zahl steht
-       dann im Stepper — minus heisst leichter, plus schwerer, wie ueberall. */
-    const waage  = zwei && !!ex.extraSeiten.waage && (q.extra || 0) < 0;
-    const bwK    = (S.bw > 0 ? S.bw : BW_DEFAULT);
-    const kgNow  = waage ? Math.round((bwK + q.extra) * 10) / 10
-                 : (zwei ? Math.abs(q.extra || 0) : (q.extra || 0));
-    const kgLo   = waage ? bwK + eb.lo : (zwei ? 0 : eb.lo);
-    const kgHi   = waage ? bwK : (zwei ? ((q.extra || 0) < 0 ? -eb.lo : eb.hi) : eb.hi);
+    /* Die Waage-Anzeige (Build 2026-09-24 b) ist mit Build c wieder weg: Beim
+       Wadenheben traegt jetzt auch die beidbeinige Sprosse den Rucksack, und
+       Entlastung gibt es dort nicht mehr. */
+    const kgNow  = zwei ? Math.abs(q.extra || 0) : (q.extra || 0);
+    const kgLo   = zwei ? 0 : eb.lo;
+    const kgHi   = zwei ? ((q.extra || 0) < 0 ? -eb.lo : eb.hi) : eb.hi;
     const knopf  = (a, zeichen, aus, aria) => `<button class="ghost" data-t="${t}"
       data-a="${a}" aria-label="${aria}"${aus ? " disabled" : ""}>${zeichen}</button>`;
     return `<div class="teil">
@@ -3791,7 +3994,7 @@ function blockIntro(i){
         data-sw="${o.v}">${o.titel}<span>${o.unter}</span></button>`).join("")}</div>` : ""}
       <div class="stps">
         ${(mitKg && !(zwei && !q.extra)) ? `<div class="stp"><span class="tiny">${
-          waage ? "Waage zeigt" : (ex.extraLabel || "Gewicht")}</span>
+          ex.extraLabel || "Gewicht"}</span>
           ${knopf("kg-", "−", kgNow <= kgLo, "weniger Gewicht")}
           <b>${String(kgNow).replace(".", ",")} kg</b>
           ${knopf("kg+", "+", kgNow >= kgHi, "mehr Gewicht")}</div>` : ""}
@@ -3841,13 +4044,9 @@ function blockIntro(i){
         const eb   = extraBereich(q.exercise);
         const zwei = !!(ex.extraSeiten && eb.lo < 0 && eb.hi > 0);
         const vz   = (q.extra || 0) < 0 ? -1 : 1;
-        /* Die Waage-Anzeige zaehlt vorzeichenrichtig: plus heisst mehr auf
-           der Waage, also weniger Entlastung. */
-        const waage = zwei && !!ex.extraSeiten.waage && vz < 0;
-        const betrag = (zwei && !waage ? Math.abs(q.extra || 0) : (q.extra || 0))
+        const betrag = (zwei ? Math.abs(q.extra || 0) : (q.extra || 0))
                      + (a === "kg+" ? eb.schritt : -eb.schritt);
-        gewichtSetzen(q, waage ? Math.min(0, betrag)
-                               : (zwei ? vz * Math.max(0, betrag) : betrag));
+        gewichtSetzen(q, zwei ? vz * Math.max(0, betrag) : betrag);
       }
       neu();
     };
@@ -4367,8 +4566,8 @@ function curveSVG(f, pts){
   const exK = S.exercise;
   const lv = curEx().levels;
   const ga = gewichtAchse(exK);
-  const kgJetzt = extraKlemm(exK, extraOf(curKey()));
-  const lastJetzt = lastVon(exK, curLevel(), curLevel() >= extraAbOf(exK) ? kgJetzt : 0);
+  const kgJetzt = extraKlemm(exK, kgAufStufe(exK, curKey(), curLevel()));
+  const lastJetzt = lastVon(exK, curLevel(), kgJetzt);
   const loads = lv.map(l=>l.load)
     .concat(pts.map(p => p.load).filter(v => v > 0))
     .concat(lastJetzt > 0 ? [lastJetzt] : [])
