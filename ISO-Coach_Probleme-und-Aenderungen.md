@@ -1500,7 +1500,7 @@ empfiehlt.
   (https://gripgains.ca/resources/faq). Die Formeln dort sind nicht veröffentlicht, die
   Übertragung ist meine.
 
-### P58 · Einbeiniges Wadenheben und Aufrechter Läufer am selben Tag (vorgemerkt)
+### P58 · Einbeiniges Wadenheben und Aufrechter Läufer am selben Tag
 
 Luke, 25.09.: „isometrisches EINBEINIGES Wadenheben hat starke inteferrenz mit dem aufrechten
 läufer die Übungen mit hinweis ausstatten nach möglichkeit nicht an einem tag beide zu
@@ -1510,16 +1510,52 @@ Beide Übungen laden den Gluteus medius des Standbeins. Die Erholungsschranke gr
 Wade und Läufer stehen in verschiedenen Gruppen, deshalb sieht sie das Paar nicht. Der zweite
 Halt am selben Tag wäre vorermüdet, und die Kurve bekäme einen zu kurzen Punkt.
 
-**Noch nicht gebaut.** Vorgemerkt für einen späteren Build. Was dabei zu entscheiden ist:
+Zur Handtuchrolle, Luke, 25.09.: „ja aber nur für handtuchrolle einbeinig wird handtuchrolle
+beidbeinig trainier (in der entsprechende zone) kann trainiert werden da hier keine
+hüftstabilisation stattfinden muss".
 
-- Den Ausschluss gibt es schon für Wade und Handtuchrolle (`nichtMit`, `konflikt`). Er ist
-  hart und gilt je Übung. Hier soll es ein Hinweis sein, „nach Möglichkeit". Und er gilt nur
-  für die einbeinige Sprosse, nicht für beidbeinig.
-- Vorschlag: Der Plan legt die beiden nicht auf denselben Tag, solange eine andere Übung frei
-  ist. Hakt der Nutzer beide an, steht an beiden ein Satz mit dem Grund.
-- Offen: Gilt das auch einbeinig mit Waage-Entlastung, wo das Standbein weniger trägt?
-- Offen: Gilt es auch für die Handtuchrolle einbeinig? Die gibt es seit Build d wieder (P59),
-  und das Standbein arbeitet dort genauso.
+**Gebaut in 2026-09-25 e.** Die Regel hängt an der Ausführung, nicht an der Übung:
+
+| Heute im Plan | Mit dem aufrechten Läufer am selben Tag |
+|---|---|
+| Wadenheben einbeinig | nach Möglichkeit nicht |
+| Wadenheben beidbeinig | ja |
+| Handtuchrolle einbeinig | nach Möglichkeit nicht |
+| Handtuchrolle beidbeinig | ja |
+
+- Ob heute beidbeinig gehalten wird, entscheidet wie bisher die Zone. Die App dreht die
+  Ausführung nicht um, nur um das Paar zu trennen.
+- Einbeinig mit Waage-Entlastung zählt als einbeinig. Das Standbein trägt weniger, muss das
+  Becken aber genauso halten, und Lukes Maßstab ist die Hüftstabilisation.
+- Der Plan legt die beiden nicht auf denselben Tag. Wer länger auf eine Messung wartet,
+  kommt dran; der andere rückt auf den nächsten Tag vor.
+- Ausnahmen: Hat der Nutzer heute selbst „Einbeinig" gewählt, bleiben beide. Steht bei einer
+  der beiden eine Seite offen, geht das Nachholen vor.
+- In der Häkchenliste steht an der verschobenen Übung „besser nicht mit … — beide fordern die
+  äußere Hüfte". Sie bleibt anhakbar, das Häkchen tauscht nicht. Hakt der Nutzer beide an,
+  steht an beiden „zusammen mit … — beide fordern die äußere Hüfte".
+- Die Hinweistexte der drei Übungen nennen die Regel. Wade und Handtuchrolle bleiben
+  untereinander hart getrennt, wie bisher.
+
+**Der Preis.** Hält der Läufer die Wartezeit-Liste an, rückt das einbeinige Wadenheben einen
+Tag weiter, auch wenn sonst nichts im Plan steht als der Läufer. „Nach Möglichkeit" heißt hier:
+Die App trennt, solange der Nutzer nichts anderes anhakt. Einen Tag mit nur einer Übung nimmt
+sie dafür in Kauf.
+
+**Für den Nachbau:**
+
+- Merkmal `huefteStandbein: true` an Wade, Handtuchrolle und Läufer. Gelesen wird es aus
+  `DEFAULT_EX`, nicht aus der gespeicherten Definition. Deshalb gibt es keine neue Fassung und
+  keinen Umzug.
+- `huefteHeute(ex, bloecke)`: Stehen die Blöcke schon fest, zählt, ob einer davon einseitig
+  ist. Sonst `beidJetzt`. `huefteKonflikt(a, b)` gilt nur, wenn beide heute die äußere Hüfte
+  fordern und nicht schon `konflikt` sie trennt. `huefteGewollt` ist die eigene Wahl
+  „Einbeinig" für heute.
+- `auswahlHeute` überspringt im automatischen Plan, nicht beim Zusammenstellen von Hand.
+  `planWorkout` gibt die verschobenen als `huefte: [{ex, wegen}]` zurück, getrennt von
+  `spaeter` und `paar`.
+- Die Häkchenliste schreibt den Satz in eine eigene Zeile. Der Formtal-Hinweis bleibt darunter
+  sichtbar.
 
 ### P59 · Handtuchrolle: Rucksack bis 40 kg, danach einbeinig mit Waage
 
@@ -1560,8 +1596,8 @@ als das Wadenheben ohne Handtuch. Welche Ausführung eine Zone trifft, rechnet d
 - Dieselbe Waage, zwei Grenzen: Das Wadenheben endet beidbeinig bei 30 kg, die Handtuchrolle
   bei 40 kg. Beide stehen in der Definition der Übung (`beidBis`).
 - Der Haken „Waage" gilt für beide Übungen. Getrennt einstellen lässt sich das nicht.
-- Einbeinig lädt die Handtuchrolle das Standbein wie das Wadenheben. Die Frage aus P58
-  (Aufrechter Läufer am selben Tag) betrifft sie mit.
+- Einbeinig lädt die Handtuchrolle das Standbein wie das Wadenheben. Deshalb gilt P58
+  (nicht am selben Tag wie der aufrechte Läufer) für sie mit, seit Build e.
 
 **Für den Nachbau:**
 
@@ -1586,6 +1622,32 @@ als das Wadenheben ohne Handtuch. Welche Ausführung eine Zone trifft, rechnet d
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-09-25 e — Einbeinig nicht am selben Tag wie der aufrechte Läufer
+
+**Befund (Luke).** Einbeiniges Wadenheben und der aufrechte Läufer fordern beide die äußere
+Hüfte des Standbeins, „nach möglichkeit nicht an einem tag beide". Für die Handtuchrolle „nur
+für handtuchrolle einbeinig", beidbeinig „kann trainiert werden da hier keine
+hüftstabilisation stattfinden muss" (P58).
+
+**Gebaut.** Der automatische Plan legt einbeiniges Wadenheben, mit und ohne Handtuchrolle,
+nicht auf denselben Tag wie den aufrechten Läufer. Wer länger wartet, kommt dran. Beidbeinig
+gilt die Regel nicht; welche Ausführung heute dran ist, entscheidet weiter die Zone. Einbeinig
+mit Waage-Entlastung zählt als einbeinig. Die eigene Wahl „Einbeinig" für heute und eine offene
+Nachholseite heben die Trennung auf. Von Hand angehakt bleiben beide, und an beiden steht der
+Grund. Die Hinweistexte der drei Übungen nennen die Regel.
+
+**Geprüft.** 793 von 793 Prüfungen, 42 davon neu:
+
+- Merkmal an genau drei Übungen; Wade und Handtuchrolle bleiben hart getrennt
+- welche Ausführung zählt: einbeinig ja, beidbeinig nein, fertige Blöcke vor dem Leiterstand,
+  Merkmal auch aus alten gespeicherten Definitionen
+- Plan: einbeinig und Läufer nur einer, wer länger wartet gewinnt, beidbeinige Handtuchrolle
+  und Läufer beide, eigene Wahl „Einbeinig" beide, von Hand beide, zwei offene Seiten beide,
+  allein nie leer
+- Häkchenliste: „besser nicht mit …" an der verschobenen Übung, anhakbar; „zusammen mit …" an
+  beiden, wenn beide angehakt sind; beidbeinig kein Satz
+- Hinweistexte
 
 ### 2026-09-25 d — Handtuchrolle einbeinig mit Waage ab 40 kg · Premium-Schalter · dieses Papier im Repo
 

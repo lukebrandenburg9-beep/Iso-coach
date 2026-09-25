@@ -762,6 +762,8 @@ const DEFAULT_EX = {
   laeufer: {
     name:"Aufrechter Läufer", region:"Hüfte", group:"abduct",
     sides:["links","rechts"],
+    /* Die ganze Uebung ist aeussere Huefte des Standbeins — siehe huefteHeute. */
+    huefteStandbein:true,
     extraAb:0, extraK:3.44, extraKNeg:1.44,
     extraMin:-32, extraMax:32, extraSchritt:2, extraReal:32,
     extraGeraet:["band","gewicht"],
@@ -777,7 +779,9 @@ const DEFAULT_EX = {
         +"Der Oberkörper bleibt über der Mitte und wandert NICHT über das Standbein, sonst "
         +"fällt die Last in sich zusammen. Blick geradeaus, ein Fixpunkt an der Wand hilft. "
         +"Das Gewicht hängt am Gürtel SEITLICH an der Hüfte — nicht in der Hand, nicht vor "
-        +"dem Bauch. Beide Hände bleiben frei.",
+        +"dem Bauch. Beide Hände bleiben frei. Einbeiniges Wadenheben, mit und ohne "
+        +"Handtuchrolle, fordert dieselbe äußere Hüfte — die App legt es nach Möglichkeit "
+        +"nicht auf denselben Tag.",
     seitenHinweis:"Diese Hüfte hat eben noch das Becken waagerecht gehalten, während die "
                  +"andere Seite gearbeitet hat — sie war die ganze Zeit mit im Einsatz.",
     warnung:{
@@ -846,6 +850,8 @@ const DEFAULT_EX = {
   wade: {
     name:"Isometrisches Wadenheben", region:"Wade", group:"calf",
     sides:["links","rechts"], seitenParallel:true, nichtMit:["handtuch"],
+    /* Einbeinig haelt die aeussere Huefte das Becken mit — siehe huefteHeute. */
+    huefteStandbein:true,
     /* Neue Nutzer beginnen einbeinig, nicht auf der leichtesten Sprosse. */
     startStufe:1,
     /* Gewicht ab der ersten Sprosse: beidbeinig und einbeinig tragen den
@@ -885,7 +891,9 @@ const DEFAULT_EX = {
         +"nicht —, und auch hier kommt der Rucksack dazu. Hast du eine Waage, endet beidbeinig "
         +"bei 30 kg, und es geht einbeinig weiter: Die Waage liegt unter dem Vorfuß des "
         +"Standbeins, das andere Bein ist in der Luft, und du nimmst dir über die Hände auf "
-        +"einer Auflage so viel Gewicht ab, bis die Anzeige die Zahl zeigt, die auf der Karte steht.",
+        +"einer Auflage so viel Gewicht ab, bis die Anzeige die Zahl zeigt, die auf der Karte steht. "
+        +"Einbeinig hält die äußere Hüfte des Standbeins das Becken, wie beim aufrechten Läufer — "
+        +"die App legt die beiden nach Möglichkeit nicht auf denselben Tag.",
     /* Kein seitenHinweis mehr: Er behauptete eine Vorermuedung, die es hier nicht
        gibt — siehe seitenParallel. Luke, 21.09.2026. */
     warnung:{
@@ -939,6 +947,8 @@ const DEFAULT_EX = {
   handtuch: {
     name:"Isometrisches Wadenheben mit Handtuchrolle", region:"Fußsohle", group:"arch",
     sides:["links","rechts"], seitenParallel:true, nichtMit:["wade"],
+    /* Einbeinig wie beim Wadenheben, beidbeinig nicht — siehe huefteHeute. */
+    huefteStandbein:true,
     /* Der Rucksack traegt beide Sprossen, mit derselben Spanne wie beim
        Wadenheben ohne Handtuch. */
     extraAb:0, extraK:1, extraMax:60, extraReal:60, extraAnteil:0.75,
@@ -968,7 +978,9 @@ const DEFAULT_EX = {
         +"weiter: Die Waage liegt unter dem Vorfuß des Standbeins, das Handtuch darauf, das "
         +"andere Bein ist in der Luft, und du nimmst dir über die Hände auf einer Auflage so "
         +"viel Gewicht ab, bis die Anzeige die Zahl zeigt, die auf der Karte steht. Einbeinig "
-        +"kommen beide Seiten nacheinander dran, beide Sätze werden gemessen.",
+        +"kommen beide Seiten nacheinander dran, beide Sätze werden gemessen. Einbeinig hält "
+        +"die äußere Hüfte des Standbeins das Becken, wie beim aufrechten Läufer — die App legt "
+        +"die beiden nach Möglichkeit nicht auf denselben Tag. Beidbeinig gilt das nicht.",
     /* Kein seitenHinweis mehr — dieselbe Bewegung wie beim Wadenheben ohne
        Handtuch, also dieselbe Begruendung: siehe seitenParallel. */
     warnung:{
@@ -1111,7 +1123,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-25 d";
+const BUILD = "2026-09-25 e";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -2210,6 +2222,36 @@ function konflikt(a, b){
   const A = (S.ex[a] && S.ex[a].nichtMit) || [], B = (S.ex[b] && S.ex[b].nichtMit) || [];
   return A.indexOf(b) >= 0 || B.indexOf(a) >= 0;
 }
+/* Weicher als konflikt: Einbeiniges Wadenheben — mit und ohne Handtuchrolle —
+   und der aufrechte Laeufer fordern beide den Gluteus medius des Standbeins,
+   die aeussere Huefte. Die Gruppen sehen das nicht (calf, arch, abduct), und
+   der zweite Halt am selben Tag waere vorermuedet. Luke, 25.09.2026: „nach
+   möglichkeit nicht an einem tag beide zu trainieren", und zur Handtuchrolle:
+   „nur für handtuchrolle einbeinig … beidbeinig … kann trainiert werden da
+   hier keine hüftstabilisation stattfinden muss".
+   Es haengt deshalb an der AUSFUEHRUNG, nicht an der Uebung. Ob heute
+   beidbeinig gehalten wird, entscheidet die Zone (beidJetzt); die App dreht
+   die Ausfuehrung nicht um, nur um das Paar zu trennen. Stehen die Bloecke
+   schon fest, zaehlen sie — der Probeblock hat das letzte Wort.
+   Das Merkmal kommt aus DEFAULT_EX: Gespeicherte Uebungsdefinitionen aus
+   Fassung 23 tragen es nicht, und ein Merkmal ist keinen Umzug wert. */
+function huefteHeute(ex, bloecke){
+  const e = S.ex[ex];
+  if(!e || !((DEFAULT_EX[ex] || {}).huefteStandbein || e.huefteStandbein)) return false;
+  const eigene = (bloecke || []).filter(b => b.exercise === ex);
+  if(eigene.length) return eigene.some(b => !beidBlock(b));
+  return !(e.sides && hatBeidStufe(ex) && beidJetzt(ex));
+}
+/* Das Paar, das die App nach Moeglichkeit trennt. Wade und Handtuchrolle
+   trennt schon konflikt, hart. */
+function huefteKonflikt(a, b, bloecke){
+  return a !== b && !konflikt(a, b) && huefteHeute(a, bloecke) && huefteHeute(b, bloecke);
+}
+/* Hat der Nutzer heute selbst einbeinig gewaehlt, ist das Paar seine
+   Entscheidung und kein Fall fuer „nach Möglichkeit". */
+function huefteGewollt(a, b){
+  return [a, b].some(x => ausfWaehlbar(x) && ausfWahlHeute(x) === "ein");
+}
 const curLevel  = () => standOf(curKey());
 const setLevel  = v  => { S.levels[curKey()] = v; };
 const curStreak = () => (S.streak[curKey()] = S.streak[curKey()] || {pain:0, miss:0, leer:0});
@@ -2845,6 +2887,11 @@ function auswahlHeute(dran){
        raus, egal wie lange er wartet. Wer laenger gewartet hat, steht in
        dieser Reihenfolge vorn und gewinnt den Platz. */
     if(drin.some(v => konflikt(v.ex, u.ex))) continue;
+    /* Die aeussere Huefte trennt die App nur beim Planen. Hakt der Nutzer
+       beide an, bleiben beide, und an beiden steht der Grund. Eine offene
+       Seite geht vor: sie noch einen Tag offen zu lassen, kostet mehr als
+       der vorermuedete Halt. */
+    if(!u.offen && drin.some(v => huefteKonflikt(v.ex, u.ex) && !huefteGewollt(v.ex, u.ex))) continue;
     const k = kosten(u);
     /* Passt nichts mehr, wird uebersprungen — aber niemals ein leeres
        Workout erzeugt, auch wenn eine einzelne Uebung den Deckel sprengt. */
@@ -3538,6 +3585,12 @@ function planWorkout(){
   const blocks = A.concat(B);
   const zonen  = [...new Set(blocks.map(b => b.zone))];
   const gruende = [...new Set(dran.map(u => zoneFuer(u.group).why))];
+  const vonHand = (S.heuteTag === today() && Array.isArray(S.heute));
+  const huefteWegen = u => {
+    if(vonHand || u.offen) return null;
+    const v = dran.find(v => huefteKonflikt(v.ex, u.ex, blocks) && !huefteGewollt(v.ex, u.ex));
+    return v ? v.ex : null;
+  };
   return {
     zone: blocks.length ? blocks[0].zone : "C",
     zonen,
@@ -3556,9 +3609,14 @@ function planWorkout(){
        der Plan wie ein Fehler. */
     nachhol: dran.filter(u => u.offen)
                  .map(u => ({ex: u.ex, seite: u.offen.seite})),
-    spaeter: spaeter.filter(u => !dran.some(v => konflikt(v.ex, u.ex))).map(u => u.ex),
+    spaeter: spaeter.filter(u => !dran.some(v => konflikt(v.ex, u.ex)) && !huefteWegen(u))
+                    .map(u => u.ex),
     paar:    spaeter.filter(u =>  dran.some(v => konflikt(v.ex, u.ex)))
                     .map(u => ({ex: u.ex, wegen: dran.find(v => konflikt(v.ex, u.ex)).ex})),
+    /* Von der aeusseren Huefte verschoben — nur, wenn die App geplant hat.
+       Hat der Nutzer selbst zusammengestellt, hat er es nicht angehakt. */
+    huefte:  spaeter.filter(u => !dran.some(v => konflikt(v.ex, u.ex)) && huefteWegen(u))
+                    .map(u => ({ex: u.ex, wegen: huefteWegen(u)})),
     blocks
   };
 }
@@ -5391,6 +5449,11 @@ function renderHome(){
         : (!u.tor.ok && !ignoreRest)
           ? (eigeneZone ? `Zone ${u.tor.gewaehlt} ${tage(u.tor.wait)}` : tage(u.tor.wait))
         : partner ? `nicht zusammen mit ${S.ex[partner].name}` : "";
+      /* Die aeussere Huefte ist ein Rat, kein Ausschluss: anhakbar bleibt es,
+         das Haekchen tauscht nicht, und an beiden steht der Grund. */
+      const huefte = frei && !status && [...drin].find(x => huefteKonflikt(x, u.ex, p.blocks));
+      const rat = huefte ? `${drin.has(u.ex) ? "zusammen mit" : "besser nicht mit"} ${
+        S.ex[huefte].name} — beide fordern die äußere Hüfte` : "";
       /* Premium: Steht die Form im Tal, sagt es die Zeile. Abhaken tut der
          Nutzer selbst — die App empfiehlt, sie sperrt nicht. */
       const tal = !status && formTal(u.ex);
@@ -5399,7 +5462,9 @@ function renderHome(){
           ${frei ? "" : "disabled"}>
         <span><b>${e.name}</b>${status ? `<br><span class="tiny" style="color:${
           u.ohneGeraet ? "var(--warn)" : u.offen ? "var(--ok)" : "var(--tx3)"}">${
-          status}</span>` : ""}${tal ? `<br><span class="tiny" style="color:var(--warn)">Formtal ·
+          status}</span>` : ""}${rat ? `<br><span class="tiny" style="color:${
+          drin.has(u.ex) ? "var(--warn)" : "var(--tx3)"}">${rat}</span>` : ""}${
+          tal ? `<br><span class="tiny" style="color:var(--warn)">Formtal ·
           entlasten empfohlen</span> <span class="pill pPrem">Premium</span>` : ""}</span></label>`;
     }).join("")}
   </div>`;
