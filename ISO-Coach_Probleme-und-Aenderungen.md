@@ -1649,6 +1649,11 @@ Grund. Die Hinweistexte der drei Übungen nennen die Regel.
   beiden, wenn beide angehakt sind; beidbeinig kein Satz
 - Hinweistexte
 
+Im Browser (live, Wadenheben einbeinig, Läufer und Liegestütz aktiv): Der Plan nimmt Läufer und
+Liegestütz, das Wadenheben steht darunter mit „besser nicht mit Aufrechter Läufer — beide
+fordern die äußere Hüfte". Angehakt kommt es dazu, der Läufer bleibt, und beide Zeilen sagen
+„zusammen mit …" in Warnfarbe. Die Testdaten sind gelöscht.
+
 ### 2026-09-25 d — Handtuchrolle einbeinig mit Waage ab 40 kg · Premium-Schalter · dieses Papier im Repo
 
 **Befund (Luke).** „geh bei der beidbeinigen ausführung im rücksack bis 40kg dannach einbeinig
