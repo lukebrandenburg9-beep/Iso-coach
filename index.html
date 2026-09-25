@@ -910,10 +910,16 @@ const DEFAULT_EX = {
   /* Dieselbe Bewegung, ZWEI Unterschiede. (Die Leiter hatte bis zum 25.09.2026
      fuenf Sprossen, drei davon an der Waage. Luke, 25.09.2026 (Build c): "das
      wadenheben mit handtuchrolle ist deutlich schwerer ich denke die bilateral
-     variante + rucksack ist hier erstmal ausreichend". Seitdem EINE Sprosse,
-     beidbeinig, und der Rucksack macht sie schwerer — siehe HANDTUCH_BEID_AT.
-     Die Seiten bleiben stehen: Alte einbeinige Messungen gehoeren weiter in
-     ihre Kurve, und kommt einbeinig zurueck, ist der Platz schon da.)
+     variante + rucksack ist hier erstmal ausreichend". Seitdem beidbeinig mit
+     Rucksack — siehe HANDTUCH_BEID_AT. Noch am selben Tag (Build d): "geh bei
+     der beidbeinigen ausfuehrung im ruecksack bis 40kg dannach einbeinig mit
+     entlasten der waage". Seitdem ZWEI Sprossen wie beim Wadenheben ohne
+     Handtuch, nur endet beidbeinig erst bei 40 kg:
+        beidbeinig + 40 kg          0,5 x (1 + 40/KG)    bei 80 kg: 0,75
+        einbeinig, x kg entlastet   1 - x/KG             x = KG/2 - 20 = 20 kg
+     Die Waage unter dem Vorfuss zeigt dann 60 kg. Ohne Waage geht beidbeinig
+     bis zum vollen Deckel, einbeinig beginnt ohne Gewicht — siehe
+     HANDTUCH_WAAGE_AT.)
      Erstens das Handtuch:
      stehen die Zehen aufgestellt, wickelt sich die Plantarfaszie ueber die
      Mittelfusskoepfe und traegt mit (Windenmechanismus); liegen sie flach, ist
@@ -933,13 +939,21 @@ const DEFAULT_EX = {
   handtuch: {
     name:"Isometrisches Wadenheben mit Handtuchrolle", region:"Fußsohle", group:"arch",
     sides:["links","rechts"], seitenParallel:true, nichtMit:["wade"],
-    /* Der Rucksack traegt die einzige Sprosse, mit derselben Spanne wie beim
+    /* Der Rucksack traegt beide Sprossen, mit derselben Spanne wie beim
        Wadenheben ohne Handtuch. */
     extraAb:0, extraK:1, extraMax:60, extraReal:60, extraAnteil:0.75,
+    /* Mit Waage: beidbeinig nur bis 40 kg, darueber einbeinig mit Entlastung —
+       siehe waageSpanne. Ohne Waage gelten beide Felder nicht. */
+    beidBis:40, extraMinGeraet:"waage",
+    /* Beidbeinig und einbeinig merken sich ihr Gewicht getrennt — siehe kgKey. */
+    kgJeSprosse:true,
     extraLabel:"Rucksack",
+    extraSeiten:{plus:"Rucksack", minus:"entlastet", plusKurz:"Rucksack", minusKurz:"Waage",
+                 amStufenNamen:true, waage:true},
     extraHint:"Der Rucksack sitzt vorne an der Brust, eng geschnallt und mittig. So zieht er "
-             +"weder nach vorn noch zur Seite. Beide Fußgewölbe teilen sich dein Körpergewicht "
-             +"und den Rucksack.",
+             +"weder nach vorn noch zur Seite. Beidbeinig teilen sich beide Fußgewölbe dein "
+             +"Körpergewicht und den Rucksack, einbeinig trägt eines alles. Mit Waage endet "
+             +"beidbeinig bei 40 kg — schwerer geht es einbeinig weiter.",
     hint:"Wie das isometrische Wadenheben, mit zwei Unterschieden. Erstens liegt unter den "
         +"Zehen ein fest zusammengerolltes Handtuch, sodass die Zehen nach oben gedrückt "
         +"bleiben. Nur die Ballen tragen, die Zehen liegen auf der Rolle. Diese Zehenstellung "
@@ -948,8 +962,13 @@ const DEFAULT_EX = {
         +"so weit hoch, wie das Sprunggelenk hergibt, und die Zehen stehen dabei fast maximal "
         +"aufgestellt. Das Wadenheben ohne Handtuch wird waagerecht gehalten — zusammen decken "
         +"die beiden zwei verschiedene Gelenkstellungen ab. Auch hier: keine Wiederholungen. "
-        +"Du stehst auf beiden Füßen, das ist EIN Halt für links und rechts. Schwerer wird es "
-        +"mit einem Rucksack voller Gewichte, vorne an die Brust geschnallt.",
+        +"Beidbeinig ist die Grundform: Du stehst auf beiden Füßen, das ist EIN Halt für links "
+        +"und rechts. Schwerer wird es mit einem Rucksack voller Gewichte, vorne an die Brust "
+        +"geschnallt. Hast du eine Waage, endet beidbeinig bei 40 kg, und es geht einbeinig "
+        +"weiter: Die Waage liegt unter dem Vorfuß des Standbeins, das Handtuch darauf, das "
+        +"andere Bein ist in der Luft, und du nimmst dir über die Hände auf einer Auflage so "
+        +"viel Gewicht ab, bis die Anzeige die Zahl zeigt, die auf der Karte steht. Einbeinig "
+        +"kommen beide Seiten nacheinander dran, beide Sätze werden gemessen.",
     /* Kein seitenHinweis mehr — dieselbe Bewegung wie beim Wadenheben ohne
        Handtuch, also dieselbe Begruendung: siehe seitenParallel. */
     warnung:{
@@ -967,7 +986,8 @@ const DEFAULT_EX = {
            +"dann wäre Belastung falsch."
     },
     levels:[
-      {name:"Beidbeinig", load:0.50, beid:true}
+      {name:"Beidbeinig", load:0.50, beid:true},
+      {name:"Einbeinig",  load:1.00}
     ]
   }
 };
@@ -1071,7 +1091,7 @@ const GERAETE = [
    +"Anzeige IST die Stufe. Sie muss analog sein — eine Digitalwaage schaltet bei stehender "
    +"Last nach Sekunden ab oder friert die Anzeige ein, und ein Halt dauert 35 bis 120 s.",
    fuer:"Isometrisches Wadenheben: einbeinig mit Entlastung, sobald beidbeinig mehr als "
-       +"30 kg Rucksack bräuchte."}
+       +"30 kg Rucksack bräuchte. Mit Handtuchrolle dasselbe ab 40 kg."}
 ];
 
 const RED_FLAGS = [
@@ -1091,7 +1111,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-25 c";
+const BUILD = "2026-09-25 d";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -1104,7 +1124,7 @@ const AW_V = 1;
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
    Update alte Levels kleben. Sessions bleiben dabei immer erhalten. */
-const EX_VERSION = 22;
+const EX_VERSION = 23;
 /* Voreinstellung, bis der Nutzer sein Gewicht einträgt. Nur als Bezugsgroesse
    fuer Zusatzlast noetig — die Lastfaktoren selbst sind gewichtsunabhaengige
    Verhaeltniszahlen. */
@@ -1399,13 +1419,15 @@ function wadeRucksackLauf(lauf, lo){
    der Nutzer ohnehin einbeinig, ist das die einzige Aenderung.
    Ohne Waage aendert sich nichts, und gemessene Saetze bleiben, wie sie sind. */
 const WADE_WAAGE_AT = 21;
-function wadeWaage(lv, extra, bw, e){
+/* trifft: welche Schluessel gemeint sind. Seit Build d rechnet dieselbe
+   Funktion auch die Handtuchrolle um (HANDTUCH_WAAGE_AT). */
+function wadeWaage(lv, extra, bw, e, trifft){
   const L = Object.assign({}, lv || {}), E = Object.assign({}, extra || {});
   const w = waageTiefe(e, bw, WADE_SCHRITT, e.extraAnteil);
   if(!w) return {levels: L, extra: E};
-  const endung = "#" + w.bi;
+  const endung = "#" + w.bi, gemeint = trifft || wadeKey;
   for(const k of Object.keys(E)){
-    if(!wadeKey(k) || !String(k).endsWith(endung) || !(E[k] > w.beidBis)) continue;
+    if(!gemeint(k) || !String(k).endsWith(endung) || !(E[k] > w.beidBis)) continue;
     const s = k.slice(0, -endung.length), y = E[k];
     E[k] = w.beidBis;
     if(L[s] !== w.bi) continue;
@@ -1464,11 +1486,53 @@ function handtuchObjekt(o, bwAlt){
    stehen auf der einen Sprosse ohne Gewicht, die Karte stellt sie neu. */
 function handtuchLauf(lauf, bwAlt){
   if(!lauf || !lauf.plan) return lauf;
+  /* Auch die vorgeschlagene Sprosse: Eine alte Nummer 4 gibt es nicht mehr. */
   const offen = o => (o && o.exercise === "handtuch")
-    ? Object.assign({}, o, {level: 0, extra: 0}) : o;
+    ? Object.assign({}, o, {level: 0, extra: 0}, o.levelVorschlag != null ? {levelVorschlag: 0} : {}) : o;
   return Object.assign({}, lauf, {
     plan: Object.assign({}, lauf.plan, {blocks: (lauf.plan.blocks || []).map(offen)}),
     fertig: (lauf.fertig || []).map(o => handtuchObjekt(o, bwAlt))});
+}
+/* ── 25.09.2026, Build d: Die Handtuchrolle bekommt einbeinig mit Waage ──
+   Luke: "geh bei der beidbeinigen ausfuehrung im ruecksack bis 40kg dannach
+   einbeinig mit entlasten der waage". Aus der einen Sprosse werden zwei:
+   0 = beidbeinig (wie bisher), 1 = einbeinig.
+   Gemessene Saetze: Wer eine Seite traegt, war einbeinig (die alte Leiter
+   vor Build c) und zieht auf die neue einbeinige Sprosse — Last, Seite und
+   Etikett bleiben ("Messpunkte verwirft nur Luke"). Beidbeinige Saetze haben
+   keine Seite und bleiben auf 0.
+   Der Stand bleibt beidbeinig. Der Rucksack dafuer zieht auf seinen eigenen
+   Platz ("handtuch|links#0", siehe kgKey); der alte Platz gehoert jetzt der
+   einbeinigen Sprosse und beginnt leer. Wer die Waage angehakt hat und
+   beidbeinig mehr als 40 kg traegt, steht danach einbeinig auf derselben
+   Last, mit Entlastung — dieselbe Rechnung wie beim Wadenheben (wadeWaage). */
+const HANDTUCH_WAAGE_AT = 23;
+function handtuchEinbeinig(lv, extra, bw, e, waage){
+  const L = Object.assign({}, lv || {}), E = Object.assign({}, extra || {});
+  for(const k of Object.keys(E)){
+    if(!handtuchKey(k) || String(k).indexOf("#") >= 0 || k === "handtuch") continue;
+    if(E[k + "#0"] === undefined) E[k + "#0"] = E[k];
+    delete E[k];
+  }
+  return waage ? wadeWaage(L, E, bw, e, handtuchKey) : {levels: L, extra: E};
+}
+function handtuchEinObjekt(o){
+  if(!o || o.exercise !== "handtuch" || !o.side || o.level !== 0) return o;
+  const neu = {level: 1};
+  if(o.levelVorschlag === 0) neu.levelVorschlag = 1;
+  return Object.assign({}, o, neu);
+}
+/* Ein angefangener Lauf: gelaufene Bloecke wie Saetze. Ein offener
+   beidbeiniger Block mit mehr als 40 kg bekommt 40 kg (nur mit Waage), die
+   Karte vor der Uebung stellt ihn bei Bedarf neu. */
+function handtuchEinLauf(lauf, bw, e, waage){
+  if(!lauf || !lauf.plan) return lauf;
+  const w = waage ? waageTiefe(e, bw, WADE_SCHRITT, e.extraAnteil) : null;
+  const offen = o => (w && o && o.exercise === "handtuch" && o.level === w.bi && o.extra > w.beidBis)
+    ? Object.assign({}, o, {extra: w.beidBis}) : handtuchEinObjekt(o);
+  return Object.assign({}, lauf, {
+    plan: Object.assign({}, lauf.plan, {blocks: (lauf.plan.blocks || []).map(offen)}),
+    fertig: (lauf.fertig || []).map(handtuchEinObjekt)});
 }
 function rowUmziehen(lv, tab){
   const out = {};
@@ -1554,6 +1618,9 @@ function fresh(){
     maxBloecke:MAX_BLOECKE, heute:null, heuteTag:null,
     /* Welche uebungseigenen Sicherheitsfragen schon beantwortet sind. */
     gefragt:{},
+    /* Premium (Luke, 25.09.2026). Der Prototyp hat keine Anmeldung, deshalb
+       ein Schalter unter Mehr — siehe premiumAn. */
+    premium:true,
     sessions:[], plan:null, redflag:false,
     rest:{...DEFAULT_REST}, planDay:null, reaction:REACTION_DEFAULT
   };
@@ -1571,6 +1638,7 @@ function normalize(d){
   const lungeMess  = !leitersturz && (d.exVersion || 1) < LUNGE_WAND_MESS_AT;
   const wadeUmzug  = !leitersturz && (d.exVersion || 1) < WADE_KERN_AT;
   const handtuchUmzug = !leitersturz && (d.exVersion || 1) < HANDTUCH_BEID_AT;
+  const handtuchEin   = !leitersturz && (d.exVersion || 1) < HANDTUCH_WAAGE_AT;
   const ex = stale ? structuredClone(DEFAULT_EX)
                    : Object.assign(structuredClone(DEFAULT_EX), d.ex || {});
   /* Erst die Band-Verschiebung von Fassung 11, dann der Umzug auf das freie
@@ -1603,6 +1671,10 @@ function normalize(d){
     const w = wadeWaage(umzug.levels, umzug.extra, bwAlt, ex.wade);
     umzug.levels = w.levels; umzug.extra = w.extra;
   }
+  if(handtuchEin && ex.handtuch){
+    const h = handtuchEinbeinig(umzug.levels, umzug.extra, bwAlt, ex.handtuch, waageDa);
+    umzug.levels = h.levels; umzug.extra = h.extra;
+  }
   /* Wie weit ein angefangener Lauf entlasten darf (wadeRucksackLauf). */
   const waageLo = (waageDa && ex.wade)
     ? ((waageTiefe(ex.wade, bwAlt, WADE_SCHRITT, ex.wade.extraAnteil) || {}).lo || 0) : 0;
@@ -1630,12 +1702,13 @@ function normalize(d){
                                        einen Wand-Sitzung richtigstellen
                                        (LUNGE_WAND_MESS_AT) — sie laeuft auf
                                        der schon umgezogenen Nummer. */
-                                    sessions: (ses => handtuchUmzug ? ses.map(o => handtuchObjekt(o, bwAlt)) : ses)(
+                                    sessions: (ses => handtuchEin ? ses.map(handtuchEinObjekt) : ses)(
+                                              (ses => handtuchUmzug ? ses.map(o => handtuchObjekt(o, bwAlt)) : ses)(
                                               (ses => wadeUmzug ? ses.map(o => wadeObjekt(o, bwAlt)) : ses)(
                                               (ses => lungeMess ? lungeWandMessung(ses) : ses)(
                                                 (ses => lungeUmzug ? lungeSessions(ses) : ses)(
                                                   rowSkala ? rowSkalaVerwerfen(d.sessions)
-                                                           : (d.sessions || []))))),
+                                                           : (d.sessions || [])))))),
                                     sync: d.sync || {},
                                     /* Zugpunkt ist voreingestellt an — eine stabile
                                        Tischkante reicht und hat praktisch jeder. Rolle und
@@ -1653,10 +1726,11 @@ function normalize(d){
                                     gefragt: d.gefragt || {},
                                     /* Ein angefangener Lauf ueberlebt das Neuladen. */
                                     lauf: (d.lauf && d.lauf.plan)
-                                          ? (l => handtuchUmzug ? handtuchLauf(l, bwAlt) : l)(
+                                          ? (l => handtuchEin ? handtuchEinLauf(l, bwAlt, ex.handtuch, waageDa) : l)(
+                                            (l => handtuchUmzug ? handtuchLauf(l, bwAlt) : l)(
                                             (l => waageUmzug ? wadeWaageLauf(l, bwAlt, ex.wade) : l)(
                                               (l => rucksackUmzug ? wadeRucksackLauf(l, waageLo) : l)(
-                                              wadeUmzug ? wadeLauf(d.lauf, bwAlt) : d.lauf)))
+                                              wadeUmzug ? wadeLauf(d.lauf, bwAlt) : d.lauf))))
                                           : null,
                                     extra: umzug.extra,
                                     bw: (d.bw > 0 ? d.bw : BW_DEFAULT),
@@ -2225,7 +2299,8 @@ function zoneCoverage(ex, side){
    die Form Wellen faehrt.
 
    Nach FORM_LANG_TAGE Tagen mit Daten spricht die App eine Empfehlung aus
-   (Premium) und die Zonenruhe faellt als Sperre (siehe formFreiGruppe).
+   (Premium, siehe premiumAn) und die Zonenruhe faellt als Sperre (siehe
+   formFreiGruppe).
    Davor steht der Trend schon da, als "vorlaeufig". Entscheiden tut der
    Nutzer; die App sperrt nach dem Trend nichts. */
 const FORM_KURZ      = 3;   // Trainingstage im kurzen Fenster
@@ -2311,9 +2386,14 @@ function formStand(ex){
           aktiv: tageDaten >= FORM_LANG_TAGE, abTag: v.ersterTag + FORM_LANG_TAGE};
 }
 function formAktiv(ex){ const s = formStand(ex); return !!(s && s.aktiv); }
-/* Heute weist die App auf ein Tal hin — nur mit aktivem Trend und nur, wenn
-   das Urteil frisch ist. */
+/* Premium (Luke, 25.09.2026) ist nur die Empfehlung aus dem Trend und damit
+   die Freigabe der Zonenruhe; Zahl, Zustand und Chart hat jeder. Ohne Premium
+   gilt die Zonenruhe wie vor dem Formtrend (Luke: "ja wie du sagst"). */
+function premiumAn(){ return S.premium !== false; }
+/* Heute weist die App auf ein Tal hin — nur mit aktivem Trend, nur, wenn
+   das Urteil frisch ist, und nur mit Premium. */
 function formTal(ex){
+  if(!premiumAn()) return false;
   const s = formStand(ex);
   return !!(s && s.aktiv && s.zustand === "tal" && today() - s.letzt.tag < FORM_FRISCH_TAGE);
 }
@@ -2324,6 +2404,7 @@ function formTal(ex){
    aktiven Trend hat — kommt eine neue Uebung dazu, schuetzt die Ruhe die
    Gruppe, bis auch sie ihre 30 Tage hat. */
 function formFreiGruppe(gr){
+  if(!premiumAn()) return false;
   const t = today();
   const exs = Object.keys(S.ex).filter(ex => groupOf(ex) === gr
     && S.sessions.some(s => s.exercise === ex && ergiebig(s) && t - dayNum(s.date) < FORM_LANG_TAGE));
@@ -5455,9 +5536,9 @@ function formKarte(ex){
       <span style="color:${st.zustand === "tal" ? "var(--warn)" : "var(--tx2)"}">${FORM_WORT[st.zustand]}</span>
     </div>
     ${formSVG(v.tage)}
-    <p style="margin:10px 0 0"><span class="pill pPrem">Premium</span> ${st.aktiv
+    ${premiumAn() ? `<p style="margin:10px 0 0"><span class="pill pPrem">Premium</span> ${st.aktiv
       ? FORM_RAT[st.zustand]
-      : `Empfehlung ab dem ${tagDatum(st.abTag)}.`}</p>
+      : `Empfehlung ab dem ${tagDatum(st.abTag)}.`}</p>` : ""}
     <table style="margin-top:12px"><thead><tr><th>Tag</th><th>Satz 1</th>
       <th class="n">Tagesform</th><th class="n">Trend</th></tr></thead>
       <tbody>${zeilen}</tbody></table>
@@ -5812,6 +5893,14 @@ function renderSetup(){
       <button class="ghost" style="width:100%;margin-top:8px" id="restSave">Speichern</button>
     </div>
     <div class="card">
+      <h3 style="margin-top:0">Premium</h3>
+      <label class="chk" for="premChk" style="margin-bottom:0">
+        <input type="checkbox" id="premChk" ${premiumAn() ? "checked" : ""}>
+        <span><b>Premium freigeschaltet</b><br><span class="tiny">Empfehlung aus dem Formtrend.
+        Läuft der Trend, ersetzt er die Zonenruhe.</span></span>
+      </label>
+    </div>
+    <div class="card">
       <h3 style="margin-top:0">Messreihen exportieren</h3>
       <p class="tiny">Eine Zeile je gehaltenem Satz, mit <b>Variante</b>, <b>Haltedauer</b> und
       Lastfaktor so, wie sie zum Zeitpunkt der Messung galten. Bewusst ohne Bezug auf den
@@ -6045,6 +6134,12 @@ function renderSetup(){
     save();
   };
 
+  if(el("premChk")) el("premChk").onchange = e => {
+    S.premium = e.target.checked;
+    /* Die Zonenruhe haengt daran — ein geplantes Workout kann sich aendern. */
+    S.plan = null; S.planDay = null; save();
+    renderAmOrt("premChk");
+  };
   GERAETE.forEach(g => {
     const b = el("ger_" + g.id);
     if(!b) return;

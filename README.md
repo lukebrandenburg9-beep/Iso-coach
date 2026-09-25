@@ -56,6 +56,18 @@ eine Ebene höher und ist nicht Teil des Repositorys.
 
 ---
 
+## Was sich geändert hat und warum
+
+[ISO-Coach_Probleme-und-Aenderungen.md](ISO-Coach_Probleme-und-Aenderungen.md) liegt neben
+`index.html` und wird mit jedem Build nachgezogen:
+
+- **Teil 1:** Probleme, die den Aufwand gegenüber dem Handoff verschieben, je mit Preis und
+  Hinweisen für den Nachbau.
+- **Teil 2:** jede Fassung mit Befund, Änderung und dem, was geprüft wurde.
+- **Teil 3 und 4:** was der Prototyp bewusst nicht kann, und offene Fachentscheidungen.
+
+---
+
 ## Was drinsteckt
 
 Der Prototyp setzt Abschnitt 4 des Handoffs um — er ist kein Timer mit Deko, sondern die
@@ -106,8 +118,8 @@ Rechenlogik:
   nachgeholt.
 
 **Bewusst nicht drin:** CMF. Die Begründung stand bis zum 17.09. auch in der App und ist dort
-wieder raus — sie erklärt ein Verfahren, das der Nutzer nie zu sehen bekommt. Nachzulesen in
-`../Modell-Befunde_Simulation.md` und als P3 in `../ISO-Coach_Probleme-und-Aenderungen.md`.
+wieder raus — sie erklärt ein Verfahren, das der Nutzer nie zu sehen bekommt. Nachzulesen als
+P3 in [ISO-Coach_Probleme-und-Aenderungen.md](ISO-Coach_Probleme-und-Aenderungen.md).
 
 ---
 
