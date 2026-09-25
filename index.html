@@ -368,13 +368,21 @@ const messbar = t => t >= MESS_MIN && t <= MESS_MAX;
      · Dieselbe Muskelgruppe dreimal pro Woche.
      · Jedes Energiesystem — also jede Zone — einmal pro Woche.
    Beides zusammen ergibt genau eine Rotation: drei Zonen, drei
-   Einheiten je Woche, jede Zone einmal. Zwei Schranken setzen das um:
-     MIN_GAP_DAYS — zwischen zwei Einheiten DERSELBEN Muskelgruppe.
-                    Zwei Tage Abstand ergibt hoechstens Mo/Mi/Fr.
+   Einheiten je Woche, jede Zone einmal.
+   Bis zum 25.09. stand "dreimal pro Woche" zusaetzlich als fester Abstand
+   im Code: zwei Tage zwischen zwei Einheiten derselben Gruppe, also
+   Mo/Mi/Fr. Luke, 25.09.2026: "Das volumen sollten wir ueber gewisse
+   zeitintervalle deckeln, es spricht aber nichts dagegen die gleiche uebung
+   2 tage hintereinander zu machen." Der Deckel war schon da — die
+   Zonenruhe: Jede der drei Zonen einmal in sieben Tagen ergibt hoechstens
+   drei Einheiten in sieben Tagen, gleich wie sie liegen. Der Abstand war
+   eine zweite Regel fuer dieselbe Sache und ist weg. Es bleiben:
+     MIN_GAP_DAYS — hoechstens eine Einheit je Gruppe und Tag.
      rest[Zone]   — bis dieselbe Zone wieder drankommt: sieben Tage.
-   Ausnahme fuer die drei Einstiegstests: dort genuegen 24 Stunden,
-   sonst zoege sich das Onboarding ueber drei Wochen. Grobe Richtwerte,
-   die verfeinert werden; aenderbar unter Mehr. */
+   Luke im selben Atemzug: Ziel ist, dass die Form entscheidet — faellt die
+   Kurzfrist-Leistung unter die langfristige Norm, wird entlastet —, statt
+   fester Regeln, wann und wie oft. Bis dafuer genug Wochen gemessen sind,
+   haelt die Zonenruhe den Deckel. Aenderbar unter Mehr. */
 /* Obergrenze fuer die Blockzahl einer Sitzung. Mit fuenf Uebungen, davon drei
    zweiseitig, waeren es sonst acht Bloecke — in Zone C ueber eine Stunde reine
    Haltezeit. Die Erholung je Muskelgruppe bleibt die harte Schranke; dieser
@@ -385,7 +393,11 @@ const messbar = t => t >= MESS_MIN && t <= MESS_MAX;
    Bei ein bis zwei Saetzen ist sie weg. Lieber weniger Uebungen als weniger
    Saetze. */
 const MAX_BLOECKE      = 6;
-const MIN_GAP_DAYS     = 2;
+const MIN_GAP_DAYS     = 1;
+/* Wie lange eine halb gemessene Uebung auf ihre zweite Seite wartet — siehe
+   offeneSeite(). Im Onboarding nur der Tag selbst: am naechsten steht schon
+   der naechste Einstiegstest an, und der misst beide Seiten neu. */
+const NACHHOL_TAGE     = 2;
 const ONBOARD_GAP_DAYS = 1;
 const DEFAULT_REST     = {A:7, B:7, C:7};
 
@@ -1067,7 +1079,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-25 a";
+const BUILD = "2026-09-25 b";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -2410,9 +2422,8 @@ function zoneAge(gr){
 function gateGroup(gr){
   const t = today(), la = lastWorkoutDay(gr);
   const onboarding = groupWorkoutCount(gr) < 3;
-  const gap = onboarding ? ONBOARD_GAP_DAYS : MIN_GAP_DAYS;
-  if(la !== null && (t - la) < gap)
-    return {ok:false, kind:"day", wait: gap - (t - la), lastDay: la, onboarding, group:gr};
+  if(la !== null && (t - la) < MIN_GAP_DAYS)
+    return {ok:false, kind:"day", wait: MIN_GAP_DAYS - (t - la), lastDay: la, onboarding, group:gr};
   if(onboarding) return {ok:true, onboarding, group:gr};
   const age = zoneAge(gr);
   /* Hat der Nutzer eine Zone gesetzt, wird auch NUR die geprueft. Sonst waere
@@ -2443,9 +2454,18 @@ function ausfuehrbar(ex){ return verfuegbareStufen(ex).length > 0; }
    der Sperre — Lukes Entscheidung, und sie kostet nichts, weil der gesperrten
    Seite nichts zugemutet wird.
 
-   Das Fenster ist so lang wie die Sperre selbst. Danach ist die Uebung ohnehin
-   wieder dran, und startSeite() stellt die Seite mit weniger Messpunkten von
-   sich aus nach vorn. Der Vorrang ist ein Nachholfenster, keine Dauerregel. */
+   Seit dem 25.09. ist die Gruppe am Tag darauf ohnehin frei. Das Fenster
+   bleibt trotzdem zwei Tage lang (NACHHOL_TAGE): Ohne es plante die App am
+   naechsten Tag beide Seiten in der naechsten Zone der Rotation, und die
+   offene Seite bekaeme ihre Messung in der Zone der Gegenseite nie. Danach
+   stellt startSeite() die Seite mit weniger Messpunkten von sich aus nach
+   vorn. Der Vorrang ist ein Nachholfenster, keine Dauerregel.
+
+   Eine Nachholmessung reisst selbst kein neues Loch auf. Bis zum 25.09. tat
+   sie das: Nach "links gestern, rechts heute nachgeholt" war heute nur rechts
+   gemessen, also galt links als offen — und am Tag darauf wieder rechts, im
+   Wechsel ohne Ende. Darum traegt ein Nachholblock die Marke "nachhol", und
+   die Sitzung erbt sie. */
 function offeneSeite(ex){
   const e = S.ex[ex];
   if(!e || !e.sides || e.sides.length < 2) return null;
@@ -2457,7 +2477,7 @@ function offeneSeite(ex){
   }
   if(tag === null) return null;
   const gr  = groupOf(ex);
-  const gap = groupWorkoutCount(gr) < 3 ? ONBOARD_GAP_DAYS : MIN_GAP_DAYS;
+  const gap = groupWorkoutCount(gr) < 3 ? ONBOARD_GAP_DAYS : NACHHOL_TAGE;
   if((today() - tag) >= gap) return null;
   /* Ein Block OHNE Seite ist der beidbeinige Halt. Der zaehlt fuer BEIDE
      Kurven (Lukes Festlegung vom 19.09.) und laesst also nichts offen. */
@@ -2475,6 +2495,7 @@ function offeneSeite(ex){
      die beiden Zahlen liessen sich nicht mehr nebeneinanderlegen — genau das,
      wofuer das Nachholen ueberhaupt da ist. */
   const vor = bezug[e.sides.find(x => hat.has(x))] || null;
+  if(vor && vor.nachhol) return null;
   return {seite: fehlt[0], tag,
           zone:   (vor && vor.workoutZone) || null,
           target: (vor && vor.target > 0 ? vor.target : null)};
@@ -3119,8 +3140,8 @@ function zoneFuer(gr){
      nebeneinander, die sich nicht vergleichen lassen — und genau dafuer wird
      nachgeholt. "fest" haelt die Lueckenlogik in mkBlock davon ab, sie wieder
      wegzudrehen; sonst stuende auf der Karte eine Zone und im Block eine
-     andere. Ein Nachholfall kann nur in einer gesperrten Gruppe auftreten, und
-     dort kommt ausser dem Nachholer ohnehin nichts durch. */
+     andere. In einer Gruppe mit Nachholfall plant planWorkout() heute nur den
+     Nachholer, gesperrt oder nicht — die Zone betrifft also nichts anderes. */
   const nz = (gr === undefined) ? null : nachholZone(gr);
   if(nz){
     const z = ZONES.find(x => x.id === nz.zone);
@@ -3183,13 +3204,18 @@ function planWorkout(){
     const zf = zoneFuer(u.group);
     /* Nachholfall: Eine Seite wurde zuletzt gemessen, die andere nicht — dann
        steht heute genau diese eine Seite im Plan, und zwar in der Zone der
-       Gegenseite. Kein zweiter Block: Die gemessene Seite ist in der Erholung,
-       und sie ein zweites Mal dazuzustellen, waere genau die Zumutung, vor der
-       die Sperre schuetzen soll. "fest" schaltet die Lueckenlogik ab, damit sie
-       die uebernommene Zone nicht wegdreht. */
+       Gegenseite. Kein zweiter Block: Die gemessene Seite hat ihre Messung in
+       dieser Zone schon; ein zweiter Halt dort waere doppelte Menge fuer eine
+       Seite und eine Zone, die in sieben Tagen einmal drankommen soll. "fest"
+       schaltet die Lueckenlogik ab, damit sie die uebernommene Zone nicht
+       wegdreht. Die Marke "nachhol" wandert in die Sitzung — offeneSeite()
+       erkennt daran, dass hier ein Loch geschlossen und kein neues geoeffnet
+       wurde. */
     if(u.offen){
-      A.push(mkBlock(u.ex, u.offen.seite, zf.zone, zf.target, true,
-                     zf.onboarding, zf.fest));
+      const b = mkBlock(u.ex, u.offen.seite, zf.zone, zf.target, true,
+                        zf.onboarding, zf.fest);
+      b.nachhol = true;
+      A.push(b);
       continue;
     }
     /* Traegt die geplante Sprosse beide Seiten, ist es EIN Halt: ein Block,
@@ -3233,9 +3259,10 @@ function planWorkout(){
     /* Kein stiller Deckel: Was heute nicht mehr passt, wird benannt — und
        zwar mit dem richtigen Grund. Am Deckel gescheitert ist etwas anderes
        als vom Partner verdraengt. */
-    /* Warum heute etwas im Plan steht, das die Erholungsregel eigentlich
-       sperrt, muss dastehen — sonst liest sich der Plan wie ein Fehler. */
-    nachhol: dran.filter(u => u.offen && !u.tor.ok)
+    /* Warum heute nur EINE Seite im Plan steht, oft in einer Gruppe, die
+       die Erholungsregel eigentlich sperrt, muss dastehen — sonst liest sich
+       der Plan wie ein Fehler. */
+    nachhol: dran.filter(u => u.offen)
                  .map(u => ({ex: u.ex, seite: u.offen.seite})),
     spaeter: spaeter.filter(u => !dran.some(v => konflikt(v.ex, u.ex))).map(u => u.ex),
     paar:    spaeter.filter(u =>  dran.some(v => konflikt(v.ex, u.ex)))
@@ -4220,6 +4247,7 @@ function blockIntro(i){
         const n = mkBlock(q.exercise, q.side, z.zone, z.target, q.fresh,
                           !!z.onboarding, !!z.fest);
         n.zweiteSeite = q.zweiteSeite;
+        if(q.nachhol) n.nachhol = true;
         Object.keys(q).forEach(k => delete q[k]);
         Object.assign(q, n);
       }
@@ -4474,7 +4502,7 @@ function blockSichern(){
     target: bl.target, workoutZone: bl.zone,
     /* Zone nach der ERREICHTEN Zeit — wer eine Stufe selbst waehlt, landet oft woanders. */
     zone: zoneOf(RUN.sets[0].time).id,
-    fresh: bl.fresh, userPicked: !!bl.userPicked,
+    fresh: bl.fresh, userPicked: !!bl.userPicked, nachhol: !!bl.nachhol,
     saetzeGeplant: curSets(),
     sets: RUN.sets.slice()
   });
@@ -5485,10 +5513,9 @@ function renderSetup(){
       Rotation: drei Zonen, drei Einheiten. Übungen ohne Überschneidung dürfen am selben Tag
       getestet werden — jede Übung bringt ihre eigene Muskelgruppe mit.</p>
       <div id="restEdit"></div>
-      <p class="tiny">Mindestabstand zwischen zwei Einheiten derselben Muskelgruppe:
-      <b>${MIN_GAP_DAYS} Tage</b>. Während der drei Einstiegstests genügen
-      <b>${ONBOARD_GAP_DAYS*24} Stunden</b>, sonst zöge sich das Onboarding über drei Wochen.
-      Grobe Richtwerte, die verfeinert werden.</p>
+      <p class="tiny">Jede Übung höchstens <b>einmal am Tag</b>, zwei Tage hintereinander
+      sind erlaubt. Die Pause je Zone begrenzt die Menge: Bei sieben Tagen je Zone sind es
+      höchstens drei Einheiten pro Woche.</p>
       <button class="ghost" style="width:100%;margin-top:8px" id="restSave">Speichern</button>
     </div>
     <div class="card">
