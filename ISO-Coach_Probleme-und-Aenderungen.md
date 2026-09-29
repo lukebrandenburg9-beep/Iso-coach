@@ -262,8 +262,12 @@ Messwert** (W'-Rekonstitution, Handoff 3.1). Bei ungleich langen Pausen ist er w
 stehen **neben** der laufenden Uhr, nie davor.
 
 Dazu gehört auch der umgekehrte Fall: Ohne Vorlauf beginnt die Messung, während der Nutzer sich
-noch in die Position aufbaut. Der Prototyp zählt jetzt **drei Sekunden** herunter, bevor die Uhr
-läuft.
+noch in die Position aufbaut. Der Prototyp zählt jetzt **acht Sekunden** herunter, bevor die Uhr
+läuft, und zwar vor dem ersten Satz jedes Blocks. Ab Satz 2 dient die Pause selbst dazu.
+
+Bis 29.09.2026 waren es drei Sekunden. Luke: „3 sekunden sind etwas kurz". Rucksack umschnallen,
+Waage ablesen, Handtuch unter den Fuß legen: Das geht nicht in drei Sekunden. Die geschätzte
+Dauer der Einheit wächst dadurch um fünf Sekunden je Block.
 
 ### P17 · Die Reaktionszeit sitzt in jeder Messung drin
 
@@ -1617,11 +1621,156 @@ als das Wadenheben ohne Handtuch. Welche Ausführung eine Zone trifft, rechnet d
 - Nebenbei behoben: Der Umzug aus Fassung 22 ließ bei offenen Blöcken die alte vorgeschlagene
   Sprosse stehen, etwa eine 4 auf einer Leiter mit einer Sprosse. Jetzt zieht sie mit.
 
+### P60 · Wo die Kettlebell beim aufrechten Läufer sitzt
+
+Luke, 29.09.: „dannach würde ich gerne einstellen können ob ich das gewicht beim aufrechten
+läufer in die "front rack" position oder die "suitcase carry" position nehme, so wie die
+recherche im uhpc network ergeben hat".
+
+Die Recherche ist das UHP-Dossier `rack-vs-suitcase-carry.md`, Abschnitt 8. Bill hat den
+Läufer mit Last nirgends beschrieben; aus seinen übrigen Regeln folgt:
+
+| Was beim Halten passiert | Wohin die Kettlebell kommt |
+|---|---|
+| Das Knie wandert von der Mitte weg: Die Knieseite bremst nicht | vorn, Front Rack auf der Knieseite |
+| Die Hüfte fällt weg oder der Körper schiebt zum Standbein: Das Standbein drückt nicht | in die Hand, Suitcase auf der Knieseite, leicht |
+| immer | nie auf die Standbeinseite |
+
+Dazu: „Erst in die Hand, wenn das Knie schon zur Nase kommt."
+
+**Gebaut in 2026-09-29 a.** Auf der Karte vor der Übung steht unter den beiden Seiten eine Reihe
+„Gewicht auf der freien Seite" mit drei Knöpfen: **Gürtel** (Hände frei), **Suitcase** (in der
+Hand), **Front Rack** (vor der Schulter). Die Wahl gilt für die ganze Übung, beide Seiten, und
+bleibt gespeichert. Voreingestellt ist der Gürtel. Wer bisher trainiert hat, findet nach dem
+Update dieselbe Last vor.
+
+- Die Reihe steht nur da, wenn auf einer Seite Gewicht nach außen hängt. Auf der
+  Standbeinseite hängt es weiter am Gürtel, und ohne Gewicht gibt es nichts zu wählen.
+- Das Etikett am Gewicht folgt der Wahl: „Gewicht am Gürtel", „Kettlebell in der Hand",
+  „Kettlebell im Front Rack".
+- Der Hinweistext nennt die Regel aus dem Dossier in einem Satz: Front Rack, wenn das Knie nach
+  außen wegwandert; Suitcase, wenn die Hüfte zur Seite wegfällt, aber erst, wenn das Knie schon
+  zur Mitte zeigt. Der alte Satz „nicht in der Hand, nicht vor dem Bauch" ist gestrichen.
+- Der Verlauf schreibt die Position in den Namen: „24 kg Front Rack auf der freien Seite".
+
+**Die Hebel.** Jede Position hat ihren eigenen. Gerechnet wird wie beim Gürtel: Das
+Hüftgelenk des Standbeins liegt 0,09 m neben der Körpermitte, der Hebel ist der Abstand der
+Kugelmitte zu diesem Gelenk, geteilt durch die Grundlast 0,090.
+
+| Position | Körpermitte bis Kugelmitte | Hebel | Faktor je Kilo | Herkunft | entspricht 16 kg am Gürtel (80 kg KG) |
+|---|---|---|---|---|---|
+| Gürtel | 0,22 m | 0,31 m | 3,44 | gemessen (Luke, 19.09.) | 16 kg |
+| Suitcase | 0,20 m | 0,29 m | 3,22 | fortgeschrieben: die Hand-Annahme, auf der die Leiter bis 19.09. stand | 18 kg (gerechnet 17,1) |
+| Front Rack | 0,12 m | 0,21 m | 2,33 | geschätzt: Kugel vor der Schulter, zwischen Unterarm und Brust | 24 kg (gerechnet 23,6) |
+
+**Vorläufig.** Die Werte für Suitcase und Front Rack sind nicht gemessen. Gebraucht wird je
+Position der waagerechte Abstand von der Körpermitte zur Kugelmitte, in der Haltung, in der
+du hältst. Sitzt die Kugel im Rack 3 cm weiter außen als angenommen, trägst du bei 24 kg
+rund 6 % mehr Last, als die App rechnet.
+
+**Wechsel.** Gewechselt wird die Last, nicht das Kilo. Aus 16 kg am Gürtel werden 24 kg im Front
+Rack, damit die Kurve keinen Knick bekommt. Das gilt für alle gemerkten Gewichte der Übung, nicht
+nur für die auf der Karte. Die Zielzeit bleibt, bis auf die Rundung auf 2 kg (Suitcase 18 statt
+17,1 kg sind 2 % mehr Last).
+
+**Der Preis.**
+
+- **Front Rack endet früher.** 32 kg vorn tragen bei 80 kg Körpergewicht die Last von 22 kg am
+  Gürtel (Lastfaktor 0,174; 32 kg am Gürtel wären 0,214). Wer im Rack trainiert, erreicht das obere Ende der Leiter nicht.
+  Suitcase mit 32 kg entspricht 30 kg am Gürtel.
+- **Der Vorwärts-Anteil fehlt in der Rechnung.** Die Kugel im Rack hängt vor dem Körper. Das
+  belastet Rumpf und Hüftstrecker zusätzlich und steckt in keinem Faktor. Das Modell zählt nur
+  den seitlichen Hebel.
+- **Die Griffkraft ist zurück.** Beim Suitcase hält die Hand die Kugel, und genau das war am
+  19.09. der Grund für den Gürtel. Das Dossier sagt ohnehin „leicht".
+- **In der Hand zählt eine einzelne Kettlebell.** Am Gürtel lassen sich Gewichte kombinieren,
+  in der Hand nicht. Schlägt die App 18 kg vor und es gibt nur 16 und 20, stellst du um, und die
+  Zielzeit rechnet neu.
+- **Eine Wahl für beide Seiten.** Das Dossier ordnet die Position einem Fehlerbild zu, und das
+  kann links anders sein als rechts. Je Seite getrennt wäre ein zweiter Speicherplatz und eine
+  zweite Reihe auf der Karte.
+- **Die Standbeinseite bleibt.** Das Dossier sagt „nie auf die Standbeinseite". In der App ist
+  die Standbeinseite aber die Entlastung für alle, denen der Stand ohne Gewicht zu schwer ist.
+  Ob sie bleibt, entscheidest du.
+- **Fassung 24.** Die Positionen und der neue Hinweistext stehen in der gespeicherten
+  Übungsdefinition und kommen nur mit einem Fassungssprung an. Dabei gehen unter Einstellungen
+  von Hand geänderte Stufennamen und Lastfaktoren auf den Standard zurück, ebenso die
+  Erholungstage je Zone. Gemessene Punkte, Stufenstand und gemerkte Gewichte bleiben.
+
+**Für den Nachbau:**
+
+- Die Übung trägt `lagen: [{id, titel, unter, k, label, plus}]`, die erste ist die
+  Voreinstellung. `S.lage[uebung]` hält die Wahl.
+- `lageOf(ex)` liefert die gewählte Position, `extraKOf(ex, kg)` den Faktor je Kilo: nach
+  innen `extraKNeg`, nach außen der Faktor der Position, sonst `extraK`. Hin- und Rückrechnung
+  (`extraFaktor`, `kgFuerLast` und die Gewichtsregel nach einem gemessenen Satz) lesen dieselbe
+  Funktion.
+- `lageSetzen(ex, id, bloecke)` rechnet alle gemerkten Gewichte der Übung um (Faktor alt mal
+  Kilo durch Faktor neu, aufs Raster, gedeckelt) und die Blöcke auf der Karte mit. Es setzt
+  keinen „selbst gewählt"-Merker: Wer danach die Zone wechselt, bekommt das Gewicht für die neue
+  Position gerechnet.
+- Die Sitzung speichert `lage`, wenn Gewicht außen hing. Der Export hat die Spalte
+  `zusatz_position` (Schema 3) und je Übung `gewicht_positionen` mit ihrem Faktor. Leer heißt
+  die erste Position, also Gürtel.
+- Alte Messpunkte sind nicht betroffen. Sie tragen ihre Last als Zahl.
+
+### P61 · Oben verschwindet der Text unter der Statusleiste
+
+Luke, 29.09.: „außerdem ist wenn der timer läuft immer oben der text auf dem handy abgeschnitten".
+
+Als Web-App vom Home-Bildschirm läuft die Seite mit durchsichtiger Statusleiste. Sie liegt dann
+unter Uhrzeit und Notch, und der Abstand dafür muss aus dem Gerät kommen. Der stand seit der
+ersten Fassung in einem eigenen Block **vor** den Grundregeln. Die späteren Grundregeln setzten
+den Abstand wieder auf 20 px (Timer) bzw. 16 px (alle anderen Bildschirme) und überschrieben ihn.
+Im Timer lagen damit Übung, Seite, Satz und Ziel unter der Statusleiste. Auf den anderen
+Bildschirmen betraf es die Überschrift.
+
+**Behoben in 2026-09-29 a.** Der Geräteabstand steht jetzt direkt in den Grundregeln, oben und
+unten. Im Browser lässt sich die Notch nicht nachstellen. Geprüft ist, dass die gültige Regel den
+Geräteabstand trägt, und mit einer nachgebauten 59-px-Statusleiste, dass der Text darunter
+beginnt. Auf dem Telefon gilt es erst, wenn die App vom Home-Bildschirm neu geladen ist.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-09-29 a — Vorlauf acht Sekunden · Gewichtsposition beim aufrechten Läufer · Text unter der Statusleiste
+
+**Befund (Luke).** „stelle die übungsvorlaufzeit auf 8 sekunden ein 3 sekunden sind etwas
+kurz" (P16). „dannach würde ich gerne einstellen können ob ich das gewicht beim aufrechten
+läufer in die "front rack" position oder die "suitcase carry" position nehme, so wie die
+recherche im uhpc network ergeben hat" (P60). „außerdem ist wenn der timer läuft immer oben der
+text auf dem handy abgeschnitten" (P61).
+
+**Vorlauf (P16).** Vor dem ersten Satz eines Blocks zählt die App acht statt drei Sekunden
+herunter. Die geschätzte Dauer der Einheit und der Satz unter Einstellungen rechnen mit.
+
+**Gewichtsposition (P60).** Auf der Karte des aufrechten Läufers wählst du, wo das Gewicht auf
+der freien Seite sitzt: Gürtel, Suitcase oder Front Rack. Jede Position hat ihren eigenen Hebel
+(3,44 gemessen, 3,22 fortgeschrieben, 2,33 geschätzt). Beim Wechsel bleibt die Last, das Kilo
+rechnet um: 16 kg am Gürtel werden 18 kg Suitcase oder 24 kg Front Rack. Hinweistext, Etikett,
+Verlauf und Export nennen die Position. Fassung 24.
+
+**Statusleiste (P61).** Timer und alle Bildschirme halten wieder Abstand zu Uhrzeit und Notch.
+
+**Geprüft.** Die Prüfsuite aus den Builds bis 25.09. e liegt nicht mehr vor. Geprüft wurde ohne
+sie: Syntax, und im Browser (375 × 812, 80 kg, Fassung 23 mit 16 kg am Gürtel gespeichert):
+
+- Update auf Fassung 24: Positionen da, Voreinstellung Gürtel, gemessener Punkt unverändert
+- Last: 16 kg Gürtel 0,152 · 24 kg Front Rack 0,153 · 18 kg Suitcase 0,155; Rückrechnung von
+  0,152 ergibt 24 bzw. 18 kg; Standbeinseite mit 10 kg in jeder Position 0,074
+- Karte: Reihe unter beiden Seiten, Tipp auf Front Rack macht aus 8 kg 12 kg, Zielzeit bleibt
+  75 s, Etikett „Kettlebell im Front Rack"; Standbeinseite behält „Gewicht am Gürtel"; ohne
+  Gewicht außen verschwindet die Reihe, zurück auf die freie Seite kommt sie mit 12 kg wieder
+- Gespeicherter Block: „12 kg Front Rack auf der freien Seite", Position `rack`; Export mit
+  Spalte `zusatz_position`, alter Punkt leer, neuer `rack`, Schema 3
+- Vorlauf: Zähler bei 5 nach drei Sekunden, Uhr läuft nach gut acht
+- Statusleiste: gültige Regel trägt den Geräteabstand; mit nachgebauter 59-px-Leiste beginnt
+  der Text darunter
+
+Die Testdaten sind gelöscht.
 
 ### 2026-09-25 e — Einbeinig nicht am selben Tag wie der aufrechte Läufer
 
@@ -3936,6 +4085,12 @@ als Teil des Ansatz-Pfads? Das ist eine Produktentscheidung, keine technische.
     - *Premium* ist entschieden; was es ist, steht im Marketing-Kanon. Die Übungen selbst
       bleiben ohne Schranke; hinter Premium liegt nur die Empfehlung aus dem Trend.
     - *Ohne Premium* bleibt die Zonenruhe (Luke: „ja wie du sagst").
+
+29. **Die Hebel für Suitcase und Front Rack beim aufrechten Läufer (P60).** Gebaut mit
+    3,22 (fortgeschrieben) und 2,33 (geschätzt). Gemessen werden muss je Position der
+    waagerechte Abstand von der Körpermitte zur Kugelmitte, in der Haltung beim Halten. Offen
+    daneben: Bleibt der Gürtel als dritte Wahl? Bleibt die Standbeinseite als Entlastung, obwohl
+    das Dossier „nie" sagt? Eine Wahl je Übung oder je Seite?
 
 ---
 

@@ -34,12 +34,13 @@ body{margin:0;background:var(--bg);color:var(--tx);
      Fingern bleiben erhalten, nur der Doppeltipp faellt weg. */
   touch-action:manipulation;
   padding-bottom:calc(90px + env(safe-area-inset-bottom))}
-@supports (padding:env(safe-area-inset-top)){
-  .wrap{padding-top:calc(16px + env(safe-area-inset-top))}
-  #timerScreen{padding-top:calc(20px + env(safe-area-inset-top));
-               padding-bottom:calc(20px + env(safe-area-inset-bottom))}
-}
-.wrap{max-width:560px;margin:0 auto;padding:16px}
+/* Abstand zur Statusleiste. Als Web-App vom Home-Bildschirm (black-translucent)
+   liegt die Seite UNTER Uhrzeit und Notch. Bis 29.09.2026 stand der Abstand in
+   einem eigenen @supports-Block VOR den Grundregeln — die spaetere Regel
+   "padding:16px" bzw. "padding:20px" hat ihn wieder ueberschrieben, und oben
+   verschwand der Text unter der Statusleiste. Deshalb jetzt direkt in der Regel. */
+.wrap{max-width:560px;margin:0 auto;padding:16px;
+  padding-top:calc(16px + env(safe-area-inset-top,0px))}
 h1{font-size:19px;margin:0 0 2px}
 h2{font-size:16px;margin:26px 0 10px;letter-spacing:.01em}
 h3{font-size:13px;margin:18px 0 8px;color:var(--tx2);text-transform:uppercase;letter-spacing:.07em}
@@ -107,7 +108,9 @@ nav .ic{font-size:17px;line-height:1}
 td.n,.kpi b{font-family:var(--mono)}
 /* Timer */
 #timerScreen{position:fixed;inset:0;background:var(--bg);z-index:100;display:none;
-  flex-direction:column;padding:20px;text-align:center}
+  flex-direction:column;padding:20px;text-align:center;
+  padding-top:calc(20px + env(safe-area-inset-top,0px));
+  padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
 #timerScreen.on{display:flex}
 #tClock{font-size:clamp(74px,26vw,148px);line-height:1;margin:8px 0;font-weight:300}
 #tTarget{font-size:17px;color:var(--tx2)}
@@ -321,8 +324,11 @@ const PAUSE_S    = 20;   // Abschnitt 3.1 — zugleich Messprotokoll
    Bloecken laeuft keine Uhr. Drei Minuten ist Lukes Annahme vom 18.09.2026,
    und die Schaetzung steht und faellt mit ihr. */
 const PAUSE_BLOCK_S = 180;
-const LEAD_IN    = 3;    // Sekunden zum In-Position-Gehen — nur vor dem ERSTEN Satz
+const LEAD_IN    = 8;    // Sekunden zum In-Position-Gehen — nur vor dem ERSTEN Satz
                          // eines Blocks. Ab Satz 2 dient die Pause selbst dazu.
+                         // Bis 29.09.2026 waren es 3. Luke: "3 sekunden sind etwas
+                         // kurz" — Rucksack umschnallen, Waage ablesen, Handtuch
+                         // unter den Fuss legen geht nicht in drei Sekunden.
 const REACTION_DEFAULT = 2;  // Sekunden zwischen Positionsende und Knopfdruck
 const SETS       = 3;
 /* Satzzahl je Zone. Kurze, schwere Haltezeiten vertragen mehr Wiederholungen
@@ -758,7 +764,30 @@ const DEFAULT_EX = {
      Hueftgelenk, also fast null, und der Rest haenge daran, ob der Nutzer den
      Rumpf ausweichen laesst oder den Standfuss rueckt — beides im
      Gleichgewicht, keines davon fuer die App sichtbar. Das Band traegt hier,
-     es zieht nicht. */
+     es zieht nicht.
+
+     POSITION DES GEWICHTS (Build 2026-09-29 a). Luke will waehlen koennen, ob
+     die Kettlebell im Front Rack oder als Suitcase Carry sitzt — so, wie es das
+     UHP-Dossier rack-vs-suitcase-carry.md, Abschnitt 8, herleitet: Die KB steht
+     immer auf der Knieseite. Vorn (Rack), wenn das Knie von der Mitte wegwandert
+     und die Knieseite nicht bremst; in der Hand (Suitcase, leicht), wenn die
+     Huefte wegfaellt oder der Koerper zum Standbein schiebt — und erst, wenn das
+     Knie schon zur Mitte zeigt. Der Guertel bleibt als dritte Wahl und als
+     Voreinstellung stehen: Er ist gemessen, und wer bisher trainiert hat, soll
+     nach dem Update dieselbe Last vorfinden.
+     Die Position gilt nur fuer die freie Seite (extraK). Auf der
+     Standbeinseite haengt das Gewicht weiter am Guertel (extraKNeg).
+     Hebel, alle mit dem Standbein-Hueftgelenk 0,09 m neben der Mitte:
+       Guertel   0,22 m zur Kugelmitte -> Hebel 0,31 m -> k 3,44   GEMESSEN 19.09.
+       Suitcase  0,20 m               -> Hebel 0,29 m -> k 3,22   FORTGESCHRIEBEN:
+                 die Hand-Annahme, auf der die Leiter bis 19.09. stand
+       Front Rack 0,12 m              -> Hebel 0,21 m -> k 2,33   GESCHAETZT:
+                 Kugel vor der Schulter, zwischen Unterarm und Brust
+     VORLAEUFIG, bis Luke je Position Koerpermitte bis Kugelmitte misst. Das
+     Rack haengt zudem VOR dem Koerper; der Vorwaerts-Anteil belastet Rumpf und
+     Hueftstrecker und steckt in keinem k.
+     Gewechselt wird die LAST, nicht das Kilo: 16 kg am Guertel werden 24 kg im
+     Rack (bei 80 kg Koerpergewicht), damit die Kurve keinen Knick bekommt. */
   laeufer: {
     name:"Aufrechter Läufer", region:"Hüfte", group:"abduct",
     sides:["links","rechts"],
@@ -771,15 +800,26 @@ const DEFAULT_EX = {
     extraSeiten:{plus:"am Gürtel der freien Seite",
                  minus:"am Gürtel der Standbeinseite",
                  plusKurz:"Freie Seite", minusKurz:"Standbeinseite"},
-    extraHint:"Das Gewicht hängt am Gürtel seitlich an der Hüfte, rund 22 cm neben der "
-             +"Körpermitte.",
+    extraHint:"Das Gewicht kommt auf die Seite des angehobenen Knies — am Gürtel, in der "
+             +"Hand oder vorn an der Schulter.",
+    /* Siehe Kommentar oben. Die erste Position ist die Voreinstellung. */
+    lagen:[
+      {id:"guertel",  titel:"Gürtel",     unter:"Hände frei",   k:3.44,
+       label:"Gewicht am Gürtel",       plus:"am Gürtel der freien Seite"},
+      {id:"suitcase", titel:"Suitcase",   unter:"in der Hand",  k:3.22,
+       label:"Kettlebell in der Hand",  plus:"Suitcase auf der freien Seite"},
+      {id:"rack",     titel:"Front Rack", unter:"vor der Schulter", k:2.33,
+       label:"Kettlebell im Front Rack", plus:"Front Rack auf der freien Seite"}
+    ],
     hint:"»Links« heißt: das LINKE Bein steht, das rechte ist angehoben. Aufrecht stehen, "
         +"das freie Knie so weit hoch, dass der Oberschenkel waagerecht ist — und genau "
         +"dort halten. Die Hüften bleiben waagerecht: die freie Seite darf nicht absacken. "
         +"Der Oberkörper bleibt über der Mitte und wandert NICHT über das Standbein, sonst "
         +"fällt die Last in sich zusammen. Blick geradeaus, ein Fixpunkt an der Wand hilft. "
-        +"Das Gewicht hängt am Gürtel SEITLICH an der Hüfte — nicht in der Hand, nicht vor "
-        +"dem Bauch. Beide Hände bleiben frei. Einbeiniges Wadenheben, mit und ohne "
+        +"Das Gewicht kommt auf die Seite des angehobenen Knies: am Gürtel, in der Hand "
+        +"(Suitcase) oder vorn an der Schulter (Front Rack). Front Rack, wenn dein Knie nach "
+        +"außen wegwandert; Suitcase, wenn die Hüfte zur Seite wegfällt — aber erst, wenn "
+        +"das Knie schon zur Mitte zeigt. Einbeiniges Wadenheben, mit und ohne "
         +"Handtuchrolle, fordert dieselbe äußere Hüfte — die App legt es nach Möglichkeit "
         +"nicht auf denselben Tag.",
     seitenHinweis:"Diese Hüfte hat eben noch das Becken waagerecht gehalten, während die "
@@ -1094,9 +1134,11 @@ const GERAETE = [
    +"Einhängepunkt bei jedem Durchgang an derselben Stelle sitzt.",
    fuer:"Aufrechter Läufer — Gewicht am Gürtel, auf beiden Seiten"},
   {id:"gewicht", name:"Kettlebell, Hantel oder Scheiben", was:"Das Gewicht, das am Gürtel "
-   +"hängt. Je feiner gestuft, desto besser: Aus 6, 8, 10, 16, 24 und 32 kg lassen sich "
+   +"hängt oder das du in der Hand oder vorn an der Schulter hältst. Je feiner gestuft, "
+   +"desto besser: Am Gürtel lassen sich aus 6, 8, 10, 16, 24 und 32 kg "
    +"0, 6, 8, 10, 14, 16, 18, 22, 24, 26, 30 und 32 kg bauen — die App lässt jeden "
-   +"2-kg-Wert zu, auflegen musst du ihn selbst.",
+   +"2-kg-Wert zu, auflegen musst du ihn selbst. In der Hand zählt, was eine einzelne "
+   +"Kettlebell wiegt.",
    fuer:"Aufrechter Läufer — Zusatzgewicht in beide Richtungen"},
   {id:"waage", name:"Personenwaage mit Zeiger (analog)", was:"Eine Waage, die du unter den "
    +"Vorfuß legen kannst. Sie ist hier kein Zubehör, sondern das Messgerät: die Zahl auf der "
@@ -1123,7 +1165,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-25 e";
+const BUILD = "2026-09-29 a";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -1136,7 +1178,10 @@ const AW_V = 1;
 /* Wird erhöht, wenn sich die mitgelieferten Übungen/Stufen ändern. Gespeicherte
    Daten mit älterer Version übernehmen die neuen Stufen — sonst bleiben bei einem
    Update alte Levels kleben. Sessions bleiben dabei immer erhalten. */
-const EX_VERSION = 23;
+/* 24 (29.09.2026): Der aufrechte Laeufer traegt seine Gewichtspositionen
+   (lagen) und einen neuen Hinweistext — beides steht in S.ex und kaeme ohne
+   den Sprung nicht an. Stufen und gemessene Punkte bleiben unberuehrt. */
+const EX_VERSION = 24;
 /* Voreinstellung, bis der Nutzer sein Gewicht einträgt. Nur als Bezugsgroesse
    fuer Zusatzlast noetig — die Lastfaktoren selbst sind gewichtsunabhaengige
    Verhaeltniszahlen. */
@@ -1613,6 +1658,8 @@ function fresh(){
     zoneWahl:null, ausfWahl:null,
     /* Zusatzgewicht in kg, je Kurve gemerkt — wie die Stufe. */
     extra:{}, bw:BW_DEFAULT,
+    /* Wo das Gewicht sitzt, je Uebung: {laeufer:"rack"}. Siehe lageOf. */
+    lage:{},
     /* Welche Uebungen gehoeren ueberhaupt ins Workout. Wer heute nur den
        Seitstuetz machen will, nimmt die anderen beiden raus — die Einstellung
        bleibt stehen, bis er sie wieder anhakt. */
@@ -3027,17 +3074,34 @@ function extraSelbstMerken(key){
   w.je[key] = true;
   S.extraWahl = w;
 }
+/* Wo das Gewicht sitzt (Build 2026-09-29 a). Bisher nur beim aufrechten
+   Laeufer: Guertel, Suitcase oder Front Rack, je Uebung EINE Wahl fuer beide
+   Seiten. Ohne gespeicherte Wahl gilt die erste Position der Liste. */
+function lageOf(ex){
+  const L = (S.ex[ex] || {}).lagen;
+  if(!L || !L.length) return null;
+  const id = S.lage && S.lage[ex];
+  return L.find(l => l.id === id) || L[0];
+}
+/* Der Hebel, mit dem ein Kilo wirkt. Nach innen ist er kuerzer als nach
+   aussen — beim aufrechten Laeufer 0,13 gegen 0,31 m. Ein Gegengewicht
+   entlastet also weniger, als dieselbe Zahl auf der anderen Seite belastet.
+   Uebungen ohne extraKNeg kennen nur die positive Richtung. Nach aussen
+   entscheidet die Position, sofern die Uebung welche hat. EINE Funktion fuer
+   Hin- und Rueckrechnung — mit verschiedenen Hebeln faende die App ein
+   Gewicht, das eine andere Last traegt als die, die sie anzeigt. */
+function extraKOf(ex, kg){
+  const e = S.ex[ex] || {};
+  if(kg < 0 && e.extraKNeg != null) return e.extraKNeg;
+  const l = kg > 0 ? lageOf(ex) : null;
+  if(l && l.k > 0) return l.k;
+  return (e.extraK != null) ? e.extraK : 1;
+}
 function extraFaktor(ex, kg){
   kg = extraKlemm(ex, kg);
   if(!kg) return 1;
-  const e = S.ex[ex], bw = (S.bw > 0 ? S.bw : BW_DEFAULT);
-  /* Nach innen ist der Hebel kuerzer als nach aussen — beim aufrechten Laeufer
-     0,13 gegen 0,31 m. Ein Gegengewicht entlastet also weniger, als dieselbe
-     Zahl auf der anderen Seite belastet. Uebungen ohne extraKNeg kennen nur
-     die positive Richtung, dort aendert sich nichts. */
-  const k = (kg < 0 && e && e.extraKNeg != null) ? e.extraKNeg
-          : ((e && e.extraK != null) ? e.extraK : 1);
-  return Math.max(0.05, 1 + k * kg / bw);
+  const bw = (S.bw > 0 ? S.bw : BW_DEFAULT);
+  return Math.max(0.05, 1 + extraKOf(ex, kg) * kg / bw);
 }
 function lastVon(ex, level, kg){
   const L = S.ex[ex] && S.ex[ex].levels[level];
@@ -3171,8 +3235,7 @@ function kgFuerLast(ex, level, zielLast){
   if(!(bas > 0) || !(b.hi > b.lo) || !(zielLast > 0)) return null;
   const bw = (S.bw > 0 ? S.bw : BW_DEFAULT);
   const r  = zielLast / bas - 1;
-  const eK = (r < 0 && e.extraKNeg != null) ? e.extraKNeg
-           : ((e.extraK != null) ? e.extraK : 1);
+  const eK = extraKOf(ex, r < 0 ? -1 : 1);
   if(!(eK > 0)) return null;
   const roh = Math.round((bw * r / eK) / b.schritt) * b.schritt;
   return Math.max(b.lo, Math.min(kgDeckel(ex, level), Math.round(roh * 10) / 10));
@@ -3837,8 +3900,7 @@ function applyRules(session, etikett){
          gerechnet faende die App ein Gegengewicht, das doppelt so schwer waere
          wie noetig. */
       const r   = zielLast / bas - 1;
-      const eK  = (r < 0 && e.extraKNeg != null) ? e.extraKNeg
-                : ((e.extraK != null) ? e.extraK : 1);
+      const eK  = extraKOf(session.exercise, r < 0 ? -1 : 1);
       if(!(eK > 0)) return;
       const roh   = bw * r / eK;
       const rnd   = x => Math.round(x / b.schritt) * b.schritt;
@@ -4180,8 +4242,12 @@ function stufenName(ex, level, kg){
   /* Mehr als eine Sprosse: der Sprossenname bleibt vorn stehen. */
   if(es && es.amStufenNamen)
     return kg < 0 ? `${L.name}, ${z} ${es.minus}` : `${L.name} + ${z}`;
+  /* Nach aussen sagt die Position, wo das Gewicht sitzt: "16 kg Front Rack
+     auf der freien Seite". Der Name wandert so in levelName der Sitzung und
+     bleibt im Verlauf richtig, auch wenn spaeter umgestellt wird. */
+  const lg = kg > 0 ? lageOf(ex) : null;
   return es
-    ? `${z} ${kg < 0 ? es.minus : es.plus}`
+    ? `${z} ${kg < 0 ? es.minus : ((lg && lg.plus) || es.plus)}`
     : `${L.name} + ${z}`;
 }
 function curBlock(){ return RUN.plan.blocks[RUN.b]; }
@@ -4255,6 +4321,35 @@ function gewichtSetzen(bl, v){
   }
   bl.extra = kg;
   zielNeu(bl);
+}
+/* Position des Gewichts wechseln (Build 2026-09-29 a). Mit der Position
+   aendert sich der Hebel — gewechselt wird deshalb die LAST, nicht das Kilo:
+   16 kg am Guertel werden 24 kg im Front Rack (bei 80 kg Koerpergewicht).
+   Solange k mal kg gleich bleibt, bleibt die Last gleich, auf jeder Sprosse;
+   gerundet wird aufs Raster der Uebung und gedeckelt wie ueberall. Alle
+   gemerkten Gewichte der Uebung ziehen mit, nicht nur die auf der Karte.
+   Kein extraSelbstMerken: Das ist keine neue Last, und wer danach die Zone
+   wechselt, soll das Gewicht fuer die neue Position gerechnet bekommen. */
+function lageSetzen(ex, id, bloecke){
+  const alt = lageOf(ex);
+  if(!alt || alt.id === id) return;
+  if(!S.lage) S.lage = {};
+  S.lage[ex] = id;
+  const neu = lageOf(ex), b = extraBereich(ex);
+  if(!(alt.k > 0) || !(neu.k > 0)) return;
+  const um = (kg, level) => {
+    if(!((+kg || 0) > 0)) return kg;
+    const roh = Math.round(kg * alt.k / neu.k / b.schritt) * b.schritt;
+    return Math.min(kgDeckel(ex, level), Math.round(roh * 10) / 10);
+  };
+  const vonUebung = k => k === ex || k.indexOf(ex + "|") === 0 || k.indexOf(ex + "#") === 0;
+  for(const k of Object.keys(S.extra || {})) if(vonUebung(k)) S.extra[k] = um(S.extra[k]);
+  for(const q of (bloecke || [])){
+    if(q.exercise !== ex || !((q.extra || 0) > 0)) continue;
+    q.extra = um(q.extra, q.level);
+    zielNeu(q);
+  }
+  save();
 }
 /* Der Block der anderen Seite derselben Uebung — beim Ausfallschritt und beim
    Seitstuetz gibt es ihn, beim Liegestuetz nicht. */
@@ -4508,7 +4603,9 @@ function blockIntro(i){
         data-sw="${o.v}">${o.titel}<span>${o.unter}</span></button>`).join("")}</div>` : ""}
       <div class="stps">
         ${(mitKg && !(zwei && !q.extra)) ? `<div class="stp"><span class="tiny">${
-          waage ? "Waage zeigt" : (ex.extraLabel || "Gewicht")}</span>
+          waage ? "Waage zeigt"
+                : (((q.extra || 0) > 0 && lageOf(q.exercise)) ? lageOf(q.exercise).label
+                                                              : (ex.extraLabel || "Gewicht"))}</span>
           ${knopf("kg-", "−", kgNow <= kgLo, "weniger Gewicht")}
           <b>${String(kgNow).replace(".", ",")} kg</b>
           ${knopf("kg+", "+", kgNow >= kgHi, "mehr Gewicht")}</div>` : ""}
@@ -4520,6 +4617,20 @@ function blockIntro(i){
     </div>`;
   };
 
+  /* Wo das Gewicht sitzt — EINE Wahl fuer die ganze Uebung, deshalb einmal je
+     Karte und nicht je Seite. Nur sichtbar, solange auf einer Seite Gewicht
+     nach aussen haengt: Auf der Standbeinseite und ohne Gewicht gibt es
+     nichts zu setzen. */
+  const lageHTML = () => {
+    const lg = lageOf(exKey);
+    if(!lg || !teile.some(q => (q.extra || 0) > 0 && q.level >= extraAbOf(q.exercise)))
+      return "";
+    return `<div class="tiny" style="margin-top:14px">Gewicht auf der freien Seite</div>
+      <div class="zw drei" style="margin-top:5px">${ex.lagen.map(l => `<button
+        class="${l.id === lg.id ? "sel" : "ghost"}" data-lage="${l.id}">${l.titel}<span>${
+        l.unter}</span></button>`).join("")}</div>`;
+  };
+
   show("home");
   el("homeTitle").textContent = `Übung ${nr} von ${von}`;
   el("homeSub").textContent = "";
@@ -4529,6 +4640,7 @@ function blockIntro(i){
       ${schonDran ? "" : zonenWahlKarte(gr)}
       ${awZeigen ? ausfWahlKarte(exKey, bl.zone, "", true) : ""}
       ${teile.map(teilHTML).join("")}
+      ${lageHTML()}
       ${uebungsbild(bl.exercise, bl.level)}
       <button class="primary" style="width:100%;margin-top:14px;padding:16px" id="ivGo">
         Übung starten</button>
@@ -4582,6 +4694,9 @@ function blockIntro(i){
         * (betrag || letzteLast[key] || extraBereich(q.exercise, q.level).schritt));
       neu();
     };
+  });
+  document.querySelectorAll("#ivKarte [data-lage]").forEach(b => {
+    b.onclick = () => { lageSetzen(exKey, b.getAttribute("data-lage"), teile); neu(); };
   });
   /* Zone im laufenden Workout umstellen. Die Bloecke dieser Uebung werden neu
      gebaut statt der ganze Plan neu geplant — Neuplanen wuerde den laufenden
@@ -4849,6 +4964,8 @@ function blockSichern(){
     exercise: bl.exercise, side: bl.side, level: bl.level,
     levelName: stufenName(bl.exercise, bl.level, bl.extra),
     load: lastVon(bl.exercise, bl.level, bl.extra), extra: bl.extra || 0, bw: S.bw || null,
+    /* Nur wo es eine Wahl gibt und das Gewicht aussen haengt — sonst leer. */
+    lage: ((bl.extra || 0) > 0 && lageOf(bl.exercise)) ? lageOf(bl.exercise).id : undefined,
     target: bl.target, workoutZone: bl.zone,
     /* Zone nach der ERREICHTEN Zeit — wer eine Stufe selbst waehlt, landet oft woanders. */
     zone: zoneOf(RUN.sets[0].time).id,
@@ -5223,10 +5340,12 @@ function historySVG(pts){
    MESS_MIN..MESS_MAX liegt. Alles andere ist Training, Erholungsmessung
    oder eine Stufe, die zu leicht bzw. zu schwer war — wertvoll, aber
    nicht dieselbe Groesse. */
-const EXPORT_SCHEMA = 2;
+/* 3 (29.09.2026): Spalte zusatz_position dazu — beim aufrechten Laeufer
+   haengt extra_k seitdem an der Position des Gewichts. */
+const EXPORT_SCHEMA = 3;
 const EXPORT_SPALTEN = [
   "datum","workout","uebung","uebung_name","seite","variante","stufe_nr",
-  "zusatz_kg","zusatz_seite","koerpergewicht_kg","last","satz","saetze_geplant","sekunden","ziel_sekunden",
+  "zusatz_kg","zusatz_seite","zusatz_position","koerpergewicht_kg","last","satz","saetze_geplant","sekunden","ziel_sekunden",
   "schmerz","frisch","in_kurve","zone_geplant","zone_erreicht",
   "selbst_gewaehlt","nachgetragen","fassung"
 ];
@@ -5251,6 +5370,9 @@ function messreihen(){
            dasselbe Gewicht belastet aussen und entlastet innen, mit
            verschiedenen Hebeln. */
         zusatz_seite: !ses.extra ? "" : (ses.extra < 0 ? "innen" : "aussen"),
+        /* Leer, wo es keine Wahl gibt — und bei Laeufer-Saetzen von vor dem
+           29.09.2026, die alle am Guertel hingen. */
+        zusatz_position: ses.lage || "",
         koerpergewicht_kg: ses.bw || "",
         last: ses.load,
         satz: i + 1,
@@ -5301,7 +5423,9 @@ function messreihenJSON(){
             + "extra_k steht je Uebung dabei — ohne den Faktor laesst sich die Spalte last "
             + "nicht nachrechnen. Ist zusatz_kg NEGATIV (zusatz_seite=innen), gilt "
             + "extra_k_negativ statt extra_k: das Gewicht haengt dann auf der "
-            + "Standbeinseite und wirkt ueber einen kuerzeren Hebel.",
+            + "Standbeinseite und wirkt ueber einen kuerzeren Hebel. Hat eine Uebung "
+            + "gewicht_positionen und zusatz_position ist gesetzt, gilt deren extra_k; "
+            + "leeres zusatz_position heisst die erste Position der Liste.",
     spalten: EXPORT_SPALTEN,
     zonen: ZONES.map(z=>({id:z.id, name:z.name, von_s:z.lo, bis_s:z.hi})),
     uebungen: Object.entries(S.ex).map(([k,v])=>({
@@ -5310,6 +5434,8 @@ function messreihenJSON(){
          Seitstuetz (extra_k = 2) rechnete jeder fremde Konsument falsch. */
       extra_k: (v.extraK != null ? v.extraK : 1),
       extra_k_negativ: (v.extraKNeg != null ? v.extraKNeg : null),
+      gewicht_positionen: v.lagen ? v.lagen.map(l => ({id:l.id, name:l.titel, extra_k:l.k}))
+                                  : null,
       zusatzgewicht_ab_stufe: (v.extraAb != null ? v.extraAb : v.levels.length - 1) + 1,
       zusatzgewicht_von_kg: extraBereich(k).lo,
       zusatzgewicht_bis_kg: extraBereich(k).hi,
@@ -6127,6 +6253,7 @@ function renderSetup(){
       exercise: ex, side: e.sides ? el("nSide").value : null,
       level: lvl, levelName: stufenName(ex, lvl, kg),
       load: lastVon(ex, lvl, kg), extra: kg, bw: S.bw || null,
+      lage: (kg > 0 && lageOf(ex)) ? lageOf(ex).id : undefined,
       target: zeiten[0], workoutZone: zoneOf(zeiten[0]).id, zone: zoneOf(zeiten[0]).id,
       fresh: !pre, userPicked: true, manuell: true,
       date: new Date(d + "T12:00:00").toISOString(),
