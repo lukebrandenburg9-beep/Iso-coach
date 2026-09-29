@@ -114,7 +114,21 @@ td.n,.kpi b{font-family:var(--mono)}
 #timerScreen.on{display:flex}
 #tClock{font-size:clamp(74px,26vw,148px);line-height:1;margin:8px 0;font-weight:300}
 #tTarget{font-size:17px;color:var(--tx2)}
-#tHit{color:var(--ok);font-weight:600}
+/* Drei Zeilen: ueber der Uhr der Abstand zum PR, darunter die Restzeit bis
+   zur Vorgabe. Beide halten ihren Platz auch leer — sonst rutscht die grosse
+   Uhr in dem Moment, in dem die Prozentzeile erscheint. */
+#tPct{min-height:44px;display:flex;align-items:baseline;justify-content:center;gap:10px;
+  color:var(--tx2);visibility:hidden}
+#tPct.an{visibility:visible}
+#tPct b{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:400;
+  font-size:clamp(28px,9vw,40px);line-height:1;letter-spacing:-.02em;color:var(--tx2)}
+#tPct b.drueber{color:var(--tx)}
+#tPct b i{font-style:normal;font-family:"IBM Plex Sans",sans-serif;font-size:.6em;margin-left:.1em}
+#tPct small{font-size:14px}
+#tRest{font-size:clamp(30px,10vw,52px);line-height:1.15;min-height:1.15em;margin-bottom:6px;
+  font-weight:400;color:var(--tx3)}
+/* Nicht gruen: unter der gluehenden Restzeile lasen sich zwei Farben wie zwei Meldungen. */
+#tHit{color:var(--tx2);font-weight:600}
 .tapzone{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
   cursor:pointer;user-select:none;-webkit-user-select:none;border-radius:20px;margin:10px 0}
 .tapzone:active{background:var(--panel)}
@@ -259,7 +273,9 @@ code{background:var(--panel2);padding:1.5px 5px;border-radius:5px;font-size:12.5
     <div id="tTarget"></div>
   </div>
   <div class="tapzone" id="tTap">
+    <div id="tPct"></div>
     <div id="tClock" class="big">0,0</div>
+    <div id="tRest" class="big"></div>
     <div class="muted" id="tHint">Tippen, wenn du nicht mehr kannst</div>
   </div>
   <div class="bar"><i id="tBar"></i></div>
@@ -1185,7 +1201,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-29 b";
+const BUILD = "2026-09-29 c";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -4157,17 +4173,65 @@ const cueDone  = ()=>{beep(990,150); setTimeout(()=>beep(1320,260),170);};
 /* ═══════════ Timer ═══════════ */
 let T = null, wakeLock = null, leadIv = null;
 
+/* Drei Zeilen auf der Uhr (Luke, 29.09.2026): oben der Abstand zum PR, in
+   der Mitte die Uhr, darunter die Restzeit bis zur Vorgabe. Die Restzeit
+   laeuft auf null und von dort positiv weiter; ab null glueht sie — orange,
+   gelb, hellweiss, je weiter die Vorgabe geschlagen ist. Gemessen am Anteil
+   der Vorgabe, nicht in Sekunden: 5 s ueber 20 s Vorgabe sind mehr als
+   5 s ueber 120 s. */
+const GLUT = [[0, [255,138,31]], [0.10, [255,210,40]], [0.20, [255,251,238]]];
+const GLUT_VOLL = 0.25;   // ab hier leuchtet es nicht mehr staerker
+function glut(r){
+  r = Math.max(0, r);
+  let i = 1;
+  while(i < GLUT.length - 1 && r > GLUT[i][0]) i++;
+  const [a, ca] = GLUT[i-1], [b, cb] = GLUT[i];
+  const t = Math.min(1, (r - a) / (b - a));
+  const rgb = ca.map((v, k) => Math.round(v + (cb[k] - v) * t)).join(",");
+  const w = Math.min(1, r / GLUT_VOLL);
+  return {farbe: `rgb(${rgb})`,
+          schein: `0 0 ${Math.round(4 + 18*w)}px rgba(${rgb},${(.35 + .5*w).toFixed(2)}),`
+                + `0 0 ${Math.round(10 + 40*w)}px rgba(255,170,60,${(.15 + .35*w).toFixed(2)})`};
+}
+function zeilenLeeren(){
+  const z = el("tPct"); z.classList.remove("an"); z.innerHTML = "";
+  const r = el("tRest"); r.textContent = ""; r.style.color = ""; r.style.textShadow = "";
+}
+/* Die Uhr zaehlt, solange die Position steht — der Reaktionsabzug entsteht
+   erst beim Druecken NACH dem Ende. Laufende Uhr und gespeicherter PR messen
+   also dasselbe, der Vergleich braucht keine Umrechnung. */
+function prZeile(s){
+  const z = el("tPct");
+  if(!z.classList.contains("an")){
+    z.classList.add("an");
+    /* Ab Satz 2 sagt die Zeile, welcher Satz der Massstab ist — sonst hielte
+       man 27 s in Satz 2 fuer den Rekord von Satz 1. */
+    const n = T.prSatz || 0;
+    z.innerHTML = T.pr == null
+      ? `<small>${n ? `Erster ${n+1}. Satz` : "Erster Halt"} mit dieser Last</small>`
+      : `<b></b><small>zum PR ${fmt(T.pr)}${n ? ` in Satz ${n+1}` : ""}</small>`;
+  }
+  if(T.pr == null) return;
+  const p = Math.round((s / T.pr - 1) * 100);
+  const b = z.querySelector("b");
+  /* Das Prozentzeichen klein und in der Textschrift — in der Monoschrift
+     stand es eine ganze Ziffernbreite von der Zahl weg. */
+  b.innerHTML = (p > 0 ? "+" + p : p < 0 ? "\u2212" + (-p) : "\u00b10") + "<i>%</i>";
+  b.classList.toggle("drueber", s > T.pr);
+}
+
 async function runSet(cfg){
   el("tWhat").textContent = cfg.what;
   el("tTarget").innerHTML = `Ziel: <b>${fmt(cfg.target)}</b>`;
   el("timerScreen").classList.add("on");
   el("tBar").style.width = "0%";
+  zeilenLeeren();
   try{ if("wakeLock" in navigator) wakeLock = await navigator.wakeLock.request("screen"); }catch(e){}
 
   const starten = ()=>{
     el("tClock").style.color = "";
     el("tHint").textContent = "Tippen, wenn du nicht mehr kannst";
-    T = {start:performance.now(), target:cfg.target, raf:0, half:false, ticks:new Set(), done:cfg.done};
+    T = {start:performance.now(), target:cfg.target, pr:cfg.pr, prSatz:cfg.prSatz, raf:0, half:false, ticks:new Set(), done:cfg.done};
     cueStart();
     tick();
   };
@@ -4192,6 +4256,19 @@ function tick(){
   if(!T) return;
   const s = (performance.now()-T.start)/1000;
   el("tClock").textContent = s.toFixed(1).replace(".",",");
+  /* Auf Zehntel gerundet wie die Uhr — dann ergeben Uhr und Restzeit in
+     jedem Moment zusammen die Vorgabe, und die Null steht genau dort, wo die
+     Uhr die Vorgabe zeigt. */
+  const rest = Math.round((s - T.target)*10)/10;
+  el("tRest").textContent = rest > 0 ? "+" + rest.toFixed(1).replace(".",",")
+    : rest < 0 ? "\u2212" + (-rest).toFixed(1).replace(".",",") : "0,0";
+  if(s >= T.target){
+    const g = glut((s - T.target) / T.target);
+    el("tRest").style.color = g.farbe; el("tRest").style.textShadow = g.schein;
+    /* Ohne Angabe (undefined) keine Zeile; null heisst: noch kein Halt mit
+       dieser Last. */
+    if(T.pr !== undefined) prZeile(s);
+  }
   const pct = Math.min(100, s/T.target*100);
   el("tBar").style.width = pct+"%";
   if(!T.half && s >= T.target/2){ T.half = true; cueHalf(); }
@@ -4199,7 +4276,8 @@ function tick(){
   if(left<=10 && left>0 && !T.ticks.has(left)){ T.ticks.add(left); cueTick(); }
   if(s>=T.target && !T.ticks.has(0)){
     T.ticks.add(0); cueDone();
-    el("tClock").style.color = "var(--ok)";
+    /* Die grosse Uhr bleibt weiss — das Signal traegt jetzt die Restzeile
+       darunter. Gruen ueber orange las sich wie zwei Meldungen. */
     el("tHint").innerHTML = '<span id="tHit">Vorgabe erreicht — jede Sekunde mehr zieht die Kurve hoch</span>';
   }
   /* Ab hier zieht keine Sekunde mehr irgendetwas: points() verwirft den Wert,
@@ -4845,12 +4923,35 @@ function setTarget(){
   return Math.max(8, Math.round(b * r));
 }
 
+/* Der alte PR fuer die Prozentzeile im Timer: der laengste Halt mit
+   DERSELBEN Einstellung — Uebung, Seite, Stufe, Zusatzgewicht, Position —
+   im selben Satz. Echte Uhrzeit, keine Umrechnung ueber die Kurve: ein PR,
+   der erst gerechnet werden muss, waere keiner. Satz 2 misst sich an Satz 2,
+   weil er vorermuedet ist; gegen Satz 1 stuende dort immer ein Minus.
+   Eine verworfene Lastskala (ausKurve) zaehlt nicht — dieselbe Stufe hiess
+   dort eine andere Last. Gespeicherte Laeufer-Saetze ohne Position lagen am
+   Guertel (vor Build 2026-09-29 a) und treffen deshalb keine heutige. */
+function prVon(bl, satz){
+  const ex = bl.exercise, kg = bl.extra || 0;
+  const lg = s => ((s.extra || 0) > 0 && lagenOf(ex).length) ? (s.lage || "guertel") : "";
+  const jetzt = (kg > 0 && lageOf(ex)) ? lageOf(ex).id : "";
+  let best = null;
+  for(const s of S.sessions){
+    if(s.exercise !== ex || s.ausKurve || !zaehltFuer(s, ex, bl.side)) continue;
+    if(s.level !== bl.level || (s.extra || 0) !== kg || lg(s) !== jetzt) continue;
+    const t = s.sets && s.sets[satz] && s.sets[satz].time;
+    if(t && (best === null || t > best)) best = t;
+  }
+  return best;
+}
+
 function nextSet(){
   const p = curBlock();
   const tgt = setTarget();
   runSet({
     what: `${blockLabel(p)} · ${RUN.levelName} · Satz ${RUN.i+1} von ${curSets()}`,
     target: tgt,
+    pr: prVon(p, RUN.i), prSatz: RUN.i,
     lead: RUN.i === 0,
     done: (time, roh)=>{
       if(time===null){ satzVerworfen(); return; }

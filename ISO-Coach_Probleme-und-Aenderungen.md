@@ -1804,11 +1804,109 @@ als Zahl.
 - Export: `gewicht_positionen` trägt beim Gürtel `ruht: true`; leeres `zusatz_position` heißt
   Gürtel.
 
+### P63 · Drei Zeilen auf der Uhr: Restzeit zur Vorgabe und Abstand zum PR
+
+Luke, 29.09.: „kannst du den timer auch noch mit einem untertitel laufen lassen der runterzählt
+bis ich die vorgeschlagende zeit erreicht habe? am besten sollte dieser dann auch weiterlaufen
+orange gelb und hellweiß leuchten umso krasser ich die zeit schlage und die prozentrahl angeben
+wie stark ich meinen alten pr unter oder überbiete (also insgesamt sogar 3 zeilen)". Auf die
+Rückfrage, welche Zeit gemeint ist: „ja die vorgeschlagende zeit vom timer", also die Zahl, die
+oben als Ziel steht.
+
+**Gebaut in 2026-09-29 c.**
+
+- **Unter der Uhr: die Restzeit bis zur Vorgabe.** Sie zählt herunter, zum Beispiel von −60,0,
+  steht bei 0,0 und läuft von dort positiv weiter: +0,1, +0,2 und so weiter. Sie ist auf Zehntel
+  gerundet wie die große Uhr, deshalb ergeben Uhr und Restzeit zusammen immer genau die Vorgabe.
+- **Ab der Null leuchtet sie.** Bei 0 ist sie orange, bei 10 % über der Vorgabe gelb und ab
+  20 % hellweiß. Der Schein wird bis 25 % stärker. Gemessen wird am Anteil der Vorgabe, nicht in
+  Sekunden: 5 s über einer Vorgabe von 20 s sind mehr als 5 s über 120 s.
+- **Über der Uhr: der Abstand zum PR.** Die Zeile erscheint in dem Moment, in dem die Restzeit
+  null zeigt, und läuft mit der Uhr mit, in ganzen Prozent: „−2 % zum PR 61,8 s", dann „±0 %",
+  dann „+8 %". Ab Satz 2 steht dabei, welcher Satz der Maßstab ist: „zum PR 27,5 s in Satz 2".
+  Unter dem PR ist die Zahl grau, darüber weiß.
+- **Ohne alten Halt** steht dort „Erster Halt mit dieser Last", ab Satz 2 „Erster 2. Satz mit
+  dieser Last".
+- **Die große Uhr bleibt weiß.** Bisher wurde sie beim Erreichen der Vorgabe grün. Grün über
+  der orangen Restzeit las sich wie zwei Meldungen. Aus demselben Grund ist der Satz „Vorgabe
+  erreicht — jede Sekunde mehr zieht die Kurve hoch" jetzt grau statt grün. Die Warnung ab
+  300 Sekunden färbt die Uhr weiter orange.
+
+**Was als PR zählt.** Der längste Halt mit derselben Einstellung: dieselbe Übung, dieselbe
+Seite, dieselbe Stufe, dasselbe Zusatzgewicht und dieselbe Position (Front Rack oder Suitcase).
+Verglichen wird im selben Satz, also Satz 2 mit Satz 2, weil ein späterer Satz vorermüdet ist;
+gegen Satz 1 stünde dort immer ein Minus. Es ist die gespeicherte Uhrzeit, keine Umrechnung über
+die Kurve: ein PR, der erst gerechnet werden muss, wäre keiner.
+
+- Ein beidbeiniger Halt zählt für beide Seiten, wie in der Kurve.
+- Sätze auf einer verworfenen Lastskala zählen nicht, weil dieselbe Stufe dort eine andere
+  Last hieß.
+- Alte Läufer-Sätze am Gürtel treffen keine heutige Position.
+- Uhr und PR messen dasselbe. Die Uhr läuft, solange die Position steht. Die zwei Sekunden
+  Reaktionsabzug entstehen erst beim Drücken nach dem Ende und stecken im gespeicherten PR
+  schon drin. Wer die Uhr über 61,8 s bringt, hat den PR also geschlagen, solange er dann nicht
+  noch länger mit dem Drücken wartet.
+
+**Der Preis.**
+
+- **Nach jeder neuen Stufe und jedem neuen Kilo gibt es zuerst keinen PR.** Beim Läufer mit
+  2-kg-Schritten passiert das oft. Die Zeile sagt dann nur „Erster Halt mit dieser Last".
+- **Wer vor der Vorgabe abbricht, sieht keinen Vergleich zum PR.** So hat Luke es beschrieben:
+  Die Prozentzahl erscheint erst ab der Null.
+- **Auch Sätze mit Schmerzabbruch, vorermüdete Sätze und Halte über 300 Sekunden zählen als
+  PR.** Es ist die längste gehaltene Zeit, kein Kurvenpunkt. Ein Schmerzabbruch ist fast immer
+  kürzer und hebt den PR deshalb selten.
+- **Die Schwellen 10 und 20 % sind gesetzt, nicht gemessen.** Sie stehen als eine Zeile im Code
+  und lassen sich ändern.
+
+**Für den Nachbau:**
+
+- Markup: `#tPct` über `#tClock`, `#tRest` darunter, beide in der Tippzone. `#tPct` ist
+  unsichtbar, bis die Klasse `an` gesetzt wird. Beide Zeilen halten ihren Platz auch leer, damit
+  die Uhr nicht springt.
+- `prVon(bl, satz)` sucht den längsten Halt. Filter: `zaehltFuer`, gleiche `level`, gleiches
+  `extra`, gleiche Position, ohne `ausKurve`. Eine leere Position heißt Gürtel, sobald Gewicht
+  dran war. `nextSet` gibt `pr` und `prSatz` an `runSet` weiter. `pr: undefined` heißt keine
+  Zeile, `pr: null` heißt erster Halt.
+- `GLUT` enthält die drei Farbstufen mit Schwelle, `GLUT_VOLL = 0.25` die volle Leuchtkraft.
+  `glut(r)` liefert Farbe und `text-shadow` für r = Überzeit durch Vorgabe.
+- `tick()` setzt die Restzeit bei jedem Bild. Ab `s >= T.target` setzt es auch Glut und
+  PR-Zeile. `zeilenLeeren()` läuft am Anfang jedes `runSet`, im Vorlauf bleiben beide Zeilen
+  leer.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-09-29 c — Timer mit Restzeit zur Vorgabe und Abstand zum PR
+
+**Befund (Luke).** Unter der Uhr soll eine Zeile auf die vorgeschlagene Zeit herunterzählen, ab
+null weiterlaufen und orange, gelb, hellweiß leuchten. Über der Uhr soll stehen, um wie viel
+Prozent er seinen alten PR verfehlt oder schlägt (P63).
+
+**Gebaut.** Der Timer hat drei Zeilen. Unter der Uhr steht die Restzeit, sie zählt herunter,
+steht auf 0,0 und läuft dann mit Plus weiter. Ab null leuchtet sie orange, gelb ab 10 % und
+hellweiß ab 20 % über der Vorgabe. Über der Uhr erscheint ab null der Abstand zum PR in Prozent.
+Der PR ist der längste Halt mit derselben Übung, Seite, Stufe, demselben Gewicht und derselben
+Position im selben Satz. Ohne Vorgänger steht dort „Erster Halt mit dieser Last". Die große Uhr
+wird nicht mehr grün, der Hinweis „Vorgabe erreicht" ist grau.
+
+**Geprüft.** Syntax, und im Browser (375 × 812, Vorgabe 60 s, PR 61,8 s):
+
+- 44,8 auf der Uhr: Restzeit −15,2, keine Prozentzeile
+- 60,5: +0,5 orange, „−2 % zum PR 61,8 s"
+- 67,0: +7,0 gelb mit Schein, „+8 %"
+- 80,0: +20,0 hellweiß, „+29 %"
+- Vorlauf ohne Zusatzzeilen
+- Über den echten Ablauf gezogen: Satz 1 gegen 61,8 s, Satz 2 gegen 27,5 s „in Satz 2", Satz 3
+  ohne Vorgänger „Erster 3. Satz mit dieser Last"
+- Suitcase und Front Rack getrennt; anderes Kilo, alter Gürtel und verworfene Lastskala ohne
+  Treffer
+- Satzende wie bisher: Uhr 66,1, gewertet 64,1
+
+Die Testdaten sind gelöscht.
 
 ### 2026-09-29 b — Aufrechter Läufer nur noch mit Gewicht auf der Knieseite
 
