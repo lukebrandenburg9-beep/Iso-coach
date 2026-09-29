@@ -1623,6 +1623,9 @@ als das Wadenheben ohne Handtuch. Welche Ausführung eine Zone trifft, rechnet d
 
 ### P60 · Wo die Kettlebell beim aufrechten Läufer sitzt
 
+> **Stand 2026-09-29 b:** Gürtel und Standbeinseite sind raus, Front Rack ist voreingestellt
+> (P62). Der Text hier beschreibt Build a und bleibt als Herleitung der Hebel stehen.
+
 Luke, 29.09.: „dannach würde ich gerne einstellen können ob ich das gewicht beim aufrechten
 läufer in die "front rack" position oder die "suitcase carry" position nehme, so wie die
 recherche im uhpc network ergeben hat".
@@ -1691,7 +1694,7 @@ nur für die auf der Karte. Die Zielzeit bleibt, bis auf die Rundung auf 2 kg (S
   zweite Reihe auf der Karte.
 - **Die Standbeinseite bleibt.** Das Dossier sagt „nie auf die Standbeinseite". In der App ist
   die Standbeinseite aber die Entlastung für alle, denen der Stand ohne Gewicht zu schwer ist.
-  Ob sie bleibt, entscheidest du.
+  Ob sie bleibt, entscheidest du. *Entschieden am 29.09.: raus, zusammen mit dem Gürtel (P62).*
 - **Fassung 24.** Die Positionen und der neue Hinweistext stehen in der gespeicherten
   Übungsdefinition und kommen nur mit einem Fassungssprung an. Dabei gehen unter Einstellungen
   von Hand geänderte Stufennamen und Lastfaktoren auf den Standard zurück, ebenso die
@@ -1730,11 +1733,106 @@ unten. Im Browser lässt sich die Notch nicht nachstellen. Geprüft ist, dass di
 Geräteabstand trägt, und mit einer nachgebauten 59-px-Statusleiste, dass der Text darunter
 beginnt. Auf dem Telefon gilt es erst, wenn die App vom Home-Bildschirm neu geladen ist.
 
+### P62 · Nur noch die Knieseite: Standbeinseite und Gürtel raus
+
+Luke, 29.09., auf die Frage aus P60, ob die Standbeinseite bleibt: „nimm die standbeinseite raus
+gewicht immer nur gegenüber entweder frontrack oder suitcase carry den gürtel nehmen wir
+vorläufig raus".
+
+Das deckt sich mit dem Dossier: Auf der Standbeinseite dreht die Last den Oberschenkel weg, die
+Kettlebell gehört auf die Seite des angehobenen Knies.
+
+**Gebaut in 2026-09-29 b.**
+
+- **Keine Standbeinseite mehr.** Das Gewicht geht von 0 bis 32 kg, nur auf der Knieseite. Die
+  drei Knöpfe „Standbeinseite · Ohne Gewicht · Freie Seite" sind von der Karte verschwunden. Es
+  bleibt ein Feld „Kettlebell auf der freien Seite".
+- **Nur Front Rack oder Suitcase.** Die Reihe unter den beiden Seiten hat zwei Knöpfe. Front Rack
+  steht vorn und ist voreingestellt, weil das Dossier die Hand erst nimmt, wenn das Knie schon
+  zur Mitte zeigt.
+- **Der Gürtel ruht.** Er ist nicht mehr wählbar, steht aber mit seinem gemessenen Hebel (3,44)
+  weiter in der Übung. So lassen sich alte Sätze im Export nachrechnen, und er kommt mit einer
+  Zeile zurück. Dasselbe gilt für den Geräte-Haken „Band oder Gürtel zum Einhängen": Er ist aus
+  der Liste unter Mehr verschwunden, dein Haken bleibt gespeichert.
+- **Gerät.** Gewicht anbieten braucht nur noch den Haken „Kettlebell oder Kurzhantel". Der Text
+  dazu sagt: eine einzelne Kettlebell auf der Knieseite, vorn oder in der Hand.
+- **Hinweistext.** „Die Kettlebell kommt immer auf die Seite des angehobenen Knies, nie auf das
+  Standbein", danach die Regel aus P60 für Front Rack und Suitcase.
+
+**Was mit gespeicherten Gewichten passiert (Fassung 25).**
+
+| Vorher gespeichert (80 kg Körpergewicht) | Nachher | Last vorher → nachher |
+|---|---|---|
+| 16 kg am Gürtel (oder ohne Wahl, dann war es der Gürtel) | 24 kg Front Rack | 0,152 → 0,153 |
+| 22 kg am Gürtel | 32 kg Front Rack | 0,175 → 0,174 |
+| 30 kg am Gürtel | 32 kg Front Rack (Deckel) | 0,206 → 0,174 |
+| 16 kg Suitcase oder Front Rack | bleibt | bleibt |
+| 10 kg auf der Standbeinseite | 0 kg | 0,074 → 0,090 |
+
+Ein angefangenes Workout zieht mit. Gemessene Punkte bleiben, wie sie sind; sie tragen ihre Last
+als Zahl.
+
+**Der Preis.**
+
+- **Leichter als Körpergewicht geht es nicht mehr.** Die Übung beginnt bei der Last 0,090. Wer
+  bisher mit Gegengewicht auf der Standbeinseite gehalten hat, trägt ab dem Update mehr: bei
+  10 kg 22 % mehr. Die Kurve rechnet mit der Last jedes Satzes und holt das beim nächsten
+  Workout ein. Bricht jemand zweimal bei Schmerz ab, sagt die App: keine leichtere Stufe mehr,
+  Übung weglassen oder abklären lassen. Vorher hätte sie 2 kg Entlastung dazugenommen.
+- **Die Spanne schrumpft.** Bisher 0,038 bis 0,214 (Faktor 5,6). Jetzt 0,090 bis 0,174 im Front
+  Rack (Faktor 1,9) und bis 0,206 mit Suitcase (Faktor 2,3), jeweils 32 kg bei 80 kg
+  Körpergewicht. Front Rack endet bei der Last von 22 kg am Gürtel.
+- **Über 22 kg am Gürtel wird es leichter.** Wer mehr hatte, landet im Front Rack am Deckel von
+  32 kg. Mit Suitcase käme er näher heran; die App stellt aber nach Dossier vorn ein, nicht nach
+  Last.
+- **Fassung 25.** Wie bei Build a gehen von Hand geänderte Stufennamen und Lastfaktoren sowie die
+  Erholungstage je Zone auf den Standard zurück.
+
+**Für den Nachbau:**
+
+- Läufer: `extraMin: 0`, `extraGeraet: ["gewicht"]`. Die Seitenknöpfe hängen an einer negativen
+  Spanne und verschwinden damit von selbst. `extraK` und `extraKNeg` bleiben als Gürtelhebel für
+  die Umrechnung alter Stände und für den Export.
+- `lagen` in der Reihenfolge Front Rack, Suitcase, Gürtel; der Gürtel trägt `ruht: true`.
+  `lagenOf(ex)` liefert nur die wählbaren, `lageOf(ex)` fällt auf die erste wählbare zurück,
+  auch wenn noch „guertel" gespeichert ist.
+- `laeuferKnieseite(extra, lage, bw, e)` in `normalize`, nach allen anderen Umzügen: negativ auf
+  0, Gürtel auf Front Rack über die Last (Kilo mal 3,44 durch 2,33, auf 2 kg, gedeckelt auf
+  min(32, halbes Körpergewicht)). Der Deckel steht dort als Zahl 0,5: `MAX_ZUSATZ_ANTEIL` ist
+  beim Laden noch nicht belegt, und ein Fehler in `load()` endet in einem leeren Zustand.
+- Geräte mit `ruht: true` erscheinen nicht in der Liste unter Mehr.
+- Export: `gewicht_positionen` trägt beim Gürtel `ruht: true`; leeres `zusatz_position` heißt
+  Gürtel.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-09-29 b — Aufrechter Läufer nur noch mit Gewicht auf der Knieseite
+
+**Befund (Luke).** „nimm die standbeinseite raus gewicht immer nur gegenüber entweder frontrack
+oder suitcase carry den gürtel nehmen wir vorläufig raus" (P62).
+
+**Gebaut.** Beim aufrechten Läufer geht das Gewicht nur noch auf die Seite des angehobenen Knies,
+0 bis 32 kg. Die Seitenknöpfe sind weg. Wählbar sind Front Rack (voreingestellt) und Suitcase;
+der Gürtel ruht, ebenso der Geräte-Haken für Band oder Gürtel. Hinweistext, Geräteliste und
+Export sind nachgezogen. Fassung 25 rechnet gespeicherte Gewichte um: Gürtel auf Front Rack bei
+gleicher Last, Standbeinseite auf 0.
+
+**Geprüft.** Syntax, und im Browser (375 × 812, 80 kg, Fassung 24 mit 16 kg Gürtel links und
+10 kg Standbeinseite rechts, dazu ein angefangenes Workout):
+
+- Update auf Fassung 25: links 24 kg Front Rack (Last 0,153), rechts 0 kg, Position `rack`,
+  angefangenes Workout ebenso umgerechnet
+- Randfälle gerechnet: 22 und 30 kg Gürtel werden 32 kg; 16 kg bei 60 kg Körpergewicht werden
+  24 kg; gespeichertes Suitcase bleibt; andere Übungen unberührt
+- Karte: keine Seitenknöpfe, Feld „Kettlebell auf der freien Seite", ab dem ersten Kilo die Reihe
+  mit zwei Knöpfen Front Rack und Suitcase; Wechsel macht aus 6 kg Rack 4 kg Suitcase
+- Geräteliste ohne Band; Export mit Spanne 0 bis 32, Gürtel als `ruht`
+
+Die Testdaten sind gelöscht.
 
 ### 2026-09-29 a — Vorlauf acht Sekunden · Gewichtsposition beim aufrechten Läufer · Text unter der Statusleiste
 
@@ -4089,8 +4187,10 @@ als Teil des Ansatz-Pfads? Das ist eine Produktentscheidung, keine technische.
 29. **Die Hebel für Suitcase und Front Rack beim aufrechten Läufer (P60).** Gebaut mit
     3,22 (fortgeschrieben) und 2,33 (geschätzt). Gemessen werden muss je Position der
     waagerechte Abstand von der Körpermitte zur Kugelmitte, in der Haltung beim Halten. Offen
-    daneben: Bleibt der Gürtel als dritte Wahl? Bleibt die Standbeinseite als Entlastung, obwohl
-    das Dossier „nie" sagt? Eine Wahl je Übung oder je Seite?
+    daneben: Eine Wahl je Übung oder je Seite?
+
+    **Entschieden (Luke, 29.09.), gebaut in Build 2026-09-29 b (P62):** Die Standbeinseite ist
+    raus, das Gewicht geht nur auf die Knieseite. Der Gürtel ruht vorläufig.
 
 ---
 

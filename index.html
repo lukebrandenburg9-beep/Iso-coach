@@ -772,11 +772,7 @@ const DEFAULT_EX = {
      immer auf der Knieseite. Vorn (Rack), wenn das Knie von der Mitte wegwandert
      und die Knieseite nicht bremst; in der Hand (Suitcase, leicht), wenn die
      Huefte wegfaellt oder der Koerper zum Standbein schiebt — und erst, wenn das
-     Knie schon zur Mitte zeigt. Der Guertel bleibt als dritte Wahl und als
-     Voreinstellung stehen: Er ist gemessen, und wer bisher trainiert hat, soll
-     nach dem Update dieselbe Last vorfinden.
-     Die Position gilt nur fuer die freie Seite (extraK). Auf der
-     Standbeinseite haengt das Gewicht weiter am Guertel (extraKNeg).
+     Knie schon zur Mitte zeigt.
      Hebel, alle mit dem Standbein-Hueftgelenk 0,09 m neben der Mitte:
        Guertel   0,22 m zur Kugelmitte -> Hebel 0,31 m -> k 3,44   GEMESSEN 19.09.
        Suitcase  0,20 m               -> Hebel 0,29 m -> k 3,22   FORTGESCHRIEBEN:
@@ -787,39 +783,61 @@ const DEFAULT_EX = {
      Rack haengt zudem VOR dem Koerper; der Vorwaerts-Anteil belastet Rumpf und
      Hueftstrecker und steckt in keinem k.
      Gewechselt wird die LAST, nicht das Kilo: 16 kg am Guertel werden 24 kg im
-     Rack (bei 80 kg Koerpergewicht), damit die Kurve keinen Knick bekommt. */
+     Rack (bei 80 kg Koerpergewicht), damit die Kurve keinen Knick bekommt.
+
+     NUR NOCH DIE KNIESEITE (Build 2026-09-29 b). Luke, 29.09.: "nimm die
+     standbeinseite raus gewicht immer nur gegenueber entweder frontrack oder
+     suitcase carry den guertel nehmen wir vorlaeufig raus". Das Dossier sagt
+     dasselbe: Auf der Standbeinseite dreht die Last den Oberschenkel weg, die
+     Kettlebell gehoert auf die Seite des angehobenen Knies. Deshalb:
+       - extraMin 0: keine Entlastung mehr. Die Uebung beginnt beim eigenen
+         Koerpergewicht (Last 0,090); leichter geht es in der App nicht.
+         Mit der negativen Spanne verschwinden auch die drei Seitenknoepfe auf
+         der Karte — sie haengen an eb.lo < 0.
+       - Der Guertel ruht (ruht:true). Er bleibt in der Liste, damit alte
+         Saetze im Export nachrechenbar bleiben und er mit einer Zeile
+         zurueckkommt, wenn Luke ihn wieder will. Waehlbar ist er nicht.
+       - Front Rack steht vorn und ist damit Voreinstellung: Das Dossier nimmt
+         die Hand erst, wenn das Knie schon zur Mitte zeigt.
+       - extraK 3,44 und extraKNeg 1,44 bleiben stehen, als Hebel des Guertels:
+         Sie rechnen nur noch alte Staende um (laeuferFrei, Fassung 25) und
+         stehen im Export fuer Saetze von vor Build b.
+     Umzug der gespeicherten Gewichte: siehe LAEUFER_KNIESEITE_AT. */
   laeufer: {
     name:"Aufrechter Läufer", region:"Hüfte", group:"abduct",
     sides:["links","rechts"],
     /* Die ganze Uebung ist aeussere Huefte des Standbeins — siehe huefteHeute. */
     huefteStandbein:true,
     extraAb:0, extraK:3.44, extraKNeg:1.44,
-    extraMin:-32, extraMax:32, extraSchritt:2, extraReal:32,
-    extraGeraet:["band","gewicht"],
-    extraLabel:"Gewicht am Gürtel",
-    extraSeiten:{plus:"am Gürtel der freien Seite",
+    extraMin:0, extraMax:32, extraSchritt:2, extraReal:32,
+    extraGeraet:["gewicht"],
+    extraLabel:"Kettlebell auf der freien Seite",
+    /* minus beschreibt nur noch Saetze von vor Build 2026-09-29 b. */
+    extraSeiten:{plus:"auf der freien Seite",
                  minus:"am Gürtel der Standbeinseite",
                  plusKurz:"Freie Seite", minusKurz:"Standbeinseite"},
-    extraHint:"Das Gewicht kommt auf die Seite des angehobenen Knies — am Gürtel, in der "
-             +"Hand oder vorn an der Schulter.",
-    /* Siehe Kommentar oben. Die erste Position ist die Voreinstellung. */
+    extraHint:"Die Kettlebell kommt auf die Seite des angehobenen Knies — vorn an der "
+             +"Schulter oder seitlich in der Hand.",
+    /* Siehe Kommentar oben. Die erste Position, die nicht ruht, ist die
+       Voreinstellung. */
     lagen:[
-      {id:"guertel",  titel:"Gürtel",     unter:"Hände frei",   k:3.44,
-       label:"Gewicht am Gürtel",       plus:"am Gürtel der freien Seite"},
+      {id:"rack",     titel:"Front Rack", unter:"vor der Schulter", k:2.33,
+       label:"Kettlebell im Front Rack", plus:"Front Rack auf der freien Seite"},
       {id:"suitcase", titel:"Suitcase",   unter:"in der Hand",  k:3.22,
        label:"Kettlebell in der Hand",  plus:"Suitcase auf der freien Seite"},
-      {id:"rack",     titel:"Front Rack", unter:"vor der Schulter", k:2.33,
-       label:"Kettlebell im Front Rack", plus:"Front Rack auf der freien Seite"}
+      {id:"guertel",  titel:"Gürtel",     unter:"Hände frei",   k:3.44, ruht:true,
+       label:"Gewicht am Gürtel",       plus:"am Gürtel der freien Seite"}
     ],
     hint:"»Links« heißt: das LINKE Bein steht, das rechte ist angehoben. Aufrecht stehen, "
         +"das freie Knie so weit hoch, dass der Oberschenkel waagerecht ist — und genau "
         +"dort halten. Die Hüften bleiben waagerecht: die freie Seite darf nicht absacken. "
         +"Der Oberkörper bleibt über der Mitte und wandert NICHT über das Standbein, sonst "
         +"fällt die Last in sich zusammen. Blick geradeaus, ein Fixpunkt an der Wand hilft. "
-        +"Das Gewicht kommt auf die Seite des angehobenen Knies: am Gürtel, in der Hand "
-        +"(Suitcase) oder vorn an der Schulter (Front Rack). Front Rack, wenn dein Knie nach "
-        +"außen wegwandert; Suitcase, wenn die Hüfte zur Seite wegfällt — aber erst, wenn "
-        +"das Knie schon zur Mitte zeigt. Einbeiniges Wadenheben, mit und ohne "
+        +"Die Kettlebell kommt immer auf die Seite des angehobenen Knies, nie auf das "
+        +"Standbein: vorn an der Schulter (Front Rack) oder seitlich in der Hand (Suitcase). "
+        +"Front Rack, wenn dein Knie nach außen wegwandert; Suitcase, wenn die Hüfte zur "
+        +"Seite wegfällt — aber erst, wenn das Knie schon zur Mitte zeigt. Einbeiniges "
+        +"Wadenheben, mit und ohne "
         +"Handtuchrolle, fordert dieselbe äußere Hüfte — die App legt es nach Möglichkeit "
         +"nicht auf denselben Tag.",
     seitenHinweis:"Diese Hüfte hat eben noch das Becken waagerecht gehalten, während die "
@@ -839,9 +857,9 @@ const DEFAULT_EX = {
            +"sich nicht über eine App unterscheiden."
     },
     /* Eine Sprosse, kein Geraet: aufrecht auf einem Bein stehen kann jeder, der
-       die Uebung ueberhaupt macht. Die Abstufung liegt im Gewicht (extraMin bis
-       extraMax) und haengt an extraGeraet — ohne Band und Gewicht bleibt die
-       Uebung also nutzbar, nur eben ohne Zusatzlast. */
+       die Uebung ueberhaupt macht. Die Abstufung liegt im Gewicht (0 bis
+       extraMax) und haengt an extraGeraet — ohne Kettlebell bleibt die Uebung
+       also nutzbar, nur eben ohne Zusatzlast. */
     levels:[
       {name:"Ohne Zusatzlast", load:0.090}
     ]
@@ -1128,18 +1146,20 @@ const GERAETE = [
    fuer:"Fersenbrücke, obere Stufe"},
   {id:"ringe", name:"Turnringe", was:"Frei hängende Ringe, in die der Fuß passt.",
    fuer:"Fersenbrücke, oberste Stufe"},
-  {id:"band", name:"Band oder Gürtel zum Einhängen", was:"Etwas, das ein Gewicht seitlich an "
+  /* ruht seit Build 2026-09-29 b: Der Guertel ist beim Laeufer vorlaeufig
+     raus, und sonst braucht niemand das Band. Der Haken bleibt gespeichert,
+     damit er wieder da ist, wenn der Guertel zurueckkommt. */
+  {id:"band", ruht:true, name:"Band oder Gürtel zum Einhängen", was:"Etwas, das ein Gewicht seitlich an "
    +"der Hüfte hält: ein kräftiges Widerstandsband als Schlaufe, ein Dip-Gürtel, ein "
    +"Klettergurt. Es trägt nur — gezogen wird daran nicht. Wichtig ist allein, dass der "
    +"Einhängepunkt bei jedem Durchgang an derselben Stelle sitzt.",
    fuer:"Aufrechter Läufer — Gewicht am Gürtel, auf beiden Seiten"},
-  {id:"gewicht", name:"Kettlebell, Hantel oder Scheiben", was:"Das Gewicht, das am Gürtel "
-   +"hängt oder das du in der Hand oder vorn an der Schulter hältst. Je feiner gestuft, "
-   +"desto besser: Am Gürtel lassen sich aus 6, 8, 10, 16, 24 und 32 kg "
-   +"0, 6, 8, 10, 14, 16, 18, 22, 24, 26, 30 und 32 kg bauen — die App lässt jeden "
-   +"2-kg-Wert zu, auflegen musst du ihn selbst. In der Hand zählt, was eine einzelne "
-   +"Kettlebell wiegt.",
-   fuer:"Aufrechter Läufer — Zusatzgewicht in beide Richtungen"},
+  {id:"gewicht", name:"Kettlebell oder Kurzhantel", was:"Eine einzelne Kettlebell, die du "
+   +"auf der Seite des angehobenen Knies hältst: vorn an der Schulter (Front Rack) oder "
+   +"seitlich in der Hand (Suitcase). Es zählt, was diese eine Kettlebell wiegt. Die App "
+   +"rechnet in 2-kg-Schritten; hast du die vorgeschlagene nicht, stell auf der Karte "
+   +"die ein, die du hast.",
+   fuer:"Aufrechter Läufer — Zusatzgewicht auf der Seite des freien Knies"},
   {id:"waage", name:"Personenwaage mit Zeiger (analog)", was:"Eine Waage, die du unter den "
    +"Vorfuß legen kannst. Sie ist hier kein Zubehör, sondern das Messgerät: die Zahl auf der "
    +"Anzeige IST die Stufe. Sie muss analog sein — eine Digitalwaage schaltet bei stehender "
@@ -1165,7 +1185,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-29 a";
+const BUILD = "2026-09-29 b";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -1181,7 +1201,9 @@ const AW_V = 1;
 /* 24 (29.09.2026): Der aufrechte Laeufer traegt seine Gewichtspositionen
    (lagen) und einen neuen Hinweistext — beides steht in S.ex und kaeme ohne
    den Sprung nicht an. Stufen und gemessene Punkte bleiben unberuehrt. */
-const EX_VERSION = 24;
+/* 25 (29.09.2026, Build b): Beim Laeufer sind Standbeinseite und Guertel
+   raus, Front Rack ist Voreinstellung. Siehe LAEUFER_KNIESEITE_AT. */
+const EX_VERSION = 25;
 /* Voreinstellung, bis der Nutzer sein Gewicht einträgt. Nur als Bezugsgroesse
    fuer Zusatzlast noetig — die Lastfaktoren selbst sind gewichtsunabhaengige
    Verhaeltniszahlen. */
@@ -1251,6 +1273,54 @@ function laeuferFrei(levels, extra, bw, sessions){
               Math.round((bw * r / kK) / e.extraSchritt) * e.extraSchritt));
   }
   return {levels: lv, extra: ex};
+}
+/* 29.09.2026, Build b: Beim aufrechten Laeufer gibt es nur noch die
+   Knieseite, und dort Front Rack oder Suitcase. Gespeicherte Gewichte
+   ziehen so um:
+     - negativ (Standbeinseite): auf 0. Die Entlastung gibt es nicht mehr;
+       die Last steigt dabei, bei -10 kg und 80 kg Koerpergewicht von 0,074
+       auf 0,090. Die Kurve rechnet mit der gemessenen Last jedes Satzes und
+       holt das beim naechsten Workout ein.
+     - positiv am Guertel (oder ohne Wahl — dann war es der Guertel, die
+       erste Position in Build a): auf Front Rack, bei gleicher LAST wie in
+       lageSetzen. 16 kg am Guertel werden 24 kg im Rack. Ueber 22 kg am
+       Guertel greift der Deckel von 32 kg; dann wird es leichter.
+     - Suitcase oder Front Rack: bleibt, wie es ist.
+   Rein rechnerisch und ohne S — normalize laeuft vor dem ersten load(). */
+const LAEUFER_KNIESEITE_AT = 25;
+function laeuferKnieseite(extra, lage, bw, e){
+  const E = Object.assign({}, extra || {}), Lg = Object.assign({}, lage || {});
+  const L = (e && e.lagen) || [];
+  const alt = L.find(l => l.id === Lg.laeufer) || L.find(l => l.id === "guertel");
+  const neu = L.find(l => !l.ruht);
+  if(!alt || !neu) return {extra: E, lage: Lg};
+  const wechsel = !!alt.ruht;
+  const schritt = e.extraSchritt || 2;
+  /* 0,5 wie MAX_ZUSATZ_ANTEIL. Die Konstante steht weiter unten und ist beim
+     Laden noch nicht belegt — ein Zugriff wuerfe, und load() faenge das mit
+     einem LEEREN Zustand ab. */
+  const deckel = Math.min(e.extraMax, Math.round(
+    ((e.extraAnteil != null) ? e.extraAnteil : 0.5) * bw / schritt) * schritt);
+  const um = kg => {
+    kg = +kg || 0;
+    if(kg <= 0) return 0;
+    if(!wechsel) return kg;
+    return Math.min(deckel, Math.round(kg * alt.k / neu.k / schritt) * schritt);
+  };
+  for(const k of Object.keys(E))
+    if(k === "laeufer" || k.indexOf("laeufer|") === 0) E[k] = um(E[k]);
+  if(wechsel) Lg.laeufer = neu.id;
+  return {extra: E, lage: Lg, um};
+}
+/* Ein angefangener Lauf zieht mit, wie beim Rucksack (wadeRucksackLauf):
+   nur das Gewicht, die Zielzeit bleibt. Die naechste Aenderung auf der
+   Karte rechnet sie neu. */
+function laeuferKnieseiteLauf(lauf, um){
+  if(!lauf || !lauf.plan) return lauf;
+  const f = o => (o && o.exercise === "laeufer" && (o.extra || 0) !== 0)
+    ? Object.assign({}, o, {extra: um(o.extra)}) : o;
+  return Object.assign({}, lauf, {
+    plan: Object.assign({}, lauf.plan, {blocks: (lauf.plan.blocks || []).map(f)})});
 }
 /* Bis zum 19.09. lief der beidbeinige Halt auf einem eigenen Schluessel ohne
    Seite ("wade"). Seit er in BEIDE Seitenkurven zaehlt, gehoert auch sein
@@ -1698,6 +1768,7 @@ function normalize(d){
   const wadeUmzug  = !leitersturz && (d.exVersion || 1) < WADE_KERN_AT;
   const handtuchUmzug = !leitersturz && (d.exVersion || 1) < HANDTUCH_BEID_AT;
   const handtuchEin   = !leitersturz && (d.exVersion || 1) < HANDTUCH_WAAGE_AT;
+  const knieseite     = (d.exVersion || 1) < LAEUFER_KNIESEITE_AT;
   const ex = stale ? structuredClone(DEFAULT_EX)
                    : Object.assign(structuredClone(DEFAULT_EX), d.ex || {});
   /* Erst die Band-Verschiebung von Fassung 11, dann der Umzug auf das freie
@@ -1734,6 +1805,12 @@ function normalize(d){
     const h = handtuchEinbeinig(umzug.levels, umzug.extra, bwAlt, ex.handtuch, waageDa);
     umzug.levels = h.levels; umzug.extra = h.extra;
   }
+  /* Zuletzt, nach allen anderen Umzuegen: Erst dann stehen die
+     Laeufergewichte in Guertel-Kilo da, auch wenn jemand von Fassung 11
+     kommt (laeuferFrei rechnet mit dem Guertelhebel extraK). */
+  const knie = knieseite && ex.laeufer
+    ? laeuferKnieseite(umzug.extra, d.lage, bwAlt, ex.laeufer) : null;
+  if(knie) umzug.extra = knie.extra;
   /* Wie weit ein angefangener Lauf entlasten darf (wadeRucksackLauf). */
   const waageLo = (waageDa && ex.wade)
     ? ((waageTiefe(ex.wade, bwAlt, WADE_SCHRITT, ex.wade.extraAnteil) || {}).lo || 0) : 0;
@@ -1785,12 +1862,14 @@ function normalize(d){
                                     gefragt: d.gefragt || {},
                                     /* Ein angefangener Lauf ueberlebt das Neuladen. */
                                     lauf: (d.lauf && d.lauf.plan)
-                                          ? (l => handtuchEin ? handtuchEinLauf(l, bwAlt, ex.handtuch, waageDa) : l)(
+                                          ? (l => (knie && knie.um) ? laeuferKnieseiteLauf(l, knie.um) : l)(
+                                            (l => handtuchEin ? handtuchEinLauf(l, bwAlt, ex.handtuch, waageDa) : l)(
                                             (l => handtuchUmzug ? handtuchLauf(l, bwAlt) : l)(
                                             (l => waageUmzug ? wadeWaageLauf(l, bwAlt, ex.wade) : l)(
                                               (l => rucksackUmzug ? wadeRucksackLauf(l, waageLo) : l)(
-                                              wadeUmzug ? wadeLauf(d.lauf, bwAlt) : d.lauf))))
+                                              wadeUmzug ? wadeLauf(d.lauf, bwAlt) : d.lauf)))))
                                           : null,
+                                    lage: knie ? knie.lage : (d.lage || {}),
                                     extra: umzug.extra,
                                     bw: (d.bw > 0 ? d.bw : BW_DEFAULT),
                                     levels: umzug.levels,
@@ -3075,11 +3154,16 @@ function extraSelbstMerken(key){
   S.extraWahl = w;
 }
 /* Wo das Gewicht sitzt (Build 2026-09-29 a). Bisher nur beim aufrechten
-   Laeufer: Guertel, Suitcase oder Front Rack, je Uebung EINE Wahl fuer beide
-   Seiten. Ohne gespeicherte Wahl gilt die erste Position der Liste. */
+   Laeufer: Front Rack oder Suitcase, je Uebung EINE Wahl fuer beide Seiten.
+   Ohne gespeicherte Wahl gilt die erste Position der Liste. Eine Position mit
+   ruht:true (seit Build b der Guertel) ist nicht waehlbar und zaehlt auch
+   als gespeicherte Wahl nicht. */
+function lagenOf(ex){
+  return ((S.ex[ex] || {}).lagen || []).filter(l => !l.ruht);
+}
 function lageOf(ex){
-  const L = (S.ex[ex] || {}).lagen;
-  if(!L || !L.length) return null;
+  const L = lagenOf(ex);
+  if(!L.length) return null;
   const id = S.lage && S.lage[ex];
   return L.find(l => l.id === id) || L[0];
 }
@@ -3114,7 +3198,8 @@ function extraAbOf(ex){
 }
 /* Spanne, Schrittweite und Richtung des Zusatzgewichts — je Uebung. Der
    aufrechte Laeufer ist die erste Uebung, bei der das Gewicht die ganze Leiter
-   traegt: von -32 (Guertel auf der Standbeinseite, entlastet) bis +32 kg.
+   traegt: seit Build 2026-09-29 b von 0 bis 32 kg auf der Knieseite (vorher
+   ab -32, Guertel auf der Standbeinseite). Negativ geht es nur noch mit Waage.
    Fehlt das Geraet, das die Last ueberhaupt an den Koerper bringt, ist die
    Spanne null — die Uebung bleibt nutzbar, nur ohne Gewicht. Frueher wurde
    stattdessen die ganze Sprosse ausgeblendet; bei EINER Sprosse waere das die
@@ -3787,9 +3872,10 @@ function applyRules(session, etikett){
      eine stille Nichtreaktion das Schlechteste von allem. */
   const erleichtern = () => {
     const b = extraBereich(session.exercise, lvNow());
-    /* Die Untergrenze ist nicht zwangslaeufig null: beim aufrechten Laeufer
-       geht es unter 0 kg weiter, weil dasselbe Gewicht auf der Standbeinseite
-       entlastet. Uebungen ohne negative Spanne stoppen wie bisher bei 0. */
+    /* Die Untergrenze ist nicht zwangslaeufig null: beim Wadenheben mit Waage
+       geht es unter 0 kg weiter (bis Build 2026-09-29 b auch beim Laeufer,
+       Guertel auf der Standbeinseite). Uebungen ohne negative Spanne stoppen
+       bei 0. */
     if(kgNow() > b.lo){
       S.extra[kgSchluessel()] = Math.max(b.lo, Math.round((kgNow() - b.schritt) * 10) / 10);
       return "gewicht";
@@ -4324,7 +4410,7 @@ function gewichtSetzen(bl, v){
 }
 /* Position des Gewichts wechseln (Build 2026-09-29 a). Mit der Position
    aendert sich der Hebel — gewechselt wird deshalb die LAST, nicht das Kilo:
-   16 kg am Guertel werden 24 kg im Front Rack (bei 80 kg Koerpergewicht).
+   24 kg im Front Rack werden 18 kg in der Hand (bei 80 kg Koerpergewicht).
    Solange k mal kg gleich bleibt, bleibt die Last gleich, auf jeder Sprosse;
    gerundet wird aufs Raster der Uebung und gedeckelt wie ueberall. Alle
    gemerkten Gewichte der Uebung ziehen mit, nicht nur die auf der Karte.
@@ -4619,14 +4705,14 @@ function blockIntro(i){
 
   /* Wo das Gewicht sitzt — EINE Wahl fuer die ganze Uebung, deshalb einmal je
      Karte und nicht je Seite. Nur sichtbar, solange auf einer Seite Gewicht
-     nach aussen haengt: Auf der Standbeinseite und ohne Gewicht gibt es
-     nichts zu setzen. */
+     haengt: Ohne Gewicht gibt es nichts zu setzen. */
   const lageHTML = () => {
     const lg = lageOf(exKey);
     if(!lg || !teile.some(q => (q.extra || 0) > 0 && q.level >= extraAbOf(q.exercise)))
       return "";
+    const L = lagenOf(exKey);
     return `<div class="tiny" style="margin-top:14px">Gewicht auf der freien Seite</div>
-      <div class="zw drei" style="margin-top:5px">${ex.lagen.map(l => `<button
+      <div class="zw ${L.length === 2 ? "zwei" : "drei"}" style="margin-top:5px">${L.map(l => `<button
         class="${l.id === lg.id ? "sel" : "ghost"}" data-lage="${l.id}">${l.titel}<span>${
         l.unter}</span></button>`).join("")}</div>`;
   };
@@ -5425,7 +5511,9 @@ function messreihenJSON(){
             + "extra_k_negativ statt extra_k: das Gewicht haengt dann auf der "
             + "Standbeinseite und wirkt ueber einen kuerzeren Hebel. Hat eine Uebung "
             + "gewicht_positionen und zusatz_position ist gesetzt, gilt deren extra_k; "
-            + "leeres zusatz_position heisst die erste Position der Liste.",
+            + "leeres zusatz_position heisst guertel (vor Build 2026-09-29 a gespeichert). "
+            + "Positionen mit ruht=true sind nicht mehr waehlbar und stehen nur fuer alte "
+            + "Zeilen da. Seit Build 2026-09-29 b gibt es keine negativen Gewichte mehr.",
     spalten: EXPORT_SPALTEN,
     zonen: ZONES.map(z=>({id:z.id, name:z.name, von_s:z.lo, bis_s:z.hi})),
     uebungen: Object.entries(S.ex).map(([k,v])=>({
@@ -5434,7 +5522,9 @@ function messreihenJSON(){
          Seitstuetz (extra_k = 2) rechnete jeder fremde Konsument falsch. */
       extra_k: (v.extraK != null ? v.extraK : 1),
       extra_k_negativ: (v.extraKNeg != null ? v.extraKNeg : null),
-      gewicht_positionen: v.lagen ? v.lagen.map(l => ({id:l.id, name:l.titel, extra_k:l.k}))
+      gewicht_positionen: v.lagen ? v.lagen.map(l => Object.assign(
+                                      {id:l.id, name:l.titel, extra_k:l.k},
+                                      l.ruht ? {ruht:true} : {}))
                                   : null,
       zusatzgewicht_ab_stufe: (v.extraAb != null ? v.extraAb : v.levels.length - 1) + 1,
       zusatzgewicht_von_kg: extraBereich(k).lo,
@@ -6045,7 +6135,7 @@ function renderSetup(){
       <p class="tiny" style="margin-top:0">Möbel setzt die App voraus — Arbeitsplatte, Tisch,
       Stuhl, Hocker, Kiste, Kissen. Alles darüber hinaus hakst du hier an. <b>Varianten, die ein
       nicht angehaktes Gerät brauchen, tauchen gar nicht erst auf.</b></p>
-      ${GERAETE.map(g => `<label class="chk" for="ger_${g.id}">
+      ${GERAETE.filter(g => !g.ruht).map(g => `<label class="chk" for="ger_${g.id}">
         <input type="checkbox" id="ger_${g.id}" data-ger="${g.id}"
           ${S.geraete && S.geraete[g.id] ? "checked" : ""}>
         <span><b>${g.name}</b><br><span class="tiny">${g.was} — ${g.fuer}</span></span>
