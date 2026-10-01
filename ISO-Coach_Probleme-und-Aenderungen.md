@@ -1968,11 +1968,134 @@ Zone und für die Zone aus der Rotation.
 - Das Gewicht auf der obersten Sprosse wird in beiden Durchgängen gleich bewertet
   (`kgFuer`: gemerktes Gewicht, bei `gewichtFolgt` das gerechnete).
 
+### P66 · Training ohne Geräte: Boden + Wand und Nur Boden
+
+Luke, 01.10., im Urlaub: Er hat keine Geräte dabei, nur einen Boden, und will trotzdem nach Plan
+trainieren. Wer im Hotel trainiert, soll das im Startmenü mit einem Griff einstellen können.
+
+**Lukes Entscheidungen (01.10.):**
+
+| Frage | Entscheidung |
+|---|---|
+| Umgebung | zwei Modi: **Nur Boden** und **Boden + Wand**. Kein Gerät, kein Rucksack, keine Waage, keine Möbel, kein Stepper |
+| Dauer | gilt, **bis man ihn ausschaltet**, sichtbar auf Heute |
+| Messungen | gehen **in die normalen Kurven**, der Satz trägt den Vermerk „Nur Boden" bzw. „Boden + Wand" |
+| Zone | **nächste erreichbare Zone**: die Sprosse, die der Zielzeit am nächsten kommt; die Karte sagt, wo es landet; die Rotation zählt die wirklich trainierte Zone |
+| Wegfall | Wadenheben, Handtuchrolle (Erhöhung nötig) und Schrägzug (Schlinge) **fallen im Modus weg** |
+
+**Gebaut in 2026-10-01 b.**
+
+- **Der Schalter** ist die erste Zeile auf Heute: Zuhause · Boden + Wand · Nur Boden. Er steht
+  auch am Pausentag, aber nicht auf der Karte „Workout läuft noch": kein Wechsel mitten im Lauf.
+- **Was im Modus bleibt:**
+
+| Übung | Nur Boden | Boden + Wand zusätzlich |
+|---|---|---|
+| Liegestütz | Boden mit Knien abgelegt · Boden | Wand mit 2, 3, 4 Fußlängen |
+| Ausfallschritt | Kniestand, Knie knapp über den Boden | stehend an der Wand mit 1,5 / 2 / 2,5 / 3 Fußlängen |
+| Seitstütz | Knie abgelegt am Boden · Beine gestreckt am Boden | – |
+| Fersenbrücke | Ferse am Boden mit geöffnetem Knie · mit fast gestrecktem Bein | – |
+| Aufrechter Läufer | ohne Zusatzlast | – |
+| Schrägzug, Wadenheben, Handtuchrolle | fallen weg | fallen weg |
+
+- **Kein Gewicht.** Gewichtsfeld und Waage verschwinden von der Karte, die App rechnet kein
+  Kilo in den Block.
+- **Die Werte von zuhause werden geparkt.** Beim Einschalten legt die App Stufen und Gewichte
+  beiseite und startet jede Übung auf der erlaubten Sprosse, die von der Last her am nächsten
+  liegt: Liegestütz zuhause „Füße auf einem Stuhl" → „Boden", nicht „Knie abgelegt". Beim
+  Ausschalten kommt alles unverändert zurück. Gemeinsam bleiben die Kurven, die Fehl- und
+  Schmerzzähler und die Tageswahl von Zone und Ausführung.
+- **Schmerz 7 oder mehr** am Ende eines Workouts im Modus stuft auf die nächste erlaubte Sprosse
+  darunter und die geparkte Sprosse von zuhause eine Stufe zurück. Schmerz ist ein Körpersignal,
+  kein Modus-Signal.
+- **Zone.** Zuhause gemessen heißt meistens: auf Stepper und Möbeln. Dann liegt keine erlaubte
+  Sprosse im gemessenen Bereich der Kurve. Im Modus rechnet die Kurve trotzdem weiter, über die
+  wenigen Sprossen, die bleiben, und nimmt die, deren Zeit dem Zonenziel am nächsten kommt. Die
+  Karte zeigt die Zone, in der der Block landet, und die Rotation zählt genau diese. Eine selbst
+  gesetzte oder nachgeholte Zone zählt, wie sie gewählt wurde.
+- **Liste auf Heute:** Weggefallene Übungen sind ausgegraut mit „nicht im Modus Nur Boden", in
+  neutraler Farbe, weil bewusst gewählt. Nach einem großen Sprung rät die App im Modus nicht mehr,
+  Geräte anzuhaken.
+- **Verlauf und Ergebnis** tragen unter der Stufe den Vermerk „Nur Boden" bzw. „Boden + Wand".
+  Nachträge von Hand bekommen keinen Vermerk und rechnen mit dem Gewicht wie zuhause.
+- **Export, Schema 4:** zwei Spalten am Ende, `zone_gezaehlt` und `modus`. Die Gewichtsspanne je
+  Übung bleibt die von zuhause.
+- Nebenbei behoben: Stufenliste und Vorhersage im Profil zeigten bei fehlendem Gerät die rohe
+  Kennung („zug fehlt"). Jetzt steht dort der Name des Geräts, im Modus „nicht im Modus …".
+
+**Beispiel.** Liegestütz gemessen auf Sprosse 7 (40 s) und 8 (28 s), Nur Boden: Alle drei Zonen
+landen auf „Boden" mit 70 s, also Zone B. „Knie abgelegt" liegt unter der Dauerlast der Kurve;
+dort sagt sie keine Grenze voraus. Die nächste erreichbare Zone ist B, und die Karte sagt das.
+
+**Der Preis.**
+
+- **Nur Boden lässt Ausfallschritt und Läufer mit je einer Sprosse.** Welche Zone sie treffen,
+  entscheidet dann die Zeit. Mehrere Tage im Modus können eine Zone öfter treffen, als die
+  Rotation es plant.
+- **Die Zeit auf der Karte kommt oft aus dem ungestützten Teil der Kurve.** Der erste Satz auf
+  der neuen Sprosse liefert den Messpunkt, der das korrigiert.
+- **Die Stufe im Modus lebt nur, solange er an ist.** Beim nächsten Einschalten wird sie wieder
+  aus der Stufe von zuhause vorbelegt. Die Messungen bleiben in der Kurve, und die wählt die
+  Sprosse.
+- Profil-Reife und „Teilkurve außer Reichweite" rechnen mit dem Modus, solange er an ist.
+
+**Für den Nachbau:**
+
+- `ort:"boden"` bzw. `ort:"wand"` an den Sprossen in `DEFAULT_EX`, gelesen über `stufeOrt` aus
+  `DEFAULT_EX` (über Name und Nummer). Kein `EX_VERSION`-Sprung, der die Ruhetage zurücksetzt.
+- `stufeErlaubt(ex, i)` ist die eine Weiche: ohne Modus wie bisher `geraetDa`, im Modus nur
+  Sprossen ohne Gerät mit passendem `ort`. `verfuegbareStufen`, `standOf`, Stufenliste und
+  Profil-Tabelle laufen darüber, alles andere zieht über `verfuegbareStufen` mit.
+- `extraBereich` gibt im Modus 0/0, `waageSpanne` gibt `null`.
+- `modusSetzen` parkt `S.levels` und `S.extra` in `S.standMitGeraeten` und belegt die Stufen über
+  `naechsteErlaubte` (nach Last, Gleichstand zur leichteren) vor. `normalize` schickt die geparkte
+  Kopie auf einer `structuredClone`-Kopie durch dieselben Umzüge.
+- `mitGeraeten(fn)` rechnet kurz ohne Modus: Handeintrag, Gewichtsspanne im Export.
+- `blockModus(bl)` gibt `modus` und, ohne feste Zone, `zoneGezaehlt = zoneErwartet` an die
+  Sitzung. `zoneLastDay`, `offeneSeite` und die Ergebnisanzeige lesen
+  `zoneGezaehlt || workoutZone`.
+- `mkBlock`: Liegt im Modus keine erlaubte Sprosse im Bereich, laufen alle erlaubten Sprossen
+  durch die Bewertung |log(t/Ziel)|, ohne Sprunggrenze; unendliche Zeiten fallen heraus. Gewinnt
+  eine, ist `erweitert` gesetzt. Der Block trägt `fest`, der Plan trägt `modus`.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-01 b — Training ohne Geräte: Boden + Wand und Nur Boden
+
+**Befund (Luke).** Im Urlaub, nur ein Boden, keine Geräte. Er will im Startmenü einen Modus für
+Training ohne Geräte einschalten können, auch für Leute im Hotel (P66).
+
+**Gebaut.**
+
+- **Heute:** erste Zeile Zuhause · Boden + Wand · Nur Boden, auch am Pausentag.
+- **Sprossen:** Nur Boden lässt Liegestütz, Ausfallschritt, Seitstütz, Fersenbrücke und Läufer
+  auf ihren Bodensprossen; Boden + Wand nimmt die Wandsprossen von Liegestütz und Ausfallschritt
+  dazu. Schrägzug, Wadenheben und Handtuchrolle fallen weg und stehen ausgegraut in der Liste.
+- **Gewicht:** im Modus keins.
+- **Werte von zuhause:** geparkt und beim Ausschalten unverändert zurück. Schmerz 7 oder mehr
+  stuft auch die geparkte Sprosse zurück.
+- **Zone:** die nächste erreichbare; die Karte zeigt sie, die Rotation zählt sie.
+- **Vermerk** in Verlauf und Ergebnis, **Export** Schema 4 mit `zone_gezaehlt` und `modus`.
+
+**Geprüft.** Im Node-Abgleich mit dem Skript aus `index.html`, 58 Prüfungen, keine Abweichung:
+
+- Ohne Modus sind die erlaubten Sprossen für fünf Geräte-Kombinationen identisch mit dem alten
+  Filter. Die Zonen-Sprossen aus 2026-10-01 a bleiben gleich (Liegestütz A → 7, B → 6, C → 5).
+- Beide Modi: erlaubte Sprossen genau wie in der Tabelle in P66, Gewichtsspanne überall null,
+  keine Waage, nicht ausführbar genau Schrägzug, Wadenheben und Handtuchrolle.
+- Einschalten → Workout mit verfehlter Zeit und Schmerz 7 → Ausschalten: Heimgewichte
+  identisch, Heimstufen identisch bis auf die eine Schmerzstufe (Liegestütz 8 → 7). Im Modus
+  landet die Schmerzstufe auf einer erlaubten Sprosse.
+- Speichern und Neuladen im Modus behalten Modus und geparkte Werte. Ein alter Stand ohne die
+  neuen Felder lädt als „Zuhause". Ein unterbrochener Lauf behält seinen Modus.
+- Der Satz trägt `modus` und `zoneGezaehlt`; mit fester Zone kein `zoneGezaehlt`; die Rotation
+  zählt ihn.
+- Heute zeigt den Schalter mit dem gewählten Modus und „nicht im Modus Nur Boden" statt „Gerät
+  fehlt".
 
 ### 2026-10-01 a — Seitenansage im Timer · Zone wählt wieder ihre Sprosse
 

@@ -497,13 +497,13 @@ const DEFAULT_EX = {
         +"Füße so weit zurück, dass du die Last in den Händen spürst. Liegt eine Stufe zwischen "
         +"zwei Zonen, hilft ein Rucksack — das ist die feinste Verstellung, die du hast.",
     levels:[
-      {name:"Wand, Hände schulterhoch · Füße 2 Fußlängen weg", load:0.23},
-      {name:"Wand · Füße 3 Fußlängen weg",                     load:0.32},
-      {name:"Wand · Füße 4 Fußlängen weg",                     load:0.39},
-      {name:"Boden, Knie abgelegt",                            load:0.49},
+      {name:"Wand, Hände schulterhoch · Füße 2 Fußlängen weg", load:0.23, ort:"wand"},
+      {name:"Wand · Füße 3 Fußlängen weg",                     load:0.32, ort:"wand"},
+      {name:"Wand · Füße 4 Fußlängen weg",                     load:0.39, ort:"wand"},
+      {name:"Boden, Knie abgelegt",                            load:0.49, ort:"boden"},
       {name:"Küchenarbeitsplatte (~90 cm)",                    load:0.55},
       {name:"Stuhlsitz / Sofakante (~45 cm)",                  load:0.61},
-      {name:"Boden",                                           load:0.68},
+      {name:"Boden",                                           load:0.68, ort:"boden"},
       {name:"Boden, Füße auf einer Stufe (~20 cm)",            load:0.78},
       {name:"Boden, Füße auf einem Stuhl (~45 cm)",            load:0.88}
     ]
@@ -544,14 +544,14 @@ const DEFAULT_EX = {
          den 0,65-Faktor an die Kniestand-Sprossen angeschlossen.
        Vor dem ersten Training auf einer neuen Sprosse muss gemessen werden. */
     levels:[
-      {name:"Stehend an der Wand · hinterer Fuß 1,5 Fußlängen",  load:0.36},
-      {name:"Stehend an der Wand · 2 Fußlängen",                 load:0.41},
-      {name:"Stehend an der Wand · 2,5 Fußlängen",               load:0.46},
-      {name:"Stehend an der Wand · 3 Fußlängen",                 load:0.52},
+      {name:"Stehend an der Wand · hinterer Fuß 1,5 Fußlängen",  load:0.36, ort:"wand"},
+      {name:"Stehend an der Wand · 2 Fußlängen",                 load:0.41, ort:"wand"},
+      {name:"Stehend an der Wand · 2,5 Fußlängen",               load:0.46, ort:"wand"},
+      {name:"Stehend an der Wand · 3 Fußlängen",                 load:0.52, ort:"wand"},
       {name:"Kniestand · Knie bis Stepper, 3 Stufen (20 cm)",    load:0.55},
       {name:"Kniestand · Knie bis Stepper, 2 Stufen (15 cm)",    load:0.63},
       {name:"Kniestand · Knie bis Stepper, 1 Stufe (10 cm)",     load:0.72},
-      {name:"Kniestand · Knie knapp über den Boden",             load:0.90},
+      {name:"Kniestand · Knie knapp über den Boden",             load:0.90, ort:"boden"},
       {name:"Hinterer Fuß auf dem Stepper (20 cm) · Knie bis 1 Stufe", load:1.05},
       {name:"Hinterer Fuß auf dem Stepper (20 cm) · Knie knapp über den Boden", load:1.25}
     ]
@@ -591,10 +591,10 @@ const DEFAULT_EX = {
       {name:"Knie abgelegt · Unterarm auf Arbeitsplatte (~90 cm)",   load:0.20},
       {name:"Knie abgelegt · Unterarm auf Tischplatte (~75 cm)",     load:0.36},
       {name:"Knie abgelegt · Unterarm auf Stuhlsitz (~45 cm)",       load:0.50},
-      {name:"Knie abgelegt · Unterarm am Boden (kurzer Hebel)",      load:0.57},
+      {name:"Knie abgelegt · Unterarm am Boden (kurzer Hebel)",      load:0.57, ort:"boden"},
       {name:"Beine gestreckt · Unterarm auf Arbeitsplatte (~90 cm)", load:0.70},
       {name:"Beine gestreckt · Unterarm auf Tischplatte (~75 cm)",   load:0.77},
-      {name:"Beine gestreckt · Unterarm am Boden (Standard)",        load:0.90}
+      {name:"Beine gestreckt · Unterarm am Boden (Standard)",        load:0.90, ort:"boden"}
     ]
   },
   /* ── Schraegzug ────────────────────────────────────────────────
@@ -746,8 +746,8 @@ const DEFAULT_EX = {
       {name:"Ferse auf Stuhlsitz (~45 cm) · Knie etwa rechtwinklig", load:0.296},
       {name:"Ferse auf Hocker (~30 cm) · Knie etwa rechtwinklig",    load:0.415},
       {name:"Ferse auf Kiste (~20 cm) · Knie leicht geöffnet",       load:0.561},
-      {name:"Ferse am Boden · Knie deutlich geöffnet",               load:0.648},
-      {name:"Ferse am Boden · Bein fast gestreckt (langer Hebel)",   load:0.760},
+      {name:"Ferse am Boden · Knie deutlich geöffnet",               load:0.648, ort:"boden"},
+      {name:"Ferse am Boden · Bein fast gestreckt (langer Hebel)",   load:0.760, ort:"boden"},
       {name:"Ferse auf der Faszienrolle · Bein fast gestreckt",      load:0.850, geraet:"rolle"},
       {name:"Ferse in den Ringen · Bein fast gestreckt",             load:0.960, geraet:"ringe"}
     ]
@@ -886,7 +886,7 @@ const DEFAULT_EX = {
        extraMax) und haengt an extraGeraet — ohne Kettlebell bleibt die Uebung
        also nutzbar, nur eben ohne Zusatzlast. */
     levels:[
-      {name:"Ohne Zusatzlast", load:0.090}
+      {name:"Ohne Zusatzlast", load:0.090, ort:"boden"}
     ]
   },
 
@@ -1212,7 +1212,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-01 a";
+const BUILD = "2026-10-01 b";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -1736,6 +1736,9 @@ function beidUmzug(exDefs, levels, extra, streak){
   }
   return {levels: lv, extra: ex, streak: st};
 }
+/* Training ohne Geraete (Build 2026-10-01 b). Steht vor load(), weil
+   normalize() den gespeicherten Modus damit prueft. */
+const MODUS_NAME = {wand:"Boden + Wand", boden:"Nur Boden"};
 let S = load();
 /* Muss nach load() laufen: sidesOf() braucht S.sessions. */
 (function(){ const sd = S.ex[S.exercise] ? sidesOf(S.exercise) : [null];
@@ -1769,6 +1772,11 @@ function fresh(){
        erscheinen nur, wenn hier ein Haken steht. Moebel zaehlen nicht dazu —
        die setzt die App voraus. */
     geraete:{zug:true},
+    /* Training ohne Geraete (Luke, 01.10.2026, im Urlaub): "normal", "wand"
+       (Boden + Wand) oder "boden" (Nur Boden). Gilt, bis man ihn ausschaltet.
+       Beim Einschalten parkt modusSetzen Stufen und Heimgewichte hier und legt
+       sie beim Ausschalten unveraendert zurueck. */
+    modus:"normal", standMitGeraeten:null,
     /* Deckel auf die Blockzahl, und die von Hand zusammengestellte Einheit
        (gilt nur fuer den Tag, an dem sie gewaehlt wurde). */
     maxBloecke:MAX_BLOECKE, heute:null, heuteTag:null,
@@ -1853,7 +1861,19 @@ function normalize(d){
      bleibt abgewaehlt, denn der Haken schreibt false, nicht undefined. */
   const ger = Object.assign({zug:true}, d.geraete || {});
   if(ger.band === undefined && ger.gewicht) ger.band = true;
+  /* Die geparkten Heimwerte (siehe modusSetzen) laufen durch dieselben
+     Umzuege wie die aktiven, sonst kaemen sie nach einem Leiterumbau beim
+     Ausschalten auf alten Nummern zurueck. Auf einer Kopie: Einige Umzuege
+     schreiben in die Sitzungen, und die laufen gleich noch einmal durch. */
+  const modus = MODUS_NAME[d.modus] ? d.modus : "normal";
+  const sp = d.standMitGeraeten;
+  const park = (modus !== "normal" && sp && typeof sp === "object")
+    ? (n => ({levels: n.levels, extra: n.extra}))(normalize(Object.assign(structuredClone(d), {
+        levels: sp.levels || {}, extra: sp.extra || {},
+        modus:"normal", standMitGeraeten:null, lauf:null})))
+    : null;
   return Object.assign(fresh(), d, {ex, exVersion:EX_VERSION,
+                                    modus, standMitGeraeten: park,
                                     rest: stale ? {...DEFAULT_REST}
                                                 : Object.assign({...DEFAULT_REST}, d.rest||{}),
                                     aktiv: d.aktiv || {},
@@ -2045,8 +2065,13 @@ function standOf(key){
   const v = S.levels && S.levels[key];
   if(Number.isFinite(v)) return v;
   const e = S.ex[String(key).split("|")[0]];
+  const ex = String(key).split("|")[0];
   const s0 = e && e.startStufe;
-  return (s0 != null && e.levels[s0] && geraetDa(e.levels[s0].geraet)) ? s0 : 0;
+  if(s0 != null && e.levels[s0] && stufeErlaubt(ex, s0)) return s0;
+  /* Erst die erste erlaubte Sprosse, nicht blind 0: Im Modus ohne Geraete
+     braucht Sprosse 0 oft Moebel. */
+  const erste = e ? verfuegbareStufen(ex)[0] : null;
+  return erste ? erste.i : 0;
 }
 function curKey(){ return keyOf(S.exercise, S.side); }
 function sidesOf(ex){
@@ -2648,6 +2673,91 @@ function geraetDa(g){
   return !!(S.geraete && S.geraete[g]);
 }
 const geraetId = g => Array.isArray(g) ? g[0] : g;
+/* ── Training ohne Geraete (Build 2026-10-01 b) ────────────────────────
+   Luke, 01.10.2026, im Urlaub: nur ein Boden. Kein Geraet, kein Rucksack,
+   keine Waage, keine Moebel, kein Stepper. Zwei Modi: "boden" (Nur Boden)
+   und "wand" (Boden + Wand). Wo eine Sprosse steht, sagt ort; eine Sprosse
+   ohne ort braucht Moebel oder Stepper und faellt im Modus weg, ebenso jede
+   mit Geraet. Gelesen wird aus DEFAULT_EX, damit kein EX_VERSION-Sprung die
+   Ruhetage zuruecksetzt (Vorbild huefteStandbein). */
+function ohneGeraete(){ return !!MODUS_NAME[S.modus]; }
+function stufeOrt(ex, i){
+  const L = S.ex[ex] && S.ex[ex].levels[i];
+  if(!L) return null;
+  if(L.ort) return L.ort;
+  const D = (DEFAULT_EX[ex] && DEFAULT_EX[ex].levels) || [];
+  const d = (D[i] && D[i].name === L.name) ? D[i] : D.find(x => x.name === L.name);
+  return (d && d.ort) || null;
+}
+/* Die eine Pruefung, ob eine Sprosse heute ausfuehrbar ist. Ohne Modus wie
+   bisher: das Geraet ist angehakt. */
+function stufeErlaubt(ex, i){
+  const L = S.ex[ex] && S.ex[ex].levels[i];
+  if(!L) return false;
+  if(!ohneGeraete()) return geraetDa(L.geraet);
+  if(L.geraet) return false;
+  const o = stufeOrt(ex, i);
+  return o === "boden" || (o === "wand" && S.modus === "wand");
+}
+/* Rechnet fn, als waere der Modus aus: fuer alles, was mit den Werten von
+   zuhause rechnen muss (Handeintrag im Verlauf, Angaben im Export). */
+function mitGeraeten(fn){
+  const m = S.modus;
+  if(!MODUS_NAME[m]) return fn();
+  S.modus = "normal";
+  try{ return fn(); } finally { S.modus = m; }
+}
+/* Naechste erlaubte Sprosse zu einer Stufe, nach der LAST, nicht nach der
+   Nummer: Ausfallschritt zuhause auf dem Stepper (Sprosse 6) liegt naeher an
+   der Wand mit 3 Fusslaengen als am Kniestand am Boden. Gleich nah: die
+   leichtere. */
+function naechsteErlaubte(ex, i){
+  const st = verfuegbareStufen(ex);
+  const L = S.ex[ex] && S.ex[ex].levels[i];
+  if(!st.length || !L) return i;
+  if(st.some(x => x.i === i)) return i;
+  const ab = x => Math.abs(Math.log(x.load / L.load));
+  return st.reduce((a, b) => (ab(b) < ab(a) - 1e-9) ? b : a).i;
+}
+function modusName(){ return MODUS_NAME[S.modus] || ""; }
+/* Ein- und Ausschalten. Beim Einschalten werden Stufen und Heimgewichte
+   geparkt, damit Regeln und Karte im Modus nichts davon ueberschreiben: Mit
+   der Gewichtsspanne null wuerde jede Regel das Heimgewicht auf null setzen.
+   Die Stufen im Modus starten auf der naechsten erlaubten Sprosse. Beim
+   Ausschalten kommt alles unveraendert zurueck. Gemeinsam bleiben Kurven,
+   Fehl- und Schmerzzaehler und die Tageswahl. */
+function modusSetzen(neu){
+  neu = MODUS_NAME[neu] ? neu : "normal";
+  const alt = MODUS_NAME[S.modus] ? S.modus : "normal";
+  if(neu === alt) return;
+  if(alt === "normal") S.standMitGeraeten = {levels: S.levels || {}, extra: S.extra || {}};
+  const park = S.standMitGeraeten || {levels:{}, extra:{}};
+  const vorher = (alt === "normal") ? {} : (S.levels || {});
+  S.modus = neu;
+  if(neu === "normal"){
+    S.levels = park.levels || {};
+    S.extra  = park.extra  || {};
+    S.standMitGeraeten = null;
+  } else {
+    /* Beim Wechsel zwischen den beiden Modi zaehlt der Stand im Modus, sonst
+       der von zuhause. */
+    const lv = {};
+    const quelle = Object.assign({}, park.levels || {}, vorher);
+    for(const k of Object.keys(quelle)){
+      const ex = String(k).split("|")[0];
+      lv[k] = S.ex[ex] ? naechsteErlaubte(ex, quelle[k]) : quelle[k];
+    }
+    S.levels = lv;
+    S.extra = {};
+  }
+  S.plan = null; S.planDay = null;
+  /* Ist von den heute angehakten Uebungen keine mehr machbar, hakt die App
+     neu vor. */
+  if(Array.isArray(S.heute) && !S.heute.some(ex => S.ex[ex] && ausfuehrbar(ex))){
+    S.heute = null; S.heuteTag = null;
+  }
+  save();
+}
 /* Auf "hier fehlt ein Zwischenschritt" kann die App eine genaue Antwort geben,
    statt auf ein Geraet zu tippen: Sie sieht nach, welche Sprossen zwischen der
    alten und der neuen Stufe liegen und an welchem fehlenden Geraet sie haengen. */
@@ -2666,7 +2776,7 @@ function fehlendeZwischen(ex, von, bis){
 function geraetName(id){ const g = GERAETE.find(x => x.id === id); return g ? g.name : id; }
 function verfuegbareStufen(ex){
   const lv = (S.ex[ex] && S.ex[ex].levels) || [];
-  return lv.map((L, i) => Object.assign({i}, L)).filter(L => geraetDa(L.geraet));
+  return lv.map((L, i) => Object.assign({i}, L)).filter(L => stufeErlaubt(ex, L.i));
 }
 /* Lastverhaeltnis zwischen oberster und unterster verfuegbarer Sprosse.
    Zusatzgewicht taucht hier nicht auf: es skaliert ALLE Sprossen gleich und
@@ -2896,7 +3006,9 @@ function zoneLastDay(gr){
   for(const ses of S.sessions){
     if(gr && groupOf(ses.exercise) !== gr) continue;
     if(!ergiebig(ses)) continue;
-    const z = ses.workoutZone || ses.zone;
+    /* Im Modus ohne Geraete landet ein Block oft in einer anderen Zone als
+       geplant; dann zaehlt die wirklich trainierte (zoneGezaehlt). */
+    const z = ses.zoneGezaehlt || ses.workoutZone || ses.zone;
     if(!z || last[z] === undefined) continue;
     const d = dayNum(ses.date);
     if(d != null && (last[z] === null || d > last[z])) last[z] = d;
@@ -2999,7 +3111,7 @@ function offeneSeite(ex){
   const vor = bezug[e.sides.find(x => hat.has(x))] || null;
   if(vor && vor.nachhol) return null;
   return {seite: fehlt[0], tag,
-          zone:   (vor && vor.workoutZone) || null,
+          zone:   (vor && (vor.zoneGezaehlt || vor.workoutZone)) || null,
           target: (vor && vor.target > 0 ? vor.target : null)};
 }
 function uebungslage(){
@@ -3252,6 +3364,8 @@ function extraAbOf(ex){
 function extraBereich(ex, level){
   const e = S.ex[ex] || {};
   const schritt = (e.extraSchritt != null) ? e.extraSchritt : ZUSATZ_SCHRITT;
+  /* Ohne Geraete auch kein Gewicht: kein Rucksack, keine Kettlebell. */
+  if(ohneGeraete()) return {lo:0, hi:0, schritt};
   const g = e.extraGeraet;
   const da = !g || (Array.isArray(g) ? g : [g])
                      .every(x => !!(S.geraete && S.geraete[x]));
@@ -3288,7 +3402,7 @@ function waageTiefe(e, bw, schritt, anteil){
 }
 function waageSpanne(ex){
   const e = S.ex[ex] || {}, g = e.extraMinGeraet;
-  if(!g || !(S.geraete && S.geraete[g])) return null;
+  if(ohneGeraete() || !g || !(S.geraete && S.geraete[g])) return null;
   return waageTiefe(e, (S.bw > 0 ? S.bw : BW_DEFAULT),
                     (e.extraSchritt != null) ? e.extraSchritt : ZUSATZ_SCHRITT,
                     (e.extraAnteil != null) ? e.extraAnteil : MAX_ZUSATZ_ANTEIL);
@@ -3580,6 +3694,19 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
           if(d < best){ best = d; level = st.i; erweitert = true; }
         });
       }
+    } else if(ohneGeraete()){
+      /* Im Modus ohne Geraete liegt oft keine erlaubte Sprosse im Bereich:
+         gemessen wurde zuhause, auf Stepper und Moebeln. Die Karte soll
+         trotzdem sagen, wo der Block landet (Luke, 01.10.: naechste
+         erreichbare Zone), also rechnet die Kurve ueber die wenigen Sprossen
+         weiter, die der Modus laesst. */
+      stufen.forEach(st => {
+        const t = predictTime(f, lastVon(ex, st.i, kgFuer(st.i)));
+        if(!isFinite(t)) return;
+        const d = Math.abs(Math.log(t/target));
+        if(d < best){ best = d; level = st.i; erweitert = true; }
+      });
+      if(best < Infinity) herkunft = "kurve"; else ausserhalb = true;
     } else ausserhalb = true;
   }
   if(herkunft !== "kurve" && (anker = ankerpunkt(ex))){
@@ -3663,7 +3790,7 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
   return {exercise:ex, side, zone, zoneErwartet, soll: target,
           fresh, zweiteSeite: !fresh, level, levelVorschlag:level,
           extra: kg, saetze: SETS_ZONE[zoneErwartet] || SETS,
-          art: leiterArt(ex), ausserhalb, erweitert,
+          art: leiterArt(ex), ausserhalb, erweitert, fest: !!fest,
           fehlt: fehlt.map(o=>o.z), abgewichen: !!luecke,
           herkunft, anker, rohStufe: roh,
           target: erwartet};
@@ -3833,6 +3960,8 @@ function planWorkout(){
        Hat der Nutzer selbst zusammengestellt, hat er es nicht angehakt. */
     huefte:  spaeter.filter(u => !dran.some(v => konflikt(v.ex, u.ex)) && huefteWegen(u))
                     .map(u => ({ex: u.ex, wegen: huefteWegen(u)})),
+    /* Reist ueber RUN.plan und S.lauf bis in blockSichern. */
+    modus: MODUS_NAME[S.modus] ? S.modus : "normal",
     blocks
   };
 }
@@ -4130,7 +4259,9 @@ function applyRules(session, etikett){
        ausfaellt — und was ihn kleiner machen wuerde. */
     if(wie){
       const fehlt = fehlendeZwischen(session.exercise, vorherStufe, lvNow());
-      const ids = Object.keys(fehlt);
+      /* Im Modus ohne Geraete ist das Fehlen gewollt, ein Rat zum Anhaken
+         waere fehl am Platz. */
+      const ids = ohneGeraete() ? [] : Object.keys(fehlt);
       if(ids.length){
         const anz = ids.reduce((sum, g) => sum + fehlt[g], 0);
         msgs.push({t:"warn", x:`Der Sprung ist groß, weil dazwischen `
@@ -5201,10 +5332,21 @@ function satzVerworfen(){
    wandert er unverändert in RUN.fertig, mit der Zahl der GEPLANTEN Sätze
    daneben — sonst steht später eine Reihe aus einem Satz neben einer aus
    fünf und nichts unterscheidet sie. */
+/* Training ohne Geraete: Der Satz traegt den Modus, und die Rotation zaehlt
+   die Zone, in der er wirklich lag (zoneGezaehlt = die Zone, die die Karte
+   erwartet hat). Nicht bei einer festen Zone, also selbst gesetzt oder
+   nachgeholt: Die gilt, wie sie gewaehlt wurde. */
+function blockModus(bl){
+  const m = (RUN.plan && RUN.plan.modus) || S.modus;
+  if(!MODUS_NAME[m]) return {};
+  const o = {modus: m};
+  if(!bl.fest && bl.zoneErwartet) o.zoneGezaehlt = bl.zoneErwartet;
+  return o;
+}
 function blockSichern(){
   if(!RUN.sets.length) return false;
   const bl = curBlock();
-  RUN.fertig.push({
+  RUN.fertig.push(Object.assign({
     exercise: bl.exercise, side: bl.side, level: bl.level,
     levelName: stufenName(bl.exercise, bl.level, bl.extra),
     load: lastVon(bl.exercise, bl.level, bl.extra), extra: bl.extra || 0, bw: S.bw || null,
@@ -5216,7 +5358,7 @@ function blockSichern(){
     fresh: bl.fresh, userPicked: !!bl.userPicked, nachhol: !!bl.nachhol,
     saetzeGeplant: curSets(),
     sets: RUN.sets.slice()
-  });
+  }, blockModus(bl)));
   /* Der Block ist abgehakt: Saetze leeren, Zaehler zurueck, einen weiter.
      Dieser Dreisatz ist der Stand, den laufFortsetzen() wiederfindet. */
   RUN.sets = []; RUN.i = 0; RUN.b++;
@@ -5335,7 +5477,20 @@ function finishWorkout(){
     if(sel >= 7) for(const {ses} of gespeichert){
       /* Beim beidbeinigen Halt beide Leitern — es war EINE Belastung fuer
          beide Seiten. */
-      for(const k of regelKeys(ses)) if(standOf(k) > 0) S.levels[k] = standOf(k) - 1;
+      /* Im Modus ohne Geraete auf die naechste erlaubte Sprosse darunter:
+         Liegestuetz Nur Boden von "Boden" (7) auf "Knie abgelegt" (4), nicht
+         auf den Stuhlsitz, den es im Hotel nicht gibt. */
+      for(const k of regelKeys(ses)) if(standOf(k) > 0){
+        const tiefer = ohneGeraete()
+          ? verfuegbareStufen(ses.exercise).filter(x => x.i < standOf(k)).pop() : null;
+        if(!ohneGeraete()) S.levels[k] = standOf(k) - 1;
+        else if(tiefer) S.levels[k] = tiefer.i;
+      }
+      /* Im Modus ohne Geraete auch die geparkte Heimsprosse: Schmerz ist ein
+         Koerpersignal, kein Modus-Signal. */
+      const heim = ses.modus && S.standMitGeraeten && S.standMitGeraeten.levels;
+      if(heim) for(const k of regelKeys(ses))
+        if(Number.isFinite(heim[k]) && heim[k] > 0) heim[k] -= 1;
     }
     S.plan = null; S.planDay = null; ignoreRest = false; RUN = null; S.lauf = null; save();
     showWorkoutResult(gespeichert, sel);
@@ -5358,8 +5513,9 @@ function showWorkoutResult(gespeichert, painEnd){
         <h3 style="margin-top:0">${labelOf(ses.exercise, ses.side, ses.level)}
           ${ses.fresh === false ? '<span class="pill pRest">vorermüdet</span>' : ''}</h3>
         <p class="tiny" style="margin:0 0 8px">${ses.levelName} · Zone ${ses.zone}${
-          ses.workoutZone && ses.workoutZone !== ses.zone
-            ? ` <span class="tiny">(geplant ${ses.workoutZone} — zählt, wo er gelandet ist)</span>` : ""}</p>
+          (ses.zoneGezaehlt || ses.workoutZone) && (ses.zoneGezaehlt || ses.workoutZone) !== ses.zone
+            ? ` <span class="tiny">(geplant ${ses.zoneGezaehlt || ses.workoutZone} — zählt, wo er gelandet ist)</span>` : ""}${
+          ses.modus ? ` · ${MODUS_NAME[ses.modus]}` : ""}</p>
         <table><thead><tr><th>Satz</th><th class="n">gehalten</th><th class="n">Richtwert</th><th>Ende</th></tr></thead>
         <tbody>${ses.sets.map((x,i)=>`<tr><td>${i+1}</td><td class="n">${fmt(x.time)}</td>
           <td class="n">${fmt(x.target)}</td>
@@ -5422,16 +5578,22 @@ function gewichtAchse(ex){
           lo: Math.min(...st.map(x => lastVon(ex, x.i, unten(x.i)))),
           hi: lastVon(ex, top, hiKg)};
 }
+/* Warum eine Sprosse ausgegraut ist. Vorher stand dort die rohe Kennung
+   ("zug fehlt"). */
+function fehltText(l){
+  if(ohneGeraete()) return `nicht im Modus ${modusName()}`;
+  return `${geraetName(geraetId(l.geraet))} fehlt`;
+}
 function stufenLegende(pts){
   const lv = curEx().levels;
   const gemessen = new Set(pts.map(p => p.level));
   const zeilen = lv.map((l,i)=>{
-    const da  = geraetDa(l.geraet);
+    const da  = stufeErlaubt(S.exercise, i);
     const jetzt = (i === curLevel());
     return `<div style="${da?"":"opacity:.45;"}${jetzt?"color:var(--acc);font-weight:600;":""}">
       <span style="display:inline-block;min-width:1.5em">${i+1}</span>${l.name}${
       gemessen.has(i) ? ` <span style="color:var(--acc)">\u25cf</span>` : ""}${
-      da ? "" : ` \u00b7 ${l.geraet} fehlt`}</div>`;
+      da ? "" : ` \u00b7 ${fehltText(l)}`}</div>`;
   }).join("");
   const ga = achseZuletzt;
   return `<div class="tiny" style="margin-top:9px;line-height:1.6">${zeilen}
@@ -5586,12 +5748,15 @@ function historySVG(pts){
    nicht dieselbe Groesse. */
 /* 3 (29.09.2026): Spalte zusatz_position dazu — beim aufrechten Laeufer
    haengt extra_k seitdem an der Position des Gewichts. */
-const EXPORT_SCHEMA = 3;
+/* 4 (01.10.2026): zone_gezaehlt und modus dazu — Training ohne Geraete.
+   zone_gezaehlt ist die Zone, die die Rotation zaehlt, wenn sie von der
+   geplanten abweicht; modus ist leer, "wand" oder "boden". */
+const EXPORT_SCHEMA = 4;
 const EXPORT_SPALTEN = [
   "datum","workout","uebung","uebung_name","seite","variante","stufe_nr",
   "zusatz_kg","zusatz_seite","zusatz_position","koerpergewicht_kg","last","satz","saetze_geplant","sekunden","ziel_sekunden",
   "schmerz","frisch","in_kurve","zone_geplant","zone_erreicht",
-  "selbst_gewaehlt","nachgetragen","fassung"
+  "selbst_gewaehlt","nachgetragen","fassung","zone_gezaehlt","modus"
 ];
 function messreihen(){
   const zeilen = [];
@@ -5634,7 +5799,9 @@ function messreihen(){
         zone_erreicht: ses.zone || "",
         selbst_gewaehlt: ses.userPicked ? 1 : 0,
         nachgetragen: ses.manuell ? 1 : 0,
-        fassung: BUILD
+        fassung: BUILD,
+        zone_gezaehlt: ses.zoneGezaehlt || "",
+        modus: ses.modus || ""
       });
     });
   }
@@ -5685,8 +5852,9 @@ function messreihenJSON(){
                                       l.ruht ? {ruht:true} : {}))
                                   : null,
       zusatzgewicht_ab_stufe: (v.extraAb != null ? v.extraAb : v.levels.length - 1) + 1,
-      zusatzgewicht_von_kg: extraBereich(k).lo,
-      zusatzgewicht_bis_kg: extraBereich(k).hi,
+      /* Die Spanne von zuhause, auch wenn gerade ohne Geraete trainiert wird. */
+      zusatzgewicht_von_kg: mitGeraeten(() => extraBereich(k).lo),
+      zusatzgewicht_bis_kg: mitGeraeten(() => extraBereich(k).hi),
       zusatzgewicht_schritt_kg: extraBereich(k).schritt,
       art: leiterArt(k),
       stufen: v.levels.map((L,i)=>({nr:i+1, name:L.name, last:L.load,
@@ -5818,7 +5986,7 @@ function renderHome(){
       /* Wer mit einer angehakten Übung nicht an denselben Tag darf, sagt es.
          Das Häkchen tauscht die beiden dann. */
       const partner = drin.has(u.ex) ? null : [...drin].find(x => konflikt(x, u.ex));
-      const status = u.ohneGeraet ? "Gerät fehlt"
+      const status = u.ohneGeraet ? (ohneGeraete() ? `nicht im Modus ${modusName()}` : "Gerät fehlt")
         : u.offen ? `${u.offen.seite} offen`
         : (!u.tor.ok && !ignoreRest)
           ? (eigeneZone ? `Zone ${u.tor.gewaehlt} ${tage(u.tor.wait)}` : tage(u.tor.wait))
@@ -5835,14 +6003,30 @@ function renderHome(){
         <input type="checkbox" id="ak-${u.ex}" ${drin.has(u.ex) ? "checked" : ""}
           ${frei ? "" : "disabled"}>
         <span><b>${e.name}</b>${status ? `<br><span class="tiny" style="color:${
-          u.ohneGeraet ? "var(--warn)" : u.offen ? "var(--ok)" : "var(--tx3)"}">${
+          (u.ohneGeraet && !ohneGeraete()) ? "var(--warn)" : u.offen ? "var(--ok)" : "var(--tx3)"}">${
           status}</span>` : ""}${rat ? `<br><span class="tiny" style="color:${
           drin.has(u.ex) ? "var(--warn)" : "var(--tx3)"}">${rat}</span>` : ""}${
           tal ? `<br><span class="tiny" style="color:var(--warn)">Formtal ·
           entlasten empfohlen</span> <span class="pill pPrem">Premium</span>` : ""}</span></label>`;
     }).join("")}
   </div>`;
+  /* Training ohne Geraete: EIN Griff im Startmenue (Luke, 01.10.2026). Gilt,
+     bis man ihn zuruecksetzt. Nicht auf der Karte "Workout laeuft noch":
+     kein Wechsel mitten im Lauf. */
+  const modusKarte = () => {
+    const m = MODUS_NAME[S.modus] ? S.modus : "normal";
+    return `<div class="zw drei" id="modusWahl" style="margin:0 0 12px">${
+      [["normal", "Zuhause"], ["wand", MODUS_NAME.wand], ["boden", MODUS_NAME.boden]]
+        .map(([id, name]) => `<button class="${m === id ? "sel" : "ghost"}" data-modus="${id}"
+          aria-pressed="${m === id}">${name}</button>`).join("")}</div>`;
+  };
+  const modusBinden = () => {
+    document.querySelectorAll("#modusWahl button").forEach(b => b.onclick = () => {
+      modusSetzen(b.dataset.modus); render();
+    });
+  };
   const listeBinden = () => {
+    modusBinden();
     uebungslage().forEach(u => {
       const b = el("ak-" + u.ex); if(!b) return;
       b.onchange = ev => {
@@ -5865,7 +6049,7 @@ function renderHome(){
     const dat = new Date(Date.now() + g.wait*86400000)
       .toLocaleDateString("de-DE", {weekday:"long", day:"numeric", month:"long"});
     el("homeSub").textContent = "";
-    el("homeBody").innerHTML = `
+    el("homeBody").innerHTML = `${modusKarte()}
       <div class="card">
         <span class="pill pRest">Pausentag</span>
         <h2 style="margin:11px 0 2px">${g.kind === "leer" ? "Nichts angehakt" : "Heute nicht"}</h2>
@@ -5883,7 +6067,7 @@ function renderHome(){
     return;
   }
 
-  el("homeBody").innerHTML = `
+  el("homeBody").innerHTML = `${modusKarte()}
     <div class="card">
       ${p.blocks.length ? `
         <h2 style="margin:0;font-size:19px;line-height:1.4;text-wrap:balance">${
@@ -6117,14 +6301,14 @@ function renderProfile(){
       <h3 style="margin-top:0">Was du auf jeder Stufe schaffst</h3>
       <table><thead><tr><th>Stufe</th><th class="n">Last</th><th class="n">Vorhersage</th><th>Zone</th></tr></thead>
       <tbody>${curEx().levels.map((l,i)=>{
-        const drin = imBereich(f, l.load), da = geraetDa(l.geraet);
+        const drin = imBereich(f, l.load), da = stufeErlaubt(S.exercise, i);
         const t = predictTime(f,l.load);
         const z = (drin && isFinite(t) && t<=400) ? zoneOf(t) : null;
         return `<tr${i===curLevel()?' style="background:rgba(78,163,255,.07)"':""}${
           !da?' style="opacity:.45"':""}>
           <td><span class="tiny" style="opacity:.6">${i+1}</span> ${l.name}${
             i===curLevel()?' <span class="tiny">· aktuell</span>':""}${
-            !da?` <span class="tiny">· ${l.geraet} fehlt</span>`:""}</td>
+            !da?` <span class="tiny">· ${fehltText(l)}</span>`:""}</td>
           <td class="n">${l.load.toFixed(2)}</td>
           <td class="n">${!drin ? '<span class="tiny">nicht gemessen</span>'
                         : !isFinite(t)?"sehr lang":t>400?"> 400s":fmt(t)}</td>
@@ -6165,7 +6349,7 @@ function renderHistory(){
         <th class="n">Ziel</th><th class="n">Ampel</th></tr></thead>
       <tbody>${mine.slice().reverse().map(s=>`<tr${(s.fresh===false||s.ausKurve)?' style="opacity:.55"':""}>
         <td>${new Date(s.date).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"})}</td>
-        <td class="tiny">${s.levelName}${s.fresh===false?'<br><span class="tiny">vorermüdet</span>':""}${s.ausKurve?`<br><span class="tiny">${s.ausKurve}</span>`:""}</td>
+        <td class="tiny">${s.levelName}${s.modus && MODUS_NAME[s.modus]?`<br><span class="tiny">${MODUS_NAME[s.modus]}</span>`:""}${s.fresh===false?'<br><span class="tiny">vorermüdet</span>':""}${s.ausKurve?`<br><span class="tiny">${s.ausKurve}</span>`:""}</td>
         <td class="n">${s.sets[0]?fmt(s.sets[0].time):"–"}${s.sets[0]&&s.sets[0].pain
           ?' <span style="color:var(--bad)">!</span>':""}${s.sets[0]&&s.sets[0].time
             &&!messbar(s.sets[0].time)?' <span style="color:var(--warn)">×</span>':""}</td>
@@ -6499,9 +6683,11 @@ function renderSetup(){
     const pre = el("nPre").checked;
     const ses = {
       exercise: ex, side: e.sides ? el("nSide").value : null,
-      level: lvl, levelName: stufenName(ex, lvl, kg),
-      load: lastVon(ex, lvl, kg), extra: kg, bw: S.bw || null,
-      lage: (kg > 0 && lageOf(ex)) ? lageOf(ex).id : undefined,
+      /* Der Nachtrag kann von zuhause sein; im Modus fiele das Gewicht sonst
+         still aus der Last. */
+      level: lvl, levelName: mitGeraeten(() => stufenName(ex, lvl, kg)),
+      load: mitGeraeten(() => lastVon(ex, lvl, kg)), extra: kg, bw: S.bw || null,
+      lage: (kg > 0 && mitGeraeten(() => lageOf(ex))) ? mitGeraeten(() => lageOf(ex)).id : undefined,
       target: zeiten[0], workoutZone: zoneOf(zeiten[0]).id, zone: zoneOf(zeiten[0]).id,
       fresh: !pre, userPicked: true, manuell: true,
       date: new Date(d + "T12:00:00").toISOString(),
