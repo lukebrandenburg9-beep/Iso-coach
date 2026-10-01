@@ -1874,11 +1874,130 @@ die Kurve: ein PR, der erst gerechnet werden muss, wäre keiner.
   PR-Zeile. `zeilenLeeren()` läuft am Anfang jedes `runSet`, im Vorlauf bleiben beide Zeilen
   leer.
 
+### P64 · Welche Seite gemeint ist, steht groß im Timer
+
+Luke, 01.10.: Beim Start einer Übung soll groß und orange stehen, welche Seite gemeint ist, beim
+Ausfallschritt zum Beispiel „RECHTER FUß VORNE". Bisher stand die Seite nur klein in der grauen
+Kopfzeile („Ausfallschritt rechts · …"). Was „rechts" heißt, musste man im Hinweistext der Übung
+nachlesen, und beim Ausfallschritt fehlte dort dieser Satz ganz.
+
+**Gebaut in 2026-10-01 a.**
+
+- **Zwischen Kopfzeile und Ziel steht die Seite in Großbuchstaben, orange und fett.** Es ist
+  das Orange der Glut, das ab der Vorgabe unter der Uhr leuchtet. Die Zeile steht ab der
+  Einlaufzeit („In Position gehen") und in jedem Satz des Blocks.
+- **Die Wörter folgen den Hinweistexten:**
+  - Ausfallschritt: „LINKER FUß VORNE" oder „RECHTER FUß VORNE"
+  - Seitstütz: „LINKER ARM UNTEN" oder „RECHTER ARM UNTEN"
+  - Fersenbrücke: „LINKES BEIN TRÄGT" oder „RECHTES BEIN TRÄGT"
+  - Aufrechter Läufer, Wadenheben und Handtuchrolle: „LINKES BEIN STEHT" oder „RECHTES BEIN STEHT"
+- **Keine Zeile ohne Seite:** bei Liegestütz und Schrägzug und auf beidbeinigen Sprossen (Wadenheben
+  und Handtuchrolle im beidbeinigen Stand). Dort gibt es kein links und rechts.
+- **Der Hinweistext des Ausfallschritts beginnt jetzt mit „»Links« heißt: der LINKE Fuß steht
+  vorne."**, wie bei Seitstütz, Fersenbrücke und Läufer.
+
+**Der Preis.** Die Zeile schiebt Ziel und Uhr um eine Zeile nach unten, solange sie steht. Auf
+375 × 812 bleibt alles im Bild.
+
+**Für den Nachbau:**
+
+- `seitenRuf:{links, rechts}` an sechs Einträgen in `DEFAULT_EX`. Gelesen wird direkt aus
+  `DEFAULT_EX`, nicht aus dem gespeicherten `S.ex`, damit es ohne `EX_VERSION`-Sprung auch bei
+  bestehenden Nutzern ankommt (Vorbild `huefteStandbein`).
+- `seitenRuf(bl)` gibt leer zurück ohne `bl.side` und auf `beidStufe(ex, level)`.
+- Markup `#tSeite` zwischen `#tWhat` und `#tTarget`. CSS-Token `--orange: #ff8a1f`,
+  `clamp(20px, 6vw, 28px)`, `#tSeite:empty` verschwindet. `nextSet` gibt `seite` an `runSet`.
+- Der Hinweistext im Onboarding liest ebenfalls zuerst `DEFAULT_EX` (`hintVon`), sonst stünde
+  der neue Satz nur bei neuen Nutzern.
+
+### P65 · Die Zone wählt wieder ihre Sprosse: die Kurve rechnet weiter
+
+Luke, 01.10.: „Wenn Zonen eingestellt sind, wird nicht die entsprechende Sprosse vorgeschlagen
+(stimmt das?)". **Das stimmt.** Die Ursache war nicht die Zahl der Messpunkte, sondern wie weit
+ihre Lasten auseinanderliegen.
+
+**Warum.** Mit einer Kurve wählte die App nur Sprossen, deren Last höchstens 12 % neben einer
+schon gemessenen liegt. Außerhalb davon galt die Vorhersage als Verlängerung ins Leere. Liegen
+die Messpunkte nah beieinander, bleibt dieser Bereich schmal, und jede Zone landet auf derselben
+Sprosse:
+
+- **Liegestütz**, gemessen auf Sprosse 7 (40 s) und 8 (28 s): Zone A, B und C ergaben alle
+  Sprosse 7, obwohl die Kurve für Sprosse 6 „Boden" 70 s und für Sprosse 5 „Stuhlsitz" 147 s
+  sagt.
+- Mit nur **einem** Messpunkt wanderten die Zonen dagegen frei. Dann rechnet die App über den
+  Anker, und der kennt diese Grenze nicht.
+
+**Lukes Entscheidung (01.10.): „Kurve rechnet weiter",** und zwar immer: für die selbst gesetzte
+Zone und für die Zone aus der Rotation.
+
+**Gebaut in 2026-10-01 a.**
+
+- **Zuerst wählt die App wie bisher** unter den Sprossen im gemessenen Bereich die, deren
+  Zeit dem Zonenziel am nächsten kommt. Trifft diese Sprosse das Zonenfenster (A 20–60 s,
+  B 60–90 s, C 90–150 s), ändert sich nichts.
+- **Verfehlt sie das Fenster, rechnet die Kurve weiter:** Sie bewertet auch die Sprossen
+  außerhalb ihres Bereichs, höchstens drei Sprossen von der besten entfernt, und nimmt die, deren
+  vorhergesagte Zeit dem Zonenziel am nächsten liegt.
+- **Die Karte zeigt die Zeit der Kurve**, nicht den Sollwert der Zone. Stellt man auf der Karte
+  die Stufe um, rechnet sie für jede Stufe weiter. Nach der Messung steuert die Nachregelung wie
+  immer nach.
+- Der Weg über einen einzigen Messpunkt und der Start ohne Messung bleiben, wie sie waren.
+
+| Zone | Liegestütz (7: 40 s, 8: 28 s) | Ausfallschritt rechts (7: 45 s, 6: 70 s) |
+|---|---|---|
+| A, Ziel 40 s | Sprosse 7, 40 s | Sprosse 7 „Kniestand", 45 s |
+| B, Ziel 75 s | Sprosse 6 „Boden", 70 s | Sprosse 6 „Stepper 1 Stufe", 70 s |
+| C, Ziel 120 s | Sprosse 5 „Stuhlsitz", 147 s | Sprosse 4 „Stepper 3 Stufen", 147 s |
+
+**Der Preis.**
+
+- **Die Zeit auf der Karte kann weiter danebenliegen als bisher.** Sie kommt aus dem Teil der
+  Kurve, den noch keine Messung stützt. Das ist der Tausch, den Luke gewählt hat: die richtige
+  Zone vor der sicheren Zahl. Der erste Satz auf der neuen Sprosse liefert genau den Messpunkt,
+  der den Bereich verbreitert.
+- **Höchstens drei Sprossen Sprung.** Liegt die passende Sprosse weiter weg, nimmt die App die
+  nächstbeste innerhalb der drei. Das ist dieselbe Grenze, die auch der Ankerweg hat.
+
+**Für den Nachbau:**
+
+- In `mkBlock` nach der Auswahl im Bereich: liegt `predictTime` der besten Sprosse außerhalb von
+  `ZONES[zone].lo…hi`, laufen alle `stufenFuerSeite` mit `|i − beste| <= MAX_SPRUNG` noch einmal
+  durch die Bewertung |log(t/Ziel)|, ohne `imBereich`. Gewinnt eine davon, ist `erweitert` gesetzt.
+- `vorhergesagt` zählt `erweitert` mit, der Block trägt `erweitert`. `zielNeu` rechnet bei
+  `bl.erweitert` auch außerhalb des Bereichs.
+- Das Gewicht auf der obersten Sprosse wird in beiden Durchgängen gleich bewertet
+  (`kgFuer`: gemerktes Gewicht, bei `gewichtFolgt` das gerechnete).
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-01 a — Seitenansage im Timer · Zone wählt wieder ihre Sprosse
+
+**Befund (Luke).** Beim Start einer Übung soll groß und orange stehen, welche Seite gemeint ist,
+zum Beispiel „RECHTER FUß VORNE" (P64). Und: Bei gesetzter Zone schlug die App nicht die
+passende Sprosse vor. Das stimmte, sobald die Messpunkte nah beieinanderlagen (P65).
+
+**Gebaut.**
+
+- **Timer:** Zwischen Kopfzeile und Ziel steht bei Übungen mit Seiten die Seite in orangen
+  Großbuchstaben, ab der Einlaufzeit und in jedem Satz. Auf beidbeinigen Sprossen und bei
+  Übungen ohne Seiten steht nichts.
+- **Hinweistext:** Der Ausfallschritt hat jetzt den Satz, was „links" heißt.
+- **Zonen:** Verfehlt die beste Sprosse im gemessenen Bereich das Zonenfenster, rechnet die
+  Kurve über ihren Bereich hinaus, höchstens drei Sprossen weit, und die Karte zeigt deren Zeit.
+  Lukes Entscheidung: „Kurve rechnet weiter", für selbst gesetzte und rotierte Zonen.
+
+**Geprüft.** Im Node-Abgleich mit dem Skript aus `index.html`:
+
+- Liegestütz (7: 40 s, 8: 28 s): A → 7 (40 s), B → 6 (70 s), C → 5 (147 s). Vorher alle drei
+  auf 7.
+- Ausfallschritt rechts (7: 45 s, 6: 70 s): A → 7, B → 6, C → 4 (147 s).
+- Liegestütz mit einem Messpunkt unverändert (A → 7, B → 4, C → 3).
+- Seitenansage für alle sechs Übungen richtig. Leer bei Liegestütz, beim beidbeinigen
+  Wadenheben und ohne Seite. Kommt auch bei gespeicherten Übungen ohne das neue Feld an.
 
 ### 2026-09-29 c — Timer mit Restzeit zur Vorgabe und Abstand zum PR
 

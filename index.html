@@ -21,6 +21,7 @@
   --acc:#3fbfae; --accInk:#0b2a26;                     /* Interaktion, Kurve */
   --zoneA:#d9534f; --zoneB:#4a9fd4; --zoneC:#d9a441;   /* Zonenskala, eigen */
   --ok:#5ec26a; --warn:#e0a33e; --bad:#e0574a;         /* Zustand */
+  --orange:#ff8a1f;                                    /* Glut im Timer, Seitenansage */
   --mono:"IBM Plex Mono","SF Mono",ui-monospace,Menlo,monospace;
   --r:14px;
 }
@@ -114,6 +115,8 @@ td.n,.kpi b{font-family:var(--mono)}
 #timerScreen.on{display:flex}
 #tClock{font-size:clamp(74px,26vw,148px);line-height:1;margin:8px 0;font-weight:300}
 #tTarget{font-size:17px;color:var(--tx2)}
+#tSeite{color:var(--orange);font-weight:700;font-size:clamp(20px,6vw,28px);letter-spacing:.06em;margin:4px 0 2px}
+#tSeite:empty{display:none}
 /* Drei Zeilen: ueber der Uhr der Abstand zum PR, darunter die Restzeit bis
    zur Vorgabe. Beide halten ihren Platz auch leer — sonst rutscht die grosse
    Uhr in dem Moment, in dem die Prozentzeile erscheint. */
@@ -270,6 +273,7 @@ code{background:var(--panel2);padding:1.5px 5px;border-radius:5px;font-size:12.5
 <div id="timerScreen">
   <div>
     <div class="muted" id="tWhat"></div>
+    <div id="tSeite"></div>
     <div id="tTarget"></div>
   </div>
   <div class="tapzone" id="tTap">
@@ -506,9 +510,11 @@ const DEFAULT_EX = {
   },
   lunge: {
     name:"Ausfallschritt", region:"Knie", group:"legs", sides:["links","rechts"],
+    seitenRuf:{links:"LINKER FUß VORNE", rechts:"RECHTER FUß VORNE"},
     extraAb:5, extraK:1,
     extraHint:"Rucksack oder Weste, körpernah getragen.",
-    hint:"Zwei Stellungen in einer Leiter — die Sprosse sagt, welche. STEHEND AN DER WAND: "
+    hint:"»Links« heißt: der LINKE Fuß steht vorne. "
+        +"Zwei Stellungen in einer Leiter — die Sprosse sagt, welche. STEHEND AN DER WAND: "
         +"vorderer Fuß mit den Zehen an die Wand, hinterer Fuß im angegebenen Abstand dahinter, "
         +"in eigenen Fußlängen von der Wand weg abgezählt; absenken, bis die Kniescheibe des "
         +"vorderen Beins die Wand fast berührt, hinteres Bein gestreckt, Ferse hoch. "
@@ -569,6 +575,7 @@ const DEFAULT_EX = {
      leichter, sie misst etwas anderes. Steht als P21 im Protokoll. */
   plank: {
     name:"Seitstütz", region:"Rumpf", group:"core", sides:["links","rechts"],
+    seitenRuf:{links:"LINKER ARM UNTEN", rechts:"RECHTER ARM UNTEN"},
     /* extraK = 2: Ein Kilo auf der oberen Huefte wirkt hier doppelt so stark
        wie sein Anteil am Koerpergewicht — es sitzt am wirksamsten Hebelpunkt.
        Deshalb steht der Ort in extraHint und nicht als Empfehlung nebenbei. */
@@ -706,6 +713,7 @@ const DEFAULT_EX = {
   hinge: {
     name:"Fersenbrücke", region:"Oberschenkelrückseite", group:"hinge",
     sides:["links","rechts"], extraAb:3, extraK:1.4,
+    seitenRuf:{links:"LINKES BEIN TRÄGT", rechts:"RECHTES BEIN TRÄGT"},
     extraHint:"Auf dem Becken, nicht auf dem Bauch — über dem Hüftgelenk wirkt es am "
              +"stärksten. Eine Hantelscheibe oder ein Rucksack quer über die Hüftknochen.",
     hint:"»Links« heißt: das LINKE Bein trägt, das rechte ist angehoben. Ferse auf die "
@@ -822,6 +830,7 @@ const DEFAULT_EX = {
   laeufer: {
     name:"Aufrechter Läufer", region:"Hüfte", group:"abduct",
     sides:["links","rechts"],
+    seitenRuf:{links:"LINKES BEIN STEHT", rechts:"RECHTES BEIN STEHT"},
     /* Die ganze Uebung ist aeussere Huefte des Standbeins — siehe huefteHeute. */
     huefteStandbein:true,
     extraAb:0, extraK:3.44, extraKNeg:1.44,
@@ -924,6 +933,7 @@ const DEFAULT_EX = {
   wade: {
     name:"Isometrisches Wadenheben", region:"Wade", group:"calf",
     sides:["links","rechts"], seitenParallel:true, nichtMit:["handtuch"],
+    seitenRuf:{links:"LINKES BEIN STEHT", rechts:"RECHTES BEIN STEHT"},
     /* Einbeinig haelt die aeussere Huefte das Becken mit — siehe huefteHeute. */
     huefteStandbein:true,
     /* Neue Nutzer beginnen einbeinig, nicht auf der leichtesten Sprosse. */
@@ -1021,6 +1031,7 @@ const DEFAULT_EX = {
   handtuch: {
     name:"Isometrisches Wadenheben mit Handtuchrolle", region:"Fußsohle", group:"arch",
     sides:["links","rechts"], seitenParallel:true, nichtMit:["wade"],
+    seitenRuf:{links:"LINKES BEIN STEHT", rechts:"RECHTES BEIN STEHT"},
     /* Einbeinig wie beim Wadenheben, beidbeinig nicht — siehe huefteHeute. */
     huefteStandbein:true,
     /* Der Rucksack traegt beide Sprossen, mit derselben Spanne wie beim
@@ -1201,7 +1212,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-09-29 c";
+const BUILD = "2026-10-01 a";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -2085,6 +2096,21 @@ function labelOf(ex, side, level){
 function beidStufe(ex, level){
   const L = (S.ex[ex] && S.ex[ex].levels) || [];
   return !!(L[level] && L[level].beid);
+}
+/* ── Seitenansage im Timer ───────────────────────────────────────────
+   Gross und orange ueber der Zielzeit, ab der Einlaufzeit: welche Seite
+   gemeint ist, in den Worten des Hinweistexts (»Links« heisst: ...).
+   Gelesen aus DEFAULT_EX, damit gespeicherte Uebungen sie ohne
+   EX_VERSION-Sprung bekommen (Vorbild huefteStandbein). Leer ohne Seite
+   und auf beidbeinigen Sprossen — dort gibt es kein links und rechts. */
+function seitenRuf(bl){
+  const r = bl && bl.side && (DEFAULT_EX[bl.exercise] || {}).seitenRuf;
+  if(!r || beidStufe(bl.exercise, bl.level)) return "";
+  return r[bl.side] || "";
+}
+/* Hinweistext fuers Onboarding: der aus DEFAULT_EX, sonst der gespeicherte. */
+function hintVon(k, v){
+  return (DEFAULT_EX[k] && DEFAULT_EX[k].hint) || (v && v.hint) || "";
 }
 function hatBeidStufe(ex){
   return ((S.ex[ex] && S.ex[ex].levels) || []).some(L => L.beid);
@@ -3507,8 +3533,13 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
   const folgt = i => !extraSelbstGesetzt(kgKey(ex, quelle(i), i)) && gewichtFolgt(ex, side, i);
   let level = standOf(key), best = Infinity;
   let herkunft = "stand", anker = null, roh = null;
-  let ausserhalb = false;
+  let ausserhalb = false, erweitert = false;
   if(f){
+    const kgFuer = i => {
+      let k = kgAuf(i);
+      if(folgt(i)){ const k2 = zielKg(ex, i, f, null, target); if(k2 != null) k = k2; }
+      return k;
+    };
     /* Nur Sprossen, die im GELTUNGSBEREICH der Kurve liegen: ausserhalb ist
        die Vorhersage eine Verlaengerung ins Leere. Findet sich dort keine,
        faellt der Block auf die Ankerrechnung zurueck — die sagt ehrlich, dass
@@ -3517,9 +3548,7 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
        bringt (gewichtFolgt). Sie zaehlt, sobald die Kurve die Sprosse selbst
        kennt — ohne Gewicht oder mit dem gerechneten. */
     stufen.forEach(st => {
-      let kgSt = kgAuf(st.i);
-      if(folgt(st.i)){ const k2 = zielKg(ex, st.i, f, null, target); if(k2 != null) kgSt = k2; }
-      const last = lastVon(ex, st.i, kgSt);
+      const last = lastVon(ex, st.i, kgFuer(st.i));
       const drin = imBereich(f, last) || (folgt(st.i) && gewichtRechnet(f, ex, side, st.i));
       if(!drin) return;
       const t = predictTime(f, last);
@@ -3527,8 +3556,31 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
       const d = Math.abs(Math.log(t/target));
       if(d < best){ best = d; level = st.i; }
     });
-    if(best < Infinity) herkunft = "kurve";
-    else ausserhalb = true;
+    if(best < Infinity){
+      herkunft = "kurve";
+      /* Lukes Entscheidung vom 01.10.2026: "Kurve rechnet weiter" — immer,
+         fuer die selbst gesetzte Zone wie fuer die aus der Rotation. Liegen
+         die Messpunkte nah beieinander, ist der Geltungsbereich schmal, und
+         jede Zone blieb auf derselben Sprosse haengen (Liegestuetz gemessen
+         auf 7 und 8: A, B und C gaben alle 7, obwohl die Kurve fuer 6 rund
+         70 s und fuer 5 rund 147 s sagt). Verfehlt die beste Sprosse im
+         Bereich das Zonenfenster, bewertet die Kurve deshalb auch die
+         Sprossen ausserhalb, hoechstens MAX_SPRUNG weit weg, und nimmt die,
+         deren Zeit dem Zonenziel am naechsten kommt. Die Karte zeigt dann die
+         Zeit der Kurve; Regel 2a steuert nach der Messung wie immer nach. */
+      const fenster = ZONES.find(z => z.id === zone);
+      const tBest = predictTime(f, lastVon(ex, level, kgFuer(level)));
+      if(fenster && (tBest < fenster.lo || tBest > fenster.hi)){
+        const vorher = level;
+        stufen.forEach(st => {
+          if(Math.abs(st.i - vorher) > MAX_SPRUNG) return;
+          const t = predictTime(f, lastVon(ex, st.i, kgFuer(st.i)));
+          if(!isFinite(t)) return;
+          const d = Math.abs(Math.log(t/target));
+          if(d < best){ best = d; level = st.i; erweitert = true; }
+        });
+      }
+    } else ausserhalb = true;
   }
   if(herkunft !== "kurve" && (anker = ankerpunkt(ex))){
     const ziel = anker.load * (ANNAHME_CP + (1-ANNAHME_CP) * anker.time / target);
@@ -3601,7 +3653,7 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
      hinaus voraus — dort rechnet sie das Gewicht, und die Zahl auf der Karte
      muss dieselbe sein, aus der das Gewicht kam. Das gilt auch fuer ein von
      Hand gesetztes Gewicht: dieselbe Kurve, dieselbe Sprosse. */
-  const vorhergesagt = !!f && (imBereich(f, lastJetzt) || gewichtRechnet(f, ex, side, level))
+  const vorhergesagt = !!f && (imBereich(f, lastJetzt) || gewichtRechnet(f, ex, side, level) || erweitert)
                        && isFinite(predictTime(f, lastJetzt));
   const tt = vorhergesagt ? predictTime(f, lastJetzt) : target;
   const erwartet = Math.max(15, Math.round(isFinite(tt) ? tt : target));
@@ -3611,7 +3663,7 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
   return {exercise:ex, side, zone, zoneErwartet, soll: target,
           fresh, zweiteSeite: !fresh, level, levelVorschlag:level,
           extra: kg, saetze: SETS_ZONE[zoneErwartet] || SETS,
-          art: leiterArt(ex), ausserhalb,
+          art: leiterArt(ex), ausserhalb, erweitert,
           fehlt: fehlt.map(o=>o.z), abgewichen: !!luecke,
           herkunft, anker, rohStufe: roh,
           target: erwartet};
@@ -4222,6 +4274,7 @@ function prZeile(s){
 
 async function runSet(cfg){
   el("tWhat").textContent = cfg.what;
+  el("tSeite").textContent = cfg.seite || "";
   el("tTarget").innerHTML = `Ziel: <b>${fmt(cfg.target)}</b>`;
   el("timerScreen").classList.add("on");
   el("tBar").style.width = "0%";
@@ -4427,7 +4480,10 @@ function zielNeu(bl){
      die oberste Sprosse mit Gewicht — dieselbe Regel wie in mkBlock. */
   bl.ausserhalb = !!f && !imBereich(f, last)
                && !gewichtRechnet(f, bl.exercise, bl.side, bl.level);
-  if(!f || bl.ausserhalb) return;
+  /* Hat mkBlock fuer die Zone ueber den Bereich hinaus gerechnet ("Kurve
+     rechnet weiter", 01.10.2026), rechnet auch die Karte weiter — sonst
+     stuende nach einem Schritt hin und zurueck die alte Zeit da. */
+  if(!f || (bl.ausserhalb && !bl.erweitert)) return;
   const t = predictTime(f, last);
   if(!isFinite(t)) return;
   bl.target = Math.max(15, Math.round(t));
@@ -4951,6 +5007,7 @@ function nextSet(){
   runSet({
     what: `${blockLabel(p)} · ${RUN.levelName} · Satz ${RUN.i+1} von ${curSets()}`,
     target: tgt,
+    seite: seitenRuf(p),
     pr: prVon(p, RUN.i), prSatz: RUN.i,
     lead: RUN.i === 0,
     done: (time, roh)=>{
@@ -6652,7 +6709,7 @@ function renderOnboard(){
     /* Ohne Fallback stuende hier woertlich "undefined", sobald eine Uebung
        ohne hint oder region dazukommt. */
     b.innerHTML = `<b>${v.name}</b>${v.region ? ` <span class="muted">· ${v.region}</span>` : ""}
-                   ${v.hint ? `<div class="tiny" style="margin-top:4px">${v.hint}</div>` : ""}`;
+                   ${hintVon(k, v) ? `<div class="tiny" style="margin-top:4px">${hintVon(k, v)}</div>` : ""}`;
     b.onclick = ()=>{
       S.exercise = k;
       pick.querySelectorAll("button").forEach(x=>x.classList.remove("primary"));
