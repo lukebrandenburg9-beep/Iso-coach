@@ -1968,7 +1968,7 @@ Zone und für die Zone aus der Rotation.
 - Das Gewicht auf der obersten Sprosse wird in beiden Durchgängen gleich bewertet
   (`kgFuer`: gemerktes Gewicht, bei `gewichtFolgt` das gerechnete).
 
-### P66 · Training ohne Geräte: Boden + Wand und Nur Boden
+### P66 · Training ohne Geräte: Nur Körpergewicht, mit oder ohne Wand
 
 Luke, 01.10., im Urlaub: Er hat keine Geräte dabei, nur einen Boden, und will trotzdem nach Plan
 trainieren. Wer im Hotel trainiert, soll das im Startmenü mit einem Griff einstellen können.
@@ -1977,19 +1977,22 @@ trainieren. Wer im Hotel trainiert, soll das im Startmenü mit einem Griff einst
 
 | Frage | Entscheidung |
 |---|---|
-| Umgebung | zwei Modi: **Nur Boden** und **Boden + Wand**. Kein Gerät, kein Rucksack, keine Waage, keine Möbel, kein Stepper |
+| Umgebung | zwei Modi: **Nur Körpergewicht** ohne und mit **Wand**. Kein Gerät, kein Rucksack, keine Waage, keine Möbel, kein Stepper |
+| Bedienung (Nachtrag 01.10.) | zwei Knöpfe **Volles Equipment** und **Nur Körpergewicht**; unter Nur Körpergewicht klappt ein Häkchen **Wand** auf, das man an- und abhakt |
 | Dauer | gilt, **bis man ihn ausschaltet**, sichtbar auf Heute |
-| Messungen | gehen **in die normalen Kurven**, der Satz trägt den Vermerk „Nur Boden" bzw. „Boden + Wand" |
+| Messungen | gehen **in die normalen Kurven**, der Satz trägt den Vermerk „Nur Körpergewicht" bzw. „Nur Körpergewicht + Wand" |
 | Zone | **nächste erreichbare Zone**: die Sprosse, die der Zielzeit am nächsten kommt; die Karte sagt, wo es landet; die Rotation zählt die wirklich trainierte Zone |
 | Wegfall | Wadenheben, Handtuchrolle (Erhöhung nötig) und Schrägzug (Schlinge) **fallen im Modus weg** |
 
-**Gebaut in 2026-10-01 b.**
+**Gebaut in 2026-10-01 b, Bedienung seit 2026-10-01 c.**
 
-- **Der Schalter** ist die erste Zeile auf Heute: Zuhause · Boden + Wand · Nur Boden. Er steht
-  auch am Pausentag, aber nicht auf der Karte „Workout läuft noch": kein Wechsel mitten im Lauf.
+- **Der Schalter** ist die erste Zeile auf Heute: Volles Equipment · Nur Körpergewicht. Unter
+  Nur Körpergewicht klappt das Häkchen **Wand** auf. Wer neu wechselt, startet ohne Haken, so wie
+  Luke im Urlaub: nur ein Boden. Der Schalter steht auch am Pausentag, aber nicht auf der Karte
+  „Workout läuft noch": kein Wechsel mitten im Lauf.
 - **Was im Modus bleibt:**
 
-| Übung | Nur Boden | Boden + Wand zusätzlich |
+| Übung | Nur Körpergewicht | mit Haken Wand zusätzlich |
 |---|---|---|
 | Liegestütz | Boden mit Knien abgelegt · Boden | Wand mit 2, 3, 4 Fußlängen |
 | Ausfallschritt | Kniestand, Knie knapp über den Boden | stehend an der Wand mit 1,5 / 2 / 2,5 / 3 Fußlängen |
@@ -2013,23 +2016,25 @@ trainieren. Wer im Hotel trainiert, soll das im Startmenü mit einem Griff einst
   wenigen Sprossen, die bleiben, und nimmt die, deren Zeit dem Zonenziel am nächsten kommt. Die
   Karte zeigt die Zone, in der der Block landet, und die Rotation zählt genau diese. Eine selbst
   gesetzte oder nachgeholte Zone zählt, wie sie gewählt wurde.
-- **Liste auf Heute:** Weggefallene Übungen sind ausgegraut mit „nicht im Modus Nur Boden", in
+- **Liste auf Heute:** Weggefallene Übungen sind ausgegraut mit „nicht bei Nur Körpergewicht", in
   neutraler Farbe, weil bewusst gewählt. Nach einem großen Sprung rät die App im Modus nicht mehr,
   Geräte anzuhaken.
-- **Verlauf und Ergebnis** tragen unter der Stufe den Vermerk „Nur Boden" bzw. „Boden + Wand".
+- **Verlauf und Ergebnis** tragen unter der Stufe den Vermerk „Nur Körpergewicht" bzw.
+  „Nur Körpergewicht + Wand".
   Nachträge von Hand bekommen keinen Vermerk und rechnen mit dem Gewicht wie zuhause.
 - **Export, Schema 4:** zwei Spalten am Ende, `zone_gezaehlt` und `modus`. Die Gewichtsspanne je
   Übung bleibt die von zuhause.
 - Nebenbei behoben: Stufenliste und Vorhersage im Profil zeigten bei fehlendem Gerät die rohe
-  Kennung („zug fehlt"). Jetzt steht dort der Name des Geräts, im Modus „nicht im Modus …".
+  Kennung („zug fehlt"). Jetzt steht dort der Name des Geräts, im Modus an den Wandsprossen „nur
+  mit Wand", sonst „nicht bei Nur Körpergewicht".
 
-**Beispiel.** Liegestütz gemessen auf Sprosse 7 (40 s) und 8 (28 s), Nur Boden: Alle drei Zonen
+**Beispiel.** Liegestütz gemessen auf Sprosse 7 (40 s) und 8 (28 s), Nur Körpergewicht: Alle drei Zonen
 landen auf „Boden" mit 70 s, also Zone B. „Knie abgelegt" liegt unter der Dauerlast der Kurve;
 dort sagt sie keine Grenze voraus. Die nächste erreichbare Zone ist B, und die Karte sagt das.
 
 **Der Preis.**
 
-- **Nur Boden lässt Ausfallschritt und Läufer mit je einer Sprosse.** Welche Zone sie treffen,
+- **Nur Körpergewicht ohne Wand lässt Ausfallschritt und Läufer mit je einer Sprosse.** Welche Zone sie treffen,
   entscheidet dann die Zeit. Mehrere Tage im Modus können eine Zone öfter treffen, als die
   Rotation es plant.
 - **Die Zeit auf der Karte kommt oft aus dem ungestützten Teil der Kurve.** Der erste Satz auf
@@ -2057,12 +2062,41 @@ dort sagt sie keine Grenze voraus. Die nächste erreichbare Zone ist B, und die 
 - `mkBlock`: Liegt im Modus keine erlaubte Sprosse im Bereich, laufen alle erlaubten Sprossen
   durch die Bewertung |log(t/Ziel)|, ohne Sprunggrenze; unendliche Zeiten fallen heraus. Gewinnt
   eine, ist `erweitert` gesetzt. Der Block trägt `fest`, der Plan trägt `modus`.
+- Seit 2026-10-01 c: zwei Knöpfe (`data-modus` `normal` und `koerper`) und das Häkchen
+  `modusWand`. Die Kennungen `boden` und `wand` in Speicher, Sitzung und Export bleiben, nur
+  `MODUS_NAME` zeigt die neuen Namen. `modusAufklappen` lässt das Häkchen nur im Moment des
+  Wechsels aufklappen, nicht bei jedem Neuzeichnen.
 
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-01 c — Schalter: Volles Equipment · Nur Körpergewicht, Häkchen Wand
+
+**Befund (Luke).** Die Bereiche sollen „Volles Equipment" und „Nur Körpergewicht" heißen. Wer Nur
+Körpergewicht wählt, bekommt ein Häkchen „Wand", das aufklappt und sich an- und abhaken lässt
+(P66).
+
+**Gebaut.**
+
+- **Heute:** zwei Knöpfe statt drei. Unter Nur Körpergewicht klappt das Häkchen Wand auf, beim
+  Wechsel zuerst ohne Haken. Mit Haken kommen die Wandsprossen von Liegestütz und Ausfallschritt
+  dazu, wie bisher bei „Boden + Wand".
+- **Texte:** Vermerk „Nur Körpergewicht" bzw. „Nur Körpergewicht + Wand". In der Liste steht
+  „nicht bei Nur Körpergewicht", in Stufenliste und Profil an den Wandsprossen „nur mit Wand".
+- Gespeicherte Sätze, Export und alte Stände bleiben: Die Kennungen ändern sich nicht, nur die
+  Anzeige.
+
+**Geprüft.** Im Node-Abgleich mit dem Skript aus `index.html`, 65 Prüfungen, keine Abweichung:
+
+- Knöpfe heißen Volles Equipment und Nur Körpergewicht, „Zuhause" kommt nicht mehr vor.
+- Das Häkchen Wand steht nur unter Nur Körpergewicht. Ohne Haken gilt „boden", mit Haken
+  „wand", und Volles Equipment klappt es wieder zu.
+- Der Aufklapp-Effekt läuft nur beim Wechsel, nicht beim nächsten Neuzeichnen.
+- Sprossen-Text: Wandsprosse „nur mit Wand", Möbelsprosse „nicht bei Nur Körpergewicht".
+- Alle Prüfungen aus 2026-10-01 b laufen unverändert weiter (Parken, Schmerz, Zone, Speichern).
 
 ### 2026-10-01 b — Training ohne Geräte: Boden + Wand und Nur Boden
 

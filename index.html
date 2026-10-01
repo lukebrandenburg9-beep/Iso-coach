@@ -160,6 +160,9 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .zw.je button span{font-size:10.5px}
 .zw.drei{grid-template-columns:repeat(3,1fr)}
 .zw.zwei{grid-template-columns:repeat(2,1fr)}
+/* Haekchen "Wand" unter "Nur Koerpergewicht": klappt beim Wechsel auf. */
+.aufklapp{animation:aufklapp .2s ease-out;transform-origin:top}
+@keyframes aufklapp{from{opacity:0;transform:scaleY(.6)}to{opacity:1;transform:none}}
 /* Karte vor der Uebung: eine Zeile je Seite, darunter die zwei Stepper. */
 .teil{padding:13px 0 2px;border-top:1px solid var(--line);margin-top:12px}
 .teil .kopf{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
@@ -1212,7 +1215,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-01 b";
+const BUILD = "2026-10-01 c";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -1737,8 +1740,13 @@ function beidUmzug(exDefs, levels, extra, streak){
   return {levels: lv, extra: ex, streak: st};
 }
 /* Training ohne Geraete (Build 2026-10-01 b). Steht vor load(), weil
-   normalize() den gespeicherten Modus damit prueft. */
-const MODUS_NAME = {wand:"Boden + Wand", boden:"Nur Boden"};
+   normalize() den gespeicherten Modus damit prueft. Seit 2026-10-01 c heisst
+   der Schalter "Volles Equipment" / "Nur Koerpergewicht", die Wand ist ein
+   Haekchen darunter; die Kennungen "boden" und "wand" bleiben. */
+const MODUS_NAME = {wand:"Nur Körpergewicht + Wand", boden:"Nur Körpergewicht"};
+/* Das Wand-Haekchen klappt nur in dem Moment auf, in dem man auf "Nur
+   Koerpergewicht" wechselt, nicht bei jedem Neuzeichnen von Heute. */
+let modusAufklappen = false;
 let S = load();
 /* Muss nach load() laufen: sidesOf() braucht S.sessions. */
 (function(){ const sd = S.ex[S.exercise] ? sidesOf(S.exercise) : [null];
@@ -1773,7 +1781,7 @@ function fresh(){
        die setzt die App voraus. */
     geraete:{zug:true},
     /* Training ohne Geraete (Luke, 01.10.2026, im Urlaub): "normal", "wand"
-       (Boden + Wand) oder "boden" (Nur Boden). Gilt, bis man ihn ausschaltet.
+       (Nur Körpergewicht + Wand) oder "boden" (Nur Körpergewicht). Gilt, bis man ihn ausschaltet.
        Beim Einschalten parkt modusSetzen Stufen und Heimgewichte hier und legt
        sie beim Ausschalten unveraendert zurueck. */
     modus:"normal", standMitGeraeten:null,
@@ -2675,8 +2683,8 @@ function geraetDa(g){
 const geraetId = g => Array.isArray(g) ? g[0] : g;
 /* ── Training ohne Geraete (Build 2026-10-01 b) ────────────────────────
    Luke, 01.10.2026, im Urlaub: nur ein Boden. Kein Geraet, kein Rucksack,
-   keine Waage, keine Moebel, kein Stepper. Zwei Modi: "boden" (Nur Boden)
-   und "wand" (Boden + Wand). Wo eine Sprosse steht, sagt ort; eine Sprosse
+   keine Waage, keine Moebel, kein Stepper. Zwei Modi: "boden" (Nur Koerpergewicht)
+   und "wand" (mit Haekchen Wand). Wo eine Sprosse steht, sagt ort; eine Sprosse
    ohne ort braucht Moebel oder Stepper und faellt im Modus weg, ebenso jede
    mit Geraet. Gelesen wird aus DEFAULT_EX, damit kein EX_VERSION-Sprung die
    Ruhetage zuruecksetzt (Vorbild huefteStandbein). */
@@ -5478,7 +5486,7 @@ function finishWorkout(){
       /* Beim beidbeinigen Halt beide Leitern — es war EINE Belastung fuer
          beide Seiten. */
       /* Im Modus ohne Geraete auf die naechste erlaubte Sprosse darunter:
-         Liegestuetz Nur Boden von "Boden" (7) auf "Knie abgelegt" (4), nicht
+         Liegestuetz Nur Koerpergewicht von "Boden" (7) auf "Knie abgelegt" (4), nicht
          auf den Stuhlsitz, den es im Hotel nicht gibt. */
       for(const k of regelKeys(ses)) if(standOf(k) > 0){
         const tiefer = ohneGeraete()
@@ -5580,8 +5588,9 @@ function gewichtAchse(ex){
 }
 /* Warum eine Sprosse ausgegraut ist. Vorher stand dort die rohe Kennung
    ("zug fehlt"). */
-function fehltText(l){
-  if(ohneGeraete()) return `nicht im Modus ${modusName()}`;
+function fehltText(l, i){
+  if(ohneGeraete()) return (!l.geraet && stufeOrt(S.exercise, i) === "wand")
+    ? "nur mit Wand" : "nicht bei Nur Körpergewicht";
   return `${geraetName(geraetId(l.geraet))} fehlt`;
 }
 function stufenLegende(pts){
@@ -5593,7 +5602,7 @@ function stufenLegende(pts){
     return `<div style="${da?"":"opacity:.45;"}${jetzt?"color:var(--acc);font-weight:600;":""}">
       <span style="display:inline-block;min-width:1.5em">${i+1}</span>${l.name}${
       gemessen.has(i) ? ` <span style="color:var(--acc)">\u25cf</span>` : ""}${
-      da ? "" : ` \u00b7 ${fehltText(l)}`}</div>`;
+      da ? "" : ` \u00b7 ${fehltText(l, i)}`}</div>`;
   }).join("");
   const ga = achseZuletzt;
   return `<div class="tiny" style="margin-top:9px;line-height:1.6">${zeilen}
@@ -5986,7 +5995,7 @@ function renderHome(){
       /* Wer mit einer angehakten Übung nicht an denselben Tag darf, sagt es.
          Das Häkchen tauscht die beiden dann. */
       const partner = drin.has(u.ex) ? null : [...drin].find(x => konflikt(x, u.ex));
-      const status = u.ohneGeraet ? (ohneGeraete() ? `nicht im Modus ${modusName()}` : "Gerät fehlt")
+      const status = u.ohneGeraet ? (ohneGeraete() ? "nicht bei Nur Körpergewicht" : "Gerät fehlt")
         : u.offen ? `${u.offen.seite} offen`
         : (!u.tor.ok && !ignoreRest)
           ? (eigeneZone ? `Zone ${u.tor.gewaehlt} ${tage(u.tor.wait)}` : tage(u.tor.wait))
@@ -6012,18 +6021,29 @@ function renderHome(){
   </div>`;
   /* Training ohne Geraete: EIN Griff im Startmenue (Luke, 01.10.2026). Gilt,
      bis man ihn zuruecksetzt. Nicht auf der Karte "Workout laeuft noch":
-     kein Wechsel mitten im Lauf. */
+     kein Wechsel mitten im Lauf. Zwei Knoepfe; unter "Nur Koerpergewicht"
+     klappt das Haekchen "Wand" auf (Luke, 01.10.2026). Ohne Haken: "boden",
+     mit Haken: "wand". Wer neu wechselt, startet ohne Wand. */
   const modusKarte = () => {
-    const m = MODUS_NAME[S.modus] ? S.modus : "normal";
-    return `<div class="zw drei" id="modusWahl" style="margin:0 0 12px">${
-      [["normal", "Zuhause"], ["wand", MODUS_NAME.wand], ["boden", MODUS_NAME.boden]]
-        .map(([id, name]) => `<button class="${m === id ? "sel" : "ghost"}" data-modus="${id}"
-          aria-pressed="${m === id}">${name}</button>`).join("")}</div>`;
+    const ohne = ohneGeraete();
+    const auf = modusAufklappen; modusAufklappen = false;
+    return `<div id="modusWahl" style="margin:0 0 12px">
+      <div class="zw zwei" style="margin:0">${
+      [["normal", "Volles Equipment", !ohne], ["koerper", "Nur Körpergewicht", ohne]]
+        .map(([id, name, an]) => `<button class="${an ? "sel" : "ghost"}" data-modus="${id}"
+          aria-pressed="${an}">${name}</button>`).join("")}</div>${
+      ohne ? `<label class="chk${auf ? " aufklapp" : ""}" for="modusWand" style="margin:7px 0 0">
+        <input type="checkbox" id="modusWand" ${S.modus === "wand" ? "checked" : ""}>
+        <span><b>Wand</b></span></label>` : ""}</div>`;
   };
   const modusBinden = () => {
     document.querySelectorAll("#modusWahl button").forEach(b => b.onclick = () => {
-      modusSetzen(b.dataset.modus); render();
+      if(b.dataset.modus === "normal") modusSetzen("normal");
+      else if(!ohneGeraete()){ modusSetzen("boden"); modusAufklappen = true; }
+      render();
     });
+    const w = el("modusWand");
+    if(w) w.onchange = () => { modusSetzen(w.checked ? "wand" : "boden"); render(); };
   };
   const listeBinden = () => {
     modusBinden();
@@ -6308,7 +6328,7 @@ function renderProfile(){
           !da?' style="opacity:.45"':""}>
           <td><span class="tiny" style="opacity:.6">${i+1}</span> ${l.name}${
             i===curLevel()?' <span class="tiny">· aktuell</span>':""}${
-            !da?` <span class="tiny">· ${fehltText(l)}</span>`:""}</td>
+            !da?` <span class="tiny">· ${fehltText(l, i)}</span>`:""}</td>
           <td class="n">${l.load.toFixed(2)}</td>
           <td class="n">${!drin ? '<span class="tiny">nicht gemessen</span>'
                         : !isFinite(t)?"sehr lang":t>400?"> 400s":fmt(t)}</td>
