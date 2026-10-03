@@ -2067,11 +2067,70 @@ dort sagt sie keine Grenze voraus. Die nächste erreichbare Zone ist B, und die 
   `MODUS_NAME` zeigt die neuen Namen. `modusAufklappen` lässt das Häkchen nur im Moment des
   Wechsels aufklappen, nicht bei jedem Neuzeichnen.
 
+### P67 · Beim Anhaken steht da, wie lange das Workout dauert
+
+Luke, 03.10.: „zeig mir im startmenü beim anhaken der übungen bitte wie lange das workout dauern
+wird". Die Dauer stand schon da, aber klein als „rund 55 min" unter der Überschrift „Heute", und
+dort ging sie unter. Was ein einzelnes Häkchen kostet, stand nirgends.
+
+**Gebaut in 2026-10-03 a.**
+
+- **In der Plankarte steht die Dauer groß unter der Reihenfolge**, über „Workout starten", zum
+  Beispiel „Dauer 56 min". Sie springt mit jedem Häkchen. Die kleine Zeile unter „Heute" ist weg.
+- **Rechts an jeder anhakbaren Übung stehen Minuten:**
+  - angehakt: was die Übung kostet, zum Beispiel „20 min"
+  - nicht angehakt: was ihr Häkchen dazurechnet, zum Beispiel „+11 min"
+  - Tauscht das Häkchen einen Partner aus (Wadenheben und Handtuchrolle), steht die Differenz
+    da, auch „−10 min" oder „±0 min".
+  - Ausgegraute Übungen haben keine Zahl.
+- **Die Dauer springt genau um die Zahl an der Zeile.** Beide sind die Differenz zweier ganzer
+  Pläne. So stimmt die Zahl auch dann, wenn das Häkchen die eigene Zone zurücksetzt oder eine
+  zweiseitige Übung zwei Blöcke mitbringt.
+- **Auf die ganze Minute, auch über einer halben Stunde.** Bisher rundete die App ab 30 Minuten
+  auf fünf. Mit Fünferschritt hätte ein Block von drei Minuten „+0 min" oder „+5 min" bekommen.
+
+**Der Preis.** Für jede anhakbare Zeile plant die App einmal auf Probe. Bei acht Übungen und 400
+gespeicherten Sätzen dauert ein Neuzeichnen im Node-Abgleich unter 50 ms. Die Rechnung hinter der
+Zahl ist dieselbe wie vorher (Einlaufzeit, Sätze mal erwartete Haltezeit, Satz- und Blockpausen).
+
+**Für den Nachbau:**
+
+- `planDauer(bloecke)` gibt ganze Minuten, leer 0.
+- `haekchenSetzen(u, an, drin)` ist der Klick ohne `save()`: `S.aktiv`, Zonenwahl zurück, Tausch
+  über `konflikt`, `S.heute`, Plan verwerfen. Klick und Vorschau rufen dieselbe Funktion.
+- `dauerMitHaekchen(u, an, drin)` kopiert jeden Eintrag von `S` außer `sessions`
+  (`structuredClone`), setzt das Häkchen, plant mit `planWorkout`, legt `S` im `finally` an
+  derselben Stelle zurück und speichert nicht. Nötig, weil `mkBlock` beim Planen `S.extra`
+  schreibt und das Häkchen die Zonenwahl.
+- Markup: `.planDauer` mit `#planDauer` in der Plankarte, `.chkMin` als letztes Kind im
+  `label.chk`.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-03 a — Dauer beim Anhaken
+
+**Befund (Luke).** Beim Anhaken der Übungen soll im Startmenü stehen, wie lange das Workout dauert
+(P67).
+
+**Gebaut.**
+
+- **Plankarte:** „Dauer 56 min" groß unter der Reihenfolge. Die kleine Zeile „rund … min" unter
+  „Heute" ist weg.
+- **Häkchenliste:** rechts an jeder anhakbaren Übung die Minuten. Angehakt steht da, was sie
+  kostet („20 min"), nicht angehakt, was sie dazurechnet („+11 min"), beim Tausch die Differenz.
+- **Ganze Minuten** statt Fünferschritt ab 30 Minuten.
+
+**Geprüft.** Im Node-Abgleich mit dem Skript aus `index.html`, 26 Prüfungen, keine Abweichung:
+
+- Für jede Zeile in fünf Lagen (vorgehakt, mit Tausch, alles abgehakt, Nur Körpergewicht,
+  eigene Zone gesperrt) springt die Dauer nach dem Klick genau um die angezeigte Zahl.
+- Die Probe lässt `S` byte-gleich und ruft kein `save()`, auch die Zonenwahl bleibt.
+- Ausgegraute Zeilen haben keine Zahl, bei leerem Plan steht keine Dauer.
+- Die 64 Prüfungen aus 2026-10-01 b und c laufen weiter durch; nur ihre Build-Nummer ist veraltet.
 
 ### 2026-10-01 c — Schalter: Volles Equipment · Nur Körpergewicht, Häkchen Wand
 

@@ -146,6 +146,14 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
   border:1px solid var(--line);border-radius:11px;cursor:pointer;margin-bottom:7px}
 .chk input{margin:2px 0 0;width:19px;height:19px;flex-shrink:0;accent-color:var(--acc)}
 .chk span{font-size:14px}
+/* Minuten am Haekchen: was es zur Dauer dazurechnet (Build 2026-10-03 a). */
+.chk .chkMin{margin-left:auto;padding-left:6px;font:500 13px/1.45 var(--mono);
+  color:var(--tx3);white-space:nowrap;font-variant-numeric:tabular-nums}
+.chk input:checked ~ .chkMin{color:var(--tx2)}
+.planDauer{display:flex;align-items:baseline;gap:9px;margin:10px 0 0}
+.planDauer span{font-size:11.5px;font-weight:600;color:var(--tx3);text-transform:uppercase;
+  letter-spacing:.05em}
+.planDauer b{font:700 22px/1.2 var(--mono);font-variant-numeric:tabular-nums}
 .note{border-left:3px solid var(--acc);background:var(--panel2);padding:11px 13px;
   border-radius:0 10px 10px 0;font-size:13.5px;margin:12px 0}
 .note.warn{border-color:var(--warn)}
@@ -1215,7 +1223,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-01 c";
+const BUILD = "2026-10-03 a";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -5971,8 +5979,10 @@ function renderHome(){
   const p = (S.plan && S.planDay === today()) ? S.plan : planWorkout();
   S.plan = p; S.planDay = today(); save();
   const g = gate();
+  /* Die Dauer steht in der Plankarte, gross, und springt mit jedem
+     Haekchen. Bis Build 2026-10-01 c stand sie klein als "rund 55 min"
+     unter "Heute" und ging dort unter. */
   const dauer = planDauer(p.blocks);
-  el("homeSub").textContent = dauer ? `rund ${dauer} min` : "";
 
   /* ── Menü 1: Reihenfolge, Startknopf, EINE Häkchenliste ──────────
      Luke, 24.09.2026: „das menü ist komplett überladen. block 1 und block 2
@@ -6008,6 +6018,17 @@ function renderHome(){
       /* Premium: Steht die Form im Tal, sagt es die Zeile. Abhaken tut der
          Nutzer selbst — die App empfiehlt, sie sperrt nicht. */
       const tal = !status && formTal(u.ex);
+      /* Rechts die Minuten: angehakt, was die Uebung kostet; frei, was ihr
+         Haekchen dazurechnet. Beides ist die Differenz zweier ganzer Plaene,
+         also springt die Dauer oben genau um diese Zahl — auch wenn das
+         Haekchen einen Partner tauscht oder die eigene Zone zuruecksetzt. */
+      const an = drin.has(u.ex);
+      const min = !frei ? null
+        : an ? dauer - dauerMitHaekchen(u, false, drin)
+        : dauerMitHaekchen(u, true, drin) - dauer;
+      const minText = min == null ? ""
+        : an ? `${min} min`
+        : min > 0 ? `+${min} min` : min < 0 ? `−${-min} min` : "±0 min";
       return `<label class="chk" for="ak-${u.ex}"${frei ? "" : ` style="opacity:.55"`}>
         <input type="checkbox" id="ak-${u.ex}" ${drin.has(u.ex) ? "checked" : ""}
           ${frei ? "" : "disabled"}>
@@ -6016,7 +6037,8 @@ function renderHome(){
           status}</span>` : ""}${rat ? `<br><span class="tiny" style="color:${
           drin.has(u.ex) ? "var(--warn)" : "var(--tx3)"}">${rat}</span>` : ""}${
           tal ? `<br><span class="tiny" style="color:var(--warn)">Formtal ·
-          entlasten empfohlen</span> <span class="pill pPrem">Premium</span>` : ""}</span></label>`;
+          entlasten empfohlen</span> <span class="pill pPrem">Premium</span>` : ""}</span>${
+          minText ? `<span class="chkMin">${minText}</span>` : ""}</label>`;
     }).join("")}
   </div>`;
   /* Training ohne Geraete: EIN Griff im Startmenue (Luke, 01.10.2026). Gilt,
@@ -6050,15 +6072,7 @@ function renderHome(){
     uebungslage().forEach(u => {
       const b = el("ak-" + u.ex); if(!b) return;
       b.onchange = ev => {
-        const sel = new Set(drin);
-        if(ev.target.checked){
-          S.aktiv[u.ex] = true;
-          if(!u.tor.ok && u.tor.kind === "zone" && u.tor.gewaehlt) zoneWahlSetzen(u.group, "");
-          for(const x of [...sel]) if(konflikt(x, u.ex)) sel.delete(x);
-          sel.add(u.ex);
-        } else sel.delete(u.ex);
-        S.heute = [...sel]; S.heuteTag = today();
-        S.plan = null; S.planDay = null; save();
+        haekchenSetzen(u, ev.target.checked, drin); save();
         renderAmOrt("ak-" + u.ex);
       };
     });
@@ -6092,6 +6106,7 @@ function renderHome(){
       ${p.blocks.length ? `
         <h2 style="margin:0;font-size:19px;line-height:1.4;text-wrap:balance">${
           reihenfolge(p.blocks)}</h2>
+        <div class="planDauer"><span>Dauer</span><b id="planDauer">${dauer} min</b></div>
         <button class="primary" style="width:100%;margin-top:14px;padding:16px"
           id="goSess">Workout starten</button>`
       : `<h2 style="margin:0">Nichts angehakt</h2>`}
@@ -6393,10 +6408,12 @@ function renderHistory(){
    "Laenge einer Sitzung" ist hier jeder Block bekannt: seine Satzzahl und
    sein Richtwert stehen schon fest, der eine aus der Kurve, der andere aus
    der Zone. Deshalb reicht hier eine Zahl, wo dort eine Spanne noetig war.
-   Gerundet auf fuenf Minuten, damit die Zahl aussieht wie das, was sie ist
-   — aber erst ab einer halben Stunde. Darunter ist der Fuenferschritt
-   groesser als der Fehler, den er andeuten soll: ein einzelner Block von
-   6,7 Minuten wuerde als "rund 5 min" um ein Viertel danebenliegen.
+   Gerundet auf die ganze Minute, auch ueber einer halben Stunde. Bis Build
+   2026-10-01 c stand dort ein Fuenferschritt. Seit 03.10.2026 steht neben
+   jedem Haekchen, wie viele Minuten es dazurechnet (Luke: "zeig mir im
+   startmenü beim anhaken der übungen bitte wie lange das workout dauern
+   wird"), und die Summe muss genau um diese Zahl springen. Mit Fuenferschritt
+   haette ein Block von drei Minuten "+0 min" oder "+5 min" bekommen.
    Zwei Fehler stecken drin und zeigen in verschiedene Richtungen: Satz 2
    und 3 laufen vorermuedet kuerzer als der Richtwert (zu hoch geschaetzt),
    dafuer fehlen Aufbau, Stufenwahl und Ergebnisbildschirm (zu niedrig).
@@ -6409,7 +6426,7 @@ function renderHistory(){
    stehen nebeneinander im vorderen Teil, damit auch die zweite frisch gemessen
    wird. Nur die Pause dazwischen ist wieder die normale. */
 function planDauer(bloecke){
-  if(!bloecke || !bloecke.length) return null;
+  if(!bloecke || !bloecke.length) return 0;
   const summe = bloecke.reduce((sum, bl, i) => {
     const z = ZONES.find(x => x.id === bl.zone) || ZONES[0];
     const n = bl.saetze || SETS_ZONE[bl.zone] || SETS;
@@ -6417,8 +6434,38 @@ function planDauer(bloecke){
     return sum + (i ? PAUSE_BLOCK_S : 0)
                + LEAD_IN + n * t + (n - 1) * PAUSE_S;
   }, 0);
-  const min = summe / 60;
-  return min < 30 ? Math.max(1, Math.round(min)) : Math.round(min / 5) * 5;
+  return Math.max(1, Math.round(summe / 60));
+}
+/* Was ein Haekchen in der Liste auf Heute an S aendert — EINE Stelle fuer
+   den Klick und fuer die Minuten daneben, damit die Vorschau nie etwas
+   anderes rechnet als der Klick danach. */
+function haekchenSetzen(u, an, drin){
+  const sel = new Set(drin);
+  if(an){
+    S.aktiv[u.ex] = true;
+    if(!u.tor.ok && u.tor.kind === "zone" && u.tor.gewaehlt) zoneWahlSetzen(u.group, "");
+    for(const x of [...sel]) if(konflikt(x, u.ex)) sel.delete(x);
+    sel.add(u.ex);
+  } else sel.delete(u.ex);
+  S.heute = [...sel]; S.heuteTag = today();
+  S.plan = null; S.planDay = null;
+}
+/* Wie lange dauerte das Workout mit diesem Haekchen? Plant auf Probe und
+   legt S danach unveraendert zurueck, ohne save(): Beim Planen schreibt
+   mkBlock Heimgewichte (S.extra), das Haekchen selbst die Zonenwahl. Die
+   Sitzungen bleiben beim Zuruecklegen dieselben — die liest das Planen nur,
+   und sie sind der grosse Teil von S. */
+function dauerMitHaekchen(u, an, drin){
+  const vorher = {};
+  for(const k of Object.keys(S))
+    vorher[k] = k === "sessions" ? S[k] : structuredClone(S[k]);
+  try{
+    haekchenSetzen(u, an, drin);
+    return planDauer(planWorkout().blocks);
+  } finally {
+    for(const k of Object.keys(S)) if(!(k in vorher)) delete S[k];
+    Object.assign(S, vorher);
+  }
 }
 
 function dauerHTML(bloecke){
