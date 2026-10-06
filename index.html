@@ -587,12 +587,15 @@ const DEFAULT_EX = {
   plank: {
     name:"Seitstütz", region:"Rumpf", group:"core", sides:["links","rechts"],
     seitenRuf:{links:"LINKER ARM UNTEN", rechts:"RECHTER ARM UNTEN"},
-    /* extraK = 2: Ein Kilo auf der oberen Huefte wirkt hier doppelt so stark
-       wie sein Anteil am Koerpergewicht — es sitzt am wirksamsten Hebelpunkt.
-       Deshalb steht der Ort in extraHint und nicht als Empfehlung nebenbei. */
-    extraAb:6, extraK:2,
-    extraHint:"Auf der oberen Hüfte, nicht auf dem Brustkorb — am Brustkorb wirkt dasselbe "
-             +"Gewicht nur zu einem Achtel.",
+    /* Kein Zusatzgewicht mehr (Build 2026-10-06 a). Luke, 06.10.2026: "das mach
+       beim seitstütz als körpergewichtsübung kaum sinn, entferne die funktion."
+       Bis dahin gab es ab der Standard-Sprosse Gewicht auf der oberen Huefte.
+       Gelesen wird ohneGewicht direkt hier (ohneZusatz), denn S.ex traegt im
+       Speicher noch extraAb:6.
+       extraK = 2 bleibt fuer die alten Saetze mit Gewicht: Ein Kilo auf der
+       oberen Huefte zaehlte doppelt, mit genau diesem Hebel ist ihre Last
+       gerechnet, und der Export nennt ihn, damit sie nachrechenbar bleiben. */
+    ohneGewicht:true, extraK:2,
     hint:"»Links« heißt: du stützt auf dem LINKEN Unterarm, die linke Rumpfseite arbeitet. "
         +"Ellenbogen senkrecht unter der Schulter, Hüfte nach oben gedrückt. Der Körper ist "
         +"eine gerade Linie — auch von vorne gesehen: die obere Hüfte darf nicht nach hinten "
@@ -1223,7 +1226,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-03 a";
+const BUILD = "2026-10-06 a";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -3282,8 +3285,8 @@ function zusatzDeckel(ex){
    koerpernah am Rumpf sitzt (extraK = 1).
    Beim Seitstuetz nicht: Dort ist die Last ein BIEGEMOMENT, und ein Kilo auf
    der oberen Huefte sitzt am wirksamsten Hebelpunkt — es zaehlt doppelt
-   (extraK = 2). Dasselbe Kilo am Brustkorb waere fast wirkungslos; deshalb
-   steht der Ort in der Bedienung und nicht nur im Kleingedruckten. */
+   (extraK = 2). Seit Build 2026-10-06 a traegt der Seitstuetz kein Gewicht
+   mehr (ohneZusatz); der Hebel gilt nur noch fuer die alten Saetze. */
 const extraOf = key => (S.extra && S.extra[key]) || 0;
 /* Geht das Gewicht in BEIDE Richtungen, war die Bedienung bisher ein
    vorzeichenbehaftetes Zahlenfeld: -10 kg hiess "am Guertel der Standbeinseite".
@@ -3361,9 +3364,16 @@ function lastVon(ex, level, kg){
   const L = S.ex[ex] && S.ex[ex].levels[level];
   return L ? Math.round(L.load * extraFaktor(ex, kg) * 1000) / 1000 : 0;
 }
-/* Ab welcher Stufe bietet die Uebung Zusatzgewicht an? */
+/* Uebungen, die reines Koerpergewicht bleiben (Seitstuetz seit 2026-10-06 a).
+   Liest DEFAULT_EX und nicht S.ex, denn dort steht noch das alte extraAb. */
+function ohneZusatz(ex){
+  return !!(DEFAULT_EX[ex] && DEFAULT_EX[ex].ohneGewicht);
+}
+/* Ab welcher Stufe bietet die Uebung Zusatzgewicht an? levels.length heisst:
+   auf keiner. Ohne extraAb waere es die oberste Sprosse. */
 function extraAbOf(ex){
   const e = S.ex[ex];
+  if(ohneZusatz(ex)) return e.levels.length;
   return (e && e.extraAb != null) ? e.extraAb : e.levels.length - 1;
 }
 /* Spanne, Schrittweite und Richtung des Zusatzgewichts — je Uebung. Der
@@ -3382,6 +3392,8 @@ function extraBereich(ex, level){
   const schritt = (e.extraSchritt != null) ? e.extraSchritt : ZUSATZ_SCHRITT;
   /* Ohne Geraete auch kein Gewicht: kein Rucksack, keine Kettlebell. */
   if(ohneGeraete()) return {lo:0, hi:0, schritt};
+  /* Reines Koerpergewicht: auch ein noch gemerktes Gewicht klemmt auf 0. */
+  if(ohneZusatz(ex)) return {lo:0, hi:0, schritt};
   const g = e.extraGeraet;
   const da = !g || (Array.isArray(g) ? g : [g])
                      .every(x => !!(S.geraete && S.geraete[x]));
@@ -5365,7 +5377,9 @@ function blockSichern(){
   RUN.fertig.push(Object.assign({
     exercise: bl.exercise, side: bl.side, level: bl.level,
     levelName: stufenName(bl.exercise, bl.level, bl.extra),
-    load: lastVon(bl.exercise, bl.level, bl.extra), extra: bl.extra || 0, bw: S.bw || null,
+    /* Ein Plan von vor 2026-10-06 a kann am Seitstuetz noch Gewicht tragen. */
+    load: lastVon(bl.exercise, bl.level, bl.extra),
+    extra: ohneZusatz(bl.exercise) ? 0 : (bl.extra || 0), bw: S.bw || null,
     /* Nur wo es eine Wahl gibt und das Gewicht aussen haengt — sonst leer. */
     lage: ((bl.extra || 0) > 0 && lageOf(bl.exercise)) ? lageOf(bl.exercise).id : undefined,
     target: bl.target, workoutZone: bl.zone,
@@ -5868,7 +5882,8 @@ function messreihenJSON(){
                                       {id:l.id, name:l.titel, extra_k:l.k},
                                       l.ruht ? {ruht:true} : {}))
                                   : null,
-      zusatzgewicht_ab_stufe: (v.extraAb != null ? v.extraAb : v.levels.length - 1) + 1,
+      /* null: reines Koerpergewicht (Seitstuetz seit 2026-10-06 a). */
+      zusatzgewicht_ab_stufe: extraAbOf(k) < v.levels.length ? extraAbOf(k) + 1 : null,
       /* Die Spanne von zuhause, auch wenn gerade ohne Geraete trainiert wird. */
       zusatzgewicht_von_kg: mitGeraeten(() => extraBereich(k).lo),
       zusatzgewicht_bis_kg: mitGeraeten(() => extraBereich(k).hi),
@@ -6727,7 +6742,9 @@ function renderSetup(){
     el("nLvl").innerHTML = e.levels.map((L,i)=>
       `<option value="${i}">${i+1}. ${L.name}</option>`).join("");
     nSeite();
-    el("nKg").disabled = false;
+    /* Seitstuetz: reines Koerpergewicht, auch im Nachtrag. */
+    el("nKg").disabled = ohneZusatz(ex);
+    if(ohneZusatz(ex)) el("nKg").value = 0;
   };
   el("nEx").onchange = nFill;
   el("nLvl").onchange = nSeite;
@@ -6738,7 +6755,7 @@ function renderSetup(){
     const hint = el("nHint");
     const ex = el("nEx").value, e = S.ex[ex];
     const lvl = +el("nLvl").value;
-    const kg  = Math.max(0, +el("nKg").value || 0);
+    const kg  = ohneZusatz(ex) ? 0 : Math.max(0, +el("nKg").value || 0);
     const zeiten = ["nT1","nT2","nT3"].map(id => +el(id).value)
                    .filter(v => v > 0 && v <= 900);
     if(!zeiten.length){

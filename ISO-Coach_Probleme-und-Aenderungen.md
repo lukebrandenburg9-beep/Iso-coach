@@ -2105,11 +2105,82 @@ Zahl ist dieselbe wie vorher (Einlaufzeit, Sätze mal erwartete Haltezeit, Satz-
 - Markup: `.planDauer` mit `#planDauer` in der Plankarte, `.chkMin` als letztes Kind im
   `label.chk`.
 
+### P68 · Seitstütz ohne Zusatzgewicht
+
+Luke, 06.10.: „warum kann ich beim seitstütz zusatzgewicht einstellen? das mach beim seitstütz als
+körpergewichtsübung kaum sinn, entferne die funktion." Bis dahin bot die App ab der obersten
+Sprosse „Beine gestreckt · Unterarm am Boden (Standard)" Gewicht auf der oberen Hüfte an. Ein
+Kilo dort zählte doppelt, weil die Last beim Seitstütz ein Biegemoment an der Taille ist und die
+Hüfte der wirksamste Hebel. Gedacht war das als Weg weiter, wenn die Standard-Sprosse zu leicht
+wird.
+
+**Gebaut in 2026-10-06 a.**
+
+- **Kein Gewicht mehr am Seitstütz**, nirgends:
+  - kein kg-Stepper auf der Karte
+  - keine Gewichtsschritte in den Regeln
+  - kein kg-Feld im Nachtrag: gesperrt und auf 0 gesetzt, bei allen anderen Übungen frei
+  - kein Satz „Wenn du Zusatzgewicht nimmst …" im Profil
+- **Ein noch gemerktes Gewicht zählt nicht mehr.** Wer vorher 10 kg eingestellt hatte, trainiert
+  ab jetzt die nackte Sprosse. Ein Plan, der vor dem Update im Speicher lag, speichert den Satz
+  mit 0 kg.
+- **Alte Sätze mit Gewicht bleiben, wie sie sind.** Sie tragen ihre gespeicherte Last und
+  bleiben in Kurve und Verlauf. Der Export nennt weiter den Hebel 2 (`extra_k`), damit sie
+  nachrechenbar bleiben.
+- **Alle anderen Übungen unverändert**, bis aufs Byte im Export.
+
+**Der Preis.** Die Leiter endet jetzt bei „Standard". Wer dort länger als 60 s hält, erreicht
+Zone A nicht mehr, über 90 s auch Zone B nicht. Die Rotation lässt unerreichbare Zonen von selbst
+weg, wie bei jeder Übung ohne Gewicht. Eine schwerere Körpergewichts-Sprosse gibt es noch nicht.
+
+**Für den Nachbau:**
+
+- `DEFAULT_EX.plank` trägt `ohneGewicht:true` statt `extraAb:6`; `extraHint` ist weg.
+  `extraK:2` bleibt für die alten Sätze.
+- `ohneZusatz(ex)` liest das Kennzeichen aus `DEFAULT_EX`, nicht aus `S.ex`: Im Speicher steht
+  bei Bestandsnutzern noch `extraAb:6`, und ein `EX_VERSION`-Sprung hätte die Ruhetage
+  zurückgesetzt.
+- `extraAbOf` gibt dann `levels.length` zurück, also „auf keiner Sprosse". Nur `extraAb` zu
+  löschen hätte nicht gereicht, denn ohne den Wert fällt `extraAbOf` auf die oberste Sprosse
+  zurück. Alle rund 25 Stellen, die an `extraAbOf` hängen, ziehen damit mit.
+- `extraBereich` gibt `0/0`, damit klemmen `extraKlemm`, `lastVon` und `stufenName` auf 0.
+- Ausdrücklich auf 0 gesetzt wird `extra` in `blockSichern` und im Nachtrag.
+- Export: `zusatzgewicht_ab_stufe` ist `null` bei einer Übung ohne Gewicht.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-06 a — Seitstütz ohne Zusatzgewicht
+
+**Befund (Luke).** Zusatzgewicht ergibt beim Seitstütz als Körpergewichtsübung kaum Sinn, die
+Funktion soll weg (P68).
+
+**Gebaut.**
+
+- **Seitstütz:** kein Gewicht mehr auf Karte, in den Regeln, im Nachtrag und im Profil. Ein noch
+  gemerktes Gewicht klemmt auf 0.
+- **Alte Sätze mit Gewicht** bleiben mit ihrer Last in Kurve und Verlauf.
+- **Export:** `zusatzgewicht_ab_stufe` ist beim Seitstütz `null`, `extra_k` bleibt 2.
+- **README:** Seitstütz als reine Körpergewichtsübung beschrieben.
+
+**Geprüft.** Im Node-Abgleich mit dem Skript aus `index.html`, 26 Prüfungen, keine Abweichung:
+
+- Die Sperre greift auch mit dem alten `extraAb:6` im Speicher. Jede Sprosse hat die Spanne 0/0,
+  10 kg ergeben die nackte Last und den Namen ohne kg.
+- Für alle anderen Übungen sind Spanne je Sprosse, Startsprosse fürs Gewicht, Gewichtsachse,
+  Last mit 10 kg und Export-Eintrag gleich wie vor dem Build.
+- Hält jemand die Standard-Sprosse 110 s, ist nur noch Zone C erreichbar.
+- 320 s auf der Standard-Sprosse: „Und schwerer geht diese Position nicht", keine Meldung mit
+  kg, gemerkte Werte unverändert.
+- Ein alter Plan mit 10 kg speichert den Satz mit 0 kg und der nackten Last. Ein alter Satz mit
+  10 kg bleibt mit seiner Last in der Kurve.
+- Karte im Workout: am Seitstütz kein kg-Stepper, am Liegestütz weiter einer.
+- Im Nachtrag ist das kg-Feld beim Seitstütz gesperrt, beim Liegestütz frei; eingetippte 10 kg
+  werden als 0 gespeichert.
+- Die 26 Prüfungen aus 2026-10-03 a laufen weiter durch; nur ihre Build-Nummer ist veraltet.
 
 ### 2026-10-03 a — Dauer beim Anhaken
 

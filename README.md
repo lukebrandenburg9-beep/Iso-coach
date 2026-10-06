@@ -169,8 +169,9 @@ die dem üblichen Rat widersprechen:
   flachen Seitstütz schon rund 70 % des Körpergewichts trägt); das Rumpfmoment sinkt dabei sogar
   leicht. Die Stufe steht deshalb bewusst nicht in der Leiter.
 
-Oberhalb des Standards bleibt nur Zusatzlast, und die wirkt nur nah an der Taille: 10 kg an der
-Hüfte sind +25 %, dieselben 10 kg am Brustkorb +3 %. Darum steht der Ort in der Bedienung.
+Oberhalb des Standards endet die Leiter. Zusatzlast ginge rechnerisch nur nah an der Taille
+(10 kg an der Hüfte sind +25 %, am Brustkorb +3 %), aber der Seitstütz bleibt bewusst eine reine
+Körpergewichtsübung. Die App bietet bei ihm kein Gewicht an.
 
 **Der Schrägzug folgt demselben Gesetz.** Last = 0,746 · cos θ, wobei θ der Körperwinkel über der
 Waagerechten ist — gegen vier publizierte Kraftmessungen am Gurt geprüft, größte Abweichung 5,1 %.
@@ -193,10 +194,9 @@ der Liste der Dinge, die nachgemessen gehören.
 
 **Zusatzgewicht ist eine eigene Achse, keine Leitersprosse.** Die Leiter bleibt reines
 Körpergewicht; Kilogramm kommen ab einer Stufe je Übung dazu (Liegestütz ab „Boden",
-Ausfallschritt ab „Hinterer Fuß ~20 cm erhöht", Seitstütz ab „Standard"). Wie stark ein Kilo
-wirkt, ist übungsabhängig: Bei Liegestütz und Ausfallschritt wächst die Last mit `X/BW`, beim
-Seitstütz mit `2·X/BW` — dort ist die Last ein Biegemoment und das Gewicht sitzt auf der Hüfte,
-dem wirksamsten Hebelpunkt. Beim Schrägzug sind es `1,3·X/BW` (Rucksack hoch auf den
+Ausfallschritt ab „Hinterer Fuß ~20 cm erhöht"). Der Seitstütz bleibt reines Körpergewicht,
+seine Leiter endet bei „Standard". Wie stark ein Kilo wirkt, ist übungsabhängig: Bei Liegestütz
+und Ausfallschritt wächst die Last mit `X/BW`. Beim Schrägzug sind es `1,3·X/BW` (Rucksack hoch auf den
 Schulterblättern; rutscht er aufs Becken, wirkt dasselbe Gewicht nur zu drei Vierteln), bei der
 Fersenbrücke `1,4·X/BW` (Gewicht auf dem Becken, dicht am Hüftgelenk). Dafür braucht die App das Körpergewicht: *Mehr → Messung*.
 
