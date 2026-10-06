@@ -1271,7 +1271,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-06 d";
+const BUILD = "2026-10-06 e";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -6644,7 +6644,9 @@ function dauerMitHaekchen(u, an, drin){
    Die Mitte traegt die Farbe der Zone, die HEUTE laeuft. Luke, 06.10.2026:
    „anhand des kuchendiagramms nicht erkennen welche zone heute wirklich
    empfohlen wird". Eine Scheibe statt eines hervorgehobenen Stuecks, weil die
-   heutige Zone im Kuchen noch gar kein Stueck haben kann. */
+   heutige Zone im Kuchen noch gar kein Stueck haben kann. Radius 13 statt 15:
+   Mit nur 2 Einheiten Luft zum Ring floss ein Stueck derselben Farbe sichtbar
+   in die Scheibe (Live-Check 06.10.); 4 Einheiten trennen beide. */
 function kuchenSVG(n, seite, heute){
   const summe = ZONES.reduce((a, z) => a + (n[z.id] || 0), 0);
   const R = 22.5, U = 2 * Math.PI * R;
@@ -6671,7 +6673,7 @@ function kuchenSVG(n, seite, heute){
   const text = `${seite ? seite + ": " : ""}${ZONES.map(z => `${n[z.id] || 0} ${z.name}`)
     .join(", ")} in den letzten ${anzahl(summe, "Einheit", "Einheiten")}${
     hz ? `, heute ${hz.name}` : ""}`;
-  const scheibe = hz ? `<circle class="kzHeute" cx="28" cy="28" r="15" fill="var(--zone${hz.id})"/>` : "";
+  const scheibe = hz ? `<circle class="kzHeute" cx="28" cy="28" r="13" fill="var(--zone${hz.id})"/>` : "";
   return `<div class="kzKu" role="img" aria-label="${text}">
     <svg viewBox="0 0 56 56" width="56" height="56" aria-hidden="true">${boegen}${zahlen}${scheibe}
       <text x="28" y="28" text-anchor="middle" dominant-baseline="central" font-size="15"

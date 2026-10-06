@@ -2326,8 +2326,9 @@ Einheiten. Eine blaue Mitte heißt „heute Hypertrophie / Kraft", nicht „meis
   `blockLabel(bl)` ohne den Mittelpunkt. Die Nummern kommen aus einem CSS-Zähler mit „)" in
   `li::before`, weil Safari `::marker` keinen eigenen Inhalt erlaubt. `reihenfolge()` ist weg.
 - `kuchenSVG(n, seite, heute)` zeichnet bei gesetzter Zone einen Kreis `class="kzHeute"` mit
-  Radius 15 in `var(--zone…)` unter die Zahl. Der Ring liegt bei 22,5 ± 5,5, die Scheibe berührt
-  ihn also nicht. Der Vorlesetext endet auf „…, heute Kraftausdauer".
+  Radius 13 in `var(--zone…)` unter die Zahl. Der Ring liegt bei 22,5 ± 5,5, dazwischen bleiben 4
+  Einheiten Luft. In d war der Radius 15: Nur 2 Einheiten Luft, und ein Stück derselben Farbe
+  floss sichtbar in die Scheibe (2026-10-06 e). Der Vorlesetext endet auf „…, heute Kraftausdauer".
 - In `kuchenZeile` holt `zoneDerSeite(sd)` die Zone aus dem Block derselben Seite. Ein
   beidbeiniger Block ohne Seite fällt auf den ersten Block der Übung zurück.
 - `.kzZ button.sel` ist voll gefüllt: Hintergrund `var(--zc)`, Schrift, Punkt und „›" in
@@ -2338,6 +2339,14 @@ Einheiten. Eine blaue Mitte heißt „heute Hypertrophie / Kraft", nicht „meis
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-06 e — Luft zwischen Kuchenring und Mitte
+
+**Befund (Live-Check zu d).** Lief heute Kraftausdauer und hatte der Ring ein gelbes Stück, floss
+es fast nahtlos in die gelbe Mitte. Die Verteilung war dann schwer abzulesen.
+
+**Gebaut.** Die Scheibe in der Mitte hat Radius 13 statt 15. Zum Ring bleiben 4 statt 2
+Einheiten Luft (P71). Die 19 Prüfungen aus d laufen unverändert durch.
 
 ### 2026-10-06 d — Reihenfolge als Liste, heutige Zone im Kuchen
 
