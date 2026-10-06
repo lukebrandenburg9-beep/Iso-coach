@@ -198,6 +198,9 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .kzZ button.sel{background:var(--zc);border-color:var(--zc);color:#14161c;font-weight:600}
 .kzZ button.sel::before{background:#14161c}
 .kzZ button.sel::after{content:"›";margin-left:auto;font-weight:700;color:#14161c}
+/* Die Empfehlung der App: 2 px Orange, aus Kante plus innerem Schatten, damit
+   der Knopf nicht waechst, wenn die Empfehlung wandert. */
+.kzZ button.empf{border-color:var(--orange);box-shadow:inset 0 0 0 1px var(--orange)}
 .kzRuht{flex-basis:100%;margin:0;font-size:12px;color:var(--warn)}
 .zw.zwei{grid-template-columns:repeat(2,1fr)}
 /* Haekchen "Wand" unter "Nur Koerpergewicht": klappt beim Wechsel auf. */
@@ -1271,7 +1274,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-06 e";
+const BUILD = "2026-10-06 f";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -6185,7 +6188,9 @@ function renderHome(){
      daneben die drei Zonen. Hervorgehoben ist die Zone, in der der Block HEUTE
      wirklich laeuft (p.blocks), nicht die Vorgabe — die Lueckenlogik kann sie
      noch gedreht haben. Ausgegraut ist eine Zone, die keine Seite erreicht
-     (Luke, 06.10.: „Ausgegraut"); die heutige nie. */
+     (Luke, 06.10.: „Ausgegraut"); die heutige nie. Orange umrandet ist die
+     Empfehlung der App (empfohleneZone) — sie bleibt stehen, wenn man eine
+     andere Zone antippt. */
   const kuchenZeile = u => {
     const e = S.ex[u.ex];
     const bl = p.blocks.find(b => b.exercise === u.ex);
@@ -6193,6 +6198,7 @@ function renderHome(){
     const seiten = e.sides || [null];
     const kann = new Set(seiten.flatMap(sd => erreichbareZonen(u.ex, sd)));
     const ruht = (u.tor.gewaehlt && u.tor.ruht > 0) ? u.tor.ruht : 0;
+    const empf = empfohleneZone(u.ex, p);
     /* Je Seite die Zone ihres eigenen Blocks; ein beidbeiniger Block (ohne
        Seite) gilt fuer beide. */
     const zoneDerSeite = sd => {
@@ -6202,9 +6208,10 @@ function renderHome(){
     return `<div class="kz" id="kz-${u.ex}">
       <div class="kzK">${seiten.map(sd => kuchenSVG(zonenAnteile(u.ex, sd), sd, zoneDerSeite(sd))).join("")}</div>
       <div class="kzZ">${ZONES.map(z => {
-        const sel = z.id === heute, aus = !sel && !kann.has(z.id);
-        return `<button class="z${z.id}${sel ? " sel" : ""}" data-hz="${z.id}" data-hzx="${u.ex}"
-          aria-pressed="${sel}"${aus ? " disabled" : ""}>${z.name}</button>`;
+        const sel = z.id === heute, aus = !sel && !kann.has(z.id), em = z.id === empf;
+        return `<button class="z${z.id}${sel ? " sel" : ""}${em ? " empf" : ""}" data-hz="${z.id}"
+          data-hzx="${u.ex}" aria-pressed="${sel}"${em ? ` aria-label="${z.name}, empfohlen"` : ""}${
+          aus ? " disabled" : ""}>${z.name}</button>`;
       }).join("")}</div>${ruht ? `
       <p class="kzRuht">${zName(u.tor.gewaehlt)} erst ${tage(ruht)} erholt</p>` : ""}
     </div>`;
@@ -6624,29 +6631,43 @@ function haekchenSetzen(u, an, drin){
    mkBlock Heimgewichte (S.extra), das Haekchen selbst S.heute und S.aktiv. Die
    Sitzungen bleiben beim Zuruecklegen dieselben — die liest das Planen nur,
    und sie sind der grosse Teil von S. */
-function dauerMitHaekchen(u, an, drin){
+function aufProbe(fn){
   const vorher = {};
   for(const k of Object.keys(S))
     vorher[k] = k === "sessions" ? S[k] : structuredClone(S[k]);
-  try{
-    haekchenSetzen(u, an, drin);
-    return planDauer(planWorkout().blocks);
-  } finally {
+  try{ return fn(); }
+  finally {
     for(const k of Object.keys(S)) if(!(k in vorher)) delete S[k];
     Object.assign(S, vorher);
   }
+}
+function dauerMitHaekchen(u, an, drin){
+  return aufProbe(() => { haekchenSetzen(u, an, drin); return planDauer(planWorkout().blocks); });
+}
+/* Welche Zone haette die App dieser Uebung heute gegeben, ohne eigene Wahl?
+   Luke, 06.10.2026: „umrande die empfohlende zone mit 2px in orange, sobald
+   ich an den zonen herumspiele weiß ich nichtmehr welche vorausgewählt war".
+   Ohne eigene Wahl ist es der Block im Plan, samt Lueckenlogik. Mit eigener
+   Wahl plant die App auf Probe ohne sie. Faellt die Uebung ohne Wahl ganz
+   heraus (alle Zonen ruhen), gibt es keine Empfehlung: null. */
+function empfohleneZone(ex, plan){
+  const gr = groupOf(ex);
+  const zoneIm = bl => { const b = bl && bl.find(x => x.exercise === ex); return b ? b.zone : null; };
+  if(!zoneWahlHeute(gr)) return zoneIm(plan && plan.blocks);
+  return aufProbe(() => {
+    zoneWahlSetzen(gr, ""); S.plan = null; S.planDay = null;
+    return zoneIm(planWorkout().blocks);
+  });
 }
 
 /* Der Kuchen einer Seite: Rot, Blau, Gelb im Uhrzeigersinn ab zwoelf Uhr, in
    der Mitte die Zahl der Einheiten, im Stueck seine Anzahl, sobald es dafuer
    breit genug ist. Keine Legende — die Zonenknoepfe daneben tragen dieselben
    Farben und die Namen.
-   Die Mitte traegt die Farbe der Zone, die HEUTE laeuft. Luke, 06.10.2026:
-   „anhand des kuchendiagramms nicht erkennen welche zone heute wirklich
-   empfohlen wird". Eine Scheibe statt eines hervorgehobenen Stuecks, weil die
-   heutige Zone im Kuchen noch gar kein Stueck haben kann. Radius 13 statt 15:
-   Mit nur 2 Einheiten Luft zum Ring floss ein Stueck derselben Farbe sichtbar
-   in die Scheibe (Live-Check 06.10.); 4 Einheiten trennen beide. */
+   Die heutige Zone zeigt der voll gefuellte Zonenknopf daneben, der Kuchen
+   nennt sie nur im Vorlesetext. In 2026-10-06 d/e trug die Mitte eine Scheibe
+   in der Farbe der heutigen Zone; Luke, 06.10.2026: „entferne die umrandung
+   mach die zahl einfach weiß, das design wirkt überladen". */
 function kuchenSVG(n, seite, heute){
   const summe = ZONES.reduce((a, z) => a + (n[z.id] || 0), 0);
   const R = 22.5, U = 2 * Math.PI * R;
@@ -6673,11 +6694,10 @@ function kuchenSVG(n, seite, heute){
   const text = `${seite ? seite + ": " : ""}${ZONES.map(z => `${n[z.id] || 0} ${z.name}`)
     .join(", ")} in den letzten ${anzahl(summe, "Einheit", "Einheiten")}${
     hz ? `, heute ${hz.name}` : ""}`;
-  const scheibe = hz ? `<circle class="kzHeute" cx="28" cy="28" r="13" fill="var(--zone${hz.id})"/>` : "";
   return `<div class="kzKu" role="img" aria-label="${text}">
-    <svg viewBox="0 0 56 56" width="56" height="56" aria-hidden="true">${boegen}${zahlen}${scheibe}
+    <svg viewBox="0 0 56 56" width="56" height="56" aria-hidden="true">${boegen}${zahlen}
       <text x="28" y="28" text-anchor="middle" dominant-baseline="central" font-size="15"
-        font-weight="700" font-family="var(--mono)" fill="${hz ? "#14161c" : summe ? "var(--tx)" : "var(--tx3)"}">${
+        font-weight="700" font-family="var(--mono)" fill="var(--tx)">${
         summe}</text></svg>${seite ? `<span aria-hidden="true">${seite}</span>` : ""}</div>`;
 }
 /* Ein Tipp auf eine Zone unter einer angehakten Uebung — dieselbe Wahl wie auf
@@ -6686,11 +6706,13 @@ function kuchenSVG(n, seite, heute){
    gateGroup). Ein zweiter Tipp auf die eigene Wahl stellt zurueck auf die
    Rotation. Ein Tipp auf die Zone, die die Rotation ohnehin gewaehlt hat, tut
    nichts: Sonst wuerde die Wahl still "fest" und schaltete die Lueckenlogik
-   in mkBlock ab, ohne dass sich auf dem Bildschirm etwas aendert. */
+   in mkBlock ab, ohne dass sich auf dem Bildschirm etwas aendert. Aus
+   demselben Grund fuehrt ein Tipp auf die orange umrandete Empfehlung zurueck
+   zur Rotation, statt sie als eigene Wahl festzuschreiben. */
 function heuteZoneTippen(ex, z){
   const gr = groupOf(ex), eigene = zoneWahlHeute(gr);
   const bl = S.plan && S.planDay === today() && S.plan.blocks.find(b => b.exercise === ex);
-  if(eigene === z) zoneWahlSetzen(gr, "");
+  if(eigene === z || (eigene && empfohleneZone(ex) === z)) zoneWahlSetzen(gr, "");
   else if(!eigene && bl && bl.zone === z) return false;
   else zoneWahlSetzen(gr, z);
   S.plan = null; S.planDay = null;

@@ -90,8 +90,10 @@ Rechenlogik:
 - **Drei Zonen, drei Farben:** Maximalkraft (20–60 s, rot), Hypertrophie / Kraft (60–90 s, blau),
   Kraftausdauer (90–150 s, gelb). Auf *Heute* steht unter jeder angehakten Übung je Seite ein
   Kuchen der letzten 30 Einheiten — gezählt nach der Zone, in der der erste Satz gelandet ist —
-  und daneben die drei Zonen zum Antippen. Die Mitte des Kuchens und der Knopf daneben tragen die
-  Farbe der Zone, die heute läuft. Eine Zone, die noch ruht, lässt sich trotzdem wählen;
+  und daneben die drei Zonen zum Antippen. Der Knopf der Zone, die heute läuft, ist voll in ihrer
+  Farbe gefüllt. Die Zone, die die App empfiehlt, bleibt orange umrandet, auch wenn man eine
+  andere antippt; ein Tipp darauf führt zurück zur Empfehlung. Eine Zone, die noch ruht, lässt
+  sich trotzdem wählen;
   die App sagt dann, wann sie erholt wäre. Was die Übung nicht erreicht, ist ausgegraut.
 - **Erholung:** Dieselbe Muskelgruppe **dreimal pro Woche**, jedes Energiesystem — also jede
   Zone — **einmal pro Woche**. Beides zusammen ist genau eine Rotation: drei Zonen, drei

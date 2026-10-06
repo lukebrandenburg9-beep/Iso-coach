@@ -2320,25 +2320,85 @@ trotzdem.
 **Der Preis.** Die Mitte zeigt jetzt zwei Dinge: die Farbe der heutigen Zone und die Zahl der
 Einheiten. Eine blaue Mitte heißt „heute Hypertrophie / Kraft", nicht „meist blau".
 
+**Zurückgenommen in 2026-10-06 f.** Luke, nach dem Blick auf d und e: „entferne die umrandung
+mach die zahl einfach weiß, das design wirkt überladen". Die farbige Scheibe in der Mitte ist
+weg, die Zahl steht weiß auf dunklem Grund, auch die 0 eines leeren Kuchens. Die heutige Zone
+zeigt jetzt allein der voll gefüllte Knopf daneben; im Vorlesetext nennt der Kuchen sie weiter.
+Damit gilt der Abschnitt „Warum eine Scheibe" und der Preis oben nicht mehr.
+
 **Für den Nachbau:**
 
 - `planFolge(blocks)` liefert `<ol class="planFolge">` mit einem `<li>` je Block,
   `blockLabel(bl)` ohne den Mittelpunkt. Die Nummern kommen aus einem CSS-Zähler mit „)" in
   `li::before`, weil Safari `::marker` keinen eigenen Inhalt erlaubt. `reihenfolge()` ist weg.
-- `kuchenSVG(n, seite, heute)` zeichnet bei gesetzter Zone einen Kreis `class="kzHeute"` mit
-  Radius 13 in `var(--zone…)` unter die Zahl. Der Ring liegt bei 22,5 ± 5,5, dazwischen bleiben 4
-  Einheiten Luft. In d war der Radius 15: Nur 2 Einheiten Luft, und ein Stück derselben Farbe
-  floss sichtbar in die Scheibe (2026-10-06 e). Der Vorlesetext endet auf „…, heute Kraftausdauer".
+- `kuchenSVG(n, seite, heute)` nutzt `heute` seit f nur noch für den Vorlesetext. Die Zahl in
+  der Mitte hat immer `var(--tx)`. Die Scheibe `class="kzHeute"` aus d und e ist entfernt. Der
+  Vorlesetext endet auf „…, heute Kraftausdauer".
 - In `kuchenZeile` holt `zoneDerSeite(sd)` die Zone aus dem Block derselben Seite. Ein
-  beidbeiniger Block ohne Seite fällt auf den ersten Block der Übung zurück.
+  beidbeiniger Block ohne Seite fällt auf den ersten Block der Übung zurück. Seit f dient das
+  nur noch dem Vorlesetext.
 - `.kzZ button.sel` ist voll gefüllt: Hintergrund `var(--zc)`, Schrift, Punkt und „›" in
   `#14161c`.
+
+### P72 · Empfehlung bleibt orange umrandet
+
+Luke, 06.10., nachdem die Kuchenmitte wieder schlicht war: „umrande die empfohlende zone mit
+2px in orange, sobald ich an den zonen herumspiele weiß ich nichtmehr welche vorausgewählt war"
+
+Bis dahin trug nur der gefüllte Knopf eine Markierung, und der wanderte mit jedem Tipp. Nach dem
+ersten Wechsel war nicht mehr zu sehen, welche Zone die App vorgeschlagen hatte.
+
+**Gebaut in 2026-10-06 f.**
+
+- Der Knopf der Zone, die die App ohne eigene Wahl nehmen würde, hat eine 2 px breite Kante in
+  Orange (`--orange`, #ff8a1f). Sie bleibt stehen, wenn man eine andere Zone antippt. Gefüllt
+  ist weiter die Zone, die heute läuft. Solange man nichts antippt, ist es derselbe Knopf:
+  gefüllt und orange umrandet.
+- Ein Tipp auf den orangen Knopf führt zurück zur Rotation. Die App schreibt die Empfehlung
+  dabei nicht als eigene Wahl fest, sonst schaltete sie still die Lückenlogik ab.
+- Fällt die Übung ohne eigene Wahl ganz heraus, weil jede erreichbare Zone ruht, gibt es keine
+  Empfehlung und keinen orangen Knopf.
+- Im Vorlesetext heißt der Knopf zum Beispiel „Kraftausdauer, empfohlen".
+
+**Der Preis.** Für jede Übung mit eigener Wahl plant die App einmal mehr auf Probe, um die
+Empfehlung zu kennen. In Node bleibt `renderHome` bei 400 Sitzungen unter 45 ms.
+
+**Für den Nachbau:**
+
+- `empfohleneZone(ex, plan)`: Ohne eigene Wahl der Gruppe ist es die Zone des ersten Blocks der
+  Übung in `plan`. Mit eigener Wahl setzt sie die Gruppe auf Probe zurück auf die Rotation
+  (`zoneWahlSetzen(gr, "")`), plant neu und liest dort den Block. Ohne Block: `null`.
+- Die Probe läuft über `aufProbe(fn)`, das S wie bisher `dauerMitHaekchen` sichert und danach
+  unverändert zurücklegt, ohne `save()`. `dauerMitHaekchen` nutzt jetzt denselben Helfer.
+- `.kzZ button.empf{border-color:var(--orange);box-shadow:inset 0 0 0 1px var(--orange)}` steht
+  nach `.sel`: 1 px Kante plus 1 px innerer Schatten ergibt 2 px, ohne dass der Knopf wächst.
+- `heuteZoneTippen`: Ist eine eigene Wahl gesetzt und gilt der Tipp der Empfehlung, wird die
+  Wahl aufgehoben statt festgeschrieben.
 
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-06 f — Kuchenmitte schlicht, Empfehlung orange umrandet
+
+**Befund (Luke).** „entferne die umrandung mach die zahl einfach weiß, das design wirkt
+überladen" (P71). Und: „umrande die empfohlende zone mit 2px in orange, sobald ich an den zonen
+herumspiele weiß ich nichtmehr welche vorausgewählt war" (P72).
+
+**Gebaut.** Die farbige Scheibe in der Kuchenmitte ist weg, die Zahl ist weiß, auch die 0 eines
+leeren Kuchens. Die heutige Zone zeigt der voll gefüllte Knopf daneben. Die Zone, die die App
+empfiehlt, trägt eine 2 px breite orange Kante und behält sie, wenn man eine andere antippt; ein
+Tipp darauf führt zurück zur Rotation. README angepasst.
+
+**Geprüft.** Im Node-Abgleich mit dem Skript aus `index.html`, 39 Prüfungen, keine Abweichung:
+keine Scheibe, weiße Zahl in jeder Mitte, der gefüllte Knopf ist die Zone des Blocks. Orange ist
+genau ein Knopf, unberührt derselbe wie der gefüllte. Nach einem oder zwei Wechseln bleibt Orange
+bei der Empfehlung. Die Probe lässt S byte-gleich. Ein Tipp auf Orange hebt die Wahl auf, statt
+sie festzuschreiben. Ruht ohne Wahl alles, ist kein Knopf orange. Die Minuten-Proben laufen über
+den neuen gemeinsamen Helfer unverändert. Die Reihen der Builds davor laufen weiter; zwei
+Prüfmuster erlauben jetzt „sel empf" im Klassennamen.
 
 ### 2026-10-06 e — Luft zwischen Kuchenring und Mitte
 
