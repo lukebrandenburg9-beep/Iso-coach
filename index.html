@@ -947,8 +947,11 @@ const DEFAULT_EX = {
        die Uebung ueberhaupt macht. Die Abstufung liegt im Gewicht (0 bis
        extraMax) und haengt an extraGeraet — ohne Kettlebell bleibt die Uebung
        also nutzbar, nur eben ohne Zusatzlast. */
+    /* nameMitGewicht: Luke, 06.10.2026 — "bei dieser leiter müsste es auf 0
+       stehen und sobald ich gewicht >0kg nehme müsste die sprosse "mit
+       Zusatzgewicht lauten". Siehe sprossenName. */
     levels:[
-      {name:"Ohne Zusatzlast", load:0.090, ort:"boden"}
+      {name:"Ohne Zusatzlast", nameMitGewicht:"Mit Zusatzgewicht", load:0.090, ort:"boden"}
     ]
   },
 
@@ -1274,7 +1277,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-06 f";
+const BUILD = "2026-10-06 g";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -2918,8 +2921,8 @@ function erreichbareZonen(ex, side){
      bei 0 und rechnen wie bisher. */
   const untenDrunter = i => mitGewicht
     ? Math.max(extraBereich(ex, i).lo, -extraRealOf(ex, i)) : 0;
-  const leicht = Math.min(...stufen.map(st => lastVon(ex, st.i, untenDrunter(st.i))));
-  const schwer = Math.max(...stufen.map(st => lastVon(ex, st.i, obenDrauf(st.i))));
+  const leicht = Math.min(...stufen.map(st => lastVon(ex, st.i, untenDrunter(st.i), side)));
+  const schwer = Math.max(...stufen.map(st => lastVon(ex, st.i, obenDrauf(st.i), side)));
   const f = curFit(ex, side);
   let zeit;
   if(f){
@@ -3453,18 +3456,27 @@ function extraSelbstMerken(key){
   S.extraWahl = w;
 }
 /* Wo das Gewicht sitzt (Build 2026-09-29 a). Bisher nur beim aufrechten
-   Laeufer: Front Rack oder Suitcase, je Uebung EINE Wahl fuer beide Seiten.
-   Ohne gespeicherte Wahl gilt die erste Position der Liste. Eine Position mit
-   ruht:true (seit Build b der Guertel) ist nicht waehlbar und zaehlt auch
-   als gespeicherte Wahl nicht. */
+   Laeufer: Front Rack oder Suitcase. Seit Build 2026-10-06 g je SEITE eine
+   Wahl, gemerkt unter S.lage["laeufer|links"]. Luke, 06.10.2026: "Ich muss
+   auf jeder Seite den jeweils passenden Carry anwählen können ... jeweils
+   anders ob ich das linke oder rechte beim stehen habe." Die alte Wahl fuer
+   die ganze Uebung (S.lage.laeufer) gilt weiter fuer jede Seite, die noch
+   keine eigene hat. Ohne beides gilt die erste Position der Liste. Eine
+   Position mit ruht:true (seit Build b der Guertel) ist nicht waehlbar und
+   zaehlt auch als gespeicherte Wahl nicht. Wer ohne Seite fragt, bekommt die
+   Wahl der Uebung — das bleibt nur dort, wo keine Seite bekannt ist. */
 function lagenOf(ex){
   return ((S.ex[ex] || {}).lagen || []).filter(l => !l.ruht);
 }
-function lageOf(ex){
+function lageOf(ex, side){
   const L = lagenOf(ex);
   if(!L.length) return null;
-  const id = S.lage && S.lage[ex];
-  return L.find(l => l.id === id) || L[0];
+  const Lg = S.lage || {};
+  for(const id of [side ? Lg[keyOf(ex, side)] : null, Lg[ex]]){
+    const l = id && L.find(x => x.id === id);
+    if(l) return l;
+  }
+  return L[0];
 }
 /* Der Hebel, mit dem ein Kilo wirkt. Nach innen ist er kuerzer als nach
    aussen — beim aufrechten Laeufer 0,13 gegen 0,31 m. Ein Gegengewicht
@@ -3473,22 +3485,34 @@ function lageOf(ex){
    entscheidet die Position, sofern die Uebung welche hat. EINE Funktion fuer
    Hin- und Rueckrechnung — mit verschiedenen Hebeln faende die App ein
    Gewicht, das eine andere Last traegt als die, die sie anzeigt. */
-function extraKOf(ex, kg){
+function extraKOf(ex, kg, side){
   const e = S.ex[ex] || {};
   if(kg < 0 && e.extraKNeg != null) return e.extraKNeg;
-  const l = kg > 0 ? lageOf(ex) : null;
+  const l = kg > 0 ? lageOf(ex, side) : null;
   if(l && l.k > 0) return l.k;
   return (e.extraK != null) ? e.extraK : 1;
 }
-function extraFaktor(ex, kg){
+function extraFaktor(ex, kg, side){
   kg = extraKlemm(ex, kg);
   if(!kg) return 1;
   const bw = (S.bw > 0 ? S.bw : BW_DEFAULT);
-  return Math.max(0.05, 1 + extraKOf(ex, kg) * kg / bw);
+  return Math.max(0.05, 1 + extraKOf(ex, kg, side) * kg / bw);
 }
-function lastVon(ex, level, kg){
+/* side nur fuer die Position des Gewichts (lageOf); ohne Seite gilt die Wahl
+   der Uebung. */
+function lastVon(ex, level, kg, side){
   const L = S.ex[ex] && S.ex[ex].levels[level];
-  return L ? Math.round(L.load * extraFaktor(ex, kg) * 1000) / 1000 : 0;
+  return L ? Math.round(L.load * extraFaktor(ex, kg, side) * 1000) / 1000 : 0;
+}
+/* Name der Sprosse mit Blick auf das Gewicht: Die einzige Sprosse des
+   Laeufers heisst "Ohne Zusatzlast" — mit Kettlebell waere das falsch. Ein
+   von Hand umbenannter Name bleibt, wie er ist. Liest DEFAULT_EX wie
+   ohneZusatz, denn in S.ex steht nameMitGewicht erst nach einem Umzug. */
+function sprossenName(ex, level, kg){
+  const L = S.ex[ex] && S.ex[ex].levels[level];
+  if(!L) return "—";
+  const D = DEFAULT_EX[ex] && DEFAULT_EX[ex].levels[level];
+  return ((kg || 0) > 0 && D && D.nameMitGewicht && L.name === D.name) ? D.nameMitGewicht : L.name;
 }
 /* Uebungen, die reines Koerpergewicht bleiben (Seitstuetz seit 2026-10-06 a).
    Liest DEFAULT_EX und nicht S.ex, denn dort steht noch das alte extraAb. */
@@ -3624,13 +3648,13 @@ function naechsteVerfuegbare(ex, i){
    wirkt mit dem kuerzeren extraKNeg. Gerundet auf das Raster der Uebung und
    gedeckelt wie in Regel 2a, damit hier keine Zahl entsteht, die die App an
    anderer Stelle nie vorschlagen wuerde. */
-function kgFuerLast(ex, level, zielLast){
+function kgFuerLast(ex, level, zielLast, side){
   const e = S.ex[ex], b = extraBereich(ex, level);
   const bas = (e.levels[level] || {}).load || 0;
   if(!(bas > 0) || !(b.hi > b.lo) || !(zielLast > 0)) return null;
   const bw = (S.bw > 0 ? S.bw : BW_DEFAULT);
   const r  = zielLast / bas - 1;
-  const eK = extraKOf(ex, r < 0 ? -1 : 1);
+  const eK = extraKOf(ex, r < 0 ? -1 : 1, side);
   if(!(eK > 0)) return null;
   const roh = Math.round((bw * r / eK) / b.schritt) * b.schritt;
   return Math.max(b.lo, Math.min(kgDeckel(ex, level), Math.round(roh * 10) / 10));
@@ -3674,16 +3698,16 @@ function kgAufStufe(ex, key, level){
    ohne Gewicht wird beidbeinig mit vollem Rucksack — der kleinste nach unten.
    Liegt eine der beiden unter extraAb, bleibt die Zahl, wie sie ist: Dort war
    das Gewicht schon immer das der obersten Sprosse. */
-function kgUmrechnen(ex, von, kg, nach){
+function kgUmrechnen(ex, von, kg, nach, side){
   const ab = extraAbOf(ex);
   if(von === nach || von < ab || nach < ab) return kg;
-  const k2 = kgFuerLast(ex, nach, lastVon(ex, von, kg));
+  const k2 = kgFuerLast(ex, nach, lastVon(ex, von, kg, side), side);
   return (k2 == null) ? kg : k2;
 }
-function stufeZuLast(ex, ziel, kg){
+function stufeZuLast(ex, ziel, kg, side){
   const stufen = verfuegbareStufen(ex);
   let best = Infinity, k = stufen.length ? stufen[0].i : 0;
-  stufen.forEach(st => { const d = Math.abs(Math.log(lastVon(ex, st.i, kg)/ziel));
+  stufen.forEach(st => { const d = Math.abs(Math.log(lastVon(ex, st.i, kg, side)/ziel));
                          if(d < best){ best = d; k = st.i; } });
   return k;
 }
@@ -3742,7 +3766,7 @@ function gewichtRechnet(f, ex, side, level){
   if(!f || !gewichtFolgt(ex, side, level)) return false;
   const b = extraBereich(ex, level);
   const deckel = Math.min(b.hi, zusatzDeckel(ex));
-  const a = lastVon(ex, level, b.lo), z = lastVon(ex, level, deckel);
+  const a = lastVon(ex, level, b.lo, side), z = lastVon(ex, level, deckel, side);
   return Math.max(a, z) >= f.lo / BEREICH_SAUM && Math.min(a, z) <= f.hi * BEREICH_SAUM;
 }
 /* Welches Gewicht bringt diese Sprosse auf die Zielzeit? Mit Kurve exakt
@@ -3752,7 +3776,7 @@ function gewichtRechnet(f, ex, side, level){
    Gewicht haette genau den Fall vom 24.09. wiederholt — Zone B gewaehlt,
    Zone C auf der Karte. Gedeckelt wird wie ueberall ueber kgFuerLast (Spanne
    der Uebung, hoechstens ein halbes Koerpergewicht). */
-function zielKg(ex, level, f, anker, target){
+function zielKg(ex, level, f, anker, target, side){
   let zielLast = null;
   if(f){
     const roh = lastZuZeit(f, target);
@@ -3760,7 +3784,7 @@ function zielKg(ex, level, f, anker, target){
   } else if(anker){
     zielLast = anker.load * (ANNAHME_CP + (1-ANNAHME_CP) * anker.time / target);
   }
-  return (zielLast != null) ? kgFuerLast(ex, level, zielLast) : null;
+  return (zielLast != null) ? kgFuerLast(ex, level, zielLast, side) : null;
 }
 
 function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
@@ -3805,7 +3829,7 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
   if(f){
     const kgFuer = i => {
       let k = kgAuf(i);
-      if(folgt(i)){ const k2 = zielKg(ex, i, f, null, target); if(k2 != null) k = k2; }
+      if(folgt(i)){ const k2 = zielKg(ex, i, f, null, target, side); if(k2 != null) k = k2; }
       return k;
     };
     /* Nur Sprossen, die im GELTUNGSBEREICH der Kurve liegen: ausserhalb ist
@@ -3816,7 +3840,7 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
        bringt (gewichtFolgt). Sie zaehlt, sobald die Kurve die Sprosse selbst
        kennt — ohne Gewicht oder mit dem gerechneten. */
     stufen.forEach(st => {
-      const last = lastVon(ex, st.i, kgFuer(st.i));
+      const last = lastVon(ex, st.i, kgFuer(st.i), side);
       const drin = imBereich(f, last) || (folgt(st.i) && gewichtRechnet(f, ex, side, st.i));
       if(!drin) return;
       const t = predictTime(f, last);
@@ -3837,12 +3861,12 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
          deren Zeit dem Zonenziel am naechsten kommt. Die Karte zeigt dann die
          Zeit der Kurve; Regel 2a steuert nach der Messung wie immer nach. */
       const fenster = ZONES.find(z => z.id === zone);
-      const tBest = predictTime(f, lastVon(ex, level, kgFuer(level)));
+      const tBest = predictTime(f, lastVon(ex, level, kgFuer(level), side));
       if(fenster && (tBest < fenster.lo || tBest > fenster.hi)){
         const vorher = level;
         stufen.forEach(st => {
           if(Math.abs(st.i - vorher) > MAX_SPRUNG) return;
-          const t = predictTime(f, lastVon(ex, st.i, kgFuer(st.i)));
+          const t = predictTime(f, lastVon(ex, st.i, kgFuer(st.i), side));
           if(!isFinite(t)) return;
           const d = Math.abs(Math.log(t/target));
           if(d < best){ best = d; level = st.i; erweitert = true; }
@@ -3855,7 +3879,7 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
          erreichbare Zone), also rechnet die Kurve ueber die wenigen Sprossen
          weiter, die der Modus laesst. */
       stufen.forEach(st => {
-        const t = predictTime(f, lastVon(ex, st.i, kgFuer(st.i)));
+        const t = predictTime(f, lastVon(ex, st.i, kgFuer(st.i), side));
         if(!isFinite(t)) return;
         const d = Math.abs(Math.log(t/target));
         if(d < best){ best = d; level = st.i; erweitert = true; }
@@ -3865,7 +3889,7 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
   }
   if(herkunft !== "kurve" && (anker = ankerpunkt(ex))){
     const ziel = anker.load * (ANNAHME_CP + (1-ANNAHME_CP) * anker.time / target);
-    roh   = stufeZuLast(ex, ziel, extraOf(key));
+    roh   = stufeZuLast(ex, ziel, extraOf(key), side);
     level = Math.min(roh, anker.level + MAX_SPRUNG, lv.length-1);
     level = nahe(level);
     herkunft = "anker";
@@ -3889,7 +3913,7 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
      Gewicht sitzt nur obendrauf, und die Nachsteuerung macht Regel 2a nach
      der Messung. */
   if(folgt(level)){
-    let neuKg = zielKg(ex, level, f, (herkunft === "anker") ? anker : null, target);
+    let neuKg = zielKg(ex, level, f, (herkunft === "anker") ? anker : null, target, side);
     if(neuKg == null && herkunft === "start" && stufen.length < 2){
       /* Noch gar nichts gemessen. Die Einstiegsphase spreizt sonst ueber die
          SPROSSEN — bei einer Leiter aus einer Sprosse gaebe das dreimal
@@ -3907,7 +3931,7 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
       for(const k of seitenKeys(ex, side)) S.extra[kgKey(ex, k, level)] = kg;
     }
   }
-  const lastJetzt = lastVon(ex, level, kg);
+  const lastJetzt = lastVon(ex, level, kg, side);
   /* ZWEI Zahlen, bis hierher unter EINEM Namen. Bis zu dieser Zeile ist
      "target" der SOLLWERT der Zone — ihre Mitte, also das, wofuer der Block
      da ist. Ab hier ist es die ERWARTUNG fuer die Sprosse, die tatsaechlich
@@ -4193,7 +4217,7 @@ function applyRules(session, etikett){
   const kgSchluessel = () => kgKey(session.exercise, key, lvNow());
   const kgNow = () => extraKlemm(session.exercise, extraOf(kgSchluessel()), lvNow());
   const schrittNow = () => extraBereich(session.exercise).schritt;
-  const wieJetzt = () => stufenName(session.exercise, lvNow(), kgNow());
+  const wieJetzt = () => stufenName(session.exercise, lvNow(), kgNow(), session.side);
   /* Sprossenwechsel. Tragen beide Sprossen Gewicht, zieht die LAST mit um,
      nicht die Zahl: beidbeinig + 60 kg wird einbeinig ohne Gewicht, und
      einbeinig ohne Gewicht wird beidbeinig + 60 kg (bei 80 kg Koerpergewicht).
@@ -4203,13 +4227,14 @@ function applyRules(session, etikett){
     S.levels[key] = neu;
     if(kgJeSprosse(session.exercise) && alt >= extraAbOf(session.exercise)
        && neu >= extraAbOf(session.exercise)){
-      let k2 = kgUmrechnen(session.exercise, alt, kg, neu);
+      let k2 = kgUmrechnen(session.exercise, alt, kg, neu, session.side);
       /* Schliessen die beiden Sprossen nahtlos aneinander (Wadenheben mit
          Waage), ist der Wechsel allein kein Schritt: beidbeinig + 30 kg und
          einbeinig, 25 kg entlastet tragen dieselbe Last. Dann geht es auf der
          neuen Sprosse ein Raster weiter — sonst bliebe Schmerz ohne Folge. */
       const hoch = neu > alt, b = extraBereich(session.exercise, neu);
-      const vorher = lastVon(session.exercise, alt, kg), nachher = lastVon(session.exercise, neu, k2);
+      const vorher = lastVon(session.exercise, alt, kg, session.side),
+            nachher = lastVon(session.exercise, neu, k2, session.side);
       if(hoch ? nachher <= vorher + 1e-9 : nachher >= vorher - 1e-9)
         k2 = Math.max(b.lo, Math.min(b.hi,
                Math.round((k2 + (hoch ? b.schritt : -b.schritt)) * 10) / 10));
@@ -4313,7 +4338,7 @@ function applyRules(session, etikett){
        MAX_SPRUNG, und auf der obersten Sprosse schrieb gewichtDirekt NaN ins
        Gewicht — gemeldet wurde "schwerer", gespeichert war 0 kg. */
     const lastIst  = (session.load > 0) ? session.load
-                   : lastVon(session.exercise, session.level, session.extra || 0);
+                   : lastVon(session.exercise, session.level, session.extra || 0, session.side);
     const zielLast = lastIst * (ANNAHME_CP + (1-ANNAHME_CP) * first.time / session.target);
     /* Am oberen Leiterende geht es ueber das Zusatzgewicht weiter — und DORT ist
        die Rechnung exakt umkehrbar:
@@ -4337,7 +4362,7 @@ function applyRules(session, etikett){
          gerechnet faende die App ein Gegengewicht, das doppelt so schwer waere
          wie noetig. */
       const r   = zielLast / bas - 1;
-      const eK  = extraKOf(session.exercise, r < 0 ? -1 : 1);
+      const eK  = extraKOf(session.exercise, r < 0 ? -1 : 1, session.side);
       if(!(eK > 0)) return;
       const roh   = bw * r / eK;
       const rnd   = x => Math.round(x / b.schritt) * b.schritt;
@@ -4362,7 +4387,7 @@ function applyRules(session, etikett){
     let wie = null, stufenAuf = 0, umgerechnet = false;
     for(let k = 0; k < MAX_SPRUNG; k++){
       if(k > 0){
-        const jetzt = lastVon(session.exercise, lvNow(), kgNow());
+        const jetzt = lastVon(session.exercise, lvNow(), kgNow(), session.side);
         if(zuLeicht ? jetzt >= zielLast : jetzt <= zielLast) break;
       }
       const vor = kgNow(), stufeVor = lvNow();
@@ -4463,7 +4488,7 @@ function applyRules(session, etikett){
      Am oberen Leiterende geht es ueber das Zusatzgewicht weiter; vorher war
      dort schlicht Schluss und die Uebung wuchs nie wieder mit. */
   const f = curFit(session.exercise, session.side);
-  const lastJetzt = lastVon(session.exercise, lvNow(), kgNow());
+  const lastJetzt = lastVon(session.exercise, lvNow(), kgNow(), session.side);
   if(f && !first.pain && !unmessbar && imBereich(f, lastJetzt)){
     const t = predictTime(f, lastJetzt);
     if(isFinite(t) && t > 150){
@@ -4688,8 +4713,8 @@ function laufFortsetzen(){
      Nicht sofort die Uhr starten: die Variante will erst bestätigt werden. */
   if(!RUN.sets.length){ blockIntro(RUN.b); return; }
   const bl = curBlock();                    /* mitten im Block weiter */
-  RUN.load = lastVon(bl.exercise, bl.level, bl.extra);
-  RUN.levelName = stufenName(bl.exercise, bl.level, bl.extra);
+  RUN.load = lastVon(bl.exercise, bl.level, bl.extra, bl.side);
+  RUN.levelName = stufenName(bl.exercise, bl.level, bl.extra, bl.side);
   nextSet();
 }
 /* Wie viele Saetze stecken schon im Lauf? */
@@ -4731,7 +4756,7 @@ function sitzungsdauer(bloecke, zone){
           min: Math.round(gesamt(zone.lo) / 60),
           max: Math.round(gesamt(zone.hi) / 60)};
 }
-function stufenName(ex, level, kg){
+function stufenName(ex, level, kg, side){
   const L = S.ex[ex] && S.ex[ex].levels[level];
   if(!L) return "—";
   kg = extraKlemm(ex, kg, level);
@@ -4747,7 +4772,7 @@ function stufenName(ex, level, kg){
   /* Nach aussen sagt die Position, wo das Gewicht sitzt: "16 kg Front Rack
      auf der freien Seite". Der Name wandert so in levelName der Sitzung und
      bleibt im Verlauf richtig, auch wenn spaeter umgestellt wird. */
-  const lg = kg > 0 ? lageOf(ex) : null;
+  const lg = kg > 0 ? lageOf(ex, side) : null;
   return es
     ? `${z} ${kg < 0 ? es.minus : ((lg && lg.plus) || es.plus)}`
     : `${L.name} + ${z}`;
@@ -4759,7 +4784,7 @@ function curBlock(){ return RUN.plan.blocks[RUN.b]; }
    und eine Zielzeit, die nur an einer Stelle nachgezogen wird, ist falsch. */
 function zielNeu(bl){
   const f = curFit(bl.exercise, bl.side);
-  const last = lastVon(bl.exercise, bl.level, bl.extra);
+  const last = lastVon(bl.exercise, bl.level, bl.extra, bl.side);
   /* Ausserhalb des gemessenen Bereichs bleibt der Richtwert stehen: eine
      hochgerechnete Zahl saehe genauso aus wie eine gemessene. Ausnahme ist
      die oberste Sprosse mit Gewicht — dieselbe Regel wie in mkBlock. */
@@ -4803,7 +4828,7 @@ function stufeSetzen(bl, k){
     const f = curFit(bl.exercise, bl.side);
     const zz = ZONES.find(z => z.id === bl.zone) || ZONES[1];
     const soll = bl.soll || Math.round((zz.lo + zz.hi) / 2);
-    const kg = zielKg(bl.exercise, bl.level, f, f ? null : ankerpunkt(bl.exercise), soll);
+    const kg = zielKg(bl.exercise, bl.level, f, f ? null : ankerpunkt(bl.exercise), soll, bl.side);
     if(kg != null){
       bl.extra = kg;
       for(const k of seitenKeys(bl.exercise, bl.side)) S.extra[kgKey(bl.exercise, k, bl.level)] = kg;
@@ -4834,23 +4859,28 @@ function gewichtSetzen(bl, v){
    gerundet wird aufs Raster der Uebung und gedeckelt wie ueberall. Alle
    gemerkten Gewichte der Uebung ziehen mit, nicht nur die auf der Karte.
    Kein extraSelbstMerken: Das ist keine neue Last, und wer danach die Zone
-   wechselt, soll das Gewicht fuer die neue Position gerechnet bekommen. */
-function lageSetzen(ex, id, bloecke){
-  const alt = lageOf(ex);
+   wechselt, soll das Gewicht fuer die neue Position gerechnet bekommen.
+   Seit Build 2026-10-06 g mit Seite: Dann gilt die Wahl nur fuer diese Seite,
+   und nur deren Gewichte und Bloecke ziehen mit — die andere Seite traegt
+   ihre Kettlebell anders und behaelt ihr Kilo. */
+function lageSetzen(ex, id, bloecke, side){
+  const alt = lageOf(ex, side);
   if(!alt || alt.id === id) return;
   if(!S.lage) S.lage = {};
-  S.lage[ex] = id;
-  const neu = lageOf(ex), b = extraBereich(ex);
+  S.lage[side ? keyOf(ex, side) : ex] = id;
+  const neu = lageOf(ex, side), b = extraBereich(ex);
   if(!(alt.k > 0) || !(neu.k > 0)) return;
   const um = (kg, level) => {
     if(!((+kg || 0) > 0)) return kg;
     const roh = Math.round(kg * alt.k / neu.k / b.schritt) * b.schritt;
     return Math.min(kgDeckel(ex, level), Math.round(roh * 10) / 10);
   };
-  const vonUebung = k => k === ex || k.indexOf(ex + "|") === 0 || k.indexOf(ex + "#") === 0;
+  const sk = side ? keyOf(ex, side) : null;
+  const vonUebung = k => sk ? (k === sk || k.indexOf(sk + "#") === 0)
+    : (k === ex || k.indexOf(ex + "|") === 0 || k.indexOf(ex + "#") === 0);
   for(const k of Object.keys(S.extra || {})) if(vonUebung(k)) S.extra[k] = um(S.extra[k]);
   for(const q of (bloecke || [])){
-    if(q.exercise !== ex || !((q.extra || 0) > 0)) continue;
+    if(q.exercise !== ex || !((q.extra || 0) > 0) || (side && q.side !== side)) continue;
     q.extra = um(q.extra, q.level);
     zielNeu(q);
   }
@@ -4891,8 +4921,8 @@ function blockLabel(bl){ return labelOf(bl.exercise, bl.side, bl.level); }
 function startBlock(){
   const bl = curBlock();
   RUN.sets = []; RUN.i = 0;
-  RUN.load = lastVon(bl.exercise, bl.level, bl.extra);
-  RUN.levelName = stufenName(bl.exercise, bl.level, bl.extra);
+  RUN.load = lastVon(bl.exercise, bl.level, bl.extra, bl.side);
+  RUN.levelName = stufenName(bl.exercise, bl.level, bl.extra, bl.side);
   nextSet();
 }
 
@@ -5066,9 +5096,11 @@ function blockIntro(i){
   const nr  = bloecke.slice(0, i + 1).filter((_, j) => neuAb(j)).length;
 
   /* Eine Seite: Kopfzeile mit Seite und Zeit, darunter Variante, Seite des
-     Gewichts (nur der Laeufer), Gewicht und Saetze. Der Variantenname steht in
-     der Kopfzeile nur, wenn es keine Auswahl gibt, und ohne das Gewicht, wenn
-     der Stepper es zeigt — sonst stuende beides doppelt. */
+     Gewichts, Position des Gewichts (beides nur der Laeufer), Gewicht und
+     Saetze. Der Variantenname steht in der Kopfzeile nur, wenn es keine
+     Auswahl gibt, und ohne das Gewicht, wenn der Stepper es zeigt — sonst
+     stuende beides doppelt. Er folgt dem Gewicht (sprossenName): bei 0 kg
+     "Ohne Zusatzlast", darueber "Mit Zusatzgewicht". */
   const teilHTML = (q, t) => {
     const zE     = ZONES.find(z => z.id === (q.zoneErwartet || q.zone)) || ZONES[0];
     /* Die beidbeinige Sprosse gehoert auf einen Block OHNE Seite und dort
@@ -5090,13 +5122,19 @@ function blockIntro(i){
                  : (zwei ? Math.abs(q.extra || 0) : (q.extra || 0));
     const kgLo   = waage ? bwK + eb.lo : (zwei ? 0 : eb.lo);
     const kgHi   = waage ? bwK : (zwei ? ((q.extra || 0) < 0 ? -eb.lo : eb.hi) : eb.hi);
+    /* Front Rack oder Suitcase, je Seite (Build 2026-10-06 g). Nur solange
+       auf dieser Seite Gewicht haengt: ohne Kettlebell gibt es nichts zu
+       setzen. Die Knoepfe sagen, wo sie sitzt — der Stepper darunter
+       deshalb nur noch, auf welcher Seite. */
+    const lagen  = (mitKg && (q.extra || 0) > 0) ? lagenOf(q.exercise) : [];
+    const lg     = lagen.length > 1 ? lageOf(q.exercise, q.side) : null;
     const knopf  = (a, zeichen, aus, aria) => `<button class="ghost" data-t="${t}"
       data-a="${a}" aria-label="${aria}"${aus ? " disabled" : ""}>${zeichen}</button>`;
     return `<div class="teil">
       <div class="kopf">
         <span>${q.side ? `<b>${q.side}</b>` : ""}${stufen.length < 2
-          ? `${q.side ? " · " : ""}${mitKg ? ex.levels[q.level].name
-                                           : stufenName(q.exercise, q.level, q.extra)}` : ""}</span>
+          ? `${q.side ? " · " : ""}${mitKg ? sprossenName(q.exercise, q.level, q.extra)
+                                           : stufenName(q.exercise, q.level, q.extra, q.side)}` : ""}</span>
         <span>${zE.id !== q.zone ? `<span class="pill ${zE.cls}">${zE.name}</span> ` : ""}<b
           class="zeit">${fmt(q.target)}</b></span>
       </div>
@@ -5106,11 +5144,14 @@ function blockIntro(i){
       ${(mitKg && zwei) ? `<div class="zw drei">${seitenWahl(q.exercise).map(o => `<button
         class="${Math.sign(q.extra || 0) === o.v ? "sel" : "ghost"}" data-t="${t}"
         data-sw="${o.v}">${o.titel}<span>${o.unter}</span></button>`).join("")}</div>` : ""}
+      ${lg ? `<div class="zw ${lagen.length === 2 ? "zwei" : "drei"} je">${lagen.map(l => `<button
+        class="${l.id === lg.id ? "sel" : "ghost"}" data-t="${t}" data-lage="${l.id}">${
+        l.titel}<span>${l.unter}</span></button>`).join("")}</div>` : ""}
       <div class="stps">
         ${(mitKg && !(zwei && !q.extra)) ? `<div class="stp"><span class="tiny">${
           waage ? "Waage zeigt"
-                : (((q.extra || 0) > 0 && lageOf(q.exercise)) ? lageOf(q.exercise).label
-                                                              : (ex.extraLabel || "Gewicht"))}</span>
+                : (((q.extra || 0) > 0 && !lg && lageOf(q.exercise, q.side))
+                    ? lageOf(q.exercise, q.side).label : (ex.extraLabel || "Gewicht"))}</span>
           ${knopf("kg-", "−", kgNow <= kgLo, "weniger Gewicht")}
           <b>${String(kgNow).replace(".", ",")} kg</b>
           ${knopf("kg+", "+", kgNow >= kgHi, "mehr Gewicht")}</div>` : ""}
@@ -5122,20 +5163,6 @@ function blockIntro(i){
     </div>`;
   };
 
-  /* Wo das Gewicht sitzt — EINE Wahl fuer die ganze Uebung, deshalb einmal je
-     Karte und nicht je Seite. Nur sichtbar, solange auf einer Seite Gewicht
-     haengt: Ohne Gewicht gibt es nichts zu setzen. */
-  const lageHTML = () => {
-    const lg = lageOf(exKey);
-    if(!lg || !teile.some(q => (q.extra || 0) > 0 && q.level >= extraAbOf(q.exercise)))
-      return "";
-    const L = lagenOf(exKey);
-    return `<div class="tiny" style="margin-top:14px">Gewicht auf der freien Seite</div>
-      <div class="zw ${L.length === 2 ? "zwei" : "drei"}" style="margin-top:5px">${L.map(l => `<button
-        class="${l.id === lg.id ? "sel" : "ghost"}" data-lage="${l.id}">${l.titel}<span>${
-        l.unter}</span></button>`).join("")}</div>`;
-  };
-
   show("home");
   el("homeTitle").textContent = `Übung ${nr} von ${von}`;
   el("homeSub").textContent = "";
@@ -5145,7 +5172,6 @@ function blockIntro(i){
       ${schonDran ? "" : zonenWahlKarte(gr)}
       ${awZeigen ? ausfWahlKarte(exKey, bl.zone, "", true) : ""}
       ${teile.map(teilHTML).join("")}
-      ${lageHTML()}
       ${uebungsbild(bl.exercise, bl.level)}
       <button class="primary" style="width:100%;margin-top:14px;padding:16px" id="ivGo">
         Übung starten</button>
@@ -5201,7 +5227,10 @@ function blockIntro(i){
     };
   });
   document.querySelectorAll("#ivKarte [data-lage]").forEach(b => {
-    b.onclick = () => { lageSetzen(exKey, b.getAttribute("data-lage"), teile); neu(); };
+    b.onclick = () => {
+      const q = teile[+b.getAttribute("data-t")];
+      lageSetzen(q.exercise, b.getAttribute("data-lage"), teile, q.side); neu();
+    };
   });
   /* Zone im laufenden Workout umstellen. Die Bloecke dieser Uebung werden neu
      gebaut statt der ganze Plan neu geplant — Neuplanen wuerde den laufenden
@@ -5275,7 +5304,7 @@ function setTarget(){
 function prVon(bl, satz){
   const ex = bl.exercise, kg = bl.extra || 0;
   const lg = s => ((s.extra || 0) > 0 && lagenOf(ex).length) ? (s.lage || "guertel") : "";
-  const jetzt = (kg > 0 && lageOf(ex)) ? lageOf(ex).id : "";
+  const jetzt = (kg > 0 && lageOf(ex, bl.side)) ? lageOf(ex, bl.side).id : "";
   let best = null;
   for(const s of S.sessions){
     if(s.exercise !== ex || s.ausKurve || !zaehltFuer(s, ex, bl.side)) continue;
@@ -5502,12 +5531,12 @@ function blockSichern(){
   const bl = curBlock();
   RUN.fertig.push(Object.assign({
     exercise: bl.exercise, side: bl.side, level: bl.level,
-    levelName: stufenName(bl.exercise, bl.level, bl.extra),
+    levelName: stufenName(bl.exercise, bl.level, bl.extra, bl.side),
     /* Ein Plan von vor 2026-10-06 a kann am Seitstuetz noch Gewicht tragen. */
-    load: lastVon(bl.exercise, bl.level, bl.extra),
+    load: lastVon(bl.exercise, bl.level, bl.extra, bl.side),
     extra: ohneZusatz(bl.exercise) ? 0 : (bl.extra || 0), bw: S.bw || null,
     /* Nur wo es eine Wahl gibt und das Gewicht aussen haengt — sonst leer. */
-    lage: ((bl.extra || 0) > 0 && lageOf(bl.exercise)) ? lageOf(bl.exercise).id : undefined,
+    lage: ((bl.extra || 0) > 0 && lageOf(bl.exercise, bl.side)) ? lageOf(bl.exercise, bl.side).id : undefined,
     target: bl.target, workoutZone: bl.zone,
     /* Zone nach der ERREICHTEN Zeit — wer eine Stufe selbst waehlt, landet oft woanders. */
     zone: zoneOf(RUN.sets[0].time).id,
@@ -5714,7 +5743,7 @@ function showWorkoutResult(gespeichert, painEnd){
    Aufsatz und die Zeichnung so breit wie bisher, solange keiner darauf misst.
    Gewichtsmarken zaehlen von der obersten Sprosse aus und tragen ihr
    Vorzeichen — die Sprossennummern haben keins. */
-function gewichtAchse(ex){
+function gewichtAchse(ex, side){
   const e = S.ex[ex], b = extraBereich(ex);
   if(!e || !(b.hi > b.lo)) return null;
   const st = verfuegbareStufen(ex).filter(x => x.i >= extraAbOf(ex));
@@ -5731,8 +5760,8 @@ function gewichtAchse(ex){
                  || (e.startStufe != null && extraAbOf(ex) <= e.startStufe);
   const schritt = (hiKg - loKg) > 40 ? 20 : 10;
   return {top, loKg, hiKg, istLeiter, schritt,
-          lo: Math.min(...st.map(x => lastVon(ex, x.i, unten(x.i)))),
-          hi: lastVon(ex, top, hiKg)};
+          lo: Math.min(...st.map(x => lastVon(ex, x.i, unten(x.i), side))),
+          hi: lastVon(ex, top, hiKg, side)};
 }
 /* Warum eine Sprosse ausgegraut ist. Vorher stand dort die rohe Kennung
    ("zug fehlt"). */
@@ -5768,9 +5797,9 @@ function curveSVG(f, pts){
   const W=400, H=290, L=42, R=12, TP=12, B=38;
   const exK = S.exercise;
   const lv = curEx().levels;
-  const ga = gewichtAchse(exK);
+  const ga = gewichtAchse(exK, S.side);
   const kgJetzt = extraKlemm(exK, kgAufStufe(exK, curKey(), curLevel()), curLevel());
-  const lastJetzt = lastVon(exK, curLevel(), kgJetzt);
+  const lastJetzt = lastVon(exK, curLevel(), kgJetzt, S.side);
   const loads = lv.map(l=>l.load)
     .concat(pts.map(p => p.load).filter(v => v > 0))
     .concat(lastJetzt > 0 ? [lastJetzt] : [])
@@ -5815,7 +5844,7 @@ function curveSVG(f, pts){
   if(ga){
     for(let kg = Math.ceil(ga.loKg / ga.schritt) * ga.schritt; kg <= ga.hiKg + 1e-9; kg += ga.schritt){
       if(!kg) continue;
-      const P = lastVon(exK, ga.top, kg);
+      const P = lastVon(exK, ga.top, kg, S.side);
       if(!(P > x0 && P < x1)) continue;
       const x = X(P);
       if(belegt.some(b => Math.abs(b - x) < 24)) continue;
@@ -7001,13 +7030,15 @@ function renderSetup(){
     const d = el("nDate").value;
     if(!d){ hint.textContent = "Datum fehlt."; hint.style.color = "var(--bad)"; return; }
     const pre = el("nPre").checked;
+    /* Die Seite entscheidet beim Laeufer, wie die Kettlebell sitzt. */
+    const sd = e.sides ? el("nSide").value : null;
     const ses = {
-      exercise: ex, side: e.sides ? el("nSide").value : null,
+      exercise: ex, side: sd,
       /* Der Nachtrag kann von zuhause sein; im Modus fiele das Gewicht sonst
          still aus der Last. */
-      level: lvl, levelName: mitGeraeten(() => stufenName(ex, lvl, kg)),
-      load: mitGeraeten(() => lastVon(ex, lvl, kg)), extra: kg, bw: S.bw || null,
-      lage: (kg > 0 && mitGeraeten(() => lageOf(ex))) ? mitGeraeten(() => lageOf(ex)).id : undefined,
+      level: lvl, levelName: mitGeraeten(() => stufenName(ex, lvl, kg, sd)),
+      load: mitGeraeten(() => lastVon(ex, lvl, kg, sd)), extra: kg, bw: S.bw || null,
+      lage: (kg > 0 && mitGeraeten(() => lageOf(ex, sd))) ? mitGeraeten(() => lageOf(ex, sd)).id : undefined,
       target: zeiten[0], workoutZone: zoneOf(zeiten[0]).id, zone: zoneOf(zeiten[0]).id,
       fresh: !pre, userPicked: true, manuell: true,
       date: new Date(d + "T12:00:00").toISOString(),

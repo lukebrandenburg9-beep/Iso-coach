@@ -2375,11 +2375,81 @@ Empfehlung zu kennen. In Node bleibt `renderHome` bei 400 Sitzungen unter 45 ms.
 - `heuteZoneTippen`: Ist eine eigene Wahl gesetzt und gilt der Tipp der Empfehlung, wird die
   Wahl aufgehoben statt festgeschrieben.
 
+### P73 · Aufrechter Läufer: Name folgt dem Gewicht, Carry je Seite
+
+Luke, 06.10., mit einem Bildschirmfoto der Karte vor dem aufrechten Läufer: „das menü beim
+aufrechten läufer macht keinen sinn, es steht "ohne zusatzlast aber trotzdem ist gewicht
+angewählt. bei dieser leiter müsste es auf 0 stehen und sobald ich gewicht >0kg nehme müsste die
+sprosse "mit Zusatzgewicht lauten" 2) Ich muss auf jeder Seite den jeweils passenden Carry
+anwählöen können, rechtes bein unten ist es der suitcase Carry, linkes bein unten ist es der Rack
+Carry, jeweils anders ob ich das linke oder rechte beim stehen habe."
+
+Auf die Rückfrage, ob die Karte bei 0 kg starten oder die App weiter das Gewicht für die Zone
+vorschlagen soll, hat er „App schlägt vor" gewählt.
+
+**Gebaut in 2026-10-06 g.**
+
+- Die App setzt weiter je Seite das Gewicht, mit dem man in der Zone landet. Nur der Name der
+  einzigen Sprosse folgt jetzt dem Gewicht: bei 0 kg „Ohne Zusatzlast", darüber „Mit
+  Zusatzgewicht". Bis dahin stand im Kopf der Seite immer „Ohne Zusatzlast", auch neben 10 kg.
+- Front Rack oder Suitcase wählt man je Seite, direkt in der Zeile dieser Seite, und die App merkt
+  es sich je Seite. Die Knöpfe stehen nur, solange auf der Seite Gewicht hängt. Die Überschrift
+  „Gewicht auf der freien Seite" mit einer Wahl für die ganze Karte ist weg. Über dem Stepper
+  steht nur noch „Kettlebell auf der freien Seite", den Carry zeigen die Knöpfe.
+- Ein Wechsel hält wie bisher die Last und rechnet das Kilo um, aber nur auf dieser Seite: 10 kg
+  Front Rack werden 8 kg Suitcase, die andere Seite behält ihr Kilo.
+- Last, Planung, Regeln nach dem Satz, Bestwert, gespeicherter Satz, Profil und Nachtrag rechnen
+  mit dem Carry der Seite. Ein Satz speichert Name, Last und Position seiner Seite.
+- Die frühere Wahl für die ganze Übung gilt für jede Seite weiter, die noch keine eigene hat. Wer
+  nie etwas gewählt hat, steht wie bisher auf Front Rack.
+
+**Für Luke.** Rechts (rechtes Bein steht) einmal Suitcase antippen, links bleibt Front Rack. Das
+gilt danach für jedes Workout. Ich habe es nicht vorbelegt, weil die Wahl in der App liegt.
+
+**Der Preis.** Bei gleicher Kurve verlangen beide Seiten jetzt verschiedene Kilos, weil derselbe
+Halt mit Front Rack mehr Gewicht braucht als mit Suitcase. Wer die Seiten am Kilo vergleicht,
+vergleicht zwei Hebel.
+
+**Für den Nachbau:**
+
+- `lageOf(ex, side)` liest zuerst `S.lage["laeufer|links"]`, dann die alte `S.lage.laeufer`,
+  sonst die erste Position, die nicht ruht.
+- `side` als letzter, freiwilliger Parameter in `extraKOf`, `extraFaktor`, `lastVon`,
+  `kgFuerLast`, `kgUmrechnen`, `stufeZuLast`, `zielKg`, `stufenName`, `gewichtAchse`,
+  `lageSetzen`. Ohne Seite gilt die Wahl der Übung, das betrifft nur noch beidbeinige Sprossen und
+  die Leiterspanne.
+- `lageSetzen(ex, id, bloecke, side)` schreibt den Schlüssel der Seite und rechnet nur
+  `laeufer|seite` und `laeufer|seite#…` sowie die Blöcke dieser Seite um.
+- `sprossenName(ex, level, kg)` liest `nameMitGewicht` aus `DEFAULT_EX` (dort ohne
+  Versionssprung) und lässt einen von Hand umbenannten Namen stehen.
+- Die Knöpfe stehen in `teilHTML` als `.zw.zwei.je` mit `data-t` und `data-lage`; `lageHTML`
+  ist entfernt.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-06 g — Läufer: Name folgt dem Gewicht, Carry je Seite
+
+**Befund (Luke).** „es steht "ohne zusatzlast aber trotzdem ist gewicht angewählt" und „Ich
+muss auf jeder Seite den jeweils passenden Carry anwählöen können" (P73).
+
+**Gebaut.** Die Sprosse heißt bei 0 kg „Ohne Zusatzlast", mit Gewicht „Mit Zusatzgewicht". Front
+Rack oder Suitcase wählt man je Seite in der Zeile der Seite; die App merkt es sich je Seite und
+rechnet überall mit dem Carry der Seite. Ein Wechsel hält die Last und ändert nur das Kilo dieser
+Seite. Die alte Wahl für die ganze Übung gilt weiter, bis eine Seite eine eigene hat. README
+angepasst.
+
+**Geprüft.** Im Node-Abgleich mit dem Skript aus `index.html`, 39 Prüfungen, keine Abweichung:
+Name bei 0, 2 und negativen kg, umbenannte Sprosse bleibt. Rückfall auf die alte Wahl, ruhender
+Gürtel zählt nicht. Last und Rückrechnung je Seite. Bei gleicher Kurve plant links mit Front Rack
+22 kg, rechts mit Suitcase 16 kg, beide treffen ihre Zielzeit. Karte: Name wechselt mit dem
+Gewicht, Knöpfe nur auf der Seite mit Gewicht. Ein Wechsel rechts macht aus 10 kg 8 kg, links
+bleibt bei 6 kg. Gesicherter Satz, Nachtrag, Regel nach dem Satz und Profil nehmen den Carry der
+Seite. Die Reihen der Builds davor laufen bis auf ihre BUILD-Zeilen weiter (die Kuchenmitte aus d
+und e prüft weiter die alte Scheibe, die f entfernt hat).
 
 ### 2026-10-06 f — Kuchenmitte schlicht, Empfehlung orange umrandet
 

@@ -209,6 +209,10 @@ seine Leiter endet bei „Standard". Wie stark ein Kilo wirkt, ist übungsabhän
 und Ausfallschritt wächst die Last mit `X/BW`. Beim Schrägzug sind es `1,3·X/BW` (Rucksack hoch auf den
 Schulterblättern; rutscht er aufs Becken, wirkt dasselbe Gewicht nur zu drei Vierteln), bei der
 Fersenbrücke `1,4·X/BW` (Gewicht auf dem Becken, dicht am Hüftgelenk). Dafür braucht die App das Körpergewicht: *Mehr → Messung*.
+Beim aufrechten Läufer trägt das Gewicht die ganze Leiter: Die einzige Sprosse heißt bei 0 kg
+„Ohne Zusatzlast" und mit Kettlebell „Mit Zusatzgewicht". Wo die Kettlebell sitzt — Front Rack
+`2,33·X/BW` oder Suitcase `3,22·X/BW` —, wählst du je Seite, denn links und rechts brauchen oft
+einen anderen Carry. Wechselst du, bleibt die Last gleich und die App rechnet das Kilo um.
 
 ---
 
