@@ -212,6 +212,15 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .teil .zeit{font-family:var(--mono);font-size:20px;font-weight:500;
   font-variant-numeric:tabular-nums;white-space:nowrap}
 .teil select{margin-top:9px}
+/* Satzkurve je Seite (Build 2026-10-06 h) */
+.skurve{margin:8px 0 0}
+.skurve svg{display:block;width:100%;height:auto;overflow:visible}
+.skurve text{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.skurve .skW{font-size:11px;font-weight:500;fill:var(--tx)}
+.skurve .skN{font-size:10.5px;fill:var(--tx3)}
+.skurve .skP{stroke:var(--panel);stroke-width:2}
+.skGes{text-align:right;font-size:11.5px;color:var(--tx3);margin-top:1px}
+.skGes b{font-family:var(--mono);font-weight:500;color:var(--tx2)}
 .teil .zw{margin-top:9px}
 .stps{display:flex;gap:8px 14px;flex-wrap:wrap;margin-top:10px}
 .stp{display:flex;align-items:center;gap:6px;flex:1 1 150px}
@@ -893,12 +902,22 @@ const DEFAULT_EX = {
     name:"Aufrechter Läufer", region:"Hüfte", group:"abduct",
     sides:["links","rechts"],
     seitenRuf:{links:"LINKES BEIN STEHT", rechts:"RECHTES BEIN STEHT"},
+    /* Kopfzeile der Karte vor der Uebung (Build 2026-10-06 h). Luke: "dem
+       nutzer genau erklaeren was er zu tun hat und die buttons klar
+       formulieren". Gelesen aus DEFAULT_EX, wie seitenRuf. */
+    seitenKopf:{links:"linkes Bein steht", rechts:"rechtes Bein steht"},
+    /* Die Kettlebell sitzt immer auf der Gegenseite des Standbeins: Die
+       Knoepfe nennen deshalb die Hand ("vor der Schulter – links"), siehe
+       lageUnter. */
+    gewichtGegenseite:true,
     /* Die ganze Uebung ist aeussere Huefte des Standbeins — siehe huefteHeute. */
     huefteStandbein:true,
     extraAb:0, extraK:3.44, extraKNeg:1.44,
     extraMin:0, extraMax:32, extraSchritt:2, extraReal:32,
     extraGeraet:["gewicht"],
-    extraLabel:"Kettlebell auf der freien Seite",
+    /* Bis Build 2026-10-06 g "Kettlebell auf der freien Seite". Seit die
+       Knoepfe darueber die Seite nennen, reicht das Wort (Luke). */
+    extraLabel:"Gewicht",
     /* minus beschreibt nur noch Saetze von vor Build 2026-09-29 b. */
     extraSeiten:{plus:"auf der freien Seite",
                  minus:"am Gürtel der Standbeinseite",
@@ -1277,7 +1296,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-06 g";
+const BUILD = "2026-10-06 h";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -2220,6 +2239,28 @@ function seitenRuf(bl){
   if(!r || beidStufe(bl.exercise, bl.level)) return "";
   return r[bl.side] || "";
 }
+/* Kopfzeile je Seite auf der Karte vor der Uebung: "rechtes Bein steht"
+   statt nur "rechts", wo die Uebung das sagen muss. Sonst die Seite. */
+function seitenKopf(bl){
+  const r = bl && bl.side && (DEFAULT_EX[bl.exercise] || {}).seitenKopf;
+  return (r && r[bl.side]) || (bl && bl.side) || "";
+}
+function gegenseite(side){
+  return side === "links" ? "rechts" : side === "rechts" ? "links" : "";
+}
+/* Zweite Zeile eines Positionsknopfs. Sitzt das Gewicht auf der Gegenseite
+   des Standbeins (Laeufer), steht die Hand dabei: "vor der Schulter – links",
+   wenn das rechte Bein steht. Luke, 06.10.2026. */
+function lageUnter(ex, l, side){
+  const g = !l.ruht && (DEFAULT_EX[ex] || {}).gewichtGegenseite && gegenseite(side);
+  return g ? `${l.unter} – ${g}` : l.unter;
+}
+/* Beschriftung des Gewicht-Steppers, aus DEFAULT_EX wie seitenRuf:
+   gespeicherte Uebungen tragen sonst den alten Text weiter. */
+function extraLabelVon(ex){
+  return (DEFAULT_EX[ex] && DEFAULT_EX[ex].extraLabel)
+      || (S.ex[ex] && S.ex[ex].extraLabel) || "Gewicht";
+}
 /* Hinweistext fuers Onboarding: der aus DEFAULT_EX, sonst der gespeicherte. */
 function hintVon(k, v){
   return (DEFAULT_EX[k] && DEFAULT_EX[k].hint) || (v && v.hint) || "";
@@ -2571,6 +2612,131 @@ function points(ex, side){
   return out;
 }
 const curFit = (ex, side) => fit(points(ex, side));
+
+/* ── Satzkurve: wie lange Satz 2, 3, … halten ───────────────────────
+   Build 2026-10-06 h. Luke: "waehrend der onboarding phase wird mit den
+   modellzahlen aus den studien gerechnet ... daraus die neue kurve inklusive
+   haltezeiten je satz modelliert. Das ist das USP der app".
+   Satz n haelt r_n mal so lange wie Satz 1:
+       r_n = a + (1 − a) · q^(n−1)
+   a ist der Boden, auf den spaete Saetze zulaufen; q sagt, wie schnell sie
+   dort ankommen. Das ist die geschlossene Loesung eines Zwei-Speicher-
+   Modells, t_(n+1) = q·t_n + (1−q)·a·t_1: Ein Teil kommt in der Pause
+   zurueck, ein Teil bleibt weg und summiert sich ueber die Saetze auf.
+   Startwert: Chorley 2022 (PMC8854279) misst die W'-Erholung zweiteilig,
+   50,67 % mit τ 21,5 s und 49,33 % mit τ 388 s. Nach PAUSE_S = 20 s sind
+   damit rund 33 % zurueck, Satz 2 haelt also ein Drittel (Recherche 1.1).
+   Das gedaechtnislose W'-Modell kennt keinen weiteren Abfall: q = 0.
+   Lukes Messreihen bis 21.09.2026 (27 Bloecke) ergeben a = 0,18, q = 0,22 —
+   steiler als die Studie. Genau das lernt die App: erst ueber alle Uebungen
+   des Nutzers, dann je Uebung und Seite, jeweils zum Wert darueber hin
+   gezogen, solange wenig gemessen ist. Ohne einen einzigen gueltigen Block
+   gilt der Startwert, so ist das Onboarding abgedeckt.
+   SATZ_START ist die eine Stelle, an der spaeter der Durchschnitt aller
+   Nutzer eingesetzt wird. */
+const SATZ_START = {a:0.33, q:0, quelle:"Chorley 2022"};
+const SATZ_GEWICHT_START  = 2;   // so viele Bloecke wiegt der Startwert gegen die eigenen
+const SATZ_GEWICHT_NUTZER = 3;   // so viele wiegt der Nutzer-Fit gegen eine Uebung
+const SATZ_BLOECKE = 30;         // nur die juengsten zaehlen
+/* Was ein Block Abstand zum Vorwert kostet, je 1,0 in a oder q. Ein Folgesatz
+   aendert sich im Log-Raum um rund 2 bis 3 je 1,0 in a, ein Block hat zwei
+   bis drei Folgesaetze — 6 heisst also: Ein Vorwert-Block wiegt etwa so viel
+   wie ein gemessener. */
+const SATZ_STRAFE = 6;
+function satzQuote(m, n){ return n <= 1 ? 1 : m.a + (1 - m.a) * Math.pow(m.q, n - 1); }
+/* EINE Rechnung fuer Karte, Timer und Dauer: Der naechste Satz folgt aus
+   dem TATSAECHLICH gehaltenen davor. Wer laenger haelt, bekommt mehr. */
+function naechsterSatz(m, n, vorher){
+  return Math.max(8, Math.round(vorher * satzQuote(m, n) / satzQuote(m, n - 1)));
+}
+/* Schritt fuer Schritt statt t1 · r_n: So ist die Kurve auf der Karte
+   byte-gleich mit dem Timer, wenn jeder Satz genau getroffen wird. */
+function satzZeiten(t1, n, m){
+  const out = [t1];
+  for(let k = 2; k <= n; k++) out.push(naechsterSatz(m, k, out[k - 2]));
+  return out;
+}
+/* Ein Block taugt fuer die Satzkurve, wenn er frisch war, Satz 1 im
+   Messfenster lag und mindestens ein Folgesatz ohne Schmerz kam. Ab dem
+   ersten Satz mit Schmerz zaehlt nichts mehr — der Abbruch misst nicht die
+   Erholung. Die Quote ist auf 0,02 bis 1,5 begrenzt: ein Ausreisser wie
+   244 → 2 → 1 s zieht so nicht die ganze Kurve weg. */
+function satzQuoten(s){
+  if(!s || s.fresh === false || !s.sets || s.sets.length < 2) return null;
+  const e = s.sets[0], t1 = e && e.time;
+  if(!e || e.pain || !(t1 >= MESS_MIN && t1 <= MESS_MAX)) return null;
+  const out = [];
+  for(let n = 2; n <= Math.min(s.sets.length, SETS_MAX); n++){
+    const z = s.sets[n - 1];
+    if(!z || z.pain || z.time == null) break;
+    out.push([n, Math.log(Math.min(1.5, Math.max(0.02, z.time / t1)))]);
+  }
+  return out.length ? out : null;
+}
+/* Raster: a von 0,02 bis 0,80, q von 0 bis 0,94, je in Schritten von 0,02.
+   log r_n steht einmal vorberechnet da. Gesucht wird die kleinste Summe der
+   Abstaende im Log-Raum (L1): ein einzelner Ausreisser wiegt so nur seinen
+   Abstand, nicht dessen Quadrat. Der Vorwert zieht an a und q selbst, nicht
+   an der Kurve: Ein Zug an der Kurve wirkte auch bei Satz 5 und 6, wo eine
+   Uebung vielleicht nie gemessen wurde, und verbog dort die gemessenen
+   Saetze 2 bis 4 (Pruefung mit a = 0,5: herausgekommen waren 0,02). */
+let satzRasterTab = null;
+function satzRaster(){
+  if(satzRasterTab) return satzRasterTab;
+  satzRasterTab = [];
+  for(let i = 1; i <= 40; i++) for(let j = 0; j <= 47; j++){
+    const m = {a: i / 50, q: j / 50}, r = [0, 0];
+    for(let n = 2; n <= SETS_MAX; n++) r.push(Math.log(satzQuote(m, n)));
+    satzRasterTab.push({a: m.a, q: m.q, r});
+  }
+  return satzRasterTab;
+}
+function satzFit(bloecke, vor, gewicht){
+  let best = null, bestE = Infinity;
+  for(const g of satzRaster()){
+    let e = SATZ_STRAFE * gewicht * (Math.abs(g.a - vor.a) + Math.abs(g.q - vor.q));
+    for(const b of bloecke){
+      for(const [n, l] of b) e += Math.abs(l - g.r[n]);
+      if(e >= bestE) break;
+    }
+    if(e < bestE){ bestE = e; best = g; }
+  }
+  return {a: best.a, q: best.q};
+}
+function satzJuengste(liste){
+  return liste.sort((x, y) => (x.d < y.d ? 1 : x.d > y.d ? -1 : 0))
+              .slice(0, SATZ_BLOECKE).map(x => x.q);
+}
+/* Merkt sich die Fits, bis eine Sitzung dazukommt oder sich die letzte
+   aendert — Heute rechnet die Dauer fuer jedes Haekchen einmal durch. */
+let satzMemo = null;
+function satzModell(ex, side){
+  const ss = S.sessions || [], last = ss[ss.length - 1];
+  const key = ss.length + "|" + (last ? (last.date || "") + "|" + ((last.sets || []).length) : "");
+  if(!satzMemo || satzMemo.arr !== ss || satzMemo.key !== key) satzMemo = {arr: ss, key, map: {}};
+  const mk = (ex || "") + "|" + (side || "");
+  if(satzMemo.map[mk]) return satzMemo.map[mk];
+  let m;
+  if(!ex){
+    const bl = [];
+    for(const s of ss){ const q = satzQuoten(s); if(q) bl.push({d: s.date || "", q}); }
+    m = bl.length
+      ? Object.assign(satzFit(satzJuengste(bl), SATZ_START, SATZ_GEWICHT_START),
+                      {quelle: "du", bloecke: Math.min(bl.length, SATZ_BLOECKE)})
+      : {a: SATZ_START.a, q: SATZ_START.q, quelle: "studie", bloecke: 0};
+  } else {
+    const nutzer = satzModell(null, null), bl = [];
+    for(const s of ss){
+      if(s.exercise !== ex || !zaehltFuer(s, ex, side)) continue;
+      const q = satzQuoten(s); if(q) bl.push({d: s.date || "", q});
+    }
+    m = bl.length
+      ? Object.assign(satzFit(satzJuengste(bl), nutzer, SATZ_GEWICHT_NUTZER),
+                      {quelle: "uebung", bloecke: Math.min(bl.length, SATZ_BLOECKE)})
+      : Object.assign({}, nutzer);
+  }
+  return (satzMemo.map[mk] = m);
+}
 
 /* Deckt die Datenlage alle drei Zonen ab? (Handoff 4.4) */
 function zoneOf(t){
@@ -4744,13 +4910,16 @@ const anzahl = (n, ein, viele) => `${n} ${n === 1 ? ein : viele}`;
    die Zone gibt nur das Fenster vor, in dem sie landen soll.
    Je Block: Vorlauf + Saetze x Haltezeit + Satzpausen (eine weniger als
    Saetze). Dazwischen PAUSE_BLOCK_S, ebenfalls eine weniger als Bloecke.
-   Was hier NICHT drinsteckt: der Abfall ueber die Saetze. Satz 2 und 3
-   laufen kuerzer als Satz 1, aber um wie viel, weiss erst die Messung —
-   einen Faktor dafuer zu erfinden waere schlechter als die ehrliche
-   Spanne. Deshalb steht der Hinweis darunter im Klartext. */
+   Der Abfall ueber die Saetze steckt seit Build 2026-10-06 h drin: Satz 2
+   und folgende laufen so kurz, wie die Satzkurve des Nutzers sagt
+   (satzModell ueber alle Uebungen, ohne Messung der Startwert aus den
+   Studien). Bis dahin stand hier, einen Faktor zu erfinden waere
+   unehrlich — jetzt ist er gemessen bzw. belegt. */
 function sitzungsdauer(bloecke, zone){
   const saetze = SETS_ZONE[zone.id] || SETS;
-  const block  = halt => LEAD_IN + saetze * halt + (saetze - 1) * PAUSE_S;
+  const m      = satzModell(null, null);
+  const block  = halt => LEAD_IN + satzZeiten(halt, saetze, m).reduce((a, b) => a + b, 0)
+                       + (saetze - 1) * PAUSE_S;
   const gesamt = halt => bloecke * block(halt) + (bloecke - 1) * PAUSE_BLOCK_S;
   return {saetze,
           min: Math.round(gesamt(zone.lo) / 60),
@@ -4770,11 +4939,14 @@ function stufenName(ex, level, kg, side){
   if(es && es.amStufenNamen)
     return kg < 0 ? `${L.name}, ${z} ${es.minus}` : `${L.name} + ${z}`;
   /* Nach aussen sagt die Position, wo das Gewicht sitzt: "16 kg Front Rack
-     auf der freien Seite". Der Name wandert so in levelName der Sitzung und
-     bleibt im Verlauf richtig, auch wenn spaeter umgestellt wird. */
+     vor der Schulter – links" (seit Build 2026-10-06 h mit der Hand, vorher
+     "… auf der freien Seite"). Der Name wandert so in levelName der Sitzung
+     und bleibt im Verlauf richtig, auch wenn spaeter umgestellt wird. */
   const lg = kg > 0 ? lageOf(ex, side) : null;
+  const mitHand = lg && side && (DEFAULT_EX[ex] || {}).gewichtGegenseite;
   return es
-    ? `${z} ${kg < 0 ? es.minus : ((lg && lg.plus) || es.plus)}`
+    ? `${z} ${kg < 0 ? es.minus
+                     : (mitHand ? `${lg.titel} ${lageUnter(ex, lg, side)}` : ((lg && lg.plus) || es.plus))}`
     : `${L.name} + ${z}`;
 }
 function curBlock(){ return RUN.plan.blocks[RUN.b]; }
@@ -5065,6 +5237,35 @@ function ausfUmbauen(i){
    Erklärabsätze (Einstieg, Anker, außerhalb des Bereichs, Kontrollposition,
    zweite Seite), der Haken „Beide Seiten gleich" und „trotzdem messen", die
    −/+-Knöpfe neben der Variante. Keine Erklärkästen für Endkunden. */
+/* ── Satzkurve auf der Karte vor der Uebung ──────────────────────────
+   Je Seite eine kleine Kurve wie bei Grip Gains. Luke, 06.10.2026: "Cool
+   waere auf dem menue auch die Satzzeiten oben zu sehen also als curve
+   erster bis sechster satz und die entsprechenden haltezeiten." So viele
+   Punkte, wie der Saetze-Stepper sagt, mit den Zahlen aus satzZeiten.
+   Gesamt rechnet wie Grip Gains: Haltezeiten plus die Pausen dazwischen
+   (149 + 48 + 35 + 27 + 3 · 20 = 5:19). */
+function satzKurveSVG(zeiten, zone){
+  const W = 300, H = 92, L = 24, R = 24, TP = 20, BASE = H - 17;
+  const n = zeiten.length, top = Math.max(...zeiten) || 1;
+  const X = i => n === 1 ? W / 2 : L + i * (W - L - R) / (n - 1);
+  const Y = v => TP + (1 - v / top) * (BASE - TP);
+  const farbe = `var(--zone${zone})`;
+  const pkt = zeiten.map((t, i) => [+X(i).toFixed(1), +Y(t).toFixed(1)]);
+  const linie = pkt.map(p => p.join(",")).join(" ");
+  let g = `<line x1="${L}" y1="${BASE}" x2="${W - R}" y2="${BASE}" stroke="var(--line)" stroke-width="1"/>`;
+  if(n > 1) g += `<polygon points="${pkt[0][0]},${BASE} ${linie} ${pkt[n - 1][0]},${BASE}"
+      fill="${farbe}" opacity=".16"/><polyline points="${linie}" fill="none" stroke="${farbe}"
+      stroke-width="2" stroke-dasharray="5 4"/>`;
+  pkt.forEach(([x, y], i) => {
+    g += `<circle class="skP" cx="${x}" cy="${y}" r="4" fill="${farbe}"/><text class="skW" x="${x}"
+      y="${y - 8}" text-anchor="middle">${fmt(zeiten[i])}</text><text class="skN" x="${x}"
+      y="${H - 3}" text-anchor="middle">${i + 1}</text>`;
+  });
+  const ges = Math.round(zeiten.reduce((sum, t) => sum + t, 0) + (n - 1) * PAUSE_S);
+  return `<div class="skurve"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Haltezeiten je Satz: ${
+    zeiten.map(t => Math.round(t)).join(", ")} Sekunden">${g}</svg><div class="skGes">Gesamt <b>${
+    Math.floor(ges / 60)}:${String(ges % 60).padStart(2, "0")}</b></div></div>`;
+}
 function blockIntro(i){
   RUN.b = i;
   const bl = curBlock(), ex = S.ex[bl.exercise], bloecke = RUN.plan.blocks;
@@ -5130,14 +5331,19 @@ function blockIntro(i){
     const lg     = lagen.length > 1 ? lageOf(q.exercise, q.side) : null;
     const knopf  = (a, zeichen, aus, aria) => `<button class="ghost" data-t="${t}"
       data-a="${a}" aria-label="${aria}"${aus ? " disabled" : ""}>${zeichen}</button>`;
+    /* Das Modell wandert an den Block: Der Timer rechnet spaeter mit genau
+       dem, was diese Kurve zeigt (setTarget). */
+    const sm = satzModell(q.exercise, q.side);
+    q.satzModell = {a: sm.a, q: sm.q};
     return `<div class="teil">
       <div class="kopf">
-        <span>${q.side ? `<b>${q.side}</b>` : ""}${stufen.length < 2
+        <span>${q.side ? `<b>${seitenKopf(q)}</b>` : ""}${stufen.length < 2
           ? `${q.side ? " · " : ""}${mitKg ? sprossenName(q.exercise, q.level, q.extra)
                                            : stufenName(q.exercise, q.level, q.extra, q.side)}` : ""}</span>
         <span>${zE.id !== q.zone ? `<span class="pill ${zE.cls}">${zE.name}</span> ` : ""}<b
           class="zeit">${fmt(q.target)}</b></span>
       </div>
+      ${satzKurveSVG(satzZeiten(q.target, q.saetze, q.satzModell), zE.id)}
       ${stufen.length < 2 ? "" : `<select data-t="${t}" data-a="stufe" aria-label="Variante">${
         stufen.map(st => `<option value="${st.i}"${st.i === q.level ? " selected" : ""}>${
           st.name}</option>`).join("")}</select>`}
@@ -5146,12 +5352,12 @@ function blockIntro(i){
         data-sw="${o.v}">${o.titel}<span>${o.unter}</span></button>`).join("")}</div>` : ""}
       ${lg ? `<div class="zw ${lagen.length === 2 ? "zwei" : "drei"} je">${lagen.map(l => `<button
         class="${l.id === lg.id ? "sel" : "ghost"}" data-t="${t}" data-lage="${l.id}">${
-        l.titel}<span>${l.unter}</span></button>`).join("")}</div>` : ""}
+        l.titel}<span>${lageUnter(q.exercise, l, q.side)}</span></button>`).join("")}</div>` : ""}
       <div class="stps">
         ${(mitKg && !(zwei && !q.extra)) ? `<div class="stp"><span class="tiny">${
           waage ? "Waage zeigt"
                 : (((q.extra || 0) > 0 && !lg && lageOf(q.exercise, q.side))
-                    ? lageOf(q.exercise, q.side).label : (ex.extraLabel || "Gewicht"))}</span>
+                    ? lageOf(q.exercise, q.side).label : extraLabelVon(q.exercise))}</span>
           ${knopf("kg-", "−", kgNow <= kgLo, "weniger Gewicht")}
           <b>${String(kgNow).replace(".", ",")} kg</b>
           ${knopf("kg+", "+", kgNow >= kgHi, "mehr Gewicht")}</div>` : ""}
@@ -5275,22 +5481,17 @@ function blockIntro(i){
 }
 /* Zielzeit des naechsten Satzes.
    Satz 1  — aus der Kurve (oder der Zone, solange es keine gibt).
-   Satz 2  — Anteil der TATSAECHLICH erreichten Zeit aus Satz 1.
-   Satz 3+ — der zwischen den letzten beiden Saetzen BEOBACHTETE Abfall wird
-             fortgeschrieben, statt einen angenommenen Wert zu verwenden. Wer
-             in Satz 2 ueber der Vorgabe lag, bekommt auch in Satz 3 mehr.
-   Der Abfall ueber die Saetze ist die W'-Rekonstitution (Handoff 3.1) und
-   damit personenabhaengig — genau deshalb wird er gemessen statt gesetzt. */
-const DROP2 = 0.45;   // Annahme fuer Satz 2, solange nichts beobachtet ist
-const DROP_MIN = 0.35, DROP_MAX = 0.85;
-
+   Satz 2+ — aus der TATSAECHLICH gehaltenen Zeit davor, mal dem Verhaeltnis
+             der Satzkurve (naechsterSatz). Wer laenger haelt, bekommt mehr.
+   Das Modell ist das, das die Karte vor der Uebung gezeigt hat (satzModell
+   am Block) — Karte und Timer nennen so dieselben Zahlen, wenn jeder Satz
+   getroffen wird. Bis Build 2026-10-06 g stand hier eine feste Annahme von
+   0,45 fuer Satz 2 und danach die zuletzt beobachtete Quote. */
 function setTarget(){
-  const s = RUN.sets;
-  if(s.length === 0) return curBlock().target;
-  if(s.length === 1) return Math.max(8, Math.round(s[0].time * DROP2));
-  const a = s[s.length-2].time, b = s[s.length-1].time;
-  const r = Math.min(DROP_MAX, Math.max(DROP_MIN, a > 0 ? b/a : DROP2));
-  return Math.max(8, Math.round(b * r));
+  const s = RUN.sets, b = curBlock();
+  if(s.length === 0) return b.target;
+  const m = b.satzModell || satzModell(b.exercise, b.side);
+  return naechsterSatz(m, s.length + 1, s[s.length - 1].time);
 }
 
 /* Der alte PR fuer die Prozentzeile im Timer: der laengste Halt mit
@@ -6008,6 +6209,10 @@ function messreihenCSV(){
   return "\ufeff" + EXPORT_SPALTEN.join(";") + "\n"
        + zeilen.map(z => EXPORT_SPALTEN.map(k => feld(z[k])).join(";")).join("\n") + "\n";
 }
+function satzExport(m){
+  return {a: Math.round(m.a * 100) / 100, q: Math.round(m.q * 100) / 100,
+          quelle: m.quelle, bloecke: m.bloecke};
+}
 function messreihenJSON(){
   return JSON.stringify({
     schema: EXPORT_SCHEMA,
@@ -6027,6 +6232,13 @@ function messreihenJSON(){
             + "Zeilen da. Seit Build 2026-09-29 b gibt es keine negativen Gewichte mehr.",
     spalten: EXPORT_SPALTEN,
     zonen: ZONES.map(z=>({id:z.id, name:z.name, von_s:z.lo, bis_s:z.hi})),
+    /* Satzkurve (Build 2026-10-06 h): Rohstoff fuer den spaeteren Abgleich
+       einzelner Nutzer gegen den Durchschnitt. uebungen bleibt unveraendert. */
+    satzmodell_start: {a:SATZ_START.a, q:SATZ_START.q, quelle:SATZ_START.quelle,
+      formel:"satz_n = satz_1 * (a + (1 - a) * q^(n-1)), Pause " + PAUSE_S + " s"},
+    satzmodell_nutzer: satzExport(satzModell(null, null)),
+    satzmodelle: Object.entries(S.ex).flatMap(([k, v]) => (v.sides || [null]).map(sd =>
+      Object.assign({uebung:k, seite:sd}, satzExport(satzModell(k, sd))))),
     uebungen: Object.entries(S.ex).map(([k,v])=>({
       id:k, name:v.name, region:v.region, gruppe:v.group, seiten:v.sides || null,
       /* extra_k fehlte hier und war damit extern nicht rekonstruierbar: Beim
@@ -6620,10 +6832,11 @@ function renderHistory(){
    startmenü beim anhaken der übungen bitte wie lange das workout dauern
    wird"), und die Summe muss genau um diese Zahl springen. Mit Fuenferschritt
    haette ein Block von drei Minuten "+0 min" oder "+5 min" bekommen.
-   Zwei Fehler stecken drin und zeigen in verschiedene Richtungen: Satz 2
-   und 3 laufen vorermuedet kuerzer als der Richtwert (zu hoch geschaetzt),
-   dafuer fehlen Aufbau, Stufenwahl und Ergebnisbildschirm (zu niedrig).
-   Keiner von beiden ist gemessen, also wird keiner verrechnet. */
+   Seit Build 2026-10-06 h laufen die Saetze nach dem ersten so kurz, wie
+   die Satzkurve sagt (satzZeiten) — dieselben Zahlen wie auf der Karte vor
+   der Uebung. Vorher stand jeder Satz mit dem Richtwert drin, das war zu
+   hoch. Was weiter fehlt: Aufbau, Stufenwahl und Ergebnisbildschirm. Das
+   ist nicht gemessen und wird deshalb nicht verrechnet. */
 /* Zwischen zwei Bloecken steht immer die Blockpause — auch zwischen links und
    rechts derselben Uebung. Bis Build 2026-09-21 b bekam das Seitenpaar hier
    nur die Satzpause, weil die eine Seite die andere nicht ermuedet. Luke,
@@ -6637,8 +6850,9 @@ function planDauer(bloecke){
     const z = ZONES.find(x => x.id === bl.zone) || ZONES[0];
     const n = bl.saetze || SETS_ZONE[bl.zone] || SETS;
     const t = bl.target || Math.round((z.lo + z.hi) / 2);
+    const halt = satzZeiten(t, n, satzModell(bl.exercise, bl.side)).reduce((a, b) => a + b, 0);
     return sum + (i ? PAUSE_BLOCK_S : 0)
-               + LEAD_IN + n * t + (n - 1) * PAUSE_S;
+               + LEAD_IN + halt + (n - 1) * PAUSE_S;
   }, 0);
   return Math.max(1, Math.round(summe / 60));
 }
@@ -6770,9 +6984,7 @@ function dauerHTML(bloecke){
       Math.round(PAUSE_BLOCK_S / 60)} Minuten</b> Pause zwischen zwei Blöcken — die App misst sie
     nicht und schreibt sie nicht vor; das gilt auch zwischen links und rechts derselben Übung.
     Innerhalb eines Blocks sind es ${PAUSE_S} Sekunden.
-    Die Spanne ist die Haltezeit selbst: sie steht nicht fest, sondern ist das, was du schaffst.
-    Satz 2 und 3 laufen vorermüdet kürzer als Satz 1 — eine echte Sitzung landet deshalb eher
-    im unteren Teil der Spanne.</p>`;
+    Die Spanne ist die Haltezeit selbst: sie steht nicht fest, sondern ist das, was du schaffst.</p>`;
 }
 
 function renderSetup(){

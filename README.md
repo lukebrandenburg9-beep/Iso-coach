@@ -95,6 +95,13 @@ Rechenlogik:
   andere antippt; ein Tipp darauf führt zurück zur Empfehlung. Eine Zone, die noch ruht, lässt
   sich trotzdem wählen;
   die App sagt dann, wann sie erholt wäre. Was die Übung nicht erreicht, ist ausgegraut.
+- **Satzkurve je Seite.** Auf der Karte vor jeder Übung steht unter der Kopfzeile eine kleine
+  Kurve: Haltezeit je Satz, vom ersten bis zum letzten, dazu die Gesamtzeit mit Pausen. Satz *n*
+  hält `a + (1−a)·q^(n−1)` mal so lange wie Satz 1. Am Anfang rechnet die App mit dem Studienwert
+  (nach 20 s Pause ist rund ein Drittel der Reserve zurück, Chorley 2022), danach mit den eigenen
+  Messreihen — erst über alle Übungen, dann je Übung und Seite. Der Timer gibt ab Satz 2 genau
+  diese Zahlen vor; wer länger hält als geplant, bekommt einen längeren nächsten Satz. Dieselbe
+  Rechnung steckt in der Dauer auf *Heute*.
 - **Erholung:** Dieselbe Muskelgruppe **dreimal pro Woche**, jedes Energiesystem — also jede
   Zone — **einmal pro Woche**. Beides zusammen ist genau eine Rotation: drei Zonen, drei
   Einheiten, ein Mo/Mi/Fr-Rhythmus. Umgesetzt als zwei Schranken: mindestens zwei Tage zwischen
@@ -212,7 +219,9 @@ Fersenbrücke `1,4·X/BW` (Gewicht auf dem Becken, dicht am Hüftgelenk). Dafür
 Beim aufrechten Läufer trägt das Gewicht die ganze Leiter: Die einzige Sprosse heißt bei 0 kg
 „Ohne Zusatzlast" und mit Kettlebell „Mit Zusatzgewicht". Wo die Kettlebell sitzt — Front Rack
 `2,33·X/BW` oder Suitcase `3,22·X/BW` —, wählst du je Seite, denn links und rechts brauchen oft
-einen anderen Carry. Wechselst du, bleibt die Last gleich und die App rechnet das Kilo um.
+einen anderen Carry. Die Kettlebell sitzt immer auf der Seite des freien Beins: Steht das
+rechte Bein, heißen die Knöpfe „Front Rack · vor der Schulter – links" und „Suitcase · in der
+Hand – links". Wechselst du, bleibt die Last gleich und die App rechnet das Kilo um.
 
 ---
 
@@ -224,6 +233,8 @@ einen anderen Carry. Wechselst du, bleibt die Last gleich und die App rechnet da
 - **Zuverlässig bei gesperrtem Display weiterlaufen.** Eine Webseite darf das nicht. Genau
   darum geht es in Abschnitt 6.1 des Handoffs, und genau deshalb wird die echte App
   wahrscheinlich nativ.
+- **Die eigene Satzkurve gegen den Durchschnitt aller Nutzer legen.** Das braucht einen Server
+  und eine ausdrückliche Einwilligung. Der Export enthält die Kennzahlen dafür schon.
 - Konten, Sync, Push, Videos, Bezahlung — alles außerhalb des MVP.
 
 ---

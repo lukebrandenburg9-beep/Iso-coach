@@ -2425,11 +2425,149 @@ vergleicht zwei Hebel.
 - Die Knöpfe stehen in `teilHTML` als `.zw.zwei.je` mit `data-t` und `data-lage`; `lageHTML`
   ist entfernt.
 
+### P74 · Satzkurve je Seite und klare Läufer-Knöpfe
+
+Luke, 06.10., mit einem Bildschirmfoto der Läufer-Karte und einem der Grip-Gains-Kurve
+(149 → 48 → 35 → 27 s, „Total Time 5:19"): „omay wichtig hier rackcarry und suitcase in welcher
+hand? schreibe entsprechen "rechts bein - mit Zusatzgewicht" und "Front Rack vor der Schulter -
+links" das gleiche für den suitcase carry also dem nutzer genau erklären was er zu tun hat und
+die buttons klar formulieren. "Gettlebell auf der freien seite" kannst du kürzen auf "Gewicht".
+Cool wäre auf dem menü auch die Satzzeiten oben zu sehen also als curve erster bis sechster satz
+und die entsprechenden haltezeiten."
+
+Auf die Rückfragen:
+
+| Frage | Lukes Antwort |
+|---|---|
+| Wortlaut | Mit „steht": Kopfzeile „rechtes Bein steht · Mit Zusatzgewicht", Knöpfe „Front Rack · vor der Schulter – links" und „Suitcase · in der Hand – links", bei linkem Standbein jeweils „– rechts". Das Feld heißt „Gewicht". Die Kettlebell sitzt immer auf der Gegenseite des Standbeins. |
+| Satzzeiten | „dAS IST JA GENAU DAS was die app leisten soll": Im Onboarding rechnet die App mit den Modellzahlen aus den Studien, danach mit den gemessenen Haltezeiten des Nutzers, und daraus wird die Kurve je Satz modelliert. „Das ist das USP der app und genau dafür brauchen wir leistungstarke mathemathische modelle." Nach dem Start sollen die Daten zentral gesammelt werden, damit sich einzelne Nutzer gegen den Durchschnitt rechnen lassen. |
+| Platz | Je Seite unter der Kopfzeile. |
+
+**Gebaut in 2026-10-06 h.**
+
+*Läufer.*
+
+- Die Kopfzeile jeder Seite nennt das Standbein: „rechtes Bein steht · Mit Zusatzgewicht".
+- Die Knöpfe sagen, wohin die Kettlebell gehört: „Front Rack · vor der Schulter – links" und
+  „Suitcase · in der Hand – links", bei „linkes Bein steht" jeweils „– rechts". „Gürtel · Hände
+  frei" bleibt, wie es ist.
+- Über dem Stepper steht „Gewicht" statt „Kettlebell auf der freien Seite".
+- Neue Sätze heißen „10 kg Suitcase in der Hand – links". Alte Sätze behalten ihren Namen.
+
+*Satzkurve.* Auf der Karte vor der Übung steht je Seite direkt unter der Kopfzeile eine kleine
+Kurve: ein Punkt je Satz, darüber die Sekunden, darunter die Satznummer, gestrichelt in der Farbe
+der Zone. Rechts unten steht „Gesamt" mit den Pausen, so wie Grip Gains rechnet
+(149 + 48 + 35 + 27 + 3 · 20 = 319 s = 5:19). Ein Tipp auf „Sätze" zeichnet sie neu. Kein
+Erklärtext.
+
+*Das Modell.* Satz *n* hält r_n mal so lange wie Satz 1, mit **r_n = a + (1−a) · q^(n−1)**.
+
+- **a** ist der Boden, auf den spätere Sätze zulaufen; **q** sagt, wie schnell sie dort ankommen.
+- Das ist die geschlossene Lösung eines Zwei-Speicher-Modells: t_(n+1) = q · t_n + (1−q) · a · t_1.
+  Ein Teil der Reserve erholt sich in der Pause kaum, ein Teil wirkt vom letzten Satz nach.
+- **Startwert aus den Studien: a = 0,33, q = 0.** Chorley 2022 (PMC8854279) misst die Erholung der
+  Reserve zweiteilig: 50,67 % mit einer Zeitkonstante von 21,5 s, 49,33 % mit 388 s. Nach
+  den 20 s Pause der App sind damit rund 33 % zurück, das deckt sich mit Recherche 1.1 („Satz 2 ≈
+  ein Drittel"). Für 119 s heißt das **119 → 39 → 39 → 39**. Eine Zahl für den Abfall über mehrere
+  Sätze hinweg habe ich in der Literatur nicht gefunden; deshalb startet q bei 0.
+- **Danach lernt die App.** Erst aus allen Übungen des Nutzers (der Studienwert zählt dabei wie
+  zwei Blöcke), dann je Übung und Seite (der Nutzerwert zählt wie drei Blöcke). Gerechnet wird
+  über die letzten 30 Blöcke. Ein Block zählt, wenn er frisch war, mindestens zwei Sätze hat und
+  Satz 1 zwischen 20 und 300 s liegt; beim ersten Satz mit Schmerz endet er. Die einzelnen Sätze
+  der Einstiegstests ändern nichts, die App rechnet also bis zum ersten echten Workout mit dem
+  Studienwert. Ohne eigenen Schalter.
+- **Lukes Messreihen** (Export vom 21.09., 27 gültige Blöcke): a = 0,18, q = 0,20. Für 119 s
+  heißt das **119 → 41 → 25 → 22 → 21 → 21**. Seine Sätze knicken stärker ab als der Studienwert,
+  und genau das lernt die App.
+
+*Timer.* Satz 1 nimmt wie bisher die Zielzeit des Blocks. Ab Satz 2 rechnet der Timer mit
+derselben Kurve vom tatsächlich gehaltenen Vorsatz aus: Wer länger hält, bekommt einen längeren
+nächsten Satz. Wird jeder Satz getroffen, zeigt der Timer genau die Zahlen der Karte. Die alte
+Regel (Satz 2 = 45 % von Satz 1, danach das Verhältnis der letzten beiden, zwischen 35 und 85 %)
+ist weg.
+
+*Dauer auf „Heute".* Die Plankarte und die Minuten an den Häkchen rechnen mit derselben Kurve.
+Bisher stand dort jeder Satz so lang wie Satz 1, und der Text sagte dazu, die echte Dauer liege
+im unteren Teil der Spanne. Dieser Satz ist weg. Im Testfall mit fünf Blöcken Kraftausdauer à
+120 s und drei Sätzen sinkt die Dauer von 46 auf 33 min.
+
+*Export.* Die Messreihen enthalten jetzt `satzmodell_start` mit der Formel, `satzmodell_nutzer`
+und `satzmodelle` je Übung und Seite, jeweils mit a, q, Herkunft und Zahl der Blöcke. Das ist der
+Rohstoff für den späteren Abgleich mit dem Durchschnitt. Die Liste `uebungen` ist unverändert.
+
+**Was auf Lukes Daten herauskommt.** Für den jeweils nächsten Satz liegt das Modell auf seinen 62
+Folgesätzen im Median 19 % daneben, genau wie die alte Regel. Der reine Studienwert läge bei
+44 %. Der Gewinn liegt also nicht im nächsten Satz: Die ganze Kurve steht schon vor Satz 1 fest,
+Karte, Timer und Dauer zeigen dieselben Zahlen, und die Kurve wird mit jedem Block genauer.
+
+**Eine Entscheidung im Bau.** Der Vorwert (Studie bzw. Nutzer) wirkt als Abstand in a und q,
+nicht als Abstand zur vorhergesagten Kurve. Die erste Fassung hat ihn an der Kurve gemessen. Dann
+bog sie bei Satz 5 und 6, wo kaum jemand misst, die Kurve frei zurecht: Eine Übung mit eigenen
+Werten a = 0,5, q = 0,5 landete bei 0,02 und 0,74. Als Abstand in a und q bleibt die Form erhalten,
+die die Messungen zeigen. Lukes Fit ging dadurch von 0,18/0,22 auf 0,18/0,20.
+
+**Noch nicht gebaut: die zentrale Sammlung.** Sie braucht einen Server und eine ausdrückliche
+Einwilligung, weil es um Gesundheitsdaten geht. Vorbereitet ist sie an zwei Stellen: Der
+Startwert steht als ein Objekt im Code, dort kann später der Durchschnitt aller Nutzer stehen,
+und der Export trägt die Kennzahlen je Übung und Seite.
+
+**Für Luke.** Auf der Läufer-Karte stehen jetzt deine Kurven je Seite, gerechnet aus deinen
+Workouts. Tippe „Sätze" auf 6, dann siehst du den ganzen Verlauf.
+
+**Der Preis.**
+
+- Wer neu ist, bekommt ab Satz 2 gleich lange Sätze (119 → 39 → 39), bis die ersten Workouts mit
+  mehreren Sätzen da sind. Fallen seine Sätze stärker ab, wie bei Luke, plant die App Satz 3 und
+  später anfangs zu lang.
+- Für Luke wird Satz 2 kürzer vorgegeben als bisher: 41 statt 54 s nach 119 s.
+- Die Kurve gilt je Übung und Seite, nicht je Zone. Ob die Sätze nach einem Satz Maximalkraft
+  anders abfallen als nach einem Satz Kraftausdauer, misst die App noch nicht getrennt.
+
+**Für den Nachbau:**
+
+- `SATZ_START = {a:0.33, q:0, quelle:"Chorley 2022"}`, `SATZ_GEWICHT_START = 2`,
+  `SATZ_GEWICHT_NUTZER = 3`, `SATZ_BLOECKE = 30`, `SATZ_STRAFE = 6`, direkt nach `curFit`.
+- `satzQuote(m, n)`, `naechsterSatz(m, n, vorher)` = `max(8, round(vorher · r_n / r_(n−1)))`,
+  `satzZeiten(t1, n, m)` baut die Liste Schritt für Schritt aus `naechsterSatz`.
+- `satzModell(ex, side)`: ohne Übung der Nutzer-Fit, mit Übung der Fit über
+  `zaehltFuer(s, ex, side)`. Fit über ein Raster (a 0,02 bis 0,80, q 0 bis 0,94, Schritt 0,02),
+  Summe der Abstände im Log-Raum plus `SATZ_STRAFE · gewicht · (|Δa| + |Δq|)`. Gemerkt wird über
+  das Sitzungs-Array, die Zahl der Sitzungen, Datum und Satzzahl der letzten.
+- `blockIntro` legt `q.satzModell` am Block ab; `setTarget` liest es, damit Karte und Timer
+  dieselben Zahlen nutzen. `DROP2`, `DROP_MIN`, `DROP_MAX` sind entfernt.
+- `satzKurveSVG(zeiten, zone)` zeichnet die Kurve in `teilHTML` direkt nach der Kopfzeile.
+- Läufer: `seitenKopf`, `gewichtGegenseite` und `extraLabel:"Gewicht"` in `DEFAULT_EX.laeufer`,
+  gelesen über `seitenKopf(bl)`, `lageUnter(ex, l, side)` und `extraLabelVon(ex)`. Kein Sprung bei
+  `EX_VERSION`.
+- `planDauer` und `sitzungsdauer` rechnen je Block `LEAD_IN + Summe(satzZeiten) + (n−1) · PAUSE_S`.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-06 h — Satzkurve je Seite, klare Läufer-Knöpfe
+
+**Befund (Luke).** „rackcarry und suitcase in welcher hand?" und „Cool wäre auf dem menü auch
+die Satzzeiten oben zu sehen also als curve erster bis sechster satz" (P74).
+
+**Gebaut.** Läufer: Kopfzeile „rechtes Bein steht", Knöpfe „vor der Schulter – links" und „in der
+Hand – links" (Gegenseite des Standbeins), Feld „Gewicht". Je Seite eine Satzkurve unter der
+Kopfzeile mit Gesamtzeit. Ein lernendes Satzmodell (Studienwert, dann eigene Daten, dann je Übung
+und Seite) steuert Karte, Timer ab Satz 2 und die Dauer auf „Heute". Export um die Kennzahlen des
+Modells ergänzt. README angepasst.
+
+**Geprüft.** Im Node-Abgleich mit dem Skript aus `index.html`, 48 Prüfungen, keine Abweichung:
+Startwert ohne Daten, Einstiegstests ändern ihn nicht. Synthetische Blöcke mit a = 0,2, q = 0,3
+werden zurückgefunden, Lukes 27 Blöcke ergeben 0,18/0,20. Ungültige Blöcke und ein Ausreißer
+verschieben den Fit nicht. Timer gleich Kurve, 10 s länger gehalten gibt einen längeren Satz,
+Boden 8 s. Texte beider Seiten, auch mit alter Beschriftung im Speicher. Kurve mit Punkten,
+Zahlen, Gesamt, Neuzeichnen bei „Sätze", ein einzelner Satz ohne Linie, das Grip-Gains-Beispiel
+ergibt 5:19. Export vollständig, `uebungen` byte-gleich. `renderHome` mit 400 Sitzungen 32 ms
+beim ersten, 19 ms bei jedem weiteren Zeichnen. Die Reihen der Builds davor laufen bis auf ihre
+BUILD-Zeilen weiter; geändert sind gewollt die Dauer-Erwartungen (46 → 33 min, 3 → 2 min) und
+die Läufer-Texte. Die Kuchenmitte aus d und e prüft weiter die alte Scheibe, die f entfernt hat.
 
 ### 2026-10-06 g — Läufer: Name folgt dem Gewicht, Carry je Seite
 
