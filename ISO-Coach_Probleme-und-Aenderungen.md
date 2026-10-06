@@ -2290,11 +2290,78 @@ die sieben Tage Ruhe bleiben; (2) sie überspringt sie, und die Ruhe gilt dann n
   Die eigentliche Rechnung steht in `fitRechnen`. Ohne den Speicher brauchte Heute bei 405
   Sitzungen im Node-Abgleich 190 ms statt 30 ms.
 
+### P71 · Reihenfolge als Liste, heutige Zone im Kuchen
+
+Luke, 06.10., mit einem Screenshot von Heute: „Gib mit die reihenfolge der Übungen oben als liste
+1) seitstütz rechts 2)fersenbrücke rechts usw. Und alles kleiner untereinandet als liste in
+normaler schrift ohne fettdruck. Dazu kann ich anhand des kuchenfoagrams nicht etkennen welche
+zone heute wirklich empfohlen wird, können wir das noch etwas hervorheben?"
+
+Bis dahin stand die Reihenfolge als fette Überschrift in einer Zeile mit Pfeilen. Bei sechs
+Blöcken brach sie über vier Zeilen um, und die zweite Seite einer Übung stand nur als „links"
+da, wenn sie direkt folgte. Die heutige Zone erkannte man nur am getönten Knopf neben den
+Kuchen, nicht am Kuchen selbst.
+
+**Gebaut in 2026-10-06 d.**
+
+- **Reihenfolge:** eine nummerierte Liste, „1) Seitstütz rechts", „2) Fersenbrücke rechts" und
+  so weiter. Jeder Eintrag trägt den vollen Namen mit Seite, in normaler Schrift (15 px, nicht
+  fett), die Nummern in Grau. Die Dauer steht wie bisher darunter.
+- **Kuchenmitte:** Die Scheibe in der Mitte trägt die Farbe der Zone, die heute läuft, die Zahl
+  darauf ist dunkel. Je Seite gilt die Zone ihres eigenen Blocks.
+- **Zonenknopf:** Der heutige ist voll in der Zonenfarbe gefüllt statt nur getönt, mit dunkler
+  Schrift. Kuchenmitte und Knopf zeigen also dieselbe Farbe.
+- Ohne Block für heute (Übung nicht angehakt, Pausentag) bleibt die Mitte dunkel wie bisher.
+
+**Warum eine Scheibe in der Mitte und kein hervorgehobenes Stück:** Die heutige Zone kann im
+Kuchen noch kein Stück haben, zum Beispiel die erste Maximalkraft-Einheit. Die Scheibe zeigt sie
+trotzdem.
+
+**Der Preis.** Die Mitte zeigt jetzt zwei Dinge: die Farbe der heutigen Zone und die Zahl der
+Einheiten. Eine blaue Mitte heißt „heute Hypertrophie / Kraft", nicht „meist blau".
+
+**Für den Nachbau:**
+
+- `planFolge(blocks)` liefert `<ol class="planFolge">` mit einem `<li>` je Block,
+  `blockLabel(bl)` ohne den Mittelpunkt. Die Nummern kommen aus einem CSS-Zähler mit „)" in
+  `li::before`, weil Safari `::marker` keinen eigenen Inhalt erlaubt. `reihenfolge()` ist weg.
+- `kuchenSVG(n, seite, heute)` zeichnet bei gesetzter Zone einen Kreis `class="kzHeute"` mit
+  Radius 15 in `var(--zone…)` unter die Zahl. Der Ring liegt bei 22,5 ± 5,5, die Scheibe berührt
+  ihn also nicht. Der Vorlesetext endet auf „…, heute Kraftausdauer".
+- In `kuchenZeile` holt `zoneDerSeite(sd)` die Zone aus dem Block derselben Seite. Ein
+  beidbeiniger Block ohne Seite fällt auf den ersten Block der Übung zurück.
+- `.kzZ button.sel` ist voll gefüllt: Hintergrund `var(--zc)`, Schrift, Punkt und „›" in
+  `#14161c`.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-06 d — Reihenfolge als Liste, heutige Zone im Kuchen
+
+**Befund (Luke).** Die Reihenfolge oben soll eine nummerierte Liste in normaler Schrift sein, und
+am Kuchen soll man sehen, welche Zone heute läuft (P71).
+
+**Gebaut.**
+
+- **Plankarte:** „1) Seitstütz rechts, 2) Fersenbrücke rechts …" untereinander, nicht fett.
+- **Kuchen:** Die Mitte trägt die Farbe der heutigen Zone, je Seite aus ihrem eigenen Block.
+- **Zonenknopf:** Der heutige ist voll gefüllt statt getönt.
+- **README:** ein Satz zur Farbe in der Mitte.
+
+**Geprüft.** Im Node-Abgleich mit dem Skript aus `index.html`, 19 Prüfungen, keine Abweichung:
+
+- Die Liste hat so viele Einträge wie der Plan Blöcke, in Planreihenfolge, jeder mit vollem Namen
+  und Seite. Kein Pfeil, keine Überschrift, kein Fettdruck vor der Dauer.
+- Seitstütz (zwei Kuchen) und Liegestütz (einer): Jede Mitte trägt die Zone ihres Blocks, der
+  hervorgehobene Knopf dieselbe. Der Vorlesetext nennt die heutige Zone.
+- Liegestütz ohne Maximalkraft-Einheit, Maximalkraft gewählt: Die Mitte ist trotzdem rot.
+- Ein leerer Kuchen zeigt die dunkle 0 auf der Farbe. Ohne heutige Zone bleibt der Kuchen wie
+  bisher.
+- Die Reihen aus 2026-10-03 a bis 2026-10-06 c laufen weiter. Bei 2026-10-06 b lässt die
+  Prüfung des Vorlesetexts jetzt den Zusatz „heute …" zu.
 
 ### 2026-10-06 c — Rotation überspringt unerreichbare Zonen
 

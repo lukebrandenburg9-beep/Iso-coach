@@ -150,6 +150,10 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .chk .chkMin{margin-left:auto;padding-left:6px;font:500 13px/1.45 var(--mono);
   color:var(--tx3);white-space:nowrap;font-variant-numeric:tabular-nums}
 .chk input:checked ~ .chkMin{color:var(--tx2)}
+.planFolge{list-style:none;margin:0;padding:0;counter-reset:pf;font-size:15px;line-height:1.6}
+.planFolge li{counter-increment:pf;display:flex;gap:8px}
+.planFolge li::before{content:counter(pf) ")";min-width:1.4em;color:var(--tx3);
+  font-variant-numeric:tabular-nums}
 .planDauer{display:flex;align-items:baseline;gap:9px;margin:10px 0 0}
 .planDauer span{font-size:11.5px;font-weight:600;color:var(--tx3);text-transform:uppercase;
   letter-spacing:.05em}
@@ -191,9 +195,9 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .kzZ .zA{--zc:var(--zoneA)}
 .kzZ .zB{--zc:var(--zoneB)}
 .kzZ .zC{--zc:var(--zoneC)}
-.kzZ button.sel{background:color-mix(in srgb,var(--zc) 24%,transparent);border-color:var(--zc);
-  color:var(--tx);font-weight:600}
-.kzZ button.sel::after{content:"›";margin-left:auto;font-weight:700;color:var(--zc)}
+.kzZ button.sel{background:var(--zc);border-color:var(--zc);color:#14161c;font-weight:600}
+.kzZ button.sel::before{background:#14161c}
+.kzZ button.sel::after{content:"›";margin-left:auto;font-weight:700;color:#14161c}
 .kzRuht{flex-basis:100%;margin:0;font-size:12px;color:var(--warn)}
 .zw.zwei{grid-template-columns:repeat(2,1fr)}
 /* Haekchen "Wand" unter "Nur Koerpergewicht": klappt beim Wechsel auf. */
@@ -1267,7 +1271,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-06 c";
+const BUILD = "2026-10-06 d";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -6189,8 +6193,14 @@ function renderHome(){
     const seiten = e.sides || [null];
     const kann = new Set(seiten.flatMap(sd => erreichbareZonen(u.ex, sd)));
     const ruht = (u.tor.gewaehlt && u.tor.ruht > 0) ? u.tor.ruht : 0;
+    /* Je Seite die Zone ihres eigenen Blocks; ein beidbeiniger Block (ohne
+       Seite) gilt fuer beide. */
+    const zoneDerSeite = sd => {
+      const b = p.blocks.find(x => x.exercise === u.ex && (x.side || null) === (sd || null));
+      return b ? b.zone : heute;
+    };
     return `<div class="kz" id="kz-${u.ex}">
-      <div class="kzK">${seiten.map(sd => kuchenSVG(zonenAnteile(u.ex, sd), sd)).join("")}</div>
+      <div class="kzK">${seiten.map(sd => kuchenSVG(zonenAnteile(u.ex, sd), sd, zoneDerSeite(sd))).join("")}</div>
       <div class="kzZ">${ZONES.map(z => {
         const sel = z.id === heute, aus = !sel && !kann.has(z.id);
         return `<button class="z${z.id}${sel ? " sel" : ""}" data-hz="${z.id}" data-hzx="${u.ex}"
@@ -6266,8 +6276,7 @@ function renderHome(){
   el("homeBody").innerHTML = `${modusKarte()}
     <div class="card">
       ${p.blocks.length ? `
-        <h2 style="margin:0;font-size:19px;line-height:1.4;text-wrap:balance">${
-          reihenfolge(p.blocks)}</h2>
+        ${planFolge(p.blocks)}
         <div class="planDauer"><span>Dauer</span><b id="planDauer">${dauer} min</b></div>
         <button class="primary" style="width:100%;margin-top:14px;padding:16px"
           id="goSess">Workout starten</button>`
@@ -6277,15 +6286,14 @@ function renderHome(){
   listeBinden();
   if(el("goSess")) el("goSess").onclick = ()=>{ beep(660,60,.05); startWorkout(); };
 }
-/* Die Reihenfolge in einer Zeile: „Isometrisches Wadenheben links → rechts →
-   Liegestütz". Stehen beide Seiten derselben Übung direkt hintereinander,
-   steht der Name nur einmal da. */
-function reihenfolge(blocks){
-  return blocks.map((bl, i) => {
-    const vor = blocks[i - 1];
-    if(vor && vor.exercise === bl.exercise && bl.side) return bl.side;
-    return blockLabel(bl).replace(" · ", " ");
-  }).join(" → ");
+/* Die Reihenfolge als nummerierte Liste, jeder Block mit vollem Namen und
+   Seite. Luke, 06.10.2026: „1) seitstütz rechts 2) fersenbrücke rechts usw.
+   Und alles kleiner untereinander als Liste in normaler Schrift ohne
+   Fettdruck". Bis dahin stand sie als fette Ueberschrift in einer Zeile mit
+   Pfeilen, und bei sechs Bloecken brach sie ueber vier Zeilen um. */
+function planFolge(blocks){
+  return `<ol class="planFolge" role="list">${blocks.map(bl =>
+    `<li>${blockLabel(bl).replace(" · ", " ")}</li>`).join("")}</ol>`;
 }
 /* Der Formtrend im Profil: Zahl, Chart, die letzten Tage zum Nachrechnen.
    Oben die Form (0..100), unten die Kraft bei 75 s als Last. Beide auf
@@ -6632,8 +6640,12 @@ function dauerMitHaekchen(u, an, drin){
 /* Der Kuchen einer Seite: Rot, Blau, Gelb im Uhrzeigersinn ab zwoelf Uhr, in
    der Mitte die Zahl der Einheiten, im Stueck seine Anzahl, sobald es dafuer
    breit genug ist. Keine Legende — die Zonenknoepfe daneben tragen dieselben
-   Farben und die Namen. */
-function kuchenSVG(n, seite){
+   Farben und die Namen.
+   Die Mitte traegt die Farbe der Zone, die HEUTE laeuft. Luke, 06.10.2026:
+   „anhand des kuchendiagramms nicht erkennen welche zone heute wirklich
+   empfohlen wird". Eine Scheibe statt eines hervorgehobenen Stuecks, weil die
+   heutige Zone im Kuchen noch gar kein Stueck haben kann. */
+function kuchenSVG(n, seite, heute){
   const summe = ZONES.reduce((a, z) => a + (n[z.id] || 0), 0);
   const R = 22.5, U = 2 * Math.PI * R;
   const fuge = ZONES.filter(z => n[z.id] > 0).length > 1 ? 1.6 : 0;
@@ -6655,12 +6667,15 @@ function kuchenSVG(n, seite){
     }
     start += lang;
   }
+  const hz = ZONES.find(z => z.id === heute);
   const text = `${seite ? seite + ": " : ""}${ZONES.map(z => `${n[z.id] || 0} ${z.name}`)
-    .join(", ")} in den letzten ${anzahl(summe, "Einheit", "Einheiten")}`;
+    .join(", ")} in den letzten ${anzahl(summe, "Einheit", "Einheiten")}${
+    hz ? `, heute ${hz.name}` : ""}`;
+  const scheibe = hz ? `<circle class="kzHeute" cx="28" cy="28" r="15" fill="var(--zone${hz.id})"/>` : "";
   return `<div class="kzKu" role="img" aria-label="${text}">
-    <svg viewBox="0 0 56 56" width="56" height="56" aria-hidden="true">${boegen}${zahlen}
+    <svg viewBox="0 0 56 56" width="56" height="56" aria-hidden="true">${boegen}${zahlen}${scheibe}
       <text x="28" y="28" text-anchor="middle" dominant-baseline="central" font-size="15"
-        font-weight="700" font-family="var(--mono)" fill="${summe ? "var(--tx)" : "var(--tx3)"}">${
+        font-weight="700" font-family="var(--mono)" fill="${hz ? "#14161c" : summe ? "var(--tx)" : "var(--tx3)"}">${
         summe}</text></svg>${seite ? `<span aria-hidden="true">${seite}</span>` : ""}</div>`;
 }
 /* Ein Tipp auf eine Zone unter einer angehakten Uebung — dieselbe Wahl wie auf
