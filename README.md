@@ -84,7 +84,9 @@ Rechenlogik:
   Messpunkt zählt so, wie er herauskommt: Er wird der Zone zugeordnet, in der er tatsächlich
   liegt, und den Richtwert zu verfehlen ist bei selbst gewählter Stufe kein Fehlschlag.
 - **Zonenrotation:** Die App fordert die Zone an, die am längsten zurückliegt — **und erholt
-  ist**. Ohne Spreizung wird die Kurve wertlos, ohne Erholung die Messung.
+  ist**. Ohne Spreizung wird die Kurve wertlos, ohne Erholung die Messung. Zonen, die eine Übung
+  mit ihren Sprossen nach den eigenen Messungen nicht erreicht, überspringt die Rotation;
+  erreicht sie nur eine, kommt die Übung einmal pro Woche dran.
 - **Drei Zonen, drei Farben:** Maximalkraft (20–60 s, rot), Hypertrophie / Kraft (60–90 s, blau),
   Kraftausdauer (90–150 s, gelb). Auf *Heute* steht unter jeder angehakten Übung je Seite ein
   Kuchen der letzten 30 Einheiten — gezählt nach der Zone, in der der erste Satz gelandet ist —

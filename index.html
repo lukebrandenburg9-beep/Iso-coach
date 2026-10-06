@@ -1267,7 +1267,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-06 b";
+const BUILD = "2026-10-06 c";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -2046,7 +2046,24 @@ const curEx = () => S.ex[S.exercise];
    Bei festem CP folgt log W' in geschlossener Form als gewichtetes
    Mittel — es bleibt eine eindimensionale Suche über CP.
    Ältere Punkte werden mit DECAY abgewertet. */
+/* Der Fit rechnet 1500 Gitterpunkte je Messpunkt, und seit die Rotation fuer
+   jede Muskelgruppe fragt, welche Zonen sie erreicht (Build 2026-10-06 c),
+   faellt er auf „Heute" dutzendfach mit denselben Punkten an. Er ist eine
+   reine Funktion von Last, Zeit und Reihenfolge der Punkte — der Schluessel
+   ist genau das, also bleibt das Ergebnis richtig, egal was sich zwischen
+   zwei Aufrufen an den Sitzungen aendert. Jeder Aufrufer bekommt eine Kopie. */
+const _fitSpeicher = new Map();
 function fit(points){
+  if(!points || points.length < 2) return null;
+  const key = points.map(p => p.load + ":" + p.time).join(",");
+  if(!_fitSpeicher.has(key)){
+    if(_fitSpeicher.size >= 200) _fitSpeicher.clear();
+    _fitSpeicher.set(key, fitRechnen(points));
+  }
+  const f = _fitSpeicher.get(key);
+  return f && Object.assign({}, f);
+}
+function fitRechnen(points){
   if(!points || points.length < 2) return null;
   /* Zwei Punkte auf DERSELBEN Last sind kein Fit. Ohne diese Zeile faellt
      log(L - cp) als Konstante aus der Streuung heraus: sse haengt dann gar
@@ -3103,13 +3120,36 @@ function zonenAnteile(ex, side){
     .forEach(e => { if(n[e.z] != null) n[e.z]++; });
   return n;
 }
-/* Welche Zone nimmt die Rotation? Erholte zuerst, darunter die, die am
-   laengsten zurueckliegt. Ist keine erholt, entscheidet allein das Alter —
-   gearbeitet wird dann trotzdem, nur eben bewusst. */
+/* Welche Zonen erreicht diese Muskelgruppe ueberhaupt? Vereinigung ueber ihre
+   Uebungen und deren Seiten — dieselbe Rechnung, die auf Heute die Zonenknoepfe
+   ausgraut. Bis 06.10.2026 prueften Rotation und Tor das nicht: Seitstuetz,
+   Standard-Sprosse ueber 100 s gehalten, erreichbar nur Kraftausdauer — und
+   die Rotation plante Maximalkraft mit 40 s auf derselben Sprosse. Luke hat
+   gewaehlt („Ja 1"): Die Rotation ueberspringt unerreichbare Zonen, die sieben
+   Tage Ruhe gelten weiter, nur eben fuer die Zonen, die bleiben. Erreicht eine
+   Uebung nur eine Zone, kommt sie damit einmal je Ruhezeit dran.
+   Ohne Gruppe (Plankarte, Rotation ueber alles) zaehlen alle drei. */
+function gruppenZonen(gr){
+  const alle = ZONES.map(z => z.id);
+  if(gr == null) return alle;
+  const kann = new Set();
+  for(const ex of Object.keys(S.ex)){
+    if(groupOf(ex) !== gr) continue;
+    for(const sd of (S.ex[ex].sides || [null])) erreichbareZonen(ex, sd).forEach(z => kann.add(z));
+  }
+  const ids = alle.filter(id => kann.has(id));
+  return ids.length ? ids : alle;
+}
+/* Welche Zone nimmt die Rotation? Nur erreichbare (gruppenZonen). Erholte
+   zuerst, darunter die, die am laengsten zurueckliegt. Ist keine erholt,
+   entscheidet allein das Alter — gearbeitet wird dann trotzdem, nur eben
+   bewusst. */
 function rotationsZone(gr){
   const age = zoneAge(gr || null);
-  const erholt = ZONES.filter(z => age[z.id] >= restOf(z.id));
-  const pool = erholt.length ? erholt : ZONES;
+  const kann = gruppenZonen(gr);
+  const zonen = ZONES.filter(z => kann.includes(z.id));
+  const erholt = zonen.filter(z => age[z.id] >= restOf(z.id));
+  const pool = erholt.length ? erholt : zonen;
   return pool.slice().sort((a,b)=> age[b.id]-age[a.id])[0].id;
 }
 function zoneAge(gr){
@@ -3139,7 +3179,11 @@ function gateGroup(gr){
   const gewaehlt = zoneWahlHeute(gr);
   if(gewaehlt)
     return {ok:true, group:gr, gewaehlt, ruht: Math.max(0, restOf(gewaehlt) - age[gewaehlt])};
-  const waits = ZONES.map(z => Math.max(0, restOf(z.id) - age[z.id]));
+  /* Gewartet wird nur auf Zonen, die die Gruppe erreicht. Eine nie
+     erreichbare Zone hat Alter "unendlich" und hielt die Gruppe bisher immer
+     offen — die Ruhe der einzigen echten Zone lief dann ins Leere. */
+  const kann = gruppenZonen(gr);
+  const waits = ZONES.filter(z => kann.includes(z.id)).map(z => Math.max(0, restOf(z.id) - age[z.id]));
   const wait = Math.min(...waits);
   if(wait > 0) return {ok:false, kind:"zone", wait, age, group:gr};
   return {ok:true, group:gr};

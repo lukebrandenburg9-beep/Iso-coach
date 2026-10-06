@@ -2137,7 +2137,8 @@ nicht.
 Zonen von selbst weg. Das stimmt nicht. Die Rotation (`rotationsZone`, `zoneFuer`) prüft keine
 Erreichbarkeit, nur `fehlendeZonen` tut das. Nachgemessen: Seitstütz, sechs Workouts je Seite mit
 105–111 s auf der Standard-Sprosse, erreichbar nur Zone C. Die Rotation plant Zone A mit
-Richtwert 40 s auf derselben Sprosse. Siehe P69, „Offener Befund".
+Richtwert 40 s auf derselben Sprosse. Siehe P69, „Offener Befund". Behoben in 2026-10-06 c
+(P70).
 
 **Für den Nachbau:**
 
@@ -2214,6 +2215,7 @@ angehakten Übungen direkt auf „Heute" stehen.
   „Hypertrophie / Kraft" ist ausgegraut, und der Kuchen zählt die Einheit danach als
   Kraftausdauer. Behoben wird das in der Rotation, nicht im Kuchen, und das ist eine
   Fachentscheidung (siehe Bericht zu 2026-10-06 b).
+  **Behoben in 2026-10-06 c** (P70): Die Rotation überspringt unerreichbare Zonen.
 
 **Für den Nachbau:**
 
@@ -2235,11 +2237,93 @@ angehakten Übungen direkt auf „Heute" stehen.
 - `zName(id)` liefert den Namen. Es ist eine Funktionsdeklaration, weil `ZONES` erst später
   steht.
 
+### P70 · Rotation überspringt unerreichbare Zonen
+
+Offener Befund aus P69: Die Rotation plante auch Zonen, die die Übung mit ihren Sprossen nicht
+erreicht. Seitstütz, Standard-Sprosse über 100 s gehalten, erreichbar nur Kraftausdauer: geplant
+wurde Maximalkraft mit Richtwert 40 s, gehalten wurden rund 105 s. Die Einheit zählte die
+Rotation danach als Maximalkraft, den Kuchen als Kraftausdauer.
+
+Im Bericht zu 2026-10-06 b standen zwei Wege: (1) Die Rotation überspringt unerreichbare Zonen,
+die sieben Tage Ruhe bleiben; (2) sie überspringt sie, und die Ruhe gilt dann nicht mehr. Luke,
+06.10.: „Ja 1".
+
+**Gebaut in 2026-10-06 c.**
+
+- **Die Rotation wählt nur aus erreichbaren Zonen.** Erreichbar ist, was eine Übung der Gruppe
+  auf einer ihrer Seiten trifft, dieselbe Rechnung, die auf Heute die Zonen ausgraut.
+- **Gewartet wird nur auf erreichbare Zonen.** Vorher hielt eine nie erreichbare Zone die Gruppe
+  immer offen, weil ihr letzter Termin „nie" war. Die sieben Tage Ruhe der einzigen echten Zone
+  liefen damit ins Leere.
+- **Ohne Messung wird nichts ausgeschlossen.** Wer noch keine Kurve und keinen Anker hat,
+  rotiert wie bisher über alle drei Zonen.
+- **Unverändert:** die drei Einstiegstests (Kraftausdauer, Hypertrophie / Kraft, Maximalkraft in
+  dieser Reihenfolge), das Nachholen einer offenen Gegenseite und die eigene Wahl auf Heute oder
+  auf der Karte vor der Übung. Die eigene Wahl schlägt die Rotation weiter. Auf der Karte vor
+  der Übung lässt sich dabei auch eine unerreichbare Zone wählen, auf Heute ist sie ausgegraut.
+- **Schneller gerechnet:** Weil die Rotation jetzt für jede Gruppe die Kurve fragt, merkt sich
+  die App das Ergebnis der Kurvenrechnung je Messreihe. Heute rendert damit so schnell wie vor
+  dem Build.
+
+**Der Preis.**
+
+- **Eine Übung, die nur eine Zone erreicht, kommt einmal pro Woche dran.** Der Seitstütz mit
+  über 100 s auf der Standard-Sprosse steht also an sechs von sieben Tagen ausgegraut auf Heute,
+  mit „in N Tagen". Vorher kam er nach zwei Tagen wieder, nur eben in einer Zone, die er nicht
+  treffen konnte.
+- **Das gilt auch im Modus Nur Körpergewicht.** Dort fallen Sprossen weg, die Reichweite
+  schrumpft, und eine Übung, die mit allen Geräten drei Zonen trifft, kann dort auf eine
+  zusammenfallen. Sie kommt dann ebenfalls nur einmal pro Woche.
+- **Die Einstiegstests fordern weiter alle drei Zonen.** Bis drei Workouts gelaufen sind, hat
+  die App keine Kurve, an der sie Erreichbarkeit messen könnte.
+
+**Für den Nachbau:**
+
+- `gruppenZonen(gr)` ist die Vereinigung von `erreichbareZonen(ex, side)` über alle Übungen der
+  Gruppe und deren Seiten. Ist sie leer oder fehlt die Gruppe, gibt sie alle drei zurück.
+- `rotationsZone(gr)` filtert `ZONES` auf `gruppenZonen(gr)`, bevor sie nach Erholung und Alter
+  wählt.
+- `gateGroup(gr)` nimmt ohne eigene Wahl das Minimum der Wartezeiten nur über `gruppenZonen(gr)`.
+  Die Zweige für Tagessperre, Einstieg, Formtrend und eigene Wahl davor bleiben, wie sie sind.
+- `fit(points)` merkt sich sein Ergebnis unter dem Schlüssel aus Last und Zeit aller Punkte in
+  ihrer Reihenfolge, höchstens 200 Einträge, dann wird geleert. Jeder Aufruf bekommt eine Kopie.
+  Die eigentliche Rechnung steht in `fitRechnen`. Ohne den Speicher brauchte Heute bei 405
+  Sitzungen im Node-Abgleich 190 ms statt 30 ms.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-06 c — Rotation überspringt unerreichbare Zonen
+
+**Befund.** Die Rotation plante Zonen, die die Übung nicht erreicht, zum Beispiel Maximalkraft
+beim Seitstütz mit über 100 s auf der Standard-Sprosse (P69, „Offener Befund"). Luke wählte
+„Ja 1": überspringen, die sieben Tage Ruhe bleiben (P70).
+
+**Gebaut.**
+
+- **Rotation und Tor** rechnen nur noch mit den Zonen, die die Gruppe erreicht.
+- **Kurvenrechnung zwischengespeichert**, damit Heute nicht langsamer wird.
+- **README:** ein Satz zur Rotation.
+
+**Geprüft.** Im Node-Abgleich mit dem Skript aus `index.html`, 26 Prüfungen, keine Abweichung:
+
+- Seitstütz, sechs Workouts je Seite mit 105–111 s auf der Standard-Sprosse: erreichbar nur
+  Kraftausdauer. Die Rotation nimmt Kraftausdauer, der Plan hat beide Seiten mit 120 s.
+- Kraftausdauer vor 3 Tagen: gesperrt, noch 4 Tage, auf Heute ausgegraut mit „in 4 Tagen". Vor
+  6 Tagen noch 1 Tag, vor 7 Tagen frei. Vorher war der Seitstütz in allen drei Fällen frei.
+- Eigene Wahl Hypertrophie / Kraft: frei. Zurück auf die Rotation: wieder gesperrt.
+- Liegestütz mit allen drei Zonen erreichbar: dieselbe Zone wie nach der alten Rechnung. Ruhen
+  alle drei, wartet er auf die zuerst erholte.
+- Links nur Kraftausdauer, rechts zusätzlich Hypertrophie / Kraft: Die Gruppe hat beide.
+- Kurvenspeicher: gleiche Punkte geben dasselbe Ergebnis wie ohne Speicher, als eigene Kopie.
+  Eine geänderte Zeit wird neu gerechnet.
+- 412 Sitzungen, kalter Speicher: Heute rendert in rund 42 ms.
+- Die Prüfungen aus 2026-10-03 a, 2026-10-06 a und 2026-10-06 b laufen weiter durch. Bei 2026-10-06 b
+  bekam die Liegestütz-Probe Sitzungen auf drei Sprossen statt auf einer: Auf nur einer Sprosse
+  gibt es keine Kurve, und nach der Ankerannahme erreicht er dann keine Maximalkraft mehr.
 
 ### 2026-10-06 b — Zonen-Kuchen auf Heute
 
