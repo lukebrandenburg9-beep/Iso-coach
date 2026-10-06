@@ -2130,8 +2130,14 @@ wird.
 - **Alle anderen Übungen unverändert**, bis aufs Byte im Export.
 
 **Der Preis.** Die Leiter endet jetzt bei „Standard". Wer dort länger als 60 s hält, erreicht
-Zone A nicht mehr, über 90 s auch Zone B nicht. Die Rotation lässt unerreichbare Zonen von selbst
-weg, wie bei jeder Übung ohne Gewicht. Eine schwerere Körpergewichts-Sprosse gibt es noch nicht.
+Zone A nicht mehr, über 90 s auch Zone B nicht. Eine schwerere Körpergewichts-Sprosse gibt es noch
+nicht.
+
+**Korrektur 06.10., Build 2026-10-06 b:** Hier stand zunächst, die Rotation lasse unerreichbare
+Zonen von selbst weg. Das stimmt nicht. Die Rotation (`rotationsZone`, `zoneFuer`) prüft keine
+Erreichbarkeit, nur `fehlendeZonen` tut das. Nachgemessen: Seitstütz, sechs Workouts je Seite mit
+105–111 s auf der Standard-Sprosse, erreichbar nur Zone C. Die Rotation plant Zone A mit
+Richtwert 40 s auf derselben Sprosse. Siehe P69, „Offener Befund".
 
 **Für den Nachbau:**
 
@@ -2147,11 +2153,132 @@ weg, wie bei jeder Übung ohne Gewicht. Eine schwerere Körpergewichts-Sprosse g
 - Ausdrücklich auf 0 gesetzt wird `extra` in `blockSichern` und im Nachtrag.
 - Export: `zusatzgewicht_ab_stufe` ist `null` bei einer Übung ohne Gewicht.
 
+### P69 · Zonen-Kuchen auf Heute
+
+Luke, 06.10., mit einem Screenshot aus Grip Gains: Dort zeigt jede Übung einen Kuchen, „welche
+zone heute angewählt ist und welche zone wie gewichtet wurde in den letzten wochen --> z.b ob
+ich mehr maximalkraft oder kraftausdauer trainiert habe". Dazu die Farben „gelb = kraft
+ausdauer, blau = hyperthrophie/kraft rot = maximalkraft". Die Übersicht soll bei allen
+angehakten Übungen direkt auf „Heute" stehen.
+
+**Rückfragen und Lukes Antworten:**
+
+| Frage | Antwort |
+|---|---|
+| Was zählt ein Stück? | Einheiten: ein Workout, in dem die Übung oder Seite lief, zählt 1. |
+| Zeitraum | Die letzten 30 Einheiten, egal wie weit zurück. Zuerst „letzte 4 Wochen", bei der Planfreigabe korrigiert: „Ändere den Zeitraum au die letzten 30 trainingseinheiten". |
+| Seiten | Ein Kuchen je Seite, wie R/L bei Grip Gains. |
+| Platz | In der Häkchenliste, unter jeder angehakten Übung. |
+| Heutige Zone | Drei Zonen daneben, antippbar. |
+| Namen | Überall umbenennen. |
+| Welche Zone zählt? | „Wo du gelandet bist", also die Zone des ersten Satzes. |
+| Ruhende Zone angetippt | „Trotzdem trainieren", mit Hinweis. |
+| Zone, die die Übung nicht erreicht | „Ausgegraut". |
+
+**Gebaut in 2026-10-06 b.**
+
+- **Namen überall:** Maximalkraft (20–60 s, rot), Hypertrophie / Kraft (60–90 s, blau),
+  Kraftausdauer (90–150 s, gelb). Kein sichtbares „Zone A/B/C" mehr: Heute, Karte vor der
+  Übung, „Workout gespeichert", Profil, Dauer-Tabelle, Ruhetage. Die Buchstaben bleiben als Ids
+  in Code und Export, `zonen[].name` im Export trägt die neuen Namen.
+- **Kuchen:** Unter jeder angehakten Übung steht je Seite ein Ring der letzten 30 Einheiten,
+  Seitstütz und Ausfallschritt also mit zweien, Liegestütz mit einem.
+  - In der Mitte steht die Summe, im Stück die Anzahl, sobald es groß genug ist.
+  - Ohne Einheit ist der Ring grau mit „0".
+  - Kein Erklärtext: Die Farben erklären sich über die Knöpfe daneben.
+- **Drei Zonen zum Antippen**, untereinander neben den Kuchen:
+  - Hervorgehoben ist die Zone, in der der Block heute wirklich läuft.
+  - Ausgegraut ist eine Zone, die keine Seite der Übung erreicht. Die heutige ist nie
+    ausgegraut.
+  - Ein Tipp stellt die Zone für heute um, und Dauer und Minuten rechnen neu. Ein zweiter Tipp
+    auf dieselbe Zone stellt zurück auf die Rotation. Ein Tipp auf die Zone, die die Rotation
+    ohnehin gewählt hat, tut nichts.
+  - Es ist dieselbe Wahl wie auf der Karte vor der Übung. Der gewählte Knopf dort trägt jetzt
+    die Zonenfarbe.
+- **Ruhende Zone gewählt:** Die Übung bleibt im Plan, darunter steht zum Beispiel
+  „Kraftausdauer erst in 4 Tagen erholt". Bis dahin fiel eine Übung mit selbst gesetzter,
+  ruhender Zone aus dem Plan. Die Tagessperre (heute schon trainiert) bleibt.
+- **Kostenlos**, wie bei Grip Gains.
+
+**Der Preis.**
+
+- **Kuchen und Rotation zählen verschieden.** Der Kuchen zählt die gelandete Zone, die Rotation
+  weiter die geplante. Wer geplant Maximalkraft 75 s hält, bekommt im Kuchen ein blaues Stück,
+  während die Rotation Maximalkraft als erledigt führt und als Nächstes eine andere Zone
+  anfordert.
+- **Eine Wahl auf Heute kann eine noch ruhende Zone trainieren.** Das ist so gewollt, und der
+  Hinweis steht daneben.
+- **Offener Befund:** Die Rotation plant auch Zonen, die die Übung nicht erreicht. Seitstütz
+  seit 2026-10-06 a, Standard-Sprosse über 90 s gehalten: Geplant wird Maximalkraft mit
+  Richtwert 40 s, gehalten werden rund 105 s. Die Zeile hebt dann „Maximalkraft" hervor,
+  „Hypertrophie / Kraft" ist ausgegraut, und der Kuchen zählt die Einheit danach als
+  Kraftausdauer. Behoben wird das in der Rotation, nicht im Kuchen, und das ist eine
+  Fachentscheidung (siehe Bericht zu 2026-10-06 b).
+
+**Für den Nachbau:**
+
+- `zonenAnteile(ex, side)` zählt so:
+  - Nur ergiebige Sitzungen.
+  - `side == null` zählt für beide Seiten.
+  - Zone: `ses.zone`, sonst der erste Satz, sonst `workoutZone`.
+  - Eine Einheit je `workout || date`.
+  - Nach Datum absteigend, die ersten `KUCHEN_EINHEITEN = 30`.
+- `kuchenSVG(n, seite)`:
+  - Bögen über `stroke-dasharray`, ab 12 Uhr, Fuge 1,6, wenn mehr als eine Zone da ist.
+  - `role="img"` mit `aria-label`, das die Verteilung nennt.
+- `.kz` steht **nach** dem `<label class="chk">`, nicht darin. Sonst schaltet ein Tipp auf
+  Kuchen oder Knopf das Häkchen um.
+- `heuteZoneTippen(ex, z)` setzt über `zoneWahlSetzen` und leert dann den Plan. Neu gezeichnet
+  wird mit `renderAmOrt("kz-" + ex)`.
+- `gateGroup`: Ist eine Zone gewählt, gibt es `{ok:true, gewaehlt, ruht}` zurück. Der alte Zweig
+  `eigeneZone` in der Häkchenliste und das Zurücksetzen der Zone in `haekchenSetzen` sind weg.
+- `zName(id)` liefert den Namen. Es ist eine Funktionsdeklaration, weil `ZONES` erst später
+  steht.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-06 b — Zonen-Kuchen auf Heute
+
+**Befund (Luke).** Grip Gains zeigt je Übung, welche Zone heute dran ist und wie sich die
+letzten Wochen verteilt haben. Das soll auch hier unter jeder angehakten Übung auf „Heute"
+stehen, mit Rot, Blau und Gelb für die drei Zonen (P69).
+
+**Gebaut.**
+
+- **Namen:** Maximalkraft, Hypertrophie / Kraft, Kraftausdauer, überall sichtbar statt Zone A/B/C.
+- **Kuchen** je Seite, über die letzten 30 Einheiten, nach der gelandeten Zone.
+- **Drei Zonen zum Antippen** daneben. Eine ruhende Zone wird trotzdem trainiert, mit Hinweis;
+  eine unerreichbare ist ausgegraut.
+- **Tor:** Eine selbst gesetzte Zone sperrt die Übung nicht mehr.
+- **README:** Zonennamen und ein Absatz zu den Kuchen.
+- **P68 korrigiert:** Die Rotation lässt unerreichbare Zonen nicht weg.
+
+**Geprüft.** Im Node-Abgleich mit dem Skript aus `index.html`, 54 Prüfungen, keine Abweichung:
+
+- Bei 34 Einheiten zählen die 30 jüngsten, auch in vertauschter Reihenfolge. Fünf Einheiten
+  über 70 Tage zählen alle.
+- Eine nicht ergiebige Sitzung fällt raus, ein Schmerzabbruch zählt. Geplant Maximalkraft mit
+  75 s gehalten zählt als Hypertrophie / Kraft. Beidseitig zählt links und rechts. Ein doppelter
+  Workout-Schlüssel zählt einmal, Nachträge ohne Workout zählen je für sich.
+- Heute: Genau die angehakten Übungen haben eine Kuchenzeile, Seitstütz mit zwei, Liegestütz mit
+  einem Kuchen. Die Mittelzahlen stimmen mit der Zählung, hervorgehoben ist die Zone des Blocks.
+  Die Zeile steht nach dem Häkchen-Label, nicht darin.
+- Liegestütz, Kraftausdauer vor 3 Tagen: Die Rotation nimmt Maximalkraft, ein Tipp darauf
+  ändert nichts. Ein Tipp auf Kraftausdauer lässt die Übung im Plan, der Block läuft in
+  Kraftausdauer, die Zeile sagt „Kraftausdauer erst in 4 Tagen erholt". Ein zweiter Tipp stellt
+  zurück. Ruhen alle drei Zonen, sperrt die Übung ohne Wahl und ist mit Wahl frei; heute schon
+  trainiert sperrt trotz Wahl.
+- Seitstütz, nur Kraftausdauer erreichbar: Die anderen Zonen sind ausgegraut, außer der heutigen.
+  Erreicht eine Seite Maximalkraft, ist der Knopf frei.
+- Kein „Zone A/B/C" auf Heute, auf den Karten vor allen sechs Blöcken, auf „Workout
+  gespeichert", in drei Profilen und in der Dauer-Tabelle. Der Export trägt die neuen Namen.
+- 406 Sitzungen: Heute rendert in rund 43 ms, die Mitte zeigt höchstens 30.
+- Die Prüfungen aus 2026-10-03 a und 2026-10-06 a laufen weiter durch; nur ihre Build-Nummern
+  sind veraltet.
 
 ### 2026-10-06 a — Seitstütz ohne Zusatzgewicht
 

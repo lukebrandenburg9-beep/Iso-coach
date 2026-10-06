@@ -85,6 +85,11 @@ Rechenlogik:
   liegt, und den Richtwert zu verfehlen ist bei selbst gewählter Stufe kein Fehlschlag.
 - **Zonenrotation:** Die App fordert die Zone an, die am längsten zurückliegt — **und erholt
   ist**. Ohne Spreizung wird die Kurve wertlos, ohne Erholung die Messung.
+- **Drei Zonen, drei Farben:** Maximalkraft (20–60 s, rot), Hypertrophie / Kraft (60–90 s, blau),
+  Kraftausdauer (90–150 s, gelb). Auf *Heute* steht unter jeder angehakten Übung je Seite ein
+  Kuchen der letzten 30 Einheiten — gezählt nach der Zone, in der der erste Satz gelandet ist —
+  und daneben die drei Zonen zum Antippen. Eine Zone, die noch ruht, lässt sich trotzdem wählen;
+  die App sagt dann, wann sie erholt wäre. Was die Übung nicht erreicht, ist ausgegraut.
 - **Erholung:** Dieselbe Muskelgruppe **dreimal pro Woche**, jedes Energiesystem — also jede
   Zone — **einmal pro Woche**. Beides zusammen ist genau eine Rotation: drei Zonen, drei
   Einheiten, ein Mo/Mi/Fr-Rhythmus. Umgesetzt als zwei Schranken: mindestens zwei Tage zwischen
@@ -94,7 +99,7 @@ Rechenlogik:
   Fersenbrücke) dürfen am selben Tag getestet werden; die App sagt am Pausentag, welche Gruppe noch frei ist. Der Pausentag
   nennt Grund und Termin und lässt sich bewusst übergehen. Werte unter *Mehr → Erholung*.
 - **Höchstens sechs Blöcke** je Workout. Fünf Übungen, davon drei zweiseitig, wären acht Blöcke
-  — in Zone C über eine Stunde. Die App nimmt deshalb die freigegebenen Übungen in der
+  — in der Kraftausdauer über eine Stunde. Die App nimmt deshalb die freigegebenen Übungen in der
   Reihenfolge, wie lange ihre **Kurve** nicht mehr gemessen wurde, und stellt den Rest auf die
   nächste Sitzung zurück; dort stehen sie oben. Wer selbst entscheiden will, benutzt auf der
   Startseite *Heute selbst zusammenstellen* — das gilt nur für diese eine Sitzung und hebt den
@@ -151,7 +156,7 @@ Fachbereich.
 
 Ein Punkt, der sich beim Testen gezeigt hat und den du kennen solltest: **Wie fein die Stufen
 abgestuft sind, entscheidet, welche Zonen überhaupt trainierbar sind.** Mit den ursprünglich
-fünf groben Stufen war Zone B (60–90 s) für einen durchschnittlichen Nutzer gar nicht
+fünf groben Stufen war Hypertrophie / Kraft (60–90 s) für einen durchschnittlichen Nutzer gar nicht
 erreichbar — der Sprung von Stufe zu Stufe übersprang sie. Deshalb jetzt acht Stufen mit
 einem Lastverhältnis von etwa 1,15 zwischen benachbarten Stufen. Wenn du die Stufen änderst,
 prüfe unter **Profil → „Was du auf jeder Stufe schaffst"**, ob noch alle drei Zonen vorkommen.

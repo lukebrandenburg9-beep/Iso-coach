@@ -167,6 +167,34 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .zw.je button{padding:6px 2px;font-size:12.5px}
 .zw.je button span{font-size:10.5px}
 .zw.drei{grid-template-columns:repeat(3,1fr)}
+/* Gewaehlte Zone in ihrer Farbe statt im Akzent — dieselbe Farbsprache wie im
+   Zonen-Kuchen auf Heute (Build 2026-10-06 b). */
+.zw button.sel.zA{background:var(--zoneA);border-color:var(--zoneA);color:#14161c}
+.zw button.sel.zB{background:var(--zoneB);border-color:var(--zoneB);color:#14161c}
+.zw button.sel.zC{background:var(--zoneC);border-color:var(--zoneC);color:#14161c}
+/* Zonen-Kuchen unter jeder angehakten Uebung (Build 2026-10-06 b). Er haengt
+   unten an der Haekchenzeile, steht aber AUSSERHALB des Labels: Ein Tipp auf
+   Kuchen oder Zone darf das Haekchen nicht umschalten. */
+.chk:has(+ .kz){margin-bottom:0;border-bottom:0;border-radius:11px 11px 0 0}
+.kz{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:2px 13px 13px;
+  background:var(--panel2);border:1px solid var(--line);border-top:0;
+  border-radius:0 0 11px 11px;margin-bottom:7px}
+.kzK{display:flex;gap:10px}
+.kzKu{display:flex;flex-direction:column;align-items:center;gap:2px}
+.kzKu svg{display:block}
+.kzKu span{font-size:11px;line-height:1.2;color:var(--tx3)}
+.kzZ{flex:1 1 118px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.kzZ button{display:flex;align-items:center;gap:7px;padding:5px 9px;font-size:12.5px;
+  line-height:1.3;text-align:left;background:transparent;color:var(--tx2);border-radius:8px}
+.kzZ button::before{content:"";width:8px;height:8px;border-radius:50%;flex-shrink:0;
+  background:var(--zc)}
+.kzZ .zA{--zc:var(--zoneA)}
+.kzZ .zB{--zc:var(--zoneB)}
+.kzZ .zC{--zc:var(--zoneC)}
+.kzZ button.sel{background:color-mix(in srgb,var(--zc) 24%,transparent);border-color:var(--zc);
+  color:var(--tx);font-weight:600}
+.kzZ button.sel::after{content:"›";margin-left:auto;font-weight:700;color:var(--zc)}
+.kzRuht{flex-basis:100%;margin:0;font-size:12px;color:var(--warn)}
 .zw.zwei{grid-template-columns:repeat(2,1fr)}
 /* Haekchen "Wand" unter "Nur Koerpergewicht": klappt beim Wechsel auf. */
 .aufklapp{animation:aufklapp .2s ease-out;transform-origin:top}
@@ -240,7 +268,7 @@ code{background:var(--panel2);padding:1.5px 5px;border-radius:5px;font-size:12.5
     <div class="note" style="margin-top:16px">
       <b>So geht es weiter.</b> Drei Einstiegs-Workouts in drei verschiedenen Stufen — ein
       leichtes, ein mittleres, ein schweres. Danach kennt die App deine Kurve. Das erste ist das
-      längste (rund 20 Minuten, weil in Zone C lange gehalten wird), die beiden anderen sind
+      längste (rund 20 Minuten, weil in der Kraftausdauer lange gehalten wird), die beiden anderen sind
       deutlich kürzer.
     </div>
     <div class="row" style="margin-top:14px">
@@ -344,11 +372,20 @@ code{background:var(--panel2);padding:1.5px 5px;border-radius:5px;font-size:12.5
    ═══════════════════════════════════════════════════════════════════ */
 
 /* ---------- Fachvorgaben (Abschnitt 2.3 + 4) ---------- */
+/* Namen seit 06.10.2026 nach Luke: „gelb = kraft ausdauer, blau =
+   hyperthrophie/kraft rot = maximalkraft". Vorher hiessen sie „Kraft /
+   Maximalkraft", „Hypertrophie / Sehnenkonditionierung" und „Kapazität".
+   Sichtbar steht nur noch der Name; die Buchstaben bleiben Schluessel im Code,
+   in den Sitzungen und im Export. Die Farben stehen als --zoneA/B/C oben. */
 const ZONES = [
-  {id:"A", name:"Kraft / Maximalkraft",            lo:20, hi:60,  cls:"pA"},
-  {id:"B", name:"Hypertrophie / Sehnenkonditionierung", lo:60, hi:90,  cls:"pB"},
-  {id:"C", name:"Kapazität",                        lo:90, hi:150, cls:"pC"}
+  {id:"A", name:"Maximalkraft",         lo:20, hi:60,  cls:"pA"},
+  {id:"B", name:"Hypertrophie / Kraft", lo:60, hi:90,  cls:"pB"},
+  {id:"C", name:"Kraftausdauer",        lo:90, hi:150, cls:"pC"}
 ];
+function zName(id){
+  const z = ZONES.find(x => x.id === id);
+  return z ? z.name : String(id || "");
+}
 const PAUSE_S    = 20;   // Abschnitt 3.1 — zugleich Messprotokoll
 /* Nur fuer die Zeitschaetzung unter "Laenge einer Sitzung". Die App misst
    diese Pause NICHT und schreibt sie auch niemandem vor — zwischen zwei
@@ -448,6 +485,10 @@ const MIN_GAP_DAYS     = 1;
 const NACHHOL_TAGE     = 2;
 const ONBOARD_GAP_DAYS = 1;
 const DEFAULT_REST     = {A:7, B:7, C:7};
+/* Der Zonen-Kuchen auf Heute zaehlt die letzten 30 Einheiten je Seite, egal
+   wie weit zurueck. Luke, 06.10.2026: „Ändere den Zeitraum au die letzten 30
+   trainingseinheiten" — wie die 30 in der Mitte des Kuchens bei Grip Gains. */
+const KUCHEN_EINHEITEN = 30;
 
 /* Lastfaktoren: geschaetzter Anteil des Koerpergewichts, der auf den Haenden
    (Liegestuetz) beziehungsweise auf dem vorderen Bein (Ausfallschritt) liegt.
@@ -1226,7 +1267,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-06 a";
+const BUILD = "2026-10-06 b";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -2332,9 +2373,9 @@ function ausfWahlKarte(ex, zone, klasse, knapp){
   const grund = selbst
     ? `Von dir gesetzt. Nochmal auf denselben Knopf tippen heißt: zurück zur Automatik.`
     : (kurve === false && z
-       ? `Zone ${z.id} braucht mehr, als beidbeinig${voll} geht. Deshalb steht einbeinig vorn.`
+       ? `${z.name} braucht mehr, als beidbeinig${voll} geht. Deshalb steht einbeinig vorn.`
        : zuLang
-       ? `Beidbeinig hast du zuletzt <b>${fmt(t)}</b> gehalten${z ? ` — Zone ${z.id} geht bis
+       ? `Beidbeinig hast du zuletzt <b>${fmt(t)}</b> gehalten${z ? ` — ${z.name} geht bis
           ${fmt(z.hi)}` : ""}. ${voll ? `Auch${voll} wäre das beidbeinig nicht zu schaffen`
           : `Mehr gibt die beidbeinige Sprosse nicht her`}. Deshalb steht einbeinig vorn.`
        : (beid
@@ -2959,8 +3000,8 @@ function zonenWahlKarte(gr, klasse){
   const w = vorgabeZone(gr);
   const g = (gr == null) ? "" : gr;
   return `<div class="zw drei${klasse ? " " + klasse : ""}" id="zw-${g || "alle"}">
-    ${ZONES.map(z => `<button class="${w===z.id?"sel":"ghost"}" data-zwg="${g}"
-      data-zw="${z.id}">Zone ${z.id}
+    ${ZONES.map(z => `<button class="${w===z.id?"sel z"+z.id:"ghost"}" data-zwg="${g}"
+      data-zw="${z.id}">${z.name}
       <span>${z.lo}–${z.hi} s</span></button>`).join("")}
   </div>`;
 }
@@ -3034,6 +3075,34 @@ function zoneLastDay(gr){
   }
   return last;
 }
+/* Der Zonen-Kuchen auf Heute: Wie verteilen sich die letzten Einheiten dieser
+   Seite auf die drei Zonen? Luke, 06.10.2026, nach dem Vorbild Grip Gains:
+   „ob ich mehr maximalkraft oder kraftausdauer trainiert habe".
+   - Eine Einheit ist ein Workout (Nachtraege ohne Workout haben ihr Datum).
+   - Gezaehlt wird die Zone, in der der erste Satz GELANDET ist (ses.zone),
+     nicht die geplante — Lukes Wahl. Die Rotation oben zaehlt weiter die
+     geplante; beide koennen also auseinanderlaufen.
+   - Ein beidbeiniger Halt (ohne Seite) zaehlt fuer beide Seiten, wie in der
+     Kurve (Lukes Festlegung vom 19.09.).
+   - Nur ergiebige Einheiten, wie ueberall, wo die App Einheiten zaehlt.
+   - Die letzten KUCHEN_EINHEITEN, egal wie weit zurueck. */
+function zonenAnteile(ex, side){
+  const je = new Map();
+  for(const ses of S.sessions){
+    if(ses.exercise !== ex || !ergiebig(ses)) continue;
+    if(side && ses.side != null && ses.side !== side) continue;
+    const t = new Date(ses.date).getTime();
+    if(!isFinite(t)) continue;
+    const z = ses.zone || (ses.sets && ses.sets[0] && zoneOf(ses.sets[0].time).id) || ses.workoutZone;
+    if(!z) continue;
+    const key = ses.workout || ses.date;
+    if(!je.has(key)) je.set(key, {t, z});
+  }
+  const n = {A:0, B:0, C:0};
+  [...je.values()].sort((a, b) => b.t - a.t).slice(0, KUCHEN_EINHEITEN)
+    .forEach(e => { if(n[e.z] != null) n[e.z]++; });
+  return n;
+}
 /* Welche Zone nimmt die Rotation? Erholte zuerst, darunter die, die am
    laengsten zurueckliegt. Ist keine erholt, entscheidet allein das Alter —
    gearbeitet wird dann trotzdem, nur eben bewusst. */
@@ -3059,15 +3128,21 @@ function gateGroup(gr){
      siehe formFreiGruppe. Die Rotation waehlt trotzdem weiter die Zone. */
   if(formFreiGruppe(gr)) return {ok:true, group:gr, gewaehlt: zoneWahlHeute(gr), form:true};
   const age = zoneAge(gr);
-  /* Hat der Nutzer eine Zone gesetzt, wird auch NUR die geprueft. Sonst waere
-     die Wahl keine: Die Rotation haette weiter eine andere Zone freigegeben,
-     und das Tor haette gemeldet, es sei alles in Ordnung. */
+  /* Eine selbst gesetzte Zone sperrt nicht. Luke, 06.10.2026, auf die Frage,
+     was ein Tipp auf eine pausierende Zone auf Heute tun soll: „Trotzdem
+     trainieren". Bis dahin pruefte das Tor bei eigener Wahl NUR diese Zone —
+     ruhte sie noch, fiel die Uebung aus dem Plan, und erst ein neues Haekchen
+     stellte die Zone zurueck. Jede Zone ruht sieben Tage, meist also zwei von
+     dreien; die Wahl auf Heute waere fast immer ins Leere gelaufen. Die Ruhe
+     steht jetzt als Hinweis daneben (ruht = Tage bis erholt), sie sperrt nicht.
+     Die Tagessperre oben bleibt. */
   const gewaehlt = zoneWahlHeute(gr);
-  const kand = gewaehlt ? ZONES.filter(z => z.id === gewaehlt) : ZONES;
-  const waits = kand.map(z => Math.max(0, restOf(z.id) - age[z.id]));
+  if(gewaehlt)
+    return {ok:true, group:gr, gewaehlt, ruht: Math.max(0, restOf(gewaehlt) - age[gewaehlt])};
+  const waits = ZONES.map(z => Math.max(0, restOf(z.id) - age[z.id]));
   const wait = Math.min(...waits);
-  if(wait > 0) return {ok:false, kind:"zone", wait, age, group:gr, gewaehlt};
-  return {ok:true, group:gr, gewaehlt};
+  if(wait > 0) return {ok:false, kind:"zone", wait, age, group:gr};
+  return {ok:true, group:gr};
 }
 /* Eine Zeile je Uebung: angehakt? Gruppe frei? Warum nicht? */
 /* Eine Uebung, von der keine einzige Sprosse ausfuehrbar ist, hat im Workout
@@ -3843,7 +3918,7 @@ function zoneFuer(gr){
   if(w){
     const z = ZONES.find(x => x.id === w);
     return {zone:z.id, target: Math.round((z.lo + z.hi)/2), onboarding:false, fest:true,
-      why:`Zone ${z.id} (${z.lo}–${z.hi} s) hast du für heute selbst gesetzt.`};
+      why:`${z.name} (${z.lo}–${z.hi} s) hast du für heute selbst gesetzt.`};
   }
   /* Nachholfall vor der Rotation. Die Gegenseite hat in einer bestimmten Zone
      gemessen; misst diese Seite in einer anderen, stehen am Ende zwei Zahlen
@@ -3857,7 +3932,7 @@ function zoneFuer(gr){
     const z = ZONES.find(x => x.id === nz.zone);
     return {zone:z.id, target: (nz.target > 0 ? nz.target : Math.round((z.lo + z.hi)/2)),
       onboarding:false, fest:true,
-      why:`Zone ${z.id} — dieselbe, in der die Gegenseite zuletzt gemessen hat. `
+      why:`${z.name} — dieselbe Zone, in der die Gegenseite zuletzt gemessen hat. `
         + `Zwei Seiten in zwei Zonen ließen sich nicht nebeneinanderlegen.`};
   }
   const n = groupWorkoutCount(gr);
@@ -3870,7 +3945,7 @@ function zoneFuer(gr){
   const age = zoneAge(gr);
   const z = ZONES.find(x => x.id === rotationsZone(gr));
   return {zone:z.id, target: Math.round((z.lo + z.hi)/2), onboarding:false,
-    why:`Zone ${z.id} liegt am längsten zurück`
+    why:`${z.name} liegt am längsten zurück`
       + (isFinite(age[z.id]) ? ` (${age[z.id]} Tag${age[z.id]===1?"":"e"})` : "")
       + (age[z.id] >= restOf(z.id) ? ` und ist erholt.` : ` — erholt ist heute keine.`)};
 }
@@ -4971,7 +5046,7 @@ function blockIntro(i){
         <span>${q.side ? `<b>${q.side}</b>` : ""}${stufen.length < 2
           ? `${q.side ? " · " : ""}${mitKg ? ex.levels[q.level].name
                                            : stufenName(q.exercise, q.level, q.extra)}` : ""}</span>
-        <span>${zE.id !== q.zone ? `<span class="pill ${zE.cls}">Zone ${zE.id}</span> ` : ""}<b
+        <span>${zE.id !== q.zone ? `<span class="pill ${zE.cls}">${zE.name}</span> ` : ""}<b
           class="zeit">${fmt(q.target)}</b></span>
       </div>
       ${stufen.length < 2 ? "" : `<select data-t="${t}" data-a="stufe" aria-label="Variante">${
@@ -5542,9 +5617,9 @@ function showWorkoutResult(gespeichert, painEnd){
       <div class="card">
         <h3 style="margin-top:0">${labelOf(ses.exercise, ses.side, ses.level)}
           ${ses.fresh === false ? '<span class="pill pRest">vorermüdet</span>' : ''}</h3>
-        <p class="tiny" style="margin:0 0 8px">${ses.levelName} · Zone ${ses.zone}${
+        <p class="tiny" style="margin:0 0 8px">${ses.levelName} · ${zName(ses.zone)}${
           (ses.zoneGezaehlt || ses.workoutZone) && (ses.zoneGezaehlt || ses.workoutZone) !== ses.zone
-            ? ` <span class="tiny">(geplant ${ses.zoneGezaehlt || ses.workoutZone} — zählt, wo er gelandet ist)</span>` : ""}${
+            ? ` <span class="tiny">(geplant ${zName(ses.zoneGezaehlt || ses.workoutZone)} — zählt, wo er gelandet ist)</span>` : ""}${
           ses.modus ? ` · ${MODUS_NAME[ses.modus]}` : ""}</p>
         <table><thead><tr><th>Satz</th><th class="n">gehalten</th><th class="n">Richtwert</th><th>Ende</th></tr></thead>
         <tbody>${ses.sets.map((x,i)=>`<tr><td>${i+1}</td><td class="n">${fmt(x.time)}</td>
@@ -5561,7 +5636,7 @@ function showWorkoutResult(gespeichert, painEnd){
     <div class="card">
       <h3 style="margin-top:0">Nächstes Workout</h3>
       <p style="margin:4px 0"><b>${wann}</b></p>
-      <p class="muted" style="margin:2px 0">Zone ${nxt.zone} · ${nxt.blocks.map(blockLabel).join("  →  ")}</p>
+      <p class="muted" style="margin:2px 0">${zName(nxt.zone)} · ${nxt.blocks.map(blockLabel).join("  →  ")}</p>
       <p class="tiny">${nxt.why}</p>
       <p class="tiny">Bei zweiseitigen Übungen wird die Seite zuerst gemessen, die bisher die
       <b>wenigsten</b> frischen Messpunkte hat. Eine Seite, die zurückgefallen ist, holt damit von
@@ -5666,8 +5741,8 @@ function curveSVG(f, pts){
     const yt=Y(zi===2 ? y1 : Math.min(z.hi,y1)), yb=Y(zi===0 ? 0 : z.lo);
     g += `<rect x="${L}" y="${yt}" width="${W-L-R}" height="${Math.max(0,yb-yt)}"
            fill="var(--zone${z.id})" opacity=".09"/>
-          <text x="${W-R-5}" y="${(yt+yb)/2+4}" text-anchor="end" font-size="14"
-           fill="var(--zone${z.id})" font-weight="700">${z.id}</text>`;
+          <text x="${W-R-5}" y="${(yt+yb)/2+4}" text-anchor="end" font-size="11.5"
+           fill="var(--zone${z.id})" font-weight="700">${z.name}</text>`;
   });
   [20,60,90,150].forEach(v=>{
     g += `<line x1="${L}" y1="${Y(v)}" x2="${W-R}" y2="${Y(v)}" stroke="var(--line)" stroke-width="1"/>
@@ -6007,23 +6082,24 @@ function renderHome(){
      Karte vor der Übung noch einmal kam. Jetzt steht die Wahl nur noch dort.
      Die App hakt vor. Was gesperrt ist, lässt sich nicht anhaken und sagt,
      wie lange noch. Ein Häkchen gilt nur für heute; morgen entscheidet wieder
-     die Rotation. Eine Ausnahme ist anhakbar, obwohl die Gruppe pausiert: die
-     eigene Zonenwahl — das Häkchen stellt die Zone zurück auf die Rotation,
-     und dann ist die Gruppe frei. */
+     die Rotation.
+     Seit Build 2026-10-06 b steht unter jeder angehakten Übung ihr
+     Zonen-Kuchen mit den drei Zonen zum Antippen (Luke, 06.10.2026, nach Grip
+     Gains). Damit ist die Zonenwahl je Übung zurück auf Heute — nicht als
+     eigene Karte, sondern an der Zeile, zu der sie gehört. */
   const drin = new Set(p.blocks.map(b => b.exercise));
   const tage = n => n === 1 ? "morgen" : `in ${n} Tagen`;
   const listeKarte = () => `<div class="card flat" id="heuteListe">
     ${uebungslage().map(u => {
       const e = S.ex[u.ex];
-      const eigeneZone = !u.tor.ok && u.tor.kind === "zone" && !!u.tor.gewaehlt;
-      const frei = !u.ohneGeraet && (u.tor.ok || ignoreRest || !!u.offen || eigeneZone);
+      const frei = !u.ohneGeraet && (u.tor.ok || ignoreRest || !!u.offen);
       /* Wer mit einer angehakten Übung nicht an denselben Tag darf, sagt es.
          Das Häkchen tauscht die beiden dann. */
       const partner = drin.has(u.ex) ? null : [...drin].find(x => konflikt(x, u.ex));
       const status = u.ohneGeraet ? (ohneGeraete() ? "nicht bei Nur Körpergewicht" : "Gerät fehlt")
         : u.offen ? `${u.offen.seite} offen`
         : (!u.tor.ok && !ignoreRest)
-          ? (eigeneZone ? `Zone ${u.tor.gewaehlt} ${tage(u.tor.wait)}` : tage(u.tor.wait))
+          ? tage(u.tor.wait)
         : partner ? `nicht zusammen mit ${S.ex[partner].name}` : "";
       /* Die aeussere Huefte ist ein Rat, kein Ausschluss: anhakbar bleibt es,
          das Haekchen tauscht nicht, und an beiden steht der Grund. */
@@ -6036,7 +6112,7 @@ function renderHome(){
       /* Rechts die Minuten: angehakt, was die Uebung kostet; frei, was ihr
          Haekchen dazurechnet. Beides ist die Differenz zweier ganzer Plaene,
          also springt die Dauer oben genau um diese Zahl — auch wenn das
-         Haekchen einen Partner tauscht oder die eigene Zone zuruecksetzt. */
+         Haekchen einen Partner tauscht. */
       const an = drin.has(u.ex);
       const min = !frei ? null
         : an ? dauer - dauerMitHaekchen(u, false, drin)
@@ -6053,9 +6129,32 @@ function renderHome(){
           drin.has(u.ex) ? "var(--warn)" : "var(--tx3)"}">${rat}</span>` : ""}${
           tal ? `<br><span class="tiny" style="color:var(--warn)">Formtal ·
           entlasten empfohlen</span> <span class="pill pPrem">Premium</span>` : ""}</span>${
-          minText ? `<span class="chkMin">${minText}</span>` : ""}</label>`;
+          minText ? `<span class="chkMin">${minText}</span>` : ""}</label>${
+        an ? kuchenZeile(u) : ""}`;
     }).join("")}
   </div>`;
+  /* Unter einer angehakten Uebung: je Seite ein Kuchen der letzten Einheiten,
+     daneben die drei Zonen. Hervorgehoben ist die Zone, in der der Block HEUTE
+     wirklich laeuft (p.blocks), nicht die Vorgabe — die Lueckenlogik kann sie
+     noch gedreht haben. Ausgegraut ist eine Zone, die keine Seite erreicht
+     (Luke, 06.10.: „Ausgegraut"); die heutige nie. */
+  const kuchenZeile = u => {
+    const e = S.ex[u.ex];
+    const bl = p.blocks.find(b => b.exercise === u.ex);
+    const heute = bl ? bl.zone : null;
+    const seiten = e.sides || [null];
+    const kann = new Set(seiten.flatMap(sd => erreichbareZonen(u.ex, sd)));
+    const ruht = (u.tor.gewaehlt && u.tor.ruht > 0) ? u.tor.ruht : 0;
+    return `<div class="kz" id="kz-${u.ex}">
+      <div class="kzK">${seiten.map(sd => kuchenSVG(zonenAnteile(u.ex, sd), sd)).join("")}</div>
+      <div class="kzZ">${ZONES.map(z => {
+        const sel = z.id === heute, aus = !sel && !kann.has(z.id);
+        return `<button class="z${z.id}${sel ? " sel" : ""}" data-hz="${z.id}" data-hzx="${u.ex}"
+          aria-pressed="${sel}"${aus ? " disabled" : ""}>${z.name}</button>`;
+      }).join("")}</div>${ruht ? `
+      <p class="kzRuht">${zName(u.tor.gewaehlt)} erst ${tage(ruht)} erholt</p>` : ""}
+    </div>`;
+  };
   /* Training ohne Geraete: EIN Griff im Startmenue (Luke, 01.10.2026). Gilt,
      bis man ihn zuruecksetzt. Nicht auf der Karte "Workout laeuft noch":
      kein Wechsel mitten im Lauf. Zwei Knoepfe; unter "Nur Koerpergewicht"
@@ -6090,6 +6189,10 @@ function renderHome(){
         haekchenSetzen(u, ev.target.checked, drin); save();
         renderAmOrt("ak-" + u.ex);
       };
+    });
+    document.querySelectorAll("#heuteListe [data-hz]").forEach(b => b.onclick = () => {
+      const ex = b.getAttribute("data-hzx");
+      if(heuteZoneTippen(ex, b.getAttribute("data-hz"))){ save(); renderAmOrt("kz-" + ex); }
     });
   };
 
@@ -6341,11 +6444,11 @@ function renderProfile(){
       von ${anzahl(kann.length, "erreichbaren Zone", "erreichbaren Zonen")}. Sie zeigt schon eine
       Richtung, ist aber noch keine belastbare Grundlage.</div>`
       : `<div class="note">${kann.length===3 ? "Alle drei Zonen sind belegt"
-        : `Alle ${anzahl(kann.length, "erreichbare Zone", "erreichbaren Zonen")} (${kann.join(", ")})
+        : `Alle ${anzahl(kann.length, "erreichbare Zone", "erreichbaren Zonen")} (${kann.map(zName).join(", ")})
            sind belegt`}. Die Vorhersagen sind jetzt belastbar.</div>`}
     ${kann.length < 3 ? `<div class="note warn"><b>Teilkurve.</b> Die Leiter dieser Übung reicht
       nur für ${anzahl(kann.length, "Zone", "Zonen")} — ${ZONES.filter(z=>kann.indexOf(z.id)<0)
-      .map(z=>`Zone ${z.id}`).join(" und ")} ${kann.length===2?"bleibt":"bleiben"} außer
+      .map(z=>z.name).join(" und ")} ${kann.length===2?"bleibt":"bleiben"} außer
       Reichweite. Die App fordert sie deshalb nicht mehr ein.</div>` : ""}
     <div class="card">
       <h3 style="margin-top:0">Was du auf jeder Stufe schaffst</h3>
@@ -6362,7 +6465,7 @@ function renderProfile(){
           <td class="n">${l.load.toFixed(2)}</td>
           <td class="n">${!drin ? '<span class="tiny">nicht gemessen</span>'
                         : !isFinite(t)?"sehr lang":t>400?"> 400s":fmt(t)}</td>
-          <td>${z?`<span class="pill ${z.cls}">${z.id}</span>`
+          <td>${z?`<span class="pill ${z.cls}">${z.name}</span>`
                 : !drin?'<span class="tiny">außerhalb</span>'
                 : isFinite(t)&&t<20?'<span class="tiny">zu schwer</span>'
                 :'<span class="tiny">zu leicht</span>'}</td></tr>`;
@@ -6458,7 +6561,6 @@ function haekchenSetzen(u, an, drin){
   const sel = new Set(drin);
   if(an){
     S.aktiv[u.ex] = true;
-    if(!u.tor.ok && u.tor.kind === "zone" && u.tor.gewaehlt) zoneWahlSetzen(u.group, "");
     for(const x of [...sel]) if(konflikt(x, u.ex)) sel.delete(x);
     sel.add(u.ex);
   } else sel.delete(u.ex);
@@ -6467,7 +6569,7 @@ function haekchenSetzen(u, an, drin){
 }
 /* Wie lange dauerte das Workout mit diesem Haekchen? Plant auf Probe und
    legt S danach unveraendert zurueck, ohne save(): Beim Planen schreibt
-   mkBlock Heimgewichte (S.extra), das Haekchen selbst die Zonenwahl. Die
+   mkBlock Heimgewichte (S.extra), das Haekchen selbst S.heute und S.aktiv. Die
    Sitzungen bleiben beim Zuruecklegen dieselben — die liest das Planen nur,
    und sie sind der grosse Teil von S. */
 function dauerMitHaekchen(u, an, drin){
@@ -6483,6 +6585,57 @@ function dauerMitHaekchen(u, an, drin){
   }
 }
 
+/* Der Kuchen einer Seite: Rot, Blau, Gelb im Uhrzeigersinn ab zwoelf Uhr, in
+   der Mitte die Zahl der Einheiten, im Stueck seine Anzahl, sobald es dafuer
+   breit genug ist. Keine Legende — die Zonenknoepfe daneben tragen dieselben
+   Farben und die Namen. */
+function kuchenSVG(n, seite){
+  const summe = ZONES.reduce((a, z) => a + (n[z.id] || 0), 0);
+  const R = 22.5, U = 2 * Math.PI * R;
+  const fuge = ZONES.filter(z => n[z.id] > 0).length > 1 ? 1.6 : 0;
+  let start = 0, boegen = "", zahlen = "";
+  if(!summe) boegen = `<circle cx="28" cy="28" r="${R}" fill="none" stroke="var(--line)"
+    stroke-width="11"/>`;
+  for(const z of ZONES){
+    const k = n[z.id] || 0;
+    if(!k) continue;
+    const lang = k / summe * U;
+    boegen += `<circle cx="28" cy="28" r="${R}" fill="none" stroke="var(--zone${z.id})"
+      stroke-width="11" stroke-dasharray="${Math.max(.01, lang - fuge).toFixed(2)} ${U.toFixed(2)}"
+      stroke-dashoffset="${(-start).toFixed(2)}" transform="rotate(-90 28 28)"/>`;
+    if(k / summe >= .11){
+      const w = (start + lang / 2) / U * 2 * Math.PI - Math.PI / 2;
+      zahlen += `<text x="${(28 + R * Math.cos(w)).toFixed(1)}" y="${(28 + R * Math.sin(w)).toFixed(1)}"
+        text-anchor="middle" dominant-baseline="central" font-size="9.5" font-weight="700"
+        font-family="var(--mono)" fill="#14161c">${k}</text>`;
+    }
+    start += lang;
+  }
+  const text = `${seite ? seite + ": " : ""}${ZONES.map(z => `${n[z.id] || 0} ${z.name}`)
+    .join(", ")} in den letzten ${anzahl(summe, "Einheit", "Einheiten")}`;
+  return `<div class="kzKu" role="img" aria-label="${text}">
+    <svg viewBox="0 0 56 56" width="56" height="56" aria-hidden="true">${boegen}${zahlen}
+      <text x="28" y="28" text-anchor="middle" dominant-baseline="central" font-size="15"
+        font-weight="700" font-family="var(--mono)" fill="${summe ? "var(--tx)" : "var(--tx3)"}">${
+        summe}</text></svg>${seite ? `<span aria-hidden="true">${seite}</span>` : ""}</div>`;
+}
+/* Ein Tipp auf eine Zone unter einer angehakten Uebung — dieselbe Wahl wie auf
+   der Karte vor der Uebung, je Uebung und nur fuer heute. Luke, 06.10.2026:
+   antippbar, und eine pausierende Zone wird trotzdem trainiert (siehe
+   gateGroup). Ein zweiter Tipp auf die eigene Wahl stellt zurueck auf die
+   Rotation. Ein Tipp auf die Zone, die die Rotation ohnehin gewaehlt hat, tut
+   nichts: Sonst wuerde die Wahl still "fest" und schaltete die Lueckenlogik
+   in mkBlock ab, ohne dass sich auf dem Bildschirm etwas aendert. */
+function heuteZoneTippen(ex, z){
+  const gr = groupOf(ex), eigene = zoneWahlHeute(gr);
+  const bl = S.plan && S.planDay === today() && S.plan.blocks.find(b => b.exercise === ex);
+  if(eigene === z) zoneWahlSetzen(gr, "");
+  else if(!eigene && bl && bl.zone === z) return false;
+  else zoneWahlSetzen(gr, z);
+  S.plan = null; S.planDay = null;
+  return true;
+}
+
 function dauerHTML(bloecke){
   const b = Math.max(1, Math.min(12, Math.round(bloecke) || 1));
   const zeilen = ZONES.map((z, i) => {
@@ -6490,7 +6643,7 @@ function dauerHTML(bloecke){
     return `<div style="display:flex;gap:11px;align-items:baseline;padding:7px 0${
       i < ZONES.length - 1 ? ";border-bottom:1px solid var(--line)" : ""}">
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px">Zone ${z.id} · ${z.name}</div>
+        <div style="font-size:13px">${z.name}</div>
         <div class="tiny" style="margin:1px 0 0">${anzahl(d.saetze, "Satz", "Sätze")} à ${
           z.lo}–${z.hi} s</div>
       </div>
@@ -6879,7 +7032,7 @@ function renderSetup(){
     const d = document.createElement("div");
     d.className = "lvlrow";
     d.innerHTML = `<span class="tiny" style="align-self:center">
-                     <span class="pill ${z.cls}">${z.id}</span> ${z.name} · ${z.lo}–${z.hi}s</span>
+                     <span class="pill ${z.cls}">${z.name}</span> ${z.lo}–${z.hi}s</span>
                    <input type="number" step="1" min="0" max="14" value="${restOf(z.id)}" data-r="${z.id}">`;
     rhost.appendChild(d);
   });
