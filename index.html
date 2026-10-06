@@ -1296,7 +1296,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-06 h";
+const BUILD = "2026-10-06 i";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -2627,7 +2627,7 @@ const curFit = (ex, side) => fit(points(ex, side));
    50,67 % mit τ 21,5 s und 49,33 % mit τ 388 s. Nach PAUSE_S = 20 s sind
    damit rund 33 % zurueck, Satz 2 haelt also ein Drittel (Recherche 1.1).
    Das gedaechtnislose W'-Modell kennt keinen weiteren Abfall: q = 0.
-   Lukes Messreihen bis 21.09.2026 (27 Bloecke) ergeben a = 0,18, q = 0,22 —
+   Lukes Messreihen bis 21.09.2026 (27 Bloecke) ergeben a = 0,16, q = 0,24 —
    steiler als die Studie. Genau das lernt die App: erst ueber alle Uebungen
    des Nutzers, dann je Uebung und Seite, jeweils zum Wert darueber hin
    gezogen, solange wenig gemessen ist. Ohne einen einzigen gueltigen Block
@@ -2638,11 +2638,10 @@ const SATZ_START = {a:0.33, q:0, quelle:"Chorley 2022"};
 const SATZ_GEWICHT_START  = 2;   // so viele Bloecke wiegt der Startwert gegen die eigenen
 const SATZ_GEWICHT_NUTZER = 3;   // so viele wiegt der Nutzer-Fit gegen eine Uebung
 const SATZ_BLOECKE = 30;         // nur die juengsten zaehlen
-/* Was ein Block Abstand zum Vorwert kostet, je 1,0 in a oder q. Ein Folgesatz
-   aendert sich im Log-Raum um rund 2 bis 3 je 1,0 in a, ein Block hat zwei
-   bis drei Folgesaetze — 6 heisst also: Ein Vorwert-Block wiegt etwa so viel
-   wie ein gemessener. */
-const SATZ_STRAFE = 6;
+/* Bis zu diesem Abstand im Log-Raum (rund 10 %) zaehlt ein Satz quadratisch
+   und wird gemittelt, darueber nur noch linear: Ein Ausreisser wie
+   244 → 2 → 1 s wiegt dann seinen Abstand, nicht dessen Quadrat. */
+const SATZ_KNICK = 0.1;
 function satzQuote(m, n){ return n <= 1 ? 1 : m.a + (1 - m.a) * Math.pow(m.q, n - 1); }
 /* EINE Rechnung fuer Karte, Timer und Dauer: Der naechste Satz folgt aus
    dem TATSAECHLICH gehaltenen davor. Wer laenger haelt, bekommt mehr. */
@@ -2675,11 +2674,14 @@ function satzQuoten(s){
 }
 /* Raster: a von 0,02 bis 0,80, q von 0 bis 0,94, je in Schritten von 0,02.
    log r_n steht einmal vorberechnet da. Gesucht wird die kleinste Summe der
-   Abstaende im Log-Raum (L1): ein einzelner Ausreisser wiegt so nur seinen
-   Abstand, nicht dessen Quadrat. Der Vorwert zieht an a und q selbst, nicht
-   an der Kurve: Ein Zug an der Kurve wirkte auch bei Satz 5 und 6, wo eine
-   Uebung vielleicht nie gemessen wurde, und verbog dort die gemessenen
-   Saetze 2 bis 4 (Pruefung mit a = 0,5: herausgekommen waren 0,02). */
+   geknickten Abstaende im Log-Raum (satzAbstand).
+   Der Vorwert zaehlt wie `gewicht` gedachte Bloecke, die genau auf seiner
+   Kurve liegen — und zwar nur bei den Satznummern, die auch gemessen wurden.
+   Wer nie einen fuenften Satz gemacht hat, dem verbiegt der Vorwert dort
+   nichts (eine erste Fassung zog bei Satz 5 und 6 und machte aus a = 0,5
+   ein a = 0,02). Eine zweite Fassung zog an a und q selbst; das wirkte wie
+   eine Schwelle: Lukes Kurve blieb acht Bloecke lang exakt auf dem
+   Studienwert und sprang beim zehnten. So lernt sie ab dem zweiten Block. */
 let satzRasterTab = null;
 function satzRaster(){
   if(satzRasterTab) return satzRasterTab;
@@ -2691,12 +2693,19 @@ function satzRaster(){
   }
   return satzRasterTab;
 }
+function satzAbstand(r){ const k = SATZ_KNICK; return k * k * (Math.sqrt(1 + (r / k) * (r / k)) - 1); }
 function satzFit(bloecke, vor, gewicht){
+  const wie = new Array(SETS_MAX + 1).fill(0), vr = [0, 0];
+  for(const b of bloecke) for(const [n] of b) wie[n]++;
+  for(let n = 2; n <= SETS_MAX; n++) vr.push(Math.log(satzQuote(vor, n)));
   let best = null, bestE = Infinity;
   for(const g of satzRaster()){
-    let e = SATZ_STRAFE * gewicht * (Math.abs(g.a - vor.a) + Math.abs(g.q - vor.q));
+    // winziger Zug zum Vorwert: entscheidet nur Gleichstaende
+    let e = 1e-4 * (Math.abs(g.a - vor.a) + Math.abs(g.q - vor.q));
+    for(let n = 2; n <= SETS_MAX; n++)
+      if(wie[n]) e += gewicht * wie[n] / bloecke.length * satzAbstand(g.r[n] - vr[n]);
     for(const b of bloecke){
-      for(const [n, l] of b) e += Math.abs(l - g.r[n]);
+      for(const [n, l] of b) e += satzAbstand(l - g.r[n]);
       if(e >= bestE) break;
     }
     if(e < bestE){ bestE = e; best = g; }

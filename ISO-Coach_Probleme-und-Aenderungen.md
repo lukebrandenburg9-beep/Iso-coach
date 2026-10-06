@@ -2443,7 +2443,7 @@ Auf die Rückfragen:
 | Satzzeiten | „dAS IST JA GENAU DAS was die app leisten soll": Im Onboarding rechnet die App mit den Modellzahlen aus den Studien, danach mit den gemessenen Haltezeiten des Nutzers, und daraus wird die Kurve je Satz modelliert. „Das ist das USP der app und genau dafür brauchen wir leistungstarke mathemathische modelle." Nach dem Start sollen die Daten zentral gesammelt werden, damit sich einzelne Nutzer gegen den Durchschnitt rechnen lassen. |
 | Platz | Je Seite unter der Kopfzeile. |
 
-**Gebaut in 2026-10-06 h.**
+**Gebaut in 2026-10-06 h, nachgebessert in 2026-10-06 i** (siehe „Eine Entscheidung im Bau").
 
 *Läufer.*
 
@@ -2476,8 +2476,8 @@ Erklärtext.
   Satz 1 zwischen 20 und 300 s liegt; beim ersten Satz mit Schmerz endet er. Die einzelnen Sätze
   der Einstiegstests ändern nichts, die App rechnet also bis zum ersten echten Workout mit dem
   Studienwert. Ohne eigenen Schalter.
-- **Lukes Messreihen** (Export vom 21.09., 27 gültige Blöcke): a = 0,18, q = 0,20. Für 119 s
-  heißt das **119 → 41 → 25 → 22 → 21 → 21**. Seine Sätze knicken stärker ab als der Studienwert,
+- **Lukes Messreihen** (Export vom 21.09., 27 gültige Blöcke): a = 0,16, q = 0,24. Für 119 s
+  heißt das **119 → 43 → 25 → 21 → 20 → 20**. Seine Sätze knicken stärker ab als der Studienwert,
   und genau das lernt die App.
 
 *Timer.* Satz 1 nimmt wie bisher die Zielzeit des Blocks. Ab Satz 2 rechnet der Timer mit
@@ -2500,11 +2500,40 @@ Folgesätzen im Median 19 % daneben, genau wie die alte Regel. Der reine Studien
 44 %. Der Gewinn liegt also nicht im nächsten Satz: Die ganze Kurve steht schon vor Satz 1 fest,
 Karte, Timer und Dauer zeigen dieselben Zahlen, und die Kurve wird mit jedem Block genauer.
 
-**Eine Entscheidung im Bau.** Der Vorwert (Studie bzw. Nutzer) wirkt als Abstand in a und q,
-nicht als Abstand zur vorhergesagten Kurve. Die erste Fassung hat ihn an der Kurve gemessen. Dann
-bog sie bei Satz 5 und 6, wo kaum jemand misst, die Kurve frei zurecht: Eine Übung mit eigenen
-Werten a = 0,5, q = 0,5 landete bei 0,02 und 0,74. Als Abstand in a und q bleibt die Form erhalten,
-die die Messungen zeigen. Lukes Fit ging dadurch von 0,18/0,22 auf 0,18/0,20.
+**Eine Entscheidung im Bau, in zwei Anläufen.** Wie stark zieht der Vorwert (Studie bzw.
+Nutzer), solange wenig gemessen ist?
+
+- *Erste Fassung, vor dem Push verworfen:* Der Vorwert lag als gedachte Messung auf allen Sätzen
+  2 bis 6. Dann bog er bei Satz 5 und 6, wo kaum jemand misst, die Kurve zurecht: Eine Übung mit
+  eigenen Werten a = 0,5, q = 0,5 landete bei 0,02 und 0,74.
+- *Fassung in Build h:* Der Vorwert zog an a und q selbst. Bei der Live-Prüfung fiel auf, dass
+  das wie eine Schwelle wirkt, nicht wie ein Gewicht. Lukes Blöcke chronologisch eingespielt:
+  Die Kurve blieb **acht Blöcke lang** exakt auf dem Studienwert und sprang erst beim zehnten.
+  Versprochen war „zählt wie 2 Blöcke".
+- *Fassung in Build i:* Der Vorwert zählt wie 2 (Studie) bzw. 3 (Nutzer) gedachte Blöcke, die genau
+  auf seiner Kurve liegen, und zwar nur bei den Satznummern, die auch gemessen wurden. Wer nie
+  einen fünften Satz gemacht hat, dem verbiegt er dort nichts. Der Abstand ist geknickt: bis rund
+  10 % quadratisch (wird gemittelt), darüber linear (ein Ausreißer wiegt seinen Abstand, nicht
+  dessen Quadrat).
+
+So sieht das auf Lukes Blöcken in der Reihenfolge aus, in der er sie gemacht hat (Satz 1 = 119 s):
+
+| Blöcke | a / q | Kurve |
+|---|---|---|
+| 0 | 0,33 / 0 | 119 → 39 → 39 → 39 → 39 |
+| 1 | 0,32 / 0,02 | 119 → 40 → 38 → 38 → 38 |
+| 2 | 0,20 / 0,16 | 119 → 39 → 26 → 24 → 24 |
+| 4 | 0,24 / 0,14 | 119 → 41 → 30 → 28 → 28 |
+| 6 | 0,18 / 0,20 | 119 → 41 → 25 → 22 → 21 |
+| 8 | 0,10 / 0,28 | 119 → 42 → 20 → 14 → 12 |
+| 10 | 0,18 / 0,20 | 119 → 41 → 25 → 22 → 21 |
+| 27 | 0,16 / 0,24 | 119 → 43 → 25 → 21 → 20 |
+
+Der Ausschlag bei 8 Blöcken steckt in den Daten: Block 7 und 8 fallen ungewöhnlich steil ab,
+jede geprüfte Fassung zeigt ihn. Ab 10 Blöcken steht die Kurve. Beim Läufer mit eigenen Werten
+a = 0,5 gegen den Nutzerwert 0,2: nach 1 Block 0,2, nach 3 Blöcken 0,3, nach 5 Blöcken 0,5. Das
+ist „zählt wie 3 Blöcke". Synthetische Blöcke mit a = 0,2, q = 0,3 findet die App jetzt exakt
+wieder (vorher 0,22/0,24).
 
 **Noch nicht gebaut: die zentrale Sammlung.** Sie braucht einen Server und eine ausdrückliche
 Einwilligung, weil es um Gesundheitsdaten geht. Vorbereitet ist sie an zwei Stellen: Der
@@ -2519,19 +2548,24 @@ Workouts. Tippe „Sätze" auf 6, dann siehst du den ganzen Verlauf.
 - Wer neu ist, bekommt ab Satz 2 gleich lange Sätze (119 → 39 → 39), bis die ersten Workouts mit
   mehreren Sätzen da sind. Fallen seine Sätze stärker ab, wie bei Luke, plant die App Satz 3 und
   später anfangs zu lang.
-- Für Luke wird Satz 2 kürzer vorgegeben als bisher: 41 statt 54 s nach 119 s.
+- Für Luke wird Satz 2 kürzer vorgegeben als bisher: 43 statt 54 s nach 119 s.
+- Solange wenige Blöcke da sind, kann die Kurve von Workout zu Workout deutlich wandern (bei
+  Luke nach 8 Blöcken Satz 5 bei 12 s, nach 10 Blöcken wieder bei 21 s). Das ist der Preis
+  dafür, dass sie ab dem zweiten Block lernt.
 - Die Kurve gilt je Übung und Seite, nicht je Zone. Ob die Sätze nach einem Satz Maximalkraft
   anders abfallen als nach einem Satz Kraftausdauer, misst die App noch nicht getrennt.
 
 **Für den Nachbau:**
 
 - `SATZ_START = {a:0.33, q:0, quelle:"Chorley 2022"}`, `SATZ_GEWICHT_START = 2`,
-  `SATZ_GEWICHT_NUTZER = 3`, `SATZ_BLOECKE = 30`, `SATZ_STRAFE = 6`, direkt nach `curFit`.
+  `SATZ_GEWICHT_NUTZER = 3`, `SATZ_BLOECKE = 30`, `SATZ_KNICK = 0.1`, direkt nach `curFit`.
 - `satzQuote(m, n)`, `naechsterSatz(m, n, vorher)` = `max(8, round(vorher · r_n / r_(n−1)))`,
   `satzZeiten(t1, n, m)` baut die Liste Schritt für Schritt aus `naechsterSatz`.
 - `satzModell(ex, side)`: ohne Übung der Nutzer-Fit, mit Übung der Fit über
   `zaehltFuer(s, ex, side)`. Fit über ein Raster (a 0,02 bis 0,80, q 0 bis 0,94, Schritt 0,02),
-  Summe der Abstände im Log-Raum plus `SATZ_STRAFE · gewicht · (|Δa| + |Δq|)`. Gemerkt wird über
+  Summe von `satzAbstand` (geknickt bei `SATZ_KNICK`) im Log-Raum. Der Vorwert geht als
+  `gewicht · wie[n] / Blöcke · satzAbstand(log r_n − log r_n(Vorwert))` ein, `wie[n]` zählt, wie
+  viele Blöcke Satz n haben. Gleichstände entscheidet `1e-4 · (|Δa| + |Δq|)`. Gemerkt wird über
   das Sitzungs-Array, die Zahl der Sitzungen, Datum und Satzzahl der letzten.
 - `blockIntro` legt `q.satzModell` am Block ab; `setTarget` liest es, damit Karte und Timer
   dieselben Zahlen nutzen. `DROP2`, `DROP_MIN`, `DROP_MAX` sind entfernt.
@@ -2547,6 +2581,24 @@ Workouts. Tippe „Sätze" auf 6, dann siehst du den ganzen Verlauf.
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
 
+### 2026-10-06 i — Satzkurve lernt ab dem zweiten Block
+
+**Befund (bei der Live-Prüfung von h).** Sechs Läufer-Blöcke mit klarem Abfall ließen die Kurve
+auf dem Studienwert stehen. Nachgerechnet auf Lukes Messreihen in der Reihenfolge, in der er sie
+gemacht hat: acht Blöcke exakt Studienwert, Sprung erst beim zehnten. Versprochen war im Plan
+„zählt wie 2 Blöcke" (P74).
+
+**Gebaut.** Der Vorwert zählt jetzt wie 2 bzw. 3 gedachte Blöcke auf seiner Kurve, nur bei den
+gemessenen Satznummern. Der Abstand ist bis rund 10 % quadratisch, darüber linear. Lukes Fit:
+0,16/0,24, also 119 → 43 → 25 → 21 → 20 → 20. README unverändert (sagt nichts über die Gewichte).
+
+**Geprüft.** Im Node-Abgleich, 51 Prüfungen, keine Abweichung. Neu: Ein einzelner Block lässt den
+Startwert fast stehen, zwei Blöcke von Luke ziehen ihn schon weg (0,20/0,16). Beim Läufer mit
+eigenen Werten a = 0,5: 1 Block 0,2, 3 Blöcke 0,3, 5 Blöcke 0,5. Synthetische Werte exakt,
+Ausreißer ohne Wirkung, `renderHome` mit 400 Sitzungen 30 ms. Für den nächsten Satz bleibt es bei
+19 % im Median. Die Reihen davor laufen bis auf ihre BUILD-Zeilen weiter (Kuchenmitte aus d und e
+wie in h).
+
 ### 2026-10-06 h — Satzkurve je Seite, klare Läufer-Knöpfe
 
 **Befund (Luke).** „rackcarry und suitcase in welcher hand?" und „Cool wäre auf dem menü auch
@@ -2560,7 +2612,7 @@ Modells ergänzt. README angepasst.
 
 **Geprüft.** Im Node-Abgleich mit dem Skript aus `index.html`, 48 Prüfungen, keine Abweichung:
 Startwert ohne Daten, Einstiegstests ändern ihn nicht. Synthetische Blöcke mit a = 0,2, q = 0,3
-werden zurückgefunden, Lukes 27 Blöcke ergeben 0,18/0,20. Ungültige Blöcke und ein Ausreißer
+werden zurückgefunden, Lukes 27 Blöcke ergeben 0,18/0,20 (in i: 0,16/0,24). Ungültige Blöcke und ein Ausreißer
 verschieben den Fit nicht. Timer gleich Kurve, 10 s länger gehalten gibt einen längeren Satz,
 Boden 8 s. Texte beider Seiten, auch mit alter Beschriftung im Speicher. Kurve mit Punkten,
 Zahlen, Gesamt, Neuzeichnen bei „Sätze", ein einzelner Satz ohne Linie, das Grip-Gains-Beispiel
