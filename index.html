@@ -203,6 +203,9 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .kzZ button.empf{border-color:var(--orange);box-shadow:inset 0 0 0 1px var(--orange)}
 .kzRuht{flex-basis:100%;margin:0;font-size:12px;color:var(--warn)}
 .zw.zwei{grid-template-columns:repeat(2,1fr)}
+/* Haltungsknoepfe der Hyperextension: Der Satz darunter ist lang und bricht
+   ueber mehrere Zeilen — etwas Rand zur Seite, damit er nicht am Rahmen klebt. */
+.zw.haltung button{padding:9px 8px}
 /* Haekchen "Wand" unter "Nur Koerpergewicht": klappt beim Wechsel auf. */
 .aufklapp{animation:aufklapp .2s ease-out;transform-origin:top}
 @keyframes aufklapp{from{opacity:0;transform:scaleY(.6)}to{opacity:1;transform:none}}
@@ -1170,6 +1173,101 @@ const DEFAULT_EX = {
       {name:"Beidbeinig", load:0.50, beid:true},
       {name:"Einbeinig",  load:1.00}
     ]
+  },
+
+  /* Hyperextension (Build 2026-10-09 a). Luke, 08.10.2026: Stepper mit Kissen,
+     die Kante auf Hoehe des Bauchnabels, die Fuesse hinten an der Wand, "so
+     entsteht ein hebel auf den unteren ruecken weil der oberkoerper frei
+     gehalten wird". Gearbeitet wird gestreckt oder rund, "je nach
+     beschwerdelage der wirbelsaeule".
+
+     EINE Uebung mit ZWEI Haltungen, jede mit eigener Kurve. Im Code sind die
+     Haltungen Seiten (sides): Die Schluessel hyper|gestreckt und hyper|rund
+     trennen Stufe, Gewicht, Fehlserie, Verlauf und Export von selbst. Anders
+     als links und rechts laeuft pro Workout nur EINE Haltung, die gewaehlte
+     (haltungOf). Gewaehlt wird auf der Karte vor der Uebung, gestreckt steht
+     vorgewaehlt da (Luke: "Vorauswahl so oder so auf gestreckt").
+
+     Die Stufe machen die Arme: Je weiter sie vom Nabel weg nach vorn reichen,
+     desto laenger der Hebel. Gerechnet mit den Segmentdaten von de Leva 1996
+     (maennlich), Rumpf waagerecht, Drehpunkt am Nabel, Last als Moment
+     relativ zu Y:
+        Zeigefinger abgestuetzt     0,557   GESCHAETZT: frei gedrueckt, nur so
+                                            viel wie noetig, ohne Kraftmessung
+        Arme in V, Haende neben     0,698   GERECHNET
+          der Huefte
+        Haende in der Huefte        0,776   GERECHNET
+        Arme in T                   0,875   GERECHNET
+        Arme in Y, etwa 45 Grad     1,000   GERECHNET
+        Gewicht vor der Brust       0,847   GERECHNET, ohne Gewicht. Die
+                                            Armhaltung (Ellbogen am Rumpf, Haende
+                                            vor dem Brustbein) ist ANGENOMMEN,
+                                            je nach Griff 0,838 bis 0,855.
+     Spanne Fingerstuetz bis Y 1,79. Huefte, T und Y liegen enger als 1,25 —
+     Luke wollte V und Huefte als eigene Sprossen. Das I (Arme ueber Kopf) ist
+     nicht drin, ebenfalls seine Entscheidung.
+
+     Gewicht gibt es nur auf der obersten Sprosse und nur vor der Brust. Luke,
+     08.10.2026: "Nimm nur Gewicht vor brust. Die Y Variante ermuedet
+     Schultern und beinrueckseite zu stark." Das Gewicht sitzt mittig auf dem
+     Brustbein, 30 cm vor dem Nabel (Nabel bis Schwertfortsatz 21,6 cm plus
+     halbes Brustbein 8,5 cm). Daraus extraK = 2,12, bezogen auf diese
+     Sprosse; bei 27 bis 33 cm Hebel laege er zwischen 1,91 und 2,34.
+     Ohne Gewicht waere die Brust-Sprosse LEICHTER als Y. Sie zaehlt deshalb
+     erst ab dem Mindestgewicht (gewichtMindestens, siehe kgMindest): dem
+     kleinsten Gewicht im 2,5-kg-Raster, mit dem sie mindestens so schwer ist
+     wie Y. Bei 60, 70 und 80 kg Koerpergewicht sind das 7,5 kg, bei 90 und
+     100 kg 10 kg. Bei 80 kg traegt sie damit 1,015, jede weiteren 2,5 kg
+     bringen etwa 0,056.
+
+     Die Haltung aendert die Last im Modell nicht: Beide halten den Rumpf
+     waagerecht. Rund verkuerzt den Hebel etwas, das fangen die getrennten
+     Kurven ab. Gerechnet wird nur innerhalb einer Haltung.
+
+     Ischias. Luke, 08.10.2026, erinnerte sich, die ausgewerteten Studien
+     haetten Extension als die schlimmere Richtung gezeigt. Fuer die meisten
+     ist es andersherum: Rund 90 % der Ischialgien kommen von der Bandscheibe
+     (Koes 2007), und dort verschlimmern Beugen und langes Sitzen, denn der
+     Bandscheibendruck ist in belasteter Beugung am hoechsten (Wilke 1999).
+     Beim engen Wirbelkanal verschlimmert Strecken: Der Kanal wird von Beugung
+     zu Streckung um etwa 15 % enger (Inufusa 1996). Long 2004: 74 % von 312
+     Patienten mit Kreuzschmerz oder Ischias haben eine Richtungsvorliebe,
+     davon 83 % Streckung und 7 % Beugung. Die Vorauswahl gestreckt passt also
+     zur Mehrheit; die beiden Saetze unter den Haltungsknoepfen (haltungUnter)
+     sagen, woran man die andere Gruppe erkennt.
+
+     VORLAEUFIG, bis Luke misst: alle sechs Lasten, extraK und damit das
+     Mindestgewicht. */
+  hyper: {
+    name:"Hyperextension", region:"Unterer Rücken", group:"spine",
+    /* Die erste Haltung ist die Vorauswahl, siehe haltungOf. */
+    sides:["gestreckt","rund"], haltungen:true,
+    seitenRuf:{gestreckt:"RÜCKEN GESTRECKT", rund:"RÜCKEN RUND"},
+    seitenKopf:{gestreckt:"Rücken gestreckt", rund:"Rücken rund"},
+    /* Steht unter den Haltungsknoepfen, bis die erste Hyperextension gelaufen
+       ist (haltungWahlKarte). */
+    haltungUnter:{gestreckt:"Sitzen und Vorbeugen ziehen ins Bein – wie bei den meisten mit Ischias",
+                  rund:"Stehen und Gehen ziehen ins Bein – typisch für einen engen Wirbelkanal"},
+    /* Kein extraGeraet: Ein Rucksack mit Buechern geht immer, wie bei der
+       Fersenbruecke. Kein extraMax und kein extraReal: Es gelten der Deckel
+       von einem halben Koerpergewicht und die 20 kg fuer zuhause. */
+    extraAb:5, extraK:2.12, gewichtMindestens:true,
+    extraLabel:"Gewicht",
+    extraHint:"Rucksack, Hantelscheibe oder Kurzhantel mit beiden Armen eng vor der Brust halten, "
+             +"mittig auf dem Brustbein.",
+    hint:"Stepper mit Kissen, die Kante liegt auf Höhe des Bauchnabels, die Füße stehen hinten an "
+        +"der Wand. Der Oberkörper hängt frei über die Kante und wird waagerecht gehalten: gestreckt "
+        +"mit langem Rücken, rund mit eingerolltem Rücken. Die Arme geben die Stufe vor.",
+    /* Alle ohne ort: Stepper und Kissen sind Moebel, im Modus ohne Geraete
+       faellt die Uebung deshalb ganz weg (siehe ohneGeraete). */
+    levels:[
+      {name:"Mit den Zeigefingern abstützen · nur so viel drücken wie nötig", load:0.557},
+      {name:"Arme in V · Hände neben der Hüfte",     load:0.698},
+      {name:"Hände in der Hüfte",                    load:0.776},
+      {name:"Arme in T · seitlich auf Schulterhöhe", load:0.875},
+      {name:"Arme in Y · etwa 45° neben dem Kopf",   load:1.000},
+      {name:"Gewicht vor der Brust",                 load:0.847}
+    ]
   }
 };
 
@@ -1296,7 +1394,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-06 i";
+const BUILD = "2026-10-09 a";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -1849,6 +1947,9 @@ function fresh(){
     extra:{}, bw:BW_DEFAULT,
     /* Wo das Gewicht sitzt, je Uebung: {laeufer:"rack"}. Siehe lageOf. */
     lage:{},
+    /* Welche Haltung laeuft, je Uebung mit Haltungen: {hyper:"rund"}. Siehe
+       haltungOf. */
+    haltung:{},
     /* Welche Uebungen gehoeren ueberhaupt ins Workout. Wer heute nur den
        Seitstuetz machen will, nimmt die anderen beiden raus — die Einstellung
        bleibt stehen, bis er sie wieder anhakt. */
@@ -2006,6 +2107,8 @@ function normalize(d){
                                               wadeUmzug ? wadeLauf(d.lauf, bwAlt) : d.lauf)))))
                                           : null,
                                     lage: knie ? knie.lage : (d.lage || {}),
+                                    haltung: (d.haltung && typeof d.haltung === "object")
+                                             ? d.haltung : {},
                                     extra: umzug.extra,
                                     bw: (d.bw > 0 ? d.bw : BW_DEFAULT),
                                     levels: umzug.levels,
@@ -2195,10 +2298,13 @@ function sidesOf(ex){
                                  && !beidStufe(ex, x.level));
   return ohne ? [null].concat(e.sides) : e.sides.slice();
 }
-/* Alle Kurven der App, in Anzeigereihenfolge. */
+/* Alle Kurven der App, in Anzeigereihenfolge. Bei Uebungen mit Haltungen nur
+   die gewaehlte und jede, in der schon gehalten wurde (siehe kurvenSeiten) —
+   sonst stuende "Hyperextension · rund" leer im Profil, obwohl nie geplant. */
 function allKeys(){
   const out = [];
-  for(const ex of Object.keys(S.ex)) for(const sd of sidesOf(ex)) out.push({ex, side:sd, key:keyOf(ex,sd)});
+  for(const ex of Object.keys(S.ex)) for(const sd of kurvenSeiten(ex, sidesOf(ex), true))
+    out.push({ex, side:sd, key:keyOf(ex,sd)});
   return out;
 }
 /* Ohne Seite gibt es zwei verschiedene Faelle, und nur die Sprosse
@@ -2499,7 +2605,64 @@ function beidJetzt(ex){
 function planSeiten(ex){
   const e = S.ex[ex];
   if(!e || !e.sides) return [null];
+  if(haltungen(ex)) return [haltungOf(ex)];
   return beidJetzt(ex) ? [null] : e.sides.slice();
+}
+/* ── Haltungen: Seiten, von denen nur eine laeuft ─────────────────────
+   Die Hyperextension hat zwei Haltungen, gestreckt und rund, je mit eigener
+   Kurve. Im Code sind das Seiten — so trennen Stufe, Gewicht, Fehlserie,
+   Verlauf und Export von selbst. Anders als links und rechts laeuft aber pro
+   Workout nur EINE: die gewaehlte. Luke, 08.10.2026: Knopf je Haltung auf der
+   Karte, "Vorauswahl so oder so auf gestreckt". */
+function haltungen(ex){
+  return !!(DEFAULT_EX[ex] || {}).haltungen && !!(S.ex[ex] || {}).sides;
+}
+/* Die gewaehlte Haltung, sonst die erste Seite — das ist die Vorauswahl. */
+function haltungOf(ex){
+  const sd = (S.ex[ex] || {}).sides || [];
+  const h = S.haltung && S.haltung[ex];
+  return sd.includes(h) ? h : (sd[0] || null);
+}
+/* Welche Seiten bekommen eine Kurve, eine Zone, einen Kuchen? Bei Haltungen
+   nur die gewaehlte — und mit mitVerlauf jede, in der schon gehalten wurde,
+   damit nach einem Wechsel die alte Kurve sichtbar bleibt. Alle anderen
+   Uebungen bekommen ihre Seiten unveraendert zurueck. */
+function kurvenSeiten(ex, seiten, mitVerlauf){
+  if(!haltungen(ex)) return seiten;
+  const h = haltungOf(ex);
+  return seiten.filter(sd => sd == null || sd === h
+    || (mitVerlauf && S.sessions.some(x => x.exercise === ex && x.side === sd)));
+}
+/* Die zwei Knoepfe auf der Karte vor der Uebung, in der Bauform der knappen
+   Ausfuehrungswahl: kein Etikett, keine Begruendung, die Vorauswahl steht
+   schon gewaehlt da. Der Satz unter dem Knopf steht nur, bis die Uebung zum
+   ersten Mal gelaufen ist — Luke: "beim ersten Mal". Danach bleiben die
+   Knoepfe zum Wechseln. */
+function haltungWahlKarte(ex){
+  const sd = (S.ex[ex] || {}).sides || [];
+  const h = haltungOf(ex);
+  const unter = (DEFAULT_EX[ex] || {}).haltungUnter || {};
+  const erstes = !S.sessions.some(x => x.exercise === ex);
+  return `<div class="zw zwei haltung" id="hl-${ex}">${sd.map(x => `
+      <button class="${x === h ? "sel" : "ghost"}" data-hlx="${ex}" data-hl="${x}">${
+        x.charAt(0).toUpperCase() + x.slice(1)}${
+        (erstes && unter[x]) ? `<span>${unter[x]}</span>` : ""}</button>`).join("")}
+    </div>`;
+}
+/* Haltung wechseln, im laufenden Workout: Der Block dieser Uebung wird an Ort
+   und Stelle neu gebaut, mit der Kurve der neuen Haltung — genau wie die
+   Zonenknoepfe es mit einer neuen Zone tun. teile = die Bloecke der Uebung. */
+function haltungWechseln(ex, h, teile){
+  if(h === haltungOf(ex)) return;
+  if(!S.haltung) S.haltung = {};
+  S.haltung[ex] = h;
+  const z = zoneFuer(groupOf(ex));
+  for(const q of teile){
+    const n = mkBlock(ex, h, z.zone, z.target, q.fresh, !!z.onboarding, !!z.fest);
+    if(q.nachhol) n.nachhol = true;
+    Object.keys(q).forEach(k => delete q[k]); Object.assign(q, n);
+  }
+  save(); laufSichern();
 }
 /* Ist DIESER Block der beidbeinige Halt? Ein Block ohne Seite bei einer
    zweiseitigen Uebung kann nichts anderes sein. */
@@ -3320,7 +3483,7 @@ function gruppenZonen(gr){
   const kann = new Set();
   for(const ex of Object.keys(S.ex)){
     if(groupOf(ex) !== gr) continue;
-    for(const sd of (S.ex[ex].sides || [null])) erreichbareZonen(ex, sd).forEach(z => kann.add(z));
+    for(const sd of kurvenSeiten(ex, S.ex[ex].sides || [null])) erreichbareZonen(ex, sd).forEach(z => kann.add(z));
   }
   const ids = alle.filter(id => kann.has(id));
   return ids.length ? ids : alle;
@@ -3406,6 +3569,9 @@ function ausfuehrbar(ex){ return verfuegbareStufen(ex).length > 0; }
 function offeneSeite(ex){
   const e = S.ex[ex];
   if(!e || !e.sides || e.sides.length < 2) return null;
+  /* Haltungen sind keine Gegenseiten: Wer heute gestreckt gehalten hat, hat
+     rund nicht "offen" — sonst plante die App morgen einen Nachholblock rund. */
+  if(haltungen(ex)) return null;
   let tag = null;
   for(const ses of S.sessions){
     if(ses.exercise !== ex || !ergiebig(ses)) continue;
@@ -3677,7 +3843,9 @@ function extraFaktor(ex, kg, side){
    der Uebung. */
 function lastVon(ex, level, kg, side){
   const L = S.ex[ex] && S.ex[ex].levels[level];
-  return L ? Math.round(L.load * extraFaktor(ex, kg, side) * 1000) / 1000 : 0;
+  /* kgWirksam: Y rechnet ohne gemerktes Brust-Gewicht, die Brust nie unter
+     ihrem Mindestgewicht. Fuer alle anderen Uebungen kg unveraendert. */
+  return L ? Math.round(L.load * extraFaktor(ex, kgWirksam(ex, level, kg), side) * 1000) / 1000 : 0;
 }
 /* Name der Sprosse mit Blick auf das Gewicht: Die einzige Sprosse des
    Laeufers heisst "Ohne Zusatzlast" — mit Kettlebell waere das falsch. Ein
@@ -3730,8 +3898,46 @@ function extraBereich(ex, level){
     if(level === w.bi) hi = Math.min(hi, e.beidBis);
     else if(level == null || level > w.bi) lo = Math.min(lo, w.lo);
   }
+  /* Gewicht vor der Brust (Hyperextension): Unter extraAb gibt es keins, auch
+     kein gemerktes — sonst hiesse Y nach dem Abstieg "Arme in Y + 7,5 kg",
+     und "leichter" senkte nur dieses wirkungslose Gewicht, statt eine Sprosse
+     zurueckzugehen. Auf der Brust-Sprosse beginnt die Spanne beim
+     Mindestgewicht; damit klemmen Regeln, Stepper und Ziel von selbst. */
+  if(level != null && (DEFAULT_EX[ex] || {}).gewichtMindestens){
+    if(level < extraAbOf(ex)) return {lo:0, hi:0, schritt};
+    lo = Math.max(lo, Math.min(kgMindest(ex, level), hi));
+  }
   return {lo, hi, schritt};
 }
+/* ── Mindestgewicht (Build 2026-10-09 a) ──────────────────────────────
+   Die Brust-Sprosse der Hyperextension ist ohne Gewicht LEICHTER als Y
+   darunter: Die Arme ruecken vom Kopf an die Brust, der Hebel wird kuerzer.
+   Sie zaehlt deshalb erst ab dem kleinsten Gewicht im Raster, mit dem sie
+   mindestens so schwer ist wie Y. Bei 80 kg Koerpergewicht: 7,5 kg, Last
+   1,015. Gilt nur fuer Uebungen mit gewichtMindestens (gelesen aus
+   DEFAULT_EX wie ohneZusatz), Lasten und extraK kommen aus S.ex. */
+function kgMindest(ex, level){
+  const e = S.ex[ex];
+  if(!(DEFAULT_EX[ex] || {}).gewichtMindestens || !e || level == null) return 0;
+  if(level !== e.levels.length - 1 || level < extraAbOf(ex) || level < 1) return 0;
+  const unten = e.levels[level-1].load, oben = e.levels[level].load, k = extraKOf(ex, 1);
+  if(!(unten > oben) || !(oben > 0) || !(k > 0)) return 0;
+  const bw = (S.bw > 0 ? S.bw : BW_DEFAULT);
+  const schritt = (e.extraSchritt != null) ? e.extraSchritt : ZUSATZ_SCHRITT;
+  return Math.ceil(bw * (unten / oben - 1) / k / schritt - 1e-9) * schritt;
+}
+/* Das Gewicht, das auf dieser Sprosse wirklich wirkt. Ohne das Merkmal kommt
+   kg unveraendert zurueck — ein blankes max() waere falsch, denn beim
+   Wadenheben gibt es negative Gewichte (Waage). */
+function kgWirksam(ex, level, kg){
+  if(!(DEFAULT_EX[ex] || {}).gewichtMindestens || level == null) return kg;
+  if(level < extraAbOf(ex)) return 0;
+  return Math.max(+kg || 0, kgMindest(ex, level));
+}
+/* Last einer Sprosse fuer Kurvenachse, Marken und die Stufentabelle: mit dem
+   Mindestgewicht, wo es eins gibt. Fuer alle anderen Uebungen dieselbe Zahl
+   wie die Grundlast. */
+function sprossenLast(ex, i){ return lastVon(ex, i, kgMindest(ex, i)); }
 /* ── Die Waage beim Wadenheben (Build 2026-09-25 a) ─────────────────────
    Build b hatte die Waage als Minus-Richtung an der einbeinigen Sprosse,
    Build c hat sie gestrichen und den Rucksack beidbeinig bis zum Deckel
@@ -4225,6 +4431,9 @@ function zoneFuer(gr){
 function startSeite(ex){
   const sd = (S.ex[ex] && S.ex[ex].sides) || null;
   if(!sd || sd.length < 2) return null;
+  /* Bei Haltungen beginnt nicht die Seite mit weniger Punkten, sondern die
+     gewaehlte. planWorkout kommt hier nicht mehr vorbei — zur Sicherheit. */
+  if(haltungen(ex)) return haltungOf(ex);
   const n = sd.map(x => points(ex, x).length);
   return (n[1] < n[0]) ? sd[1] : sd[0];
 }
@@ -4232,8 +4441,10 @@ function planWorkout(){
   const frei   = heuteDran();
   const dran   = auswahlHeute(frei);
   const spaeter = frei.filter(u => dran.indexOf(u) < 0);
-  const zwei = dran.filter(u => S.ex[u.ex].sides);
-  const ein  = dran.filter(u => !S.ex[u.ex].sides);
+  /* Uebungen mit Haltungen laufen wie einseitige: ein Block in der gewaehlten
+     Haltung, kein zweiter am Ende (siehe haltungOf). */
+  const zwei = dran.filter(u => S.ex[u.ex].sides && !haltungen(u.ex));
+  const ein  = dran.filter(u => !S.ex[u.ex].sides || haltungen(u.ex));
   const A = [], B = [];
   for(const u of zwei){
     const zf = zoneFuer(u.group);
@@ -4276,7 +4487,8 @@ function planWorkout(){
   }
   for(const u of ein){
     const zf = zoneFuer(u.group);
-    A.push(mkBlock(u.ex, null, zf.zone, zf.target, true, zf.onboarding, zf.fest));
+    A.push(mkBlock(u.ex, haltungen(u.ex) ? haltungOf(u.ex) : null,
+                   zf.zone, zf.target, true, zf.onboarding, zf.fest));
   }
   const blocks = A.concat(B);
   const zonen  = [...new Set(blocks.map(b => b.zone))];
@@ -5001,6 +5213,10 @@ function stufeSetzen(bl, k){
     bl.extra = extraKlemm(bl.exercise,
       kgAufStufe(bl.exercise, leiterKey(bl.exercise, bl.side), bl.level), bl.level);
   }
+  /* Von Y auf die Brust-Sprosse: bl.extra steht noch auf 0, und ohne Kurve
+     liefert zielKg unten nichts — auf der Karte stuende "0 kg". Das
+     Mindestgewicht gilt sofort. Fuer alle anderen Uebungen ohne Wirkung. */
+  bl.extra = kgWirksam(bl.exercise, bl.level, bl.extra);
   /* Auf die oberste Sprosse getippt: Das Gewicht stellt sich auf die Zone ein,
      genau wie beim Planen (gewichtFolgt). Wer es heute schon selbst gesetzt
      hat, behaelt seins. */
@@ -5386,6 +5602,7 @@ function blockIntro(i){
       <h2 style="margin:0">${ex.name}</h2>
       ${schonDran ? "" : zonenWahlKarte(gr)}
       ${awZeigen ? ausfWahlKarte(exKey, bl.zone, "", true) : ""}
+      ${(haltungen(exKey) && !schonDran) ? haltungWahlKarte(exKey) : ""}
       ${teile.map(teilHTML).join("")}
       ${uebungsbild(bl.exercise, bl.level)}
       <button class="primary" style="width:100%;margin-top:14px;padding:16px" id="ivGo">
@@ -5471,8 +5688,16 @@ function blockIntro(i){
   /* Umstellung beidbeinig/einbeinig: Der Ablauf wird umgebaut, danach steht
      die Karte an derselben Stelle wieder da — bei einbeinig mit zwei Seiten. */
   if(awZeigen) ausfWahlBinden(() => { ausfUmbauen(i); zeichne(); });
+  /* Haltung gestreckt/rund: Der Block wird mit der Kurve der neuen Haltung neu
+     gebaut, die Karte steht an derselben Stelle wieder da. */
+  document.querySelectorAll("#ivKarte [data-hl]").forEach(b => {
+    b.onclick = () => { haltungWechseln(exKey, b.getAttribute("data-hl"), teile); zeichne(); };
+  });
   el("ivGo").onclick = () => {
     teile.forEach(q => { q.eingestellt = true; });
+    /* Mit dem Start wird die Vorauswahl zur festen Wahl: Beim naechsten Mal
+       steht dieselbe Haltung vorn. */
+    if(haltungen(exKey)){ if(!S.haltung) S.haltung = {}; S.haltung[exKey] = bl.side; }
     beep(660,60,.05); laufSichern(); startBlock();
   };
   /* Auslassen nimmt die ganze Uebung heraus, beide Seiten. Ohne Satz gibt es
@@ -5744,7 +5969,9 @@ function blockSichern(){
     levelName: stufenName(bl.exercise, bl.level, bl.extra, bl.side),
     /* Ein Plan von vor 2026-10-06 a kann am Seitstuetz noch Gewicht tragen. */
     load: lastVon(bl.exercise, bl.level, bl.extra, bl.side),
-    extra: ohneZusatz(bl.exercise) ? 0 : (bl.extra || 0), bw: S.bw || null,
+    /* kgWirksam: Name, Last und Gewicht sagen dasselbe — auf der Brust-Sprosse
+       nie weniger als das Mindestgewicht. */
+    extra: ohneZusatz(bl.exercise) ? 0 : kgWirksam(bl.exercise, bl.level, bl.extra || 0), bw: S.bw || null,
     /* Nur wo es eine Wahl gibt und das Gewicht aussen haengt — sonst leer. */
     lage: ((bl.extra || 0) > 0 && lageOf(bl.exercise, bl.side)) ? lageOf(bl.exercise, bl.side).id : undefined,
     target: bl.target, workoutZone: bl.zone,
@@ -6010,7 +6237,9 @@ function curveSVG(f, pts){
   const ga = gewichtAchse(exK, S.side);
   const kgJetzt = extraKlemm(exK, kgAufStufe(exK, curKey(), curLevel()), curLevel());
   const lastJetzt = lastVon(exK, curLevel(), kgJetzt, S.side);
-  const loads = lv.map(l=>l.load)
+  /* sprossenLast: Die Brust-Sprosse der Hyperextension steht mit ihrem
+     Mindestgewicht in der Zeichnung, nicht mit 0,85 zwischen Huefte und T. */
+  const loads = lv.map((l,i)=>sprossenLast(exK, i))
     .concat(pts.map(p => p.load).filter(v => v > 0))
     .concat(lastJetzt > 0 ? [lastJetzt] : [])
     .concat(ga && ga.istLeiter ? [ga.lo, ga.hi] : []);
@@ -6039,12 +6268,18 @@ function curveSVG(f, pts){
           <text x="${L-6}" y="${Y(v)+4}" text-anchor="end" font-size="11.5" fill="var(--tx3)">${v}s</text>`;
   });
   const belegt = [];                    /* x-Positionen beschrifteter Marken */
+  /* Liegt eine Nummer fast auf der der aktuellen Sprosse, entfaellt sie: Y und
+     die Brust mit Mindestgewicht trennen bei 80 kg nur 0,015 Last, also ein
+     paar Pixel — "5" und "6" stuenden uebereinander. */
+  const xCur = X(sprossenLast(exK, curLevel()));
   lv.forEach((l,i)=>{
-    const zeigen = lv.length <= 5 || i===curLevel() || i%2===0;
-    if(zeigen) belegt.push(X(l.load));
-    g += `<line x1="${X(l.load)}" y1="${TP}" x2="${X(l.load)}" y2="${H-B}"
+    const xl = X(sprossenLast(exK, i));
+    const zeigen = (lv.length <= 5 || i===curLevel() || i%2===0)
+                && (i === curLevel() || Math.abs(xl - xCur) >= 14);
+    if(zeigen) belegt.push(xl);
+    g += `<line x1="${xl}" y1="${TP}" x2="${xl}" y2="${H-B}"
            stroke="var(--line)" stroke-dasharray="2 4" stroke-width="1"/>
-          ${zeigen ? `<text x="${X(l.load)}" y="${H-B+15}" text-anchor="middle"
+          ${zeigen ? `<text x="${xl}" y="${H-B+15}" text-anchor="middle"
            font-size="11.5" fill="${i===curLevel()?"var(--acc)":"var(--tx3)"}"
            font-weight="${i===curLevel()?700:400}">${i+1}</text>` : ""}`;
   });
@@ -6238,7 +6473,10 @@ function messreihenJSON(){
             + "gewicht_positionen und zusatz_position ist gesetzt, gilt deren extra_k; "
             + "leeres zusatz_position heisst guertel (vor Build 2026-09-29 a gespeichert). "
             + "Positionen mit ruht=true sind nicht mehr waehlbar und stehen nur fuer alte "
-            + "Zeilen da. Seit Build 2026-09-29 b gibt es keine negativen Gewichte mehr.",
+            + "Zeilen da. Seit Build 2026-09-29 b gibt es keine negativen Gewichte mehr. "
+            + "Hat eine Stufe mindestgewicht_kg, ist zusatz_kg dort nie kleiner "
+            + "(Hyperextension, Gewicht vor der Brust: ohne Gewicht waere die Stufe "
+            + "leichter als die darunter).",
     spalten: EXPORT_SPALTEN,
     zonen: ZONES.map(z=>({id:z.id, name:z.name, von_s:z.lo, bis_s:z.hi})),
     /* Satzkurve (Build 2026-10-06 h): Rohstoff fuer den spaeteren Abgleich
@@ -6265,8 +6503,10 @@ function messreihenJSON(){
       zusatzgewicht_bis_kg: mitGeraeten(() => extraBereich(k).hi),
       zusatzgewicht_schritt_kg: extraBereich(k).schritt,
       art: leiterArt(k),
-      stufen: v.levels.map((L,i)=>({nr:i+1, name:L.name, last:L.load,
-        geraet: geraetId(L.geraet) || null, verfuegbar: geraetDa(L.geraet)}))
+      /* last bleibt die Grundlast; mindestgewicht_kg nur, wo es eins gibt. */
+      stufen: v.levels.map((L,i)=>Object.assign({nr:i+1, name:L.name, last:L.load,
+        geraet: geraetId(L.geraet) || null, verfuegbar: geraetDa(L.geraet)},
+        kgMindest(k, i) > 0 ? {mindestgewicht_kg: kgMindest(k, i)} : {}))
     })),
     messungen: messreihen()
   }, null, 2);
@@ -6445,7 +6685,8 @@ function renderHome(){
     const e = S.ex[u.ex];
     const bl = p.blocks.find(b => b.exercise === u.ex);
     const heute = bl ? bl.zone : null;
-    const seiten = e.sides || [null];
+    /* Bei Haltungen nur der Kuchen der Haltung, die heute laeuft. */
+    const seiten = kurvenSeiten(u.ex, e.sides || [null]);
     const kann = new Set(seiten.flatMap(sd => erreichbareZonen(u.ex, sd)));
     const ruht = (u.tor.gewaehlt && u.tor.ruht > 0) ? u.tor.ruht : 0;
     const empf = empfohleneZone(u.ex, p);
@@ -6763,15 +7004,19 @@ function renderProfile(){
       <h3 style="margin-top:0">Was du auf jeder Stufe schaffst</h3>
       <table><thead><tr><th>Stufe</th><th class="n">Last</th><th class="n">Vorhersage</th><th>Zone</th></tr></thead>
       <tbody>${curEx().levels.map((l,i)=>{
-        const drin = imBereich(f, l.load), da = stufeErlaubt(S.exercise, i);
-        const t = predictTime(f,l.load);
+        /* Mit Mindestgewicht, wo es eins gibt (Brust-Sprosse der
+           Hyperextension) — sonst dieselbe Zahl wie die Grundlast. */
+        const ll = sprossenLast(S.exercise, i), mind = kgMindest(S.exercise, i);
+        const drin = imBereich(f, ll), da = stufeErlaubt(S.exercise, i);
+        const t = predictTime(f,ll);
         const z = (drin && isFinite(t) && t<=400) ? zoneOf(t) : null;
         return `<tr${i===curLevel()?' style="background:rgba(78,163,255,.07)"':""}${
           !da?' style="opacity:.45"':""}>
-          <td><span class="tiny" style="opacity:.6">${i+1}</span> ${l.name}${
+          <td><span class="tiny" style="opacity:.6">${i+1}</span> ${
+            mind > 0 ? stufenName(S.exercise, i, mind) : l.name}${
             i===curLevel()?' <span class="tiny">· aktuell</span>':""}${
             !da?` <span class="tiny">· ${fehltText(l, i)}</span>`:""}</td>
-          <td class="n">${l.load.toFixed(2)}</td>
+          <td class="n">${ll.toFixed(2)}</td>
           <td class="n">${!drin ? '<span class="tiny">nicht gemessen</span>'
                         : !isFinite(t)?"sehr lang":t>400?"> 400s":fmt(t)}</td>
           <td>${z?`<span class="pill ${z.cls}">${z.name}</span>`
@@ -7140,7 +7385,7 @@ function renderSetup(){
       <p class="tiny">Für Sätze, die gemessen, aber nicht gespeichert wurden — oder auf Papier
       notiert. Der Punkt geht wie jeder andere in die Kurve. <b>Die Progressionsregeln laufen
       dabei nicht mit</b>: Stufen und Fehlserien bleiben, wie sie sind.</p>
-      <label class="tiny" for="nEx" style="display:block;margin-bottom:4px">Übung und Seite</label>
+      <label class="tiny" for="nEx" id="nExLbl" style="display:block;margin-bottom:4px">Übung und Seite</label>
       <div class="row" style="gap:7px">
         <select id="nEx" style="flex:1">${Object.entries(S.ex).map(([k,v])=>
           `<option value="${k}">${v.name}</option>`).join("")}</select>
@@ -7221,6 +7466,7 @@ function renderSetup(){
     const alt = el("nSide").value;
     el("nSide").innerHTML = e.sides.map(x=>`<option value="${x}">${x}</option>`).join("");
     if(e.sides.includes(alt)) el("nSide").value = alt;
+    else if(haltungen(ex)) el("nSide").value = haltungOf(ex);
     el("nSide").disabled = false;
   };
   const nFill = ()=>{
@@ -7228,6 +7474,8 @@ function renderSetup(){
     el("nLvl").innerHTML = e.levels.map((L,i)=>
       `<option value="${i}">${i+1}. ${L.name}</option>`).join("");
     nSeite();
+    /* Bei der Hyperextension heisst die zweite Wahl Haltung, nicht Seite. */
+    el("nExLbl").textContent = haltungen(ex) ? "Übung und Haltung" : "Übung und Seite";
     /* Seitstuetz: reines Koerpergewicht, auch im Nachtrag. */
     el("nKg").disabled = ohneZusatz(ex);
     if(ohneZusatz(ex)) el("nKg").value = 0;
@@ -7241,7 +7489,20 @@ function renderSetup(){
     const hint = el("nHint");
     const ex = el("nEx").value, e = S.ex[ex];
     const lvl = +el("nLvl").value;
-    const kg  = ohneZusatz(ex) ? 0 : Math.max(0, +el("nKg").value || 0);
+    let kg  = ohneZusatz(ex) ? 0 : Math.max(0, +el("nKg").value || 0);
+    /* Gewicht vor der Brust: Unter der Brust-Sprosse gibt es keins, und auf ihr
+       zaehlt es erst ab dem Mindestgewicht. Ein Eintrag mit 5 kg wuerde sonst
+       still als 7,5 kg gespeichert — Name und Last klemmen ohnehin. */
+    if((DEFAULT_EX[ex] || {}).gewichtMindestens){
+      if(lvl < extraAbOf(ex)) kg = 0;
+      else {
+        const mind = kgMindest(ex, lvl);
+        if(kg < mind){
+          hint.textContent = `Vor der Brust zählt ab ${String(mind).replace(".", ",")} kg.`;
+          hint.style.color = "var(--bad)"; return;
+        }
+      }
+    }
     const zeiten = ["nT1","nT2","nT3"].map(id => +el(id).value)
                    .filter(v => v > 0 && v <= 900);
     if(!zeiten.length){

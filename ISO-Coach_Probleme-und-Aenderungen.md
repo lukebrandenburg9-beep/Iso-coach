@@ -2575,11 +2575,194 @@ Workouts. Tippe „Sätze" auf 6, dann siehst du den ganzen Verlauf.
   `EX_VERSION`.
 - `planDauer` und `sitzungsdauer` rechnen je Block `LEAD_IN + Summe(satzZeiten) + (n−1) · PAUSE_S`.
 
+### P75 · Hyperextension mit zwei Haltungen
+
+Luke, 08.10.: „bauch in die app eine weitere Übung ein und zwar die "Hyperextension" hier nutzen
+wir einen stpper mit kissen dessen kante auf bauchnabelhöhe öliegt die füße werden hinten an die
+wand gestellt so ensteht ein hebel auf den unteren rücken weil der oberkörper frei gehalten wird,
+hier kann man mit flexion und extension je nach beschwerdelage der wirbelsäule arbeiten […] bau
+die Übung mit den sprossen genau wie alle anderen Übung ein."
+
+Auf die Rückfragen:
+
+| Frage | Lukes Antwort |
+|---|---|
+| Aufbau | Eine Übung, ein Knopf je Haltung auf der Karte, je Haltung eine eigene Kurve. |
+| Haltungen | Gestreckt (Extension) und rund (Flexion), keine neutrale. |
+| Wer wählt | Der Nutzer beim ersten Mal: zwei Knöpfe mit je einem Satz, gestreckt vorgewählt. |
+| Fingerstütz | Frei drücken, die Last ist geschätzt. |
+| V und Hüfte | Je eine eigene Sprosse. |
+| T, Y, I | T und Y, kein I. |
+| Gewicht | „Nimm nur Gewicht vor brust. Die Y Variante ermüdet Schultern und beinrückseite zu stark". Gewicht gibt es nur auf der obersten Sprosse. |
+| Tagespartner | „Keine, eigene Gruppe". |
+| Warnfragen | „Keine". |
+| Ischias | „Wir hatten studien ausgewertet wo die menschen mehr mitnischialgie zu kämpfen haben ich glaube es war in extension. Prüf das nochmal. Und bau das als hinweis mit in die app. Vorauswahl so oder so auf gestreckt". |
+
+**Gebaut in 2026-10-09 a.**
+
+*Leiter.* Gerechnet mit dem Segmentmodell von de Leva (1996, männlich): Rumpf waagerecht,
+Drehpunkt am Nabel, das Moment der Y-Haltung ist 1,000.
+
+| Sprosse | Last | Herkunft |
+|---|---|---|
+| Mit den Zeigefingern abstützen · nur so viel drücken wie nötig | 0,557 | geschätzt |
+| Arme in V · Hände neben der Hüfte | 0,698 | gerechnet |
+| Hände in der Hüfte | 0,776 | gerechnet |
+| Arme in T · seitlich auf Schulterhöhe | 0,875 | gerechnet |
+| Arme in Y · etwa 45° neben dem Kopf | 1,000 | gerechnet |
+| Gewicht vor der Brust | 0,847 ohne Gewicht | gerechnet, Armhaltung angenommen |
+
+- Die Spanne vom Fingerstütz bis Y ist 1,79, also über dem Tor von 1,71.
+- Hüfte, T und Y liegen enger als Faktor 1,25 beieinander. Das folgt aus Lukes Wahl, jede
+  Armhaltung als eigene Sprosse zu führen.
+- Die Übung braucht kein Gerät aus dem Setup, aber auch keinen Boden- oder Wandplatz: Stepper und
+  Kissen sind Möbel. In den Modi „nur Boden" und „nur Wand" fällt sie deshalb weg.
+- Ganz ohne Messung spreizt der Einstieg über V, T und Y. Die Brust-Sprosse ist nie eine
+  Startsprosse.
+
+*Gewicht vor der Brust.* Auf der obersten Sprosse verlassen die Arme die Y-Haltung: Die Ellbogen
+liegen am Rumpf, die Hände halten das Gewicht vor dem Brustbein. Ohne Gewicht trägt die Sprosse
+deshalb nur 0,847, je nach Griff 0,838 bis 0,855.
+
+- **Das Gewicht wirkt mit `2,12·X/BW`**, bezogen auf diese Sprosse. Es sitzt mittig auf dem
+  Brustbein, 30 cm vor dem Nabel (Nabel bis Schwertfortsatz 21,6 cm plus halbes Brustbein 8,5 cm).
+  Bei 27 bis 33 cm läge der Faktor zwischen 1,91 und 2,34.
+- **Mindestgewicht:** das kleinste Gewicht im 2,5-kg-Raster, mit dem die Sprosse mindestens so
+  schwer ist wie Y. Das sind 7,5 kg bei 59 bis 88 kg Körpergewicht und 10 kg bis 117 kg. Bei
+  80 kg ergibt 7,5 kg die Last 1,015, jeder weitere Schritt von 2,5 kg etwa +0,056.
+- **Die App rechnet überall mit dem Gewicht, das wirklich wirkt.** Unter der obersten Sprosse ist
+  es 0. Nach dem Abstieg von der Brust auf Y steht also kein wirkungsloses Gewicht im Speicher, und
+  „leichter" geht eine Sprosse zurück, statt nur dieses Gewicht zu senken. Auf der Brust ist es nie
+  weniger als das Mindestgewicht. Auf der Karte ist „−" dort gesperrt, und ein Nachtrag mit
+  weniger wird abgelehnt: „Vor der Brust zählt ab 7,5 kg."
+- In der Kurvengrafik und in der Tabelle „Was du auf jeder Stufe schaffst" steht die Brust mit
+  ihrem Mindestgewicht: „Gewicht vor der Brust + 7,5 kg".
+
+*Zwei Haltungen.* Gestreckt und rund laufen im Code als Seiten. Damit trennen sich Kurve, Stufe,
+Gewicht, Fehlserie, Verlauf („Hyperextension · gestreckt") und Export von selbst. Die
+Timer-Ansage lautet „RÜCKEN GESTRECKT" bzw. „RÜCKEN RUND", die Kopfzeile auf der Karte „Rücken
+gestreckt" bzw. „Rücken rund".
+
+- **Anders als links und rechts läuft pro Workout nur eine Haltung**, die gewählte. Für die
+  andere gibt es keinen Nachholblock.
+- **Die Knöpfe** „Gestreckt" und „Rund" stehen auf der Karte vor der Übung unter der Zonenwahl,
+  solange von der Übung in diesem Workout noch nichts gelaufen ist. Ohne Wahl ist gestreckt
+  gewählt. Bis zur ersten Hyperextension steht unter jedem Knopf ein Satz, danach stehen sie ohne
+  Satz da und bleiben zum Wechseln.
+- **Ein Tipp** baut den Block mit der Kurve der anderen Haltung neu; ein Tipp auf die schon
+  gewählte tut nichts. Mit dem Start wird die Wahl fest und gilt beim nächsten Mal.
+- **Eine Haltung ohne eigene Kurve** plant vom jüngsten Halt der Übung aus, egal in welcher
+  Haltung. Im Modell tragen beide Haltungen dieselbe Last, weil der Rumpf in beiden waagerecht
+  liegt.
+- **Profil, Kurvenauswahl und „Bis zum vollständigen Profil"** zeigen die gewählte Haltung und
+  jede, in der schon gehalten wurde. Eine leere Kurve „rund" steht nirgends.
+- **Nachtragen** heißt bei dieser Übung „Übung und Haltung". Vorgewählt ist die gewählte Haltung,
+  beide bleiben wählbar.
+
+*Die Ischias-Prüfung.* Lukes Erinnerung „es war in Extension" stimmt nur für eine kleinere
+Gruppe. Für die meisten ist es andersherum.
+
+- **Bandscheibe:** Rund 90 % der echten Ischialgien kommen von der Bandscheibe (Koes 2007, BMJ).
+  Dort verschlimmern Beugen und langes Sitzen; der Bandscheibendruck ist in belasteter Beugung am
+  höchsten (Wilke 1999).
+- **Enger Wirbelkanal:** Hier verschlimmert Strecken, und Beugen lindert. Von Beugung zu Streckung
+  wird der Kanal um etwa 15 % enger, das Nervenloch um 12 bis 15 % (Inufusa 1996). Symptomatisch
+  sind etwa 7 % ab 50 Jahren und 9 bis 11 % ab 70.
+- **Long 2004** (Spine, 312 Patienten mit Kreuzschmerz oder Ischias): 74 % haben eine
+  Richtungsvorliebe, davon 83 % für Streckung, 7 % für Beugung und 10 % zur Seite. Die
+  Aufteilung steht im Volltext und ist über ein Sekundärzitat übernommen; ihre Summe passt zum
+  Abstract. Wer gegen seine Vorliebe übte, brach zu einem Drittel innerhalb von zwei Wochen ab.
+- **May und Aina 2012:** Eine Richtungsvorliebe haben 70 % (60 bis 78 %) von 2368 Patienten, laut
+  Update 2018 66 %. Das Update findet aber keinen Beleg, dass die Vorliebe den Behandlungseffekt
+  ändert.
+
+Die Vorauswahl gestreckt passt also zur Mehrheit. Unter den Knöpfen steht:
+
+| Knopf | Satz darunter |
+|---|---|
+| Gestreckt (vorgewählt) | „Sitzen und Vorbeugen ziehen ins Bein – wie bei den meisten mit Ischias" |
+| Rund | „Stehen und Gehen ziehen ins Bein – typisch für einen engen Wirbelkanal" |
+
+**Für Luke.**
+
+- Alle Texte sind Vorschläge zum Umformulieren: die sechs Sprossennamen, die zwei Sätze unter
+  den Knöpfen, der Hinweis zur Übung, der Hinweis zum Gewicht, Ansage und Kopfzeile je Haltung,
+  der Hinweis beim Nachtragen.
+- Die Lasten sind vorläufig, bis du misst. Für deinen Test mit Gewicht vor der Brust sagt das
+  Modell: Mit dem Mindestgewicht hält die Brust etwas kürzer als Y in derselben Zone. Hält sie
+  deutlich kürzer, sitzt das Gewicht weiter vorn als 30 cm, und der Faktor 2,12 ist zu klein.
+
+**Der Preis.**
+
+- Gespeicherte Übungsdaten ziehen nicht nach, weil die Fassung der Übungsliste bei 25 bleibt. Wer
+  die Hyperextension einmal geladen hat, behält ihre Zahlen. Spätere Änderungen an Leiter oder
+  Texten brauchen einen Umzug.
+- Der erste Block „rund" plant vom letzten Halt „gestreckt" aus. Rund verkürzt den Hebel etwas;
+  das fängt erst die eigene Kurve ab.
+- Wer die App schon nutzt, bekommt ab dem nächsten Workout einen Block mehr. Die Hyperextension
+  steht vorn in der Rotation, weil sie nie gemessen wurde.
+- Im Export steht in der Spalte `seite` jetzt auch „gestreckt" und „rund".
+- In der Kurvengrafik entfällt eine Sprossennummer, die weniger als 14 px neben der aktuellen
+  läge. Bei der Hyperextension trennen Y und die Brust mit 7,5 kg nur 0,015 Last, die Nummern 5 und
+  6 stünden sonst übereinander. Die Regel gilt für jede Übung.
+
+**Für den Nachbau:**
+
+- `DEFAULT_EX.hyper`: Gruppe `spine`, `sides:["gestreckt","rund"]`, `haltungen:true`,
+  `seitenRuf`, `seitenKopf`, `haltungUnter`, `extraAb:5`, `extraK:2.12`, `gewichtMindestens:true`,
+  ohne `ort`, ohne `geraet`, ohne `extraGeraet`, ohne `warnung` und `nichtMit`. Neue Übungen kommen
+  über `normalize` an, `EX_VERSION` bleibt 25.
+- Haltungen: `haltungen(ex)`, `haltungOf(ex)` (gemerkte Haltung, sonst die erste Seite) und
+  `kurvenSeiten(ex, seiten, mitVerlauf)`. `planSeiten` gibt `[haltungOf(ex)]`, `offeneSeite`
+  `null`, `startSeite` `haltungOf(ex)`. `planWorkout` behandelt Haltungs-Übungen wie einseitige.
+  `allKeys` (mit `mitVerlauf`), `gruppenZonen` und `kuchenZeile` laufen über `kurvenSeiten`.
+  `S.haltung` steht in `fresh()` und in `normalize`.
+- Karte: `haltungWahlKarte(ex)` als `.zw.zwei.haltung` mit `data-hl`, `haltungWechseln(ex, h,
+  teile)` baut den Block mit `mkBlock` und der Zone aus `zoneFuer` neu. `ivGo` schreibt
+  `S.haltung[ex] = bl.side`.
+- Gewicht: `kgMindest(ex, level)` = `ceil(BW · (L_unten / L_oben − 1) / extraK / 2,5) · 2,5` auf der
+  obersten Sprosse, sonst 0. `kgWirksam(ex, level, kg)` gibt ohne das Merkmal `kg` unverändert
+  zurück (auch negative beim Wadenheben), mit dem Merkmal 0 unter `extraAb` und
+  `max(kg, kgMindest)` darauf. `extraBereich(ex, level)` ist mit dem Merkmal unter `extraAb`
+  `{0, 0}` und hat auf der obersten Sprosse `lo ≥ min(kgMindest, hi)`; ohne `level` unverändert.
+  `lastVon`, `stufeSetzen`, `blockSichern` und der Nachtrag rechnen über `kgWirksam`.
+- `sprossenLast(ex, i) = lastVon(ex, i, kgMindest(ex, i))` für Achse und Marken in `curveSVG` und
+  für die Stufentabelle im Profil. Für alle anderen Übungen ist das dieselbe Zahl wie vorher.
+- Export: `mindestgewicht_kg` an einer Stufe nur, wo er über 0 liegt; `last` bleibt die
+  Grundlast 0,847.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-09 a — Hyperextension
+
+**Befund (Luke).** Eine neue Übung, die Hyperextension auf dem Stepper mit Kissen, „mit flexion
+und extension je nach beschwerdelage der wirbelsäule" und „mit den sprossen genau wie alle anderen
+Übung" (P75).
+
+**Gebaut.** Sechs Sprossen: Fingerstütz (geschätzt), V, Hüfte, T und Y (gerechnet), dann Gewicht
+vor der Brust mit Mindestgewicht. Eigene Gruppe ohne Tagespartner. Zwei Haltungen mit je eigener
+Kurve, pro Workout läuft die gewählte; gestreckt ist vorgewählt, beim ersten Mal steht unter
+jedem Knopf ein Satz aus der Ischias-Prüfung. Nachtragen fragt nach der Haltung, der Export trägt
+das Mindestgewicht. README angepasst, dazu zwei Geräte nachgetragen, die seit dem Läufer und dem
+Wadenheben in der Tabelle fehlten.
+
+**Geprüft.** Im Node-Abgleich mit dem Skript aus `index.html`, 94 Prüfungen, keine Abweichung:
+Definition, Umzug alter Spielstände, Mindestgewicht 7,5 / 7,5 / 7,5 / 10 / 10 kg bei 60 bis
+100 kg und für 40 bis 150 kg nie leichter als Y. Spannen, Lasten und Namen. Alle anderen Übungen
+gleich wie im Stand vom 06.10., auch im Export. Planung mit genau einem Block und ohne
+Nachholblock, Einstieg über V, T und Y, ohne Möbel nicht ausführbar. Karte mit Knöpfen und Sätzen,
+Gewicht auf der Karte mit gesperrtem „−", Haltung wechseln, Regeln nach dem Satz, gesicherter
+Satz, Nachtragen, Export und Profil. `renderHome` mit 400 Sitzungen über fünf Übungen 165 ms beim
+ersten, 21 ms bei jedem weiteren Zeichnen. Die erste Fassung der Tempoprobe legte 400 Sitzungen
+dicht auf die Hyperextension und brauchte 650 ms. Der Ausfallschritt braucht mit denselben Daten
+genauso lange, auch im Stand vor diesem Build: Die Zeit steckt in `formVerlauf`, das je
+Trainingstag einen Fit über alle früheren Punkte rechnet, nicht in der neuen Übung. Die Reihen der
+Builds davor laufen weiter, ihre BUILD-Zeilen prüfen jetzt „mindestens dieser Build". Die
+Kuchenmitte aus d und e prüft weiter die alte Scheibe, die f entfernt hat.
 
 ### 2026-10-06 i — Satzkurve lernt ab dem zweiten Block
 

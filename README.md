@@ -108,7 +108,7 @@ Rechenlogik:
   zwei Einheiten derselben Muskelgruppe, sieben Tage bis dieselbe Zone wiederkommt.
   Während der drei Einstiegstests genügen **24 Stunden** — sonst zöge sich das Onboarding über
   drei Wochen. Übungen **ohne Überschneidung** (Liegestütz, Ausfallschritt, Seitstütz, Schrägzug,
-  Fersenbrücke) dürfen am selben Tag getestet werden; die App sagt am Pausentag, welche Gruppe noch frei ist. Der Pausentag
+  Fersenbrücke, Hyperextension) dürfen am selben Tag getestet werden; die App sagt am Pausentag, welche Gruppe noch frei ist. Der Pausentag
   nennt Grund und Termin und lässt sich bewusst übergehen. Werte unter *Mehr → Erholung*.
 - **Höchstens sechs Blöcke** je Workout. Fünf Übungen, davon drei zweiseitig, wären acht Blöcke
   — in der Kraftausdauer über eine Stunde. Die App nimmt deshalb die freigegebenen Übungen in der
@@ -142,14 +142,16 @@ P3 in [ISO-Coach_Probleme-und-Aenderungen.md](ISO-Coach_Probleme-und-Aenderungen
 
 ## Was du an Gerät brauchst
 
-Unter **Mehr → Setup → Geräte** hakst du an, was du hast. Drei Übungen kommen mit Möbeln aus
-— Arbeitsplatte, Tisch, Stuhl, Hocker, Kiste, Kissen —, zwei nicht:
+Unter **Mehr → Setup → Geräte** hakst du an, was du hast. Die meisten Übungen kommen mit Möbeln
+aus — Arbeitsplatte, Tisch, Stuhl, Hocker, Stepper, Kiste, Kissen. Gerät braucht es hierfür:
 
 | Gerät | wofür | voreingestellt |
 |---|---|---|
 | Etwas zum Daranziehen | Schrägzug, **die ganze Übung** | an — eine stabile Tischkante zählt mit |
 | Faszienrolle | Fersenbrücke, obere Stufe | aus |
 | Turnringe | Fersenbrücke, oberste Stufe | aus |
+| Kettlebell oder Kurzhantel | Aufrechter Läufer, Zusatzgewicht | aus |
+| Personenwaage mit Zeiger (analog) | Isometrisches Wadenheben, einbeinig mit Entlastung | aus |
 
 Stufen, die ein fehlendes Gerät brauchen, erscheinen nicht in der Auswahl — aber die
 **Nummerierung bleibt stehen**. Sonst verschöbe sich die gespeicherte Stufe deiner alten
@@ -209,13 +211,40 @@ ist offen — bei gleicher Fersenhöhe ist das Hüftmoment dasselbe. Das ist gen
 beim Seitstütz die Fußerhöhung als Scheinstufe aufgeflogen ist, und steht deshalb als Erstes auf
 der Liste der Dinge, die nachgemessen gehören.
 
+Bei der **Hyperextension** liegt die Kante eines Steppers mit Kissen auf Höhe des Bauchnabels,
+die Füße stehen hinten an der Wand, und der Oberkörper wird frei und waagerecht gehalten. Die
+Stufe gibt die **Armhaltung** vor: Je weiter die Arme vom Nabel weg zeigen, desto länger wird der
+Hebel auf den unteren Rücken. Gerechnet ist das mit dem Segmentmodell von de Leva (1996), Rumpf
+waagerecht, Drehpunkt am Nabel:
+
+| Sprosse | Last | Herkunft |
+|---|---|---|
+| Mit den Zeigefingern abstützen | 0,56 | geschätzt — wie fest die Finger drücken, misst niemand |
+| Arme in V, Hände neben der Hüfte | 0,70 | gerechnet |
+| Hände in der Hüfte | 0,78 | gerechnet |
+| Arme in T, seitlich auf Schulterhöhe | 0,88 | gerechnet |
+| Arme in Y, etwa 45° neben dem Kopf | 1,00 | gerechnet |
+| Gewicht vor der Brust | ab 1,00, mit Mindestgewicht | gerechnet, Armhaltung angenommen |
+
+Gewicht in der Y-Haltung fällt weg: Es ermüdet Schultern und Beinrückseite zu stark. Die Übung hat **zwei Haltungen** mit je eigener Kurve, **gestreckt** mit langem Rücken
+und **rund** mit eingerolltem Rücken. Pro Workout läuft nur eine; auf der Karte vor der Übung
+lässt sie sich wechseln. Vorgewählt ist gestreckt, und das passt zur Mehrheit: Rund 90 % der
+Ischialgien gehen von der Bandscheibe aus (Koes 2007), und dann ziehen Sitzen und Vorbeugen ins
+Bein. Beim engen Wirbelkanal ist es umgekehrt, dort ziehen Stehen und Gehen ins Bein (Inufusa
+1996). Genau diese zwei Sätze stehen beim ersten Mal unter den Knöpfen.
+
 **Zusatzgewicht ist eine eigene Achse, keine Leitersprosse.** Die Leiter bleibt reines
 Körpergewicht; Kilogramm kommen ab einer Stufe je Übung dazu (Liegestütz ab „Boden",
 Ausfallschritt ab „Hinterer Fuß ~20 cm erhöht"). Der Seitstütz bleibt reines Körpergewicht,
 seine Leiter endet bei „Standard". Wie stark ein Kilo wirkt, ist übungsabhängig: Bei Liegestütz
 und Ausfallschritt wächst die Last mit `X/BW`. Beim Schrägzug sind es `1,3·X/BW` (Rucksack hoch auf den
 Schulterblättern; rutscht er aufs Becken, wirkt dasselbe Gewicht nur zu drei Vierteln), bei der
-Fersenbrücke `1,4·X/BW` (Gewicht auf dem Becken, dicht am Hüftgelenk). Dafür braucht die App das Körpergewicht: *Mehr → Messung*.
+Fersenbrücke `1,4·X/BW` (Gewicht auf dem Becken, dicht am Hüftgelenk). Bei der Hyperextension
+kommt Gewicht nur auf der obersten Sprosse dazu, mit beiden Armen eng vor der Brust: `2,12·X/BW`,
+bezogen auf diese Sprosse (30 cm Hebel vom Nabel bis zur Mitte des Brustbeins). Ohne Gewicht wäre
+sie leichter als die Y-Haltung, denn die Arme liegen dann am Rumpf. Die App beginnt deshalb mit
+dem kleinsten Gewicht im 2,5-kg-Raster, mit dem die Sprosse mindestens so schwer ist wie Y: 7,5 kg
+bei 59 bis 88 kg Körpergewicht, 10 kg bis 117 kg. Dafür braucht die App das Körpergewicht: *Mehr → Messung*.
 Beim aufrechten Läufer trägt das Gewicht die ganze Leiter: Die einzige Sprosse heißt bei 0 kg
 „Ohne Zusatzlast" und mit Kettlebell „Mit Zusatzgewicht". Wo die Kettlebell sitzt — Front Rack
 `2,33·X/BW` oder Suitcase `3,22·X/BW` —, wählst du je Seite, denn links und rechts brauchen oft
