@@ -146,6 +146,8 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
   border:1px solid var(--line);border-radius:11px;cursor:pointer;margin-bottom:7px}
 .chk input{margin:2px 0 0;width:19px;height:19px;flex-shrink:0;accent-color:var(--acc)}
 .chk span{font-size:14px}
+/* Mess-Status: Sprossenwert noch nicht gemessen (Build 2026-10-15 a). */
+.vorl{color:var(--bad)}
 /* Minuten am Haekchen: was es zur Dauer dazurechnet (Build 2026-10-03 a). */
 .chk .chkMin{margin-left:auto;padding-left:6px;font:500 13px/1.45 var(--mono);
   color:var(--tx3);white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -427,6 +429,7 @@ const SETS_MAX = 6;
 const MISS_RATIO = 0.8;  // Regel 3
 const PAIN_BACK  = 2;    // Regel 1: zweimal in Folge → Level zurück
 const MISS_BACK  = 3;    // Regel 3: dreimal in Folge → Level zurück
+const KNIE_HOCH  = 2;    // Baker-Pfad: zweimal Vorgabe ohne Schmerz → eine Sprosse weiter
 const DECAY      = 0.97; // Alterung der Messpunkte (Abschnitt 4.1)
 
 /* ── Das Messfenster ────────────────────────────────────────────
@@ -783,10 +786,27 @@ const DEFAULT_EX = {
      aktive Halten der wegrollenden Rolle zusaetzlich kostet. Genau dieses
      Muster (fuehlt sich schwerer an, ist es aber vielleicht nicht) hat beim
      Seitstuetz die Fusserhoehung als Scheinsprosse entlarvt. Gehoert
-     nachgemessen. */
-  hinge: {
-    name:"Fersenbrücke", region:"Oberschenkelrückseite", group:"hinge",
-    sides:["links","rechts"], extraAb:3, extraK:1.4,
+     nachgemessen.
+
+     Seit Build 2026-10-15 a (EX_VERSION 26) steht davor eine BEIDBEINIGE
+     Rampe auf denselben sechs Unterlagen, und die Ringe sind raus (Luke,
+     Spaziergang 15.10.2026: "zu viel Equipment"). Die App klettert die
+     ganze Rampe hoch und steigt erst danach auf einbeinig um — Regel 2a
+     springt nicht ueber die Grenze (Regel 2a in applyRules). Die einbeinigen
+     Sprossen sind dieselben wie vorher, nur sechs Nummern weiter oben;
+     BRIDGE_UMZUG zieht Staende und Sitzungen mit.
+     Die beidbeinigen Lasten sind PLATZHALTER 15.10. — geometrisch
+     0,148 * 2^(k/6): unten die halbe Last von einbeinig Stuhl, der Schritt
+     von beidbeinig Rolle auf einbeinig Stuhl (0,264 -> 0,296) ist genau ein
+     regulaerer. Ersetzen durch Lukes beidbeinige Haltezeiten, abgebildet
+     ueber seine einbeinige Kurve. Die reine Gewichtsrechnung waere die
+     Haelfte der Einbeinlast und unterschaetzt einbeinig systematisch
+     (Leitfaden 15.10., Evidenzteil) — deshalb gemessen, nicht gerechnet. */
+  bridge: {
+    name:"Fersenbrücke", region:"Oberschenkelrückseite", group:"bridge",
+    sides:["links","rechts"], extraAb:9, extraK:1.4,
+    /* Neue Nutzer beginnen beidbeinig auf dem Stuhl. */
+    startStufe:0,
     seitenRuf:{links:"LINKES BEIN TRÄGT", rechts:"RECHTES BEIN TRÄGT"},
     extraHint:"Auf dem Becken, nicht auf dem Bauch — über dem Hüftgelenk wirkt es am "
              +"stärksten. Eine Hantelscheibe oder ein Rucksack quer über die Hüftknochen.",
@@ -816,14 +836,160 @@ const DEFAULT_EX = {
            +"ausstrahlen oder ein Sehnenriss sein, und dann wäre Belastung falsch. Das lässt "
            +"sich nicht über eine App unterscheiden."
     },
+    /* gemessen:true = Luke hat diese Sprosse gemessen; dann steht sie nicht
+       mehr rot da (siehe sprosseVorlaeufig). Nachgezogen mit jedem Build. */
     levels:[
+      {name:"Beidbeinig · Fersen auf Stuhlsitz (~45 cm) · Knie etwa rechtwinklig", load:0.148, beid:true, platzhalter:true},
+      {name:"Beidbeinig · Fersen auf Hocker (~30 cm) · Knie etwa rechtwinklig",    load:0.166, beid:true, platzhalter:true},
+      {name:"Beidbeinig · Fersen auf Kiste (~20 cm) · Knie leicht geöffnet",       load:0.186, beid:true, platzhalter:true},
+      {name:"Beidbeinig · Fersen am Boden · Knie deutlich geöffnet",               load:0.209, beid:true, platzhalter:true, ort:"boden"},
+      {name:"Beidbeinig · Fersen am Boden · Beine fast gestreckt",                 load:0.235, beid:true, platzhalter:true, ort:"boden"},
+      {name:"Beidbeinig · Fersen auf der Faszienrolle · Beine fast gestreckt",     load:0.264, beid:true, platzhalter:true, geraet:"rolle"},
       {name:"Ferse auf Stuhlsitz (~45 cm) · Knie etwa rechtwinklig", load:0.296},
       {name:"Ferse auf Hocker (~30 cm) · Knie etwa rechtwinklig",    load:0.415},
       {name:"Ferse auf Kiste (~20 cm) · Knie leicht geöffnet",       load:0.561},
       {name:"Ferse am Boden · Knie deutlich geöffnet",               load:0.648, ort:"boden"},
       {name:"Ferse am Boden · Bein fast gestreckt (langer Hebel)",   load:0.760, ort:"boden"},
-      {name:"Ferse auf der Faszienrolle · Bein fast gestreckt",      load:0.850, geraet:"rolle"},
-      {name:"Ferse in den Ringen · Bein fast gestreckt",             load:0.960, geraet:"ringe"}
+      {name:"Ferse auf der Faszienrolle · Bein fast gestreckt",      load:0.850, geraet:"rolle"}
+    ]
+  },
+
+  /* ── Fersenbruecke fuers innere Knie (Baker-Pfad) ──────────────
+     Luke, Spaziergang 15.10.2026. Wer bei der Fersenbruecke "Probleme
+     inneres Knie / Baker-Zyste" anhakt (je Bein, S.knieInnen), bekommt fuer
+     dieses Bein statt der Hoehenleiter diese hier. Sie ist keine Lastleiter:
+     Die Sprossen sind Fussstellung mal Kontakt auf der Faszienrolle. Zehen
+     runter (Plantarflexion) koppelt mit Tibia-Aussenrotation und fordert
+     wenig Innenrotation — der Einstieg im gereizten Zustand. Zehen zum Knie
+     (Dorsalextension) koppelt mit Tibia-Innenrotation und holt genau die
+     fehlende Richtung zurueck — das Ziel. Erst beidbeinig, dann einbeinig.
+     Weiter geht es, wenn der Schmerz es erlaubt (KNIE_HOCH), nicht wenn die
+     Kurve es sagt — siehe den Zweig schmerzGefuehrt in applyRules.
+     Eigene Uebung im Code, damit sie eine eigene Kurve, eigene Staende und
+     eigene Zeilen im Export hat. Geplant wird sie immer zusammen mit bridge
+     (fersenTeile) und steht in keiner Uebungsauswahl.
+     Lasten: nur relativ, 0,5 * 2^(k/6) — die Kurve ist eine eigene, die Zahl
+     ordnet nur. Die Reihenfolge der mittleren Sprossen (was zieht mehr,
+     Ferse oder Vorfuss?) und der Kniewinkel sind vorlaeufig, bis Luke im
+     Trainingsraum getestet hat. */
+  bridgeKnie: {
+    name:"Fersenbrücke fürs innere Knie", region:"Kniekehle innen", group:"bridge",
+    sides:["links","rechts"], teilVon:"bridge", ohneGewicht:true,
+    schmerzGefuehrt:true, startStufe:0,
+    seitenRuf:{links:"LINKES BEIN TRÄGT", rechts:"RECHTES BEIN TRÄGT"},
+    hint:"Rücken am Boden, Knie etwa rechtwinklig (90°), die Faszienrolle unter dem Fuß. "
+        +"Becken hoch, bis Schulter, Hüfte und Knie eine Linie bilden. Die Stellung des "
+        +"Fußes leitet die Drehung im Schienbein ein — du drehst nicht aktiv im Knie. "
+        +"Zieht es innen hinten am Knie mehr als ein Ziehen, eine Sprosse zurück.",
+    knieWinkelVorlaeufig:true,
+    levels:[
+      {name:"Beidbeinig · Fersen auf der Rolle · Zehen runter",       load:0.500, beid:true, platzhalter:true, geraet:"rolle"},
+      {name:"Beidbeinig · Fersen auf der Rolle · Fuß neutral",        load:0.561, beid:true, platzhalter:true, geraet:"rolle"},
+      {name:"Beidbeinig · Fersen auf der Rolle · Zehen zum Knie",     load:0.630, beid:true, platzhalter:true, geraet:"rolle"},
+      {name:"Beidbeinig · Vorfüße auf der Rolle · Zehen runter",      load:0.707, beid:true, platzhalter:true, geraet:"rolle"},
+      {name:"Beidbeinig · Vorfüße auf der Rolle · Fuß neutral",       load:0.794, beid:true, platzhalter:true, geraet:"rolle"},
+      {name:"Beidbeinig · Vorfüße auf der Rolle · Zehen zum Knie",    load:0.891, beid:true, platzhalter:true, geraet:"rolle"},
+      {name:"Ferse auf der Rolle · Zehen runter",                     load:1.000, platzhalter:true, geraet:"rolle"},
+      {name:"Ferse auf der Rolle · Fuß neutral",                      load:1.122, platzhalter:true, geraet:"rolle"},
+      {name:"Ferse auf der Rolle · Zehen zum Knie",                   load:1.260, platzhalter:true, geraet:"rolle"},
+      {name:"Vorfuß auf der Rolle · Zehen runter",                    load:1.414, platzhalter:true, geraet:"rolle"},
+      {name:"Vorfuß auf der Rolle · Fuß neutral",                     load:1.587, platzhalter:true, geraet:"rolle"},
+      {name:"Vorfuß auf der Rolle · Zehen zum Knie",                  load:1.782, platzhalter:true, geraet:"rolle"}
+    ]
+  },
+
+  /* ── Hip Hinge (Build 2026-10-16 a) ─────────────────────────────────
+     Handoff 15.10.2026. Ziel ist die Sehne der Oberschenkelrueckseite am
+     Sitzbein (proximal), dazu Gesaess und Rueckenstrecker. Ergaenzt die
+     Fersenbruecke, die distal wirkt, und doppelt sie nicht — darum eine
+     eigene Gruppe, beide duerfen am selben Tag laufen (Luke, 16.10.2026).
+     Bis Fassung 26 hiess die Fersenbruecke im Code hinge, siehe BRIDGE_AT.
+
+     Sechs Sprossen: sitzend, sitzend mit Lift-Off, stehend, stehend mit
+     Gewicht (alle beidbeinig), dann Camporini und B-Stance je Seite. Die
+     Seite benennt das ARBEITENDE Bein: beim Camporini das hintere mit der
+     ganzen Sohle auf dem Keil (Lukes Fassung, Ferse hoeher als Vorfuss),
+     beim B-Stance das vordere (Recherche_Camporini-Varianten.md, Abschnitt
+     8). Das Gewicht haengt in beiden in der Hand der Seite, deren Fuss
+     hinten steht. Die anderen Camporini-Fassungen stehen nur in der
+     Recherche, nicht hier — eine Sprosse (Luke, 15.10.2026).
+
+     Lasten: Hueftmoment je arbeitendem Bein, stehend beidbeinig = 0,500
+     (scratchpad/hinge.mjs).
+        sitzend                 0,320  PLATZHALTER. Bei gleicher Neigung ist
+        sitzend mit Lift-Off    0,400  das Hueftmoment im Sitzen dasselbe wie
+                                       im Stehen; der Unterschied ist die
+                                       Laenge der Oberschenkelrueckseite, und
+                                       die rechnet kein Hebelmodell. Je ein
+                                       Tor-2-Schritt (x1,25) darunter.
+        stehend                 0,500  GERECHNET
+        stehend mit Gewicht     0,500  GERECHNET, zaehlt erst ab dem
+                                       Mindestgewicht x1,25 (mindSprung, siehe
+                                       kgMindest): 10 kg bei 80 kg
+        Camporini               0,650  Gewichtsanteil hinten 65 % aus Lukes
+                                       Coaching (Woche 4), als Hueftlast gelesen
+        B-Stance                0,750  ANNAHME 75 % vorn
+     Das Gewicht in haengenden Armen wirkt 0,52 m vor der Huefte: extraK 2,12.
+     Tor 1 x2,34 bestanden. Tor 2 faellt zweimal: 4 -> 5 nur x1,03, wenn
+     Sprosse 4 mit Mindestgewicht und der Camporini ohne laeuft (mit gleichem
+     Gewicht auf beiden x1,30), und 5 -> 6 x1,15. Ob Camporini und B-Stance
+     zwei Sprossen sind, entscheidet die Zwei-Waagen-Messung aus dem Handoff.
+     Gewichtsanteil ist aber nicht Hueftmoment: Beim Hinge steht der hintere
+     Fuss naeher an der Huefte, und ab etwa 15 cm Fussabstand traegt im
+     Modell trotz 65 % hinten das VORDERE Bein das groessere Hueftmoment
+     (hinge.mjs Teil E). Der Fussabstand gehoert deshalb ins Messprotokoll.
+
+     Drei Brueche, an denen gemessen statt gerechnet wird: 2 -> 3 (Knie stark
+     gebeugt -> fast gestreckt), 4 -> 5 (beidbeinig -> versetzt), 5 -> 6 (das
+     arbeitende Bein wechselt von hinten nach vorn). Rot sind alle Sprossen
+     ohnehin, bis Luke sie misst (sprosseVorlaeufig).
+     Ohne Geraete: Stuhl, Gewicht und Keil fallen weg, es bleiben stehend und
+     B-Stance (ort).
+     Alle Texte sind Entwurf — Luke formuliert um. */
+  hinge: {
+    name:"Hip Hinge", region:"Sitzbein", group:"hinge",
+    sides:["links","rechts"], extraAb:3, extraK:2.12,
+    /* Kein extraGeraet: Ein Rucksack an den Griffen geht immer. */
+    gewichtMindestens:true, mindestText:"Stehend mit Gewicht", kgJeSprosse:true,
+    startStufe:0,
+    seitenRuf:{links:"LINKES BEIN TRÄGT", rechts:"RECHTES BEIN TRÄGT"},
+    extraHint:"Kurzhantel, Kettlebell oder Rucksack an den Griffen, die Arme hängen senkrecht "
+             +"unter den Schultern. Beidbeinig in beiden Händen — trag das Gesamtgewicht ein. "
+             +"Camporini und B-Stance: in der Hand der Seite, deren Fuß hinten steht.",
+    hint:"»Links« heißt: Das LINKE Bein arbeitet — beim Camporini steht es hinten mit der "
+        +"ganzen Sohle auf dem Keil, beim B-Stance vorn. Rücken neutral, die Bewegung kommt aus "
+        +"der Hüfte: Gesäß nach hinten, Oberkörper nach vorn. Im Stehen sind die Knie leicht "
+        +"gebeugt und bleiben in diesem Winkel. Halte jedes Mal dieselbe Tiefe, zum Beispiel "
+        +"mit dem Rücken zur Wand, die Fersen eine feste Zahl Fußlängen davor und das Gesäß "
+        +"knapp vor der Wand. Im versetzten Stand bleibt das Becken waagerecht: Die Hüfte der "
+        +"hinteren Seite sackt nicht ab.",
+    /* Wie bei der Fersenbruecke eine eigene Frage beim ersten Mal — aber hier
+       ist der Sitzbeinschmerz beim Sitzen die Beschwerde, fuer die die Uebung
+       da ist, und steht deshalb NICHT unter den Warnzeichen. */
+    warnung:{
+      titel:"Bevor du den Hip Hinge zum ersten Mal machst",
+      frage:"Trifft eines davon auf dich zu?",
+      punkte:[
+        "Der Schmerz strahlt die Beinrückseite hinunter, bis in die Wade oder den Fuß",
+        "Taubheit, Kribbeln oder Kraftverlust im Bein",
+        "Der Schmerz hat nach einem plötzlichen Ereignis angefangen (Sprint, Ausrutschen, "
+          +"Spagat), vielleicht mit einem Knall oder einem Bluterguss hinten am Oberschenkel"
+      ],
+      warum:"Schmerz am Sitzbein, der beim Sitzen und Vorbeugen zunimmt, ist genau das, wofür "
+           +"diese Übung da ist — die Sehne dort verträgt dosierte Last gut. Strahlt er ins "
+           +"Bein, kommt er eher vom Nerv oder vom Rücken. Nach einem plötzlichen Ereignis kann "
+           +"die Sehne abgerissen sein. Dann wäre Belastung falsch, und das lässt sich über eine "
+           +"App nicht unterscheiden."
+    },
+    levels:[
+      {name:"Sitzend · auf der Stuhlkante aus der Hüfte nach vorn gekippt", load:0.320, beid:true, platzhalter:true},
+      {name:"Sitzend · Gesäß knapp über der Sitzfläche (Lift-Off)",       load:0.400, beid:true, platzhalter:true},
+      {name:"Stehend · Körpergewicht",                                     load:0.500, beid:true, platzhalter:true, ort:"boden"},
+      {name:"Stehend · Gewicht in beiden Händen",                          load:0.500, beid:true, platzhalter:true, mindSprung:1.25},
+      {name:"Camporini · Bein hinten, ganze Sohle auf dem Keil",           load:0.650, platzhalter:true,
+       nameMitGewicht:"Camporini · Bein hinten, ganze Sohle auf dem Keil · Gewicht in derselben Hand"},
+      {name:"B-Stance · Bein vorn, hinterer Fuß nur auf den Zehen",        load:0.750, platzhalter:true, ort:"boden",
+       nameMitGewicht:"B-Stance · Bein vorn, hinterer Fuß nur auf den Zehen · Gewicht in der Hand der hinteren Seite"}
     ]
   },
 
@@ -1352,8 +1518,11 @@ const GERAETE = [
    +"feinsten ein, weil die Gurte dir folgen, wenn du dich zurücklehnst.",
    fuer:"Schrägzug — ohne das entfällt die Übung ganz"},
   {id:"rolle", name:"Faszienrolle", was:"Die übliche Schaumstoffrolle.",
-   fuer:"Fersenbrücke, obere Stufe"},
-  {id:"ringe", name:"Turnringe", was:"Frei hängende Ringe, in die der Fuß passt.",
+   fuer:"Fersenbrücke, obere Stufen — und die Fersenbrücke fürs innere Knie"},
+  /* ruht seit Build 2026-10-15 a: Die Ringe-Sprosse der Fersenbruecke ist raus
+     (Luke, 15.10.2026: "zu viel Equipment"), sonst braucht sie niemand. Der
+     Haken bleibt gespeichert wie beim Band. */
+  {id:"ringe", ruht:true, name:"Turnringe", was:"Frei hängende Ringe, in die der Fuß passt.",
    fuer:"Fersenbrücke, oberste Stufe"},
   /* ruht seit Build 2026-09-29 b: Der Guertel ist beim Laeufer vorlaeufig
      raus, und sonst braucht niemand das Band. Der Haken bleibt gespeichert,
@@ -1394,7 +1563,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-09 a";
+const BUILD = "2026-10-16 a";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -1412,7 +1581,16 @@ const AW_V = 1;
    den Sprung nicht an. Stufen und gemessene Punkte bleiben unberuehrt. */
 /* 25 (29.09.2026, Build b): Beim Laeufer sind Standbeinseite und Guertel
    raus, Front Rack ist Voreinstellung. Siehe LAEUFER_KNIESEITE_AT. */
-const EX_VERSION = 25;
+/* 26 (15.10.2026): Fersenbruecke mit beidbeiniger Rampe, Ringe raus, neue
+   Uebung hingeKnie (Baker-Pfad). Siehe BRIDGE_BEID_AT. */
+/* 27 (16.10.2026): Die Fersenbruecke heisst im Code bridge, der Baker-Pfad
+   bridgeKnie — der Name hinge gehoert jetzt der neuen Uebung Hip Hinge.
+   Siehe BRIDGE_AT. */
+const EX_VERSION = 27;
+/* Der Sprung auf 26 setzt die Pausen je Zone NICHT mehr zurueck: Sie sind
+   Lukes Einstellung, keine mitgelieferte Uebungsdefinition. Zurueckgesetzt
+   wird nur, wer von vor 25 kommt — so wie bisher bei jedem Sprung. */
+const REST_RESET_AT = 25;
 /* Voreinstellung, bis der Nutzer sein Gewicht einträgt. Nur als Bezugsgroesse
    fuer Zusatzlast noetig — die Lastfaktoren selbst sind gewichtsunabhaengige
    Verhaeltniszahlen. */
@@ -1918,6 +2096,104 @@ function beidUmzug(exDefs, levels, extra, streak){
   }
   return {levels: lv, extra: ex, streak: st};
 }
+/* ── 15.10.2026: Die Fersenbruecke bekommt eine beidbeinige Rampe ──────
+   Vor die sechs einbeinigen Sprossen treten sechs beidbeinige (Sprossen
+   0 bis 5), die Ringe fallen weg. Jede einbeinige Sprosse steht damit sechs
+   Nummern hoeher: alt 0 (Stuhl) ist neu 6, alt 5 (Rolle) neu 11. Die alte
+   Ringe-Sprosse 6 zeigt auf die Rolle, die jetzt die oberste ist.
+   Umgezogen wird wie beim Ausfallschritt nur die NUMMER — Last, Seite und
+   Etikett der Sitzungen bleiben, die Kurve rechnet mit der gespeicherten
+   Last ("Messpunkte verwirft nur Luke"). Eine Sitzung von den Ringen bleibt
+   ebenfalls in der Kurve, sie traegt nur die Marke entfalleneSprosse.
+   Wer die Fersenbruecke schon trainiert hat und auf einer Seite keinen Stand
+   hat, steht dort danach auf einbeinig Stuhl (6) — vorher war das die
+   Startsprosse, und ohne diesen Schritt fiele er auf die Startsprosse der
+   neuen Leiter zurueck, also auf beidbeinig. Wer sie nie trainiert hat,
+   beginnt beidbeinig (startStufe). */
+const BRIDGE_BEID_AT = 26;
+const BRIDGE_UMZUG   = {0:6, 1:7, 2:8, 3:9, 4:10, 5:11, 6:11};
+const BRIDGE_ALT_LAST = {0:0.296, 1:0.415, 2:0.561, 3:0.648, 4:0.760, 5:0.850, 6:0.960};
+const bridgeKey = k => (k === "bridge" || String(k).indexOf("bridge|") === 0);
+function bridgeUmziehen(lv, sessions){
+  const L = Object.assign({}, lv || {});
+  let da = false;
+  for(const k of Object.keys(L)){
+    if(!bridgeKey(k)) continue;
+    da = true;
+    if(BRIDGE_UMZUG[L[k]] != null) L[k] = BRIDGE_UMZUG[L[k]];
+  }
+  if(!da) da = (sessions || []).some(s => s && s.exercise === "bridge");
+  if(da) for(const sd of ["links", "rechts"])
+    if(!Number.isFinite(L["bridge|" + sd])) L["bridge|" + sd] = BRIDGE_UMZUG[0];
+  return L;
+}
+/* Sitzung, gelaufener Block oder offener Block: dieselbe Tabelle auf jede
+   Nummer, die darin steht — auch auf den Anker, aus dem zielNeu() die
+   Obergrenze anker.level + MAX_SPRUNG baut. Fehlt einer sehr alten Sitzung
+   die Last, wird sie aus der alten Leiter nachgetragen, bevor die Nummer
+   umzieht. */
+function bridgeObjekt(o){
+  if(!o || o.exercise !== "bridge" || BRIDGE_UMZUG[o.level] == null) return o;
+  const um = v => (BRIDGE_UMZUG[v] != null ? BRIDGE_UMZUG[v] : v);
+  const neu = {level: um(o.level)};
+  if(o.levelVorschlag != null) neu.levelVorschlag = um(o.levelVorschlag);
+  if(o.rohStufe != null) neu.rohStufe = um(o.rohStufe);
+  if(o.anker && o.anker.level != null) neu.anker = Object.assign({}, o.anker, {level: um(o.anker.level)});
+  if(!(o.load > 0)) neu.load = BRIDGE_ALT_LAST[o.level];
+  if(o.level === 6) neu.entfalleneSprosse = true;
+  return Object.assign({}, o, neu);
+}
+function bridgeLauf(lauf){
+  if(!lauf || !lauf.plan) return lauf;
+  return Object.assign({}, lauf, {
+    plan: Object.assign({}, lauf.plan, {blocks: (lauf.plan.blocks || []).map(bridgeObjekt)}),
+    fertig: (lauf.fertig || []).map(bridgeObjekt)});
+}
+/* ── Fassung 27 (16.10.2026): Die Fersenbruecke zieht von hinge auf bridge ─
+   Bis 26 hiess die Fersenbruecke im Code hinge und ihr Baker-Pfad hingeKnie.
+   Den Namen hinge bekommt jetzt die neue Uebung Hip Hinge (Luke: "Ferse
+   bekommt bridge und der hip hinge hinge"). Damit eine alte Fersenbruecke
+   nicht als Hip Hinge weiterlaeuft, schreibt bridgeUmbenennen VOR allen
+   anderen Umzuegen jeden gespeicherten Namen um: Schluessel mit und ohne
+   Seite in allen Speichern, die Uebung in Sitzungen, offenem Lauf, Auswahl
+   und Tageswahl, die Gruppe in der Zonenwahl. Danach laufen die Umzuege bis
+   26 wie gehabt, nur auf bridge. Nummern und Lasten bleiben, wie sie sind.
+   Doppelt angewandt aendert es nichts mehr — darauf verlaesst sich die
+   geparkte Heimausstattung, die normalize() ein zweites Mal durchlaeuft. */
+const BRIDGE_AT = 27;
+const BRIDGE_NAME = {hinge:"bridge", hingeKnie:"bridgeKnie"};
+function bridgeName(k){
+  if(typeof k !== "string") return k;
+  const i = k.indexOf("|"), kopf = i < 0 ? k : k.slice(0, i);
+  return BRIDGE_NAME[kopf] ? BRIDGE_NAME[kopf] + (i < 0 ? "" : k.slice(i)) : k;
+}
+function bridgeSchluessel(o){
+  if(!o || typeof o !== "object" || Array.isArray(o)) return o;
+  const n = {};
+  for(const k of Object.keys(o)) n[bridgeName(k)] = o[k];
+  return n;
+}
+function bridgeUebung(o){
+  return (o && typeof o === "object" && BRIDGE_NAME[o.exercise])
+    ? Object.assign({}, o, {exercise: BRIDGE_NAME[o.exercise]}) : o;
+}
+function bridgeUmbenennen(d){
+  const n = Object.assign({}, d);
+  for(const f of ["levels", "extra", "streak", "aktiv", "gefragt", "sync", "lage", "haltung"])
+    if(d[f]) n[f] = bridgeSchluessel(d[f]);
+  if(typeof d.exercise === "string") n.exercise = bridgeName(d.exercise);
+  if(Array.isArray(d.heute)) n.heute = d.heute.map(bridgeName);
+  if(Array.isArray(d.sessions)) n.sessions = d.sessions.map(bridgeUebung);
+  if(d.lauf && d.lauf.plan) n.lauf = Object.assign({}, d.lauf, {
+    plan: Object.assign({}, d.lauf.plan, {blocks: (d.lauf.plan.blocks || []).map(bridgeUebung)}),
+    fertig: (d.lauf.fertig || []).map(bridgeUebung)});
+  const sp = d.standMitGeraeten;
+  if(sp && typeof sp === "object") n.standMitGeraeten = Object.assign({}, sp,
+    {levels: bridgeSchluessel(sp.levels), extra: bridgeSchluessel(sp.extra)});
+  for(const f of ["zoneWahl", "ausfWahl"])
+    if(d[f] && d[f].je) n[f] = Object.assign({}, d[f], {je: bridgeSchluessel(d[f].je)});
+  return n;
+}
 /* Training ohne Geraete (Build 2026-10-01 b). Steht vor load(), weil
    normalize() den gespeicherten Modus damit prueft. Seit 2026-10-01 c heisst
    der Schalter "Volles Equipment" / "Nur Koerpergewicht", die Wand ist ein
@@ -1975,12 +2251,17 @@ function fresh(){
     /* Premium (Luke, 25.09.2026). Der Prototyp hat keine Anmeldung, deshalb
        ein Schalter unter Mehr — siehe premiumAn. */
     premium:true,
+    /* Fersenbruecke: Probleme inneres Knie / Baker-Zyste, je Bein. Ein Haken
+       schickt dieses Bein auf die eigene Leiter bridgeKnie (Luke, 15.10.2026). */
+    knieInnen:{links:false, rechts:false},
     sessions:[], plan:null, redflag:false,
     rest:{...DEFAULT_REST}, planDay:null, reaction:REACTION_DEFAULT
   };
 }
 function normalize(d){
   if(!d || typeof d !== "object") return fresh();
+  /* Als Erstes: Alles Folgende spricht die Fersenbruecke als bridge an. */
+  if((d.exVersion || 1) < BRIDGE_AT) d = bridgeUmbenennen(d);
   const stale = (d.exVersion || 1) < EX_VERSION;
   const leitersturz = (d.exVersion || 1) < LEVELS_RESET_AT;
   const bandUmzug = !leitersturz && (d.exVersion || 1) < LAEUFER_BAND_AT;
@@ -1994,6 +2275,7 @@ function normalize(d){
   const handtuchUmzug = !leitersturz && (d.exVersion || 1) < HANDTUCH_BEID_AT;
   const handtuchEin   = !leitersturz && (d.exVersion || 1) < HANDTUCH_WAAGE_AT;
   const knieseite     = (d.exVersion || 1) < LAEUFER_KNIESEITE_AT;
+  const bridgeUmzug   = !leitersturz && (d.exVersion || 1) < BRIDGE_BEID_AT;
   const ex = stale ? structuredClone(DEFAULT_EX)
                    : Object.assign(structuredClone(DEFAULT_EX), d.ex || {});
   /* Erst die Band-Verschiebung von Fassung 11, dann der Umzug auf das freie
@@ -2012,6 +2294,10 @@ function normalize(d){
                  roh.levels = w.levels; roh.extra = w.extra; }
   if(handtuchUmzug){ const h = handtuchUmziehen(roh.levels, roh.extra);
                      roh.levels = h.levels; roh.extra = h.extra; }
+  /* Vor beidUmzug: Die Fersenbruecke hat jetzt beidbeinige Sprossen, und
+     beidUmzug verteilt einen Altschluessel "bridge" ohne Seite auf beide
+     Seiten — mit der schon umgezogenen Nummer. */
+  if(bridgeUmzug) roh.levels = bridgeUmziehen(roh.levels, d.sessions);
   const umzug  = beidUmzug(ex, roh.levels, roh.extra,
                            leitersturz ? {} : (d.streak || {}));
   /* Nach beidUmzug: Erst dann stehen alle Wadenschluessel je Seite. */
@@ -2064,7 +2350,7 @@ function normalize(d){
     : null;
   return Object.assign(fresh(), d, {ex, exVersion:EX_VERSION,
                                     modus, standMitGeraeten: park,
-                                    rest: stale ? {...DEFAULT_REST}
+                                    rest: ((d.exVersion || 1) < REST_RESET_AT) ? {...DEFAULT_REST}
                                                 : Object.assign({...DEFAULT_REST}, d.rest||{}),
                                     aktiv: d.aktiv || {},
                                     /* Siehe ROW_SKALA_AT: Schraegzug-Messungen
@@ -2075,13 +2361,14 @@ function normalize(d){
                                        einen Wand-Sitzung richtigstellen
                                        (LUNGE_WAND_MESS_AT) — sie laeuft auf
                                        der schon umgezogenen Nummer. */
-                                    sessions: (ses => handtuchEin ? ses.map(handtuchEinObjekt) : ses)(
+                                    sessions: (ses => bridgeUmzug ? ses.map(bridgeObjekt) : ses)(
+                                              (ses => handtuchEin ? ses.map(handtuchEinObjekt) : ses)(
                                               (ses => handtuchUmzug ? ses.map(o => handtuchObjekt(o, bwAlt)) : ses)(
                                               (ses => wadeUmzug ? ses.map(o => wadeObjekt(o, bwAlt)) : ses)(
                                               (ses => lungeMess ? lungeWandMessung(ses) : ses)(
                                                 (ses => lungeUmzug ? lungeSessions(ses) : ses)(
                                                   rowSkala ? rowSkalaVerwerfen(d.sessions)
-                                                           : (d.sessions || [])))))),
+                                                           : (d.sessions || []))))))),
                                     sync: d.sync || {},
                                     /* Zugpunkt ist voreingestellt an — eine stabile
                                        Tischkante reicht und hat praktisch jeder. Rolle und
@@ -2099,16 +2386,19 @@ function normalize(d){
                                     gefragt: d.gefragt || {},
                                     /* Ein angefangener Lauf ueberlebt das Neuladen. */
                                     lauf: (d.lauf && d.lauf.plan)
-                                          ? (l => (knie && knie.um) ? laeuferKnieseiteLauf(l, knie.um) : l)(
+                                          ? (l => bridgeUmzug ? bridgeLauf(l) : l)(
+                                            (l => (knie && knie.um) ? laeuferKnieseiteLauf(l, knie.um) : l)(
                                             (l => handtuchEin ? handtuchEinLauf(l, bwAlt, ex.handtuch, waageDa) : l)(
                                             (l => handtuchUmzug ? handtuchLauf(l, bwAlt) : l)(
                                             (l => waageUmzug ? wadeWaageLauf(l, bwAlt, ex.wade) : l)(
                                               (l => rucksackUmzug ? wadeRucksackLauf(l, waageLo) : l)(
-                                              wadeUmzug ? wadeLauf(d.lauf, bwAlt) : d.lauf)))))
+                                              wadeUmzug ? wadeLauf(d.lauf, bwAlt) : d.lauf))))))
                                           : null,
                                     lage: knie ? knie.lage : (d.lage || {}),
                                     haltung: (d.haltung && typeof d.haltung === "object")
                                              ? d.haltung : {},
+                                    knieInnen: {links: !!(d.knieInnen && d.knieInnen.links),
+                                                rechts: !!(d.knieInnen && d.knieInnen.rechts)},
                                     extra: umzug.extra,
                                     bw: (d.bw > 0 ? d.bw : BW_DEFAULT),
                                     levels: umzug.levels,
@@ -2374,9 +2664,17 @@ function hintVon(k, v){
 function hatBeidStufe(ex){
   return ((S.ex[ex] && S.ex[ex].levels) || []).some(L => L.beid);
 }
+/* Die Seiten, deren Stand zaehlt: die aktiven, ohne aktive alle (siehe
+   seitenAktiv). Fuer alle Uebungen ohne Baker-Pfad dieselben wie e.sides. */
+function standSeiten(ex){
+  const e = S.ex[ex];
+  if(!e || !e.sides) return [];
+  const a = seitenAktiv(ex);
+  return a.length ? a : e.sides.slice();
+}
 function gemerkteStufe(ex){
   const e = S.ex[ex], L = S.levels || {};
-  const k = [L[ex]].concat((e && e.sides ? e.sides : []).map(x => L[keyOf(ex, x)]))
+  const k = [L[ex]].concat(standSeiten(ex).map(x => L[keyOf(ex, x)]))
                    .filter(v => Number.isFinite(v));
   if(k.length) return Math.max(...k);
   /* Nichts gespeichert: die Startsprosse, sonst die leichteste verfuegbare. */
@@ -2388,7 +2686,7 @@ function beidGemerkt(ex){
   const e = S.ex[ex];
   if(!e || !e.sides) return false;
   const L = S.levels || {};
-  const st = e.sides.map(x => L[keyOf(ex, x)]).filter(Number.isFinite);
+  const st = standSeiten(ex).map(x => L[keyOf(ex, x)]).filter(Number.isFinite);
   if(!st.length) return beidStufe(ex, gemerkteStufe(ex));
   /* EINE Seite genuegt, nicht die hoehere: Eine Seite, die auf der
      beidbeinigen Sprosse steht, kann nicht allein trainieren — dafuer ist die
@@ -2398,11 +2696,63 @@ function beidGemerkt(ex){
      nicht weniger, direkt nach einer Rueckstufung wegen Schmerz. */
   return st.some(v => beidStufe(ex, v));
 }
-/* Der Index der beidbeinigen Sprosse — es gibt hoechstens eine. */
-function beidIndex(ex){
+/* Die oberste beidbeinige Sprosse, die heute ausfuehrbar ist; fehlt fuer alle
+   das Geraet, die oberste ueberhaupt. Bis Build 2026-10-15 a gab es hoechstens
+   eine (beidIndex) — Wade und Handtuch haben weiter genau eine, und fuer sie
+   kommt dieselbe Zahl heraus wie vorher. Die Fersenbruecke hat seit dem 15.10.
+   eine ganze beidbeinige Rampe. */
+function beidOben(ex){
   const L = (S.ex[ex] && S.ex[ex].levels) || [];
-  const i = L.findIndex(x => x && x.beid);
-  return i < 0 ? null : i;
+  let oben = null, da = null;
+  L.forEach((x, i) => { if(x && x.beid){ oben = i; if(stufeErlaubt(ex, i)) da = i; } });
+  return da != null ? da : oben;
+}
+/* Mehr als eine beidbeinige Sprosse: eine Rampe. Luke, 15.10.2026: „beidbeinig
+   als Rampe möglichst hoch, DANN auf einbeinige Sprosse springen". Auf einer
+   Rampe entscheidet der Leiterstand allein, ob beidbeinig gehalten wird — nicht
+   die Messung auf der obersten Sprosse (beidZuLang, beidPerKurve): Wer dort zu
+   lange haelt, steigt ueber die Regeln die Rampe hinauf. */
+function beidRampe(ex){
+  return ((S.ex[ex] && S.ex[ex].levels) || []).filter(x => x && x.beid).length > 1;
+}
+
+/* ── Baker-Pfad: welches Bein laeuft auf welcher Leiter ───────────────
+   Luke, 15.10.2026: Haekchen „Probleme mediales Knie / Baker-Zyste" je Bein
+   (S.knieInnen). Das angehakte Bein trainiert auf der Leiter des Baker-Pfads
+   (bridgeKnie, teilVon:"bridge"), das andere auf der Hoehenleiter der
+   Fersenbruecke. Beidbeinig stehen beide Fuesse gleich — dann ist es ein
+   Baker-Halt, und das gesunde Bein bekommt keinen eigenen Block. */
+function kniePfad(ex){
+  return Object.keys(DEFAULT_EX).find(k => DEFAULT_EX[k].teilVon === ex && S.ex[k]) || null;
+}
+function istKniePfad(ex){ return !!(DEFAULT_EX[ex] && DEFAULT_EX[ex].teilVon); }
+/* Die Uebung, unter der ein Teil in Listen, Haekchen und Warnung steht. */
+function einheitVon(ex){ return (DEFAULT_EX[ex] && DEFAULT_EX[ex].teilVon) || ex; }
+function knieSeiten(){
+  const k = S.knieInnen || {};
+  return ["links", "rechts"].filter(sd => !!k[sd]);
+}
+/* Die Seiten, die auf DIESER Leiter laufen: beim Baker-Pfad die angehakten,
+   bei der Fersenbruecke die anderen, bei allen anderen Uebungen alle. */
+function seitenAktiv(ex){
+  const sd = (S.ex[ex] && S.ex[ex].sides) || [];
+  if(istKniePfad(ex)) return sd.filter(x => knieSeiten().includes(x));
+  if(kniePfad(ex)) return sd.filter(x => !knieSeiten().includes(x));
+  return sd.slice();
+}
+/* Ist fuer diese Uebung mindestens ein Bein auf dem Baker-Pfad? */
+function kniePfadAn(ex){
+  const p = kniePfad(ex);
+  return !!p && seitenAktiv(p).length > 0;
+}
+/* Darf diese Uebung heute beidbeinig gehalten werden? Die Fersenbruecke nicht,
+   sobald ein Bein angehakt ist: Beidbeinig ist dann der Baker-Halt. */
+function beidErlaubt(ex){ return !kniePfadAn(ex); }
+/* Die tiefste Sprosse, auf die eine Regel zurueckstufen darf. */
+function stufenBoden(ex){
+  if(beidErlaubt(ex) || !beidRampe(ex)) return 0;
+  const e1 = einStufe(ex);
+  return e1 != null ? e1 : 0;
 }
 /* Die leichteste verfuegbare Sprosse, die EIN Bein allein traegt. Kommt keine
    in Frage — etwa weil alle einbeinigen Sprossen an der Waage haengen und die
@@ -2429,7 +2779,7 @@ function einStufe(ex){
    Massgeblich ist der JUENGSTE Halt, nicht der beste: Die Sprosse wird nicht
    schwerer, der Nutzer aber staerker. */
 function beidLetzteSitzung(ex){
-  const i = beidIndex(ex);
+  const i = beidOben(ex);
   if(i == null) return null;
   let letzte = null;
   for(const s of S.sessions){
@@ -2452,7 +2802,7 @@ function beidZuLang(ex, zone){
   const z = ZONES.find(x => x.id === zone);
   const s = beidLetzteSitzung(ex);
   if(!z || !s || !(s.sets[0].time > z.hi)) return false;
-  const bi = beidIndex(ex), b = extraBereich(ex, bi);
+  const bi = beidOben(ex), b = extraBereich(ex, bi);
   if(bi < extraAbOf(ex) || !(b.hi > b.lo)) return true;
   const ist = (s.load > 0) ? s.load : lastVon(ex, bi, s.extra || 0);
   const noetig = ist * (ANNAHME_CP + (1 - ANNAHME_CP) * s.sets[0].time / z.hi);
@@ -2474,7 +2824,7 @@ function beidZuLang(ex, zone){
    null = keine Kurve oder eine beidbeinige Sprosse ohne Gewicht; dann
    entscheidet beidJetzt wie bisher ueber Leiterstand und Messung. */
 function beidPerKurve(ex, zone){
-  const e = S.ex[ex], bi = beidIndex(ex), ei = einStufe(ex);
+  const e = S.ex[ex], bi = beidOben(ex), ei = einStufe(ex);
   const z = ZONES.find(x => x.id === zone);
   if(!e || !e.sides || bi == null || ei == null || !z || bi < extraAbOf(ex)) return null;
   const b = extraBereich(ex, bi);
@@ -2517,11 +2867,14 @@ function ausfWahlSetzen(ex, wert){
   w.je[ex] = (wert === "beid" || wert === "ein") ? wert : "auto";
   S.ausfWahl = Object.keys(w.je).length ? w : null;
 }
-/* Kann diese Uebung ueberhaupt zwischen beidbeinig und einbeinig wechseln? */
+/* Kann diese Uebung ueberhaupt zwischen beidbeinig und einbeinig wechseln?
+   Auf dem Baker-Pfad nicht — dort entscheidet der Schmerz, nicht ein Knopf —
+   und bei der Fersenbruecke nicht, solange ein Bein angehakt ist. */
 function ausfWaehlbar(ex){
   const e = S.ex[ex];
-  return !!(e && e.sides && hatBeidStufe(ex) && beidIndex(ex) != null
-            && einStufe(ex) != null);
+  return !!(e && e.sides && hatBeidStufe(ex) && beidOben(ex) != null
+            && einStufe(ex) != null && beidErlaubt(ex)
+            && !(DEFAULT_EX[ex] || {}).schmerzGefuehrt);
 }
 /* ── Die Karte: beidbeinig oder einbeinig ─────────────────────────────
    Dieselbe Bauform wie die Zonenwahl und aus demselben Grund: Die App
@@ -2537,8 +2890,8 @@ function ausfWahlKarte(ex, zone, klasse, knapp){
   const t = beidLetzte(ex);
   const z = ZONES.find(x => x.id === zone);
   const kurve = beidPerKurve(ex, zone);
-  const zuLang = kurve == null && beidZuLang(ex, zone);
-  const bi = beidIndex(ex);
+  const zuLang = kurve == null && !beidRampe(ex) && beidZuLang(ex, zone);
+  const bi = beidOben(ex);
   const voll = (bi != null && bi >= extraAbOf(ex) && kgDeckel(ex, bi) > 0)
     ? ` mit ${String(kgDeckel(ex, bi)).replace(".", ",")} kg` : "";
   /* Der Grund gehoert unter die Knoepfe, nicht in eine Hilfe: Wer hier steht,
@@ -2591,6 +2944,8 @@ function ausfWahlBinden(fn){
 function beidJetzt(ex){
   const w = ausfWaehlbar(ex) ? ausfWahlHeute(ex) : null;
   if(w) return w === "beid";
+  /* Auf einer Rampe der Leiterstand allein — siehe beidRampe. */
+  if(beidRampe(ex)) return beidErlaubt(ex) && beidGemerkt(ex);
   const zone = vorgabeZone(groupOf(ex));
   /* Traegt auch die beidbeinige Sprosse Gewicht, rechnet die Kurve — siehe
      beidPerKurve. Ohne Kurve gilt, was hier schon vorher galt. */
@@ -2606,7 +2961,7 @@ function planSeiten(ex){
   const e = S.ex[ex];
   if(!e || !e.sides) return [null];
   if(haltungen(ex)) return [haltungOf(ex)];
-  return beidJetzt(ex) ? [null] : e.sides.slice();
+  return beidJetzt(ex) ? [null] : seitenAktiv(ex);
 }
 /* ── Haltungen: Seiten, von denen nur eine laeuft ─────────────────────
    Die Hyperextension hat zwei Haltungen, gestreckt und rund, je mit eigener
@@ -2628,6 +2983,13 @@ function haltungOf(ex){
    damit nach einem Wechsel die alte Kurve sichtbar bleibt. Alle anderen
    Uebungen bekommen ihre Seiten unveraendert zurueck. */
 function kurvenSeiten(ex, seiten, mitVerlauf){
+  /* Baker-Pfad: nur die angehakten Beine, mit Verlauf auch jedes, das dort
+     schon gehalten hat — ein beidbeiniger Baker-Halt zaehlt fuer beide. */
+  if(istKniePfad(ex)){
+    const a = seitenAktiv(ex);
+    return seiten.filter(sd => sd == null || a.includes(sd)
+      || (mitVerlauf && S.sessions.some(x => x.exercise === ex && zaehltFuer(x, ex, sd))));
+  }
   if(!haltungen(ex)) return seiten;
   const h = haltungOf(ex);
   return seiten.filter(sd => sd == null || sd === h
@@ -2692,6 +3054,11 @@ function regelKeys(ses){
 function leiterKey(ex, side){
   const e = S.ex[ex];
   if(side || !e || !e.sides || !hatBeidStufe(ex)) return keyOf(ex, side);
+  /* Baker-Pfad: das schwaechere der angehakten Beine bestimmt den gemeinsamen
+     Halt — der Schmerz fuehrt, nicht die bessere Seite. */
+  if(istKniePfad(ex))
+    return standSeiten(ex).map(x => keyOf(ex, x))
+                          .reduce((a, b) => (standOf(b) < standOf(a) ? b : a));
   return e.sides.map(x => keyOf(ex, x))
                 .reduce((a, b) => (standOf(b) > standOf(a) ? b : a));
 }
@@ -2753,6 +3120,20 @@ function zaehltFuer(s, ex, side){
   if((s.side || null) === (side || null)) return true;
   return !!side && s.side == null && beidStufe(ex, s.level);
 }
+/* Ist diese Sitzung ein Messpunkt — gleich welcher Kurve? Die Seite prueft
+   points() fuer sich; der Mess-Status je Sprosse fragt ohne Seite. */
+function messpunktGueltig(s){
+  if(s.fresh === false) return false;
+  /* Auf einer alten Lastskala gemessen — siehe ROW_SKALA_AT. */
+  if(s.ausKurve) return false;
+  /* s.sets kann bei Import- oder Fremddaten fehlen. Ungeschuetzt wirft der
+     Zugriff einen TypeError und das GANZE Profil bleibt leer. */
+  const first = s.sets && s.sets[0];
+  if(!first || !first.time) return false;
+  /* Ausserhalb des Messfensters ist der Wert keine Maximalhaltezeit,
+     sondern eine Aussage ueber die Stufenwahl — siehe MESS_MIN/MESS_MAX. */
+  return messbar(first.time);
+}
 function points(ex, side){
   ex = ex === undefined ? S.exercise : ex;
   side = side === undefined ? S.side : side;
@@ -2760,20 +3141,33 @@ function points(ex, side){
   for(const s of S.sessions){
     if(s.exercise !== ex) continue;
     if(!zaehltFuer(s, ex, side)) continue;
-    if(s.fresh === false) continue;
-    /* Auf einer alten Lastskala gemessen — siehe ROW_SKALA_AT. */
-    if(s.ausKurve) continue;
-    /* s.sets kann bei Import- oder Fremddaten fehlen. Ungeschuetzt wirft der
-       Zugriff einen TypeError und das GANZE Profil bleibt leer. */
-    const first = s.sets && s.sets[0];
-    if(!first || !first.time) continue;
-    /* Ausserhalb des Messfensters ist der Wert keine Maximalhaltezeit,
-       sondern eine Aussage ueber die Stufenwahl — siehe MESS_MIN/MESS_MAX. */
-    if(!messbar(first.time)) continue;
+    if(!messpunktGueltig(s)) continue;
+    const first = s.sets[0];
     out.push({load: s.load, time: first.time, pain: !!first.pain, date: s.date, level: s.level});
   }
   return out;
 }
+
+/* ── Mess-Status je Sprosse ───────────────────────────────────────────
+   Luke, 15.10.2026: Er ist in der Beta der Einzige, der Messpunkte sammelt,
+   und nicht jeder Sprossenwert ist sauber gemessen. Eine Sprosse, die noch
+   keiner gemessen hat, steht rot da: „Sprossenwert noch vorläufig, muss noch
+   gemessen werden". Das Rot verschwindet, wenn Luke die Sprosse gemessen hat
+   (gemessen:true in DEFAULT_EX, mit jedem Build aus seinem Export
+   nachgezogen) oder wenn auf diesem Geraet ein gueltiger Halt auf ihr liegt —
+   frisch, in der Kurve, im Messfenster, gleich welche Seite. Gelesen wird
+   DEFAULT_EX, nie das gespeicherte S.ex: Die Liste waechst mit dem Build. */
+const VORLAEUFIG_SATZ = "Sprossenwert noch vorläufig, muss noch gemessen werden";
+const VORLAEUFIG_KURZ = " · vorläufig";
+function gemesseneSprossen(ex){
+  const g = new Set();
+  ((DEFAULT_EX[ex] && DEFAULT_EX[ex].levels) || []).forEach((L, i) => { if(L && L.gemessen) g.add(i); });
+  for(const s of S.sessions)
+    if(s.exercise === ex && Number.isFinite(s.level) && !s.entfalleneSprosse && messpunktGueltig(s))
+      g.add(s.level);
+  return g;
+}
+function sprosseVorlaeufig(ex, i){ return !gemesseneSprossen(ex).has(i); }
 const curFit = (ex, side) => fit(points(ex, side));
 
 /* ── Satzkurve: wie lange Satz 2, 3, … halten ───────────────────────
@@ -3569,6 +3963,9 @@ function ausfuehrbar(ex){ return verfuegbareStufen(ex).length > 0; }
 function offeneSeite(ex){
   const e = S.ex[ex];
   if(!e || !e.sides || e.sides.length < 2) return null;
+  /* Baker-Pfad: Das angehakte Bein steht auf einer anderen Leiter als das
+     gesunde, beide sind keine Gegenseiten. */
+  if(istKniePfad(ex) || seitenAktiv(ex).length < 2) return null;
   /* Haltungen sind keine Gegenseiten: Wer heute gestreckt gehalten hat, hat
      rund nicht "offen" — sonst plante die App morgen einen Nachholblock rund. */
   if(haltungen(ex)) return null;
@@ -3603,11 +4000,34 @@ function offeneSeite(ex){
           zone:   (vor && (vor.zoneGezaehlt || vor.workoutZone)) || null,
           target: (vor && vor.target > 0 ? vor.target : null)};
 }
+/* ── Die Einheit Fersenbruecke mit Baker-Pfad ─────────────────────────
+   Welche Halte heute dran sind, als {ex, side}. Ohne Haekchen die Seiten der
+   Fersenbruecke wie bisher. Mit Haekchen, solange der Baker-Pfad beidbeinig
+   steht: EIN Baker-Halt, beide Fuesse gleich — das gesunde Bein bekommt keinen
+   eigenen Block (Luke, 15.10.2026: „Nur der beidbeinige Halt"). Ab einbeinig:
+   je angehaktem Bein ein Baker-Block, dazu das gesunde Bein einbeinig auf der
+   Hoehenleiter. Fehlt die Rolle, faellt der Baker-Teil weg. */
+function fersenTeile(host){
+  const pfad = kniePfad(host), k = pfad ? seitenAktiv(pfad) : [];
+  if(!k.length) return planSeiten(host).map(sd => ({ex: host, side: sd}));
+  const gesund = einStufe(host) != null
+    ? seitenAktiv(host).map(sd => ({ex: host, side: sd})) : [];
+  if(!ausfuehrbar(pfad)) return gesund;
+  if(beidJetzt(pfad)) return [{ex: pfad, side: null}];
+  return k.map(sd => ({ex: pfad, side: sd})).concat(gesund);
+}
+/* Die Halte einer Uebung heute, fuer jede Uebung gleich gebaut. */
+function planTeile(ex){
+  return kniePfadAn(ex) ? fersenTeile(ex) : planSeiten(ex).map(sd => ({ex, side: sd}));
+}
 function uebungslage(){
-  return Object.keys(S.ex).map(ex => {
+  /* Der Baker-Pfad steht nicht als eigene Zeile da: Er ist ein Teil der
+     Fersenbruecke und wird mit ihr geplant (fersenTeile). */
+  return Object.keys(S.ex).filter(ex => !istKniePfad(ex)).map(ex => {
     const gr = groupOf(ex);
-    return {ex, group:gr, aktiv: S.aktiv[ex] !== false && ausfuehrbar(ex),
-            ohneGeraet: !ausfuehrbar(ex), tor: gateGroup(gr), offen: offeneSeite(ex)};
+    const geht = kniePfadAn(ex) ? fersenTeile(ex).length > 0 : ausfuehrbar(ex);
+    return {ex, group:gr, aktiv: S.aktiv[ex] !== false && geht,
+            ohneGeraet: !geht, tor: gateGroup(gr), offen: offeneSeite(ex)};
   });
 }
 /* Was heute tatsaechlich trainiert wird. */
@@ -3621,10 +4041,9 @@ function heuteDran(){
    wartet seit zehn. Nie gemessen zaehlt als unendlich — neue Uebungen und
    vergessene Seiten kommen zuerst. */
 function uebungWartet(ex){
-  const sides = planSeiten(ex);
   let laengste = 0;
-  for(const sd of sides){
-    const pts = points(ex, sd);
+  for(const t of planTeile(ex)){
+    const pts = points(t.ex, t.side);
     if(!pts.length) return Infinity;
     laengste = Math.max(laengste, today() - dayNum(pts[pts.length-1].date));
   }
@@ -3644,7 +4063,7 @@ function auswahlHeute(dran){
   }
   const deckel = (S.maxBloecke > 0) ? S.maxBloecke : MAX_BLOECKE;
   /* Ein Nachholblock ist EINE Seite, nicht zwei — er kostet den halben Platz. */
-  const kosten = u => u.offen ? 1 : planSeiten(u.ex).length;
+  const kosten = u => u.offen ? 1 : planTeile(u.ex).length;
   /* Und er steht vor allem anderen: Wer eine Seite offen hat, hat sie seit
      gestern offen, waehrend die Wartezeit-Liste nach Tagen sortiert und den
      Nachholfall genau deshalb ans Ende stellen wuerde. */
@@ -3915,12 +4334,19 @@ function extraBereich(ex, level){
    Sie zaehlt deshalb erst ab dem kleinsten Gewicht im Raster, mit dem sie
    mindestens so schwer ist wie Y. Bei 80 kg Koerpergewicht: 7,5 kg, Last
    1,015. Gilt nur fuer Uebungen mit gewichtMindestens (gelesen aus
-   DEFAULT_EX wie ohneZusatz), Lasten und extraK kommen aus S.ex. */
+   DEFAULT_EX wie ohneZusatz), Lasten und extraK kommen aus S.ex.
+   Seit Build 2026-10-16 a auch fuer eine Sprosse mitten in der Leiter, die
+   dieselbe Stellung hat wie die darunter und erst durch das Gewicht eine
+   eigene Sprosse wird: Hip Hinge stehend mit Gewicht. Sie traegt mindSprung,
+   den Abstand, den das Mindestgewicht ueber der Sprosse darunter herstellt
+   (1,25 = Tor 2). Bei 80 kg Koerpergewicht: 10 kg. */
 function kgMindest(ex, level){
   const e = S.ex[ex];
   if(!(DEFAULT_EX[ex] || {}).gewichtMindestens || !e || level == null) return 0;
-  if(level !== e.levels.length - 1 || level < extraAbOf(ex) || level < 1) return 0;
-  const unten = e.levels[level-1].load, oben = e.levels[level].load, k = extraKOf(ex, 1);
+  const sprung = ((DEFAULT_EX[ex].levels || [])[level] || {}).mindSprung || 0;
+  if((!sprung && level !== e.levels.length - 1) || level < extraAbOf(ex) || level < 1) return 0;
+  const unten = e.levels[level-1].load * (sprung || 1), oben = e.levels[level].load,
+        k = extraKOf(ex, 1);
   if(!(unten > oben) || !(oben > 0) || !(k > 0)) return 0;
   const bw = (S.bw > 0 ? S.bw : BW_DEFAULT);
   const schritt = (e.extraSchritt != null) ? e.extraSchritt : ZUSATZ_SCHRITT;
@@ -4168,7 +4594,34 @@ function zielKg(ex, level, f, anker, target, side){
   return (zielLast != null) ? kgFuerLast(ex, level, zielLast, side) : null;
 }
 
+/* Ein Block auf dem Baker-Pfad. Die Sprosse ist der Leiterstand — der
+   Schmerz hat sie dorthin gebracht, nicht die Kurve (siehe knieRegeln). Die
+   Zielzeit kommt aus der eigenen Kurve, wo sie die Sprosse kennt, sonst aus
+   der Zonenmitte. Kein Gewicht, keine Lueckenlogik. */
+function knieBlock(ex, side, zone, target, fresh, fest){
+  const stufen = stufenFuerSeite(ex, side);
+  let level = standOf(leiterKey(ex, side));
+  if(stufen.length && !stufen.some(st => st.i === level)){
+    const drunter = stufen.filter(st => st.i <= level);
+    level = (drunter.length ? drunter[drunter.length - 1] : stufen[0]).i;
+  }
+  const f = fit(points(ex, side));
+  const last = lastVon(ex, level, 0, side);
+  const tt = (f && imBereich(f, last)) ? predictTime(f, last) : NaN;
+  const vorhergesagt = isFinite(tt);
+  const erwartet = Math.max(15, Math.round(vorhergesagt ? tt : target));
+  const zoneErwartet = vorhergesagt ? zoneOf(erwartet).id : zone;
+  return {exercise:ex, side, zone, zoneErwartet, soll: target,
+          fresh, zweiteSeite: !fresh, level, levelVorschlag:level,
+          extra: 0, saetze: SETS_ZONE[zoneErwartet] || SETS,
+          art: leiterArt(ex), ausserhalb: false, erweitert: false, fest: !!fest,
+          fehlt: [], abgewichen: false,
+          herkunft: "stand", anker: null, rohStufe: null,
+          target: erwartet};
+}
+
 function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
+  if((DEFAULT_EX[ex] || {}).schmerzGefuehrt) return knieBlock(ex, side, zone, target, fresh, fest);
   /* Laeuft das Workout selbst noch im Onboarding, gibt es die Zone vor — dann
      ziehen alle Bloecke am selben Strang.
      Danach gilt: Die Rotation bleibt der Normalfall. Abgewichen wird nur, wenn
@@ -4283,6 +4736,14 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
     const n = Math.max(1, stufen.length);
     const pos = Math.round([0.2, 0.5, 0.75][schritt] * (n - 1));
     level = stufen.length ? stufen[Math.min(pos, n-1)].i : 0;
+    /* Auf einer Rampe beginnt der allererste Halt auf der Startsprosse —
+       bei der Fersenbruecke beidbeinig auf dem Stuhl, ganz unten. Luke,
+       15.10.2026: die Rampe von unten hinaufklettern. Darf diese Seite
+       nicht beidbeinig (Baker-Haken am anderen Bein), beginnt sie auf der
+       leichtesten einbeinigen Sprosse, nicht gespreizt eine darueber. */
+    const s0 = S.ex[ex].startStufe;
+    if(schritt === 0 && beidRampe(ex) && stufen.length)
+      level = stufen.some(st => st.i === s0) ? s0 : stufen[0].i;
     herkunft = "start";
   }
   let kg = kgAuf(level);
@@ -4448,6 +4909,17 @@ function planWorkout(){
   const A = [], B = [];
   for(const u of zwei){
     const zf = zoneFuer(u.group);
+    /* Fersenbruecke mit Baker-Pfad: die Halte aus fersenTeile. Sind es zwei,
+       beginnt wie bei startSeite der mit weniger Messpunkten, frisch; der
+       andere steht am Ende. */
+    if(kniePfadAn(u.ex)){
+      const teile = fersenTeile(u.ex);
+      if(teile.length > 1 && points(teile[1].ex, teile[1].side).length
+                           < points(teile[0].ex, teile[0].side).length) teile.reverse();
+      teile.forEach((t, j) => (j ? B : A).push(
+        mkBlock(t.ex, t.side, zf.zone, zf.target, !j, zf.onboarding, zf.fest)));
+      continue;
+    }
     /* Nachholfall: Eine Seite wurde zuletzt gemessen, die andere nicht — dann
        steht heute genau diese eine Seite im Plan, und zwar in der Zone der
        Gegenseite. Kein zweiter Block: Die gemessene Seite hat ihre Messung in
@@ -4571,8 +5043,72 @@ function regelnAnwenden(ses){
    Name; beim beidbeinigen Halt laeuft applyRules zweimal, einmal je Seite, und
    regelnAnwenden entscheidet danach, ob EINE Meldung fuer beide reicht oder
    zwei getrennte noetig sind. Bis dahin steht hier ein Platzhalter. */
+/* ── Baker-Pfad: der Schmerz entscheidet ──────────────────────────────
+   Luke, 15.10.2026: „Schmerz entscheidet". Zweimal in Folge die Vorgabe
+   gehalten, ohne Schmerzabbruch: eine Sprosse weiter. Zweimal in Folge
+   Schmerzabbruch: eine zurueck (Regel 1). Vorgabe verfehlt: Die Sprosse
+   bleibt, und die Zaehlung beginnt von vorn. Die Regeln 2a, 2b, 3 und 4
+   laufen hier nicht — sie rechnen mit Last, und diese Leiter ordnet nur.
+   Gilt auch fuer die zweite Seite im Workout: Ob es schmerzt, sagt sie
+   genauso wie die erste. */
+function knieRegeln(session, etikett){
+  const ex = session.exercise, key = keyOf(ex, session.side);
+  const st = (S.streak[key] = S.streak[key] || {pain:0, miss:0, leer:0});
+  const first = session.sets[0], msgs = [];
+  const stand = () => standOf(key);
+  const name = () => stufenName(ex, stand(), 0, session.side);
+  /* Selbst gewaehlte Sprosse ohne Schmerz: Dort steht das Bein jetzt, und
+     gezaehlt wird von dort aus. */
+  if(session.userPicked && !first.pain && session.level !== stand()
+     && S.ex[ex].levels[session.level]){
+    S.levels[key] = session.level; st.gut = 0;
+  }
+  if(first.pain){
+    st.pain++; st.gut = 0;
+    msgs.push({t:"warn", x:`${etikett}: Satz bei Schmerz beendet.`});
+    if(st.pain >= PAIN_BACK){
+      st.pain = 0;
+      const tiefer = verfuegbareStufen(ex).filter(x => x.i < stand());
+      if(tiefer.length){
+        S.levels[key] = tiefer[tiefer.length - 1].i;
+        msgs.push({t:"bad", x:`Zweimal hintereinander Schmerzabbruch → eine Stufe zurück auf „${name()}".`});
+      } else msgs.push({t:"bad", x:`Zweimal hintereinander Schmerzabbruch — und sanfter als `
+        + `„${name()}" geht es nicht. Lass die Übung weg, bis es besser ist, und lass das Knie `
+        + `abklären.`});
+    }
+  } else if(first.time >= session.target){
+    st.pain = 0; st.gut = (st.gut || 0) + 1;
+    if(st.gut >= KNIE_HOCH){
+      st.gut = 0;
+      const hoeher = verfuegbareStufen(ex).filter(x => x.i > stand());
+      if(hoeher.length){
+        S.levels[key] = hoeher[0].i;
+        msgs.push({t:"ok", x:`${etikett}: zweimal in Folge ohne Schmerz gehalten → eine Stufe `
+          + `weiter auf „${name()}".`});
+      } else msgs.push({t:"ok", x:`${etikett}: ohne Schmerz gehalten — das ist schon die `
+        + `schwerste Stellung.`});
+    } else msgs.push({t:"ok", x:`${etikett}: ohne Schmerz gehalten. Noch einmal, dann geht `
+      + `es eine Stufe weiter.`});
+  } else {
+    st.pain = 0; st.gut = 0;
+    msgs.push({t:"ok", x:`${etikett}: unter der Vorgabe — die Stellung bleibt.`});
+  }
+  const serie = schmerzSerie();
+  if(serie) msgs.push(serie);
+  return msgs;
+}
+/* Sicherheitsregel Abschnitt 7 — Schmerzwert gilt fuers ganze Workout,
+   deshalb ueber alle Sessions hinweg gezaehlt, nicht je Kurve. */
+function schmerzSerie(){
+  const recent = [...new Set(S.sessions.map(x=>x.workout || x.date))].slice(-3)
+    .map(w => S.sessions.find(x => (x.workout || x.date) === w));
+  if(recent.length===3 && recent.every(s=>s && s.painEnd>=6))
+    return {t:"bad", x:"Dein Schmerzwert lag dreimal in Folge bei 6 oder höher. Bitte lass das ärztlich abklären, bevor du weitertrainierst."};
+  return null;
+}
 function applyRules(session, etikett){
   etikett = etikett || labelOf(session.exercise, session.side, session.level);
+  if((DEFAULT_EX[session.exercise] || {}).schmerzGefuehrt) return knieRegeln(session, etikett);
   const msgs = [];
   const first = session.sets[0];
   const ex = S.ex[session.exercise];
@@ -4600,7 +5136,21 @@ function applyRules(session, etikett){
     S.extra[kgKey(session.exercise, key, session.level)] =
       extraKlemm(session.exercise, session.extra || 0, session.level);
   }
+  /* Fersenbruecke mit Baker-Haekchen: Das gesunde Bein laeuft einbeinig.
+     Steht es noch auf der beidbeinigen Rampe, ruecken die Regeln von der
+     ersten einbeinigen Sprosse aus — nicht von einer, die es heute nicht
+     geben darf. */
+  const rampe = beidRampe(session.exercise);
+  if(rampe && session.side && !beidErlaubt(session.exercise)
+     && beidStufe(session.exercise, standOf(key)) && einStufe(session.exercise) != null)
+    S.levels[key] = einStufe(session.exercise);
   const lvNow = () => standOf(key);
+  /* Quer zur Leiter: beidbeinig gehalten, waehrend die Seite einbeinig steht,
+     oder umgekehrt — etwa weil Luke die beidbeinigen Sprossen gezielt misst.
+     Der Halt ist ein Messpunkt, aber er sagt nichts darueber, ob die Seite auf
+     IHRER Sprosse zu leicht oder zu schwer steht. */
+  const quer = rampe && beidStufe(session.exercise, session.level)
+                        !== beidStufe(session.exercise, lvNow());
   const kgSchluessel = () => kgKey(session.exercise, key, lvNow());
   const kgNow = () => extraKlemm(session.exercise, extraOf(kgSchluessel()), lvNow());
   const schrittNow = () => extraBereich(session.exercise).schritt;
@@ -4643,7 +5193,8 @@ function applyRules(session, etikett){
       S.extra[kgSchluessel()] = Math.max(b.lo, Math.round((kgNow() - b.schritt) * 10) / 10);
       return "gewicht";
     }
-    const tiefer = verfuegbareStufen(session.exercise).filter(st => st.i < lvNow());
+    const boden = stufenBoden(session.exercise);
+    const tiefer = verfuegbareStufen(session.exercise).filter(st => st.i < lvNow() && st.i >= boden);
     if(tiefer.length){ stufeWechseln(tiefer[tiefer.length - 1].i); return "stufe"; }
     return null;
   };
@@ -4692,6 +5243,13 @@ function applyRules(session, etikett){
           + `Stufe mehr. Hier ist die App am Ende ihrer Mittel: Lass die Übung weg, bis es `
           + `besser ist, oder lass die Beschwerden abklären.`});
     }
+  } else if(!messbar(first.time) && quer){
+    unmessbar = true;
+    st.pain = 0;
+    msgs.push({t:"warn", x:`${etikett}: `
+      + `${komma(first.time, 1)} s liegt ${first.time > MESS_MAX ? "über" : "unter"} dem Messfenster `
+      + `(${MESS_MIN}–${MESS_MAX} s) — der Wert zählt nicht für die Kurve. Deine Stufe bleibt `
+      + `„${wieJetzt()}".`});
   } else if(!messbar(first.time)){                  /* Regel 2a */
     unmessbar = true;
     /* Der Wert sagt nichts ueber die Belastbarkeit, nur ueber die Stufe.
@@ -4789,6 +5347,10 @@ function applyRules(session, etikett){
           umgerechnet = true; zusatzBedarf = 0;
         }
       } else { gewichtDirekt(vor); if(amDeckel) break; }
+      /* Auf einer Rampe haelt der Sprung an der Grenze zwischen beidbeinig und
+         einbeinig: Der Umstieg ist ein eigener Schritt, gemessen wird danach. */
+      if(rampe && w === "stufe" && beidStufe(session.exercise, stufeVor)
+                                   !== beidStufe(session.exercise, lvNow())) break;
     }
     /* Nach einem umgerechneten Sprossenwechsel vergleicht die Differenz das
        Gewicht zweier verschiedener Sprossen — die Meldung nennt dann nur die
@@ -4847,7 +5409,7 @@ function applyRules(session, etikett){
     msgs.push({t:"ok", x:`Vorgabe übertroffen (${fmt(first.time)} statt ${fmt(session.target)}). Die Kurve zieht nach oben.`});
   } else if(first.time < session.target*MISS_RATIO){/* Regel 3 */
     st.pain = 0; st.leer = 0;
-    if(session.userPicked){
+    if(session.userPicked || quer){
       /* Die Stufe hat der Nutzer selbst gewaehlt. Den Richtwert zu verfehlen ist
          dann keine Verfehlung, sondern eine Schaetzung, die danebenlag — und
          genau so ein Messpunkt wie jeder andere. Kein Rueckstufen. */
@@ -4889,13 +5451,8 @@ function applyRules(session, etikett){
     }
   }
 
-  /* Sicherheitsregel Abschnitt 7 — Schmerzwert gilt fuers ganze Workout,
-     deshalb ueber alle Sessions hinweg gezaehlt, nicht je Kurve. */
-  const recent = [...new Set(S.sessions.map(x=>x.workout || x.date))].slice(-3)
-    .map(w => S.sessions.find(x => (x.workout || x.date) === w));
-  if(recent.length===3 && recent.every(s=>s && s.painEnd>=6)){
-    msgs.push({t:"bad", x:"Dein Schmerzwert lag dreimal in Folge bei 6 oder höher. Bitte lass das ärztlich abklären, bevor du weitertrainierst."});
-  }
+  const serie = schmerzSerie();
+  if(serie) msgs.push(serie);
   return msgs;
 }
 
@@ -5396,15 +5953,17 @@ function warnKarte(i, bl, ex){
       <p class="tiny" style="margin-top:9px">Die Frage kommt nur dieses eine Mal. Ändert sich
       etwas, nimm die Übung unter <b>Heute</b> wieder raus.</p>
     </div>`;
+  /* Beim Baker-Pfad gilt die Frage der Fersenbruecke, fuer beide Leitern. */
+  const einheit = einheitVon(bl.exercise);
   el("wkNein").onclick = ()=>{
-    S.gefragt[bl.exercise] = true; laufSichern(); blockIntro(i);
+    S.gefragt[einheit] = true; laufSichern(); blockIntro(i);
   };
   el("wkJa").onclick = ()=>{
     /* Die Uebung fliegt dauerhaft raus und der laufende Block mit ihr —
        aber nur dieser Block, nicht das Workout. */
-    S.aktiv[bl.exercise] = false;
+    S.aktiv[einheit] = false;
     S.plan = null; S.planDay = null;
-    RUN.plan.blocks = bloeckeOhne(RUN.plan.blocks, bl.exercise);
+    RUN.plan.blocks = RUN.plan.blocks.filter(b => einheitVon(b.exercise) !== einheit);
     save();
     if(RUN.b >= RUN.plan.blocks.length){ workoutBeenden(); return; }
     blockIntro(Math.min(i, RUN.plan.blocks.length - 1));
@@ -5445,6 +6004,62 @@ function ausfUmbauen(i){
   RUN.plan.blocks = vor.concat(neu, nach);
   RUN.b = i; RUN.sets = []; RUN.i = 0;
   save(); laufSichern();
+}
+/* ── Baker-Haekchen auf der Karte der Fersenbruecke ───────────────────
+   Je Bein ein Haken (Luke, 15.10.2026: „je bein"). Ist einer gesetzt, steht
+   der Satz zur Abklaerung darunter — der Hinweis gehoert laut Handoff in die
+   App, und er gilt, solange ein Knie angehakt ist. */
+const KNIE_SICHER = "Eine Baker-Zyste ist meist Folge eines Gelenkproblems – anhaltender Schmerz "
+  + "innen hinten am Knie gehört abgeklärt. Im Reizzustand Zehen runter zuerst.";
+function knieWahlKarte(ort){
+  const k = S.knieInnen || {}, id = ort || "kn";
+  return `<div style="margin-top:12px">${["links", "rechts"].map(sd => `
+      <label class="chk" for="${id}-${sd}"><input type="checkbox" id="${id}-${sd}" data-knie="${sd}"${
+        k[sd] ? " checked" : ""}><span>Probleme mediales Knie / Baker-Zyste<br><span
+        class="tiny">${sd === "links" ? "linkes" : "rechtes"} Bein</span></span></label>`).join("")}
+    ${knieSeiten().length ? `<p class="tiny" style="margin:2px 0 0">${KNIE_SICHER}</p>` : ""}
+  </div>`;
+}
+/* Haken gesetzt oder geloest, im laufenden Workout: Die noch nicht begonnenen
+   Bloecke der Fersenbruecke — Hoehenleiter wie Baker-Pfad — werden an Ort und
+   Stelle neu gebaut, nach derselben Regel wie in planWorkout. Wie bei
+   ausfUmbauen bleibt alles davor unberuehrt. */
+function knieBloeckeNeu(plan, i){
+  const B = plan.blocks, einheit = einheitVon(B[i].exercise);
+  const vor  = B.slice(0, i);
+  const nach = B.slice(i + 1).filter(b => einheitVon(b.exercise) !== einheit);
+  const zf = zoneFuer(groupOf(einheit));
+  const onb = !!plan.onboarding;
+  const teile = planTeile(einheit);
+  if(teile.length > 1 && points(teile[1].ex, teile[1].side).length
+                       < points(teile[0].ex, teile[0].side).length) teile.reverse();
+  const neu = teile.slice(0, 1).map(t => mkBlock(t.ex, t.side, zf.zone, zf.target, true, onb, zf.fest));
+  teile.slice(1).forEach(t => nach.push(mkBlock(t.ex, t.side, zf.zone, zf.target, false, onb, zf.fest)));
+  plan.blocks = vor.concat(neu, nach);
+}
+function knieUmbauen(i){
+  knieBloeckeNeu(RUN.plan, i);
+  RUN.b = i; RUN.sets = []; RUN.i = 0;
+  S.plan = null; S.planDay = null;
+  save(); laufSichern();
+}
+/* Haken unter Mehr gesetzt oder geloest, waehrend ein Workout laeuft oder
+   unterbrochen ist: Ist von der Fersenbruecke noch nichts gelaufen, werden
+   ihre Bloecke nach derselben Regel umgebaut wie auf der Karte. Der Block,
+   an dem der Lauf steht, bleibt, wo er ist. Ist schon etwas gelaufen, bleibt
+   der Lauf, wie er ist — dann zeigt auch die Karte keine Haekchen mehr, und
+   der Haken gilt ab dem naechsten Workout. */
+function knieImLauf(){
+  const L = RUN || (S.lauf && S.lauf.plan ? S.lauf : null);
+  if(!L) return;
+  const B = L.plan.blocks, b = L.b || 0;
+  const istFb = x => !!kniePfad(einheitVon(x.exercise));
+  if(B.slice(0, b).some(istFb)) return;
+  const j = B.findIndex((x, k) => k >= b && istFb(x));
+  if(j < 0) return;
+  if(j === b && ((L.sets || []).length || L.i)) return;
+  knieBloeckeNeu(L.plan, j);
+  if(RUN) laufSichern(); else save();
 }
 /* ═══════════ Die Karte vor der Übung ═══════════
    Luke, 24.09.2026: „ich muss mich zusätzlich durch 3 menü´s klicken bis der
@@ -5496,7 +6111,9 @@ function blockIntro(i){
   const bl = curBlock(), ex = S.ex[bl.exercise], bloecke = RUN.plan.blocks;
   /* Sicherheitsfrage vor der ersten Ausfuehrung — sie steht VOR der Karte,
      nicht daneben, weil sie beantwortet gehoert, bevor gehalten wird. */
-  if(ex.warnung && !S.gefragt[bl.exercise]){ warnKarte(i, bl, ex); return; }
+  /* Der Baker-Pfad ist ein Teil der Fersenbruecke: Ihre Frage gilt fuer ihn mit. */
+  const einheit = einheitVon(bl.exercise), wEx = S.ex[einheit] || ex;
+  if(wEx.warnung && !S.gefragt[einheit]){ warnKarte(i, bl, wEx); return; }
   const exKey = bl.exercise, gr = groupOf(exKey);
   const teile = bloecke.filter((b, j) => j >= i && b.exercise === exKey);
   for(const q of teile){
@@ -5513,6 +6130,10 @@ function blockIntro(i){
      die zweite Seite laege in einer anderen Zone als die erste. */
   const schonDran = bloecke.slice(0, i).some(b => b.exercise === exKey);
   const awZeigen  = ausfWaehlbar(exKey) && !schonDran;
+  /* Die Baker-Haekchen stehen, solange von der Fersenbruecke — auf welcher
+     Leiter auch immer — noch nichts gelaufen ist. */
+  const knieZeigen = !!kniePfad(einheit)
+    && !bloecke.slice(0, i).some(b => einheitVon(b.exercise) === einheit);
   const gemessen  = RUN.fertig.length > 0;
   const danach    = bloecke.some((b, j) => j > i && b.exercise !== exKey);
   /* Gezaehlt werden Uebungen, nicht Bloecke: Wade links und rechts direkt
@@ -5571,7 +6192,9 @@ function blockIntro(i){
       ${satzKurveSVG(satzZeiten(q.target, q.saetze, q.satzModell), zE.id)}
       ${stufen.length < 2 ? "" : `<select data-t="${t}" data-a="stufe" aria-label="Variante">${
         stufen.map(st => `<option value="${st.i}"${st.i === q.level ? " selected" : ""}>${
-          st.name}</option>`).join("")}</select>`}
+          st.name}${sprosseVorlaeufig(q.exercise, st.i) ? VORLAEUFIG_KURZ : ""}</option>`).join("")}</select>`}
+      ${sprosseVorlaeufig(q.exercise, q.level)
+        ? `<p class="tiny vorl" style="margin:5px 0 0">${VORLAEUFIG_SATZ}</p>` : ""}
       ${(mitKg && zwei) ? `<div class="zw drei">${seitenWahl(q.exercise).map(o => `<button
         class="${Math.sign(q.extra || 0) === o.v ? "sel" : "ghost"}" data-t="${t}"
         data-sw="${o.v}">${o.titel}<span>${o.unter}</span></button>`).join("")}</div>` : ""}
@@ -5600,9 +6223,12 @@ function blockIntro(i){
   el("homeBody").innerHTML = `
     <div class="card" id="ivKarte">
       <h2 style="margin:0">${ex.name}</h2>
+      ${(DEFAULT_EX[exKey] || {}).knieWinkelVorlaeufig
+        ? `<p class="tiny vorl" style="margin:4px 0 0">Kniewinkel vorläufig 90°</p>` : ""}
       ${schonDran ? "" : zonenWahlKarte(gr)}
       ${awZeigen ? ausfWahlKarte(exKey, bl.zone, "", true) : ""}
       ${(haltungen(exKey) && !schonDran) ? haltungWahlKarte(exKey) : ""}
+      ${knieZeigen ? knieWahlKarte() : ""}
       ${teile.map(teilHTML).join("")}
       ${uebungsbild(bl.exercise, bl.level)}
       <button class="primary" style="width:100%;margin-top:14px;padding:16px" id="ivGo">
@@ -5688,6 +6314,18 @@ function blockIntro(i){
   /* Umstellung beidbeinig/einbeinig: Der Ablauf wird umgebaut, danach steht
      die Karte an derselben Stelle wieder da — bei einbeinig mit zwei Seiten. */
   if(awZeigen) ausfWahlBinden(() => { ausfUmbauen(i); zeichne(); });
+  /* Baker-Haekchen: Die Bloecke der Fersenbruecke werden neu gebaut. Bleibt
+     keiner uebrig (keine Rolle, und das andere Bein ist auch angehakt), geht
+     es mit der naechsten Uebung weiter. */
+  document.querySelectorAll("#ivKarte [data-knie]").forEach(b => {
+    b.onchange = () => {
+      if(!S.knieInnen) S.knieInnen = {links:false, rechts:false};
+      S.knieInnen[b.getAttribute("data-knie")] = b.checked;
+      knieUmbauen(i);
+      if(RUN.b >= RUN.plan.blocks.length){ workoutBeenden(); return; }
+      zeichne();
+    };
+  });
   /* Haltung gestreckt/rund: Der Block wird mit der Kurve der neuen Haltung neu
      gebaut, die Karte steht an derselben Stelle wieder da. */
   document.querySelectorAll("#ivKarte [data-hl]").forEach(b => {
@@ -5705,7 +6343,7 @@ function blockIntro(i){
      weil sie am laengsten wartet. Die naechste Uebung bekommt eine neue
      Karte, also darf show() hier nach oben scrollen. */
   if(el("ivSkip")) el("ivSkip").onclick = () => {
-    RUN.plan.blocks = bloecke.filter((b, j) => j < i || b.exercise !== exKey);
+    RUN.plan.blocks = bloecke.filter((b, j) => j < i || einheitVon(b.exercise) !== einheit);
     RUN.sets = []; RUN.i = 0; laufSichern();
     if(RUN.b >= RUN.plan.blocks.length){ workoutBeenden(); return; }
     blockIntro(RUN.b);
@@ -6102,11 +6740,15 @@ function finishWorkout(){
       /* Im Modus ohne Geraete auf die naechste erlaubte Sprosse darunter:
          Liegestuetz Nur Koerpergewicht von "Boden" (7) auf "Knie abgelegt" (4), nicht
          auf den Stuhlsitz, den es im Hotel nicht gibt. */
-      for(const k of regelKeys(ses)) if(standOf(k) > 0){
+      /* Ist bei der Fersenbruecke ein Bein angehakt, geht das gesunde nicht
+         auf die beidbeinige Rampe zurueck (stufenBoden). */
+      const boden = stufenBoden(ses.exercise);
+      for(const k of regelKeys(ses)) if(standOf(k) > boden){
         const tiefer = ohneGeraete()
-          ? verfuegbareStufen(ses.exercise).filter(x => x.i < standOf(k)).pop() : null;
+          ? verfuegbareStufen(ses.exercise).filter(x => x.i < standOf(k) && x.i >= boden).pop() : null;
         if(!ohneGeraete()) S.levels[k] = standOf(k) - 1;
         else if(tiefer) S.levels[k] = tiefer.i;
+        if(S.streak[k]) S.streak[k].gut = 0;
       }
       /* Im Modus ohne Geraete auch die geparkte Heimsprosse: Schmerz ist ein
          Koerpersignal, kein Modus-Signal. */
@@ -6382,7 +7024,13 @@ function historySVG(pts){
 /* 4 (01.10.2026): zone_gezaehlt und modus dazu — Training ohne Geraete.
    zone_gezaehlt ist die Zone, die die Rotation zaehlt, wenn sie von der
    geplanten abweicht; modus ist leer, "wand" oder "boden". */
-const EXPORT_SCHEMA = 4;
+/* 5 (15.10.2026): Mess-Status. stufen[] bekommt vorlaeufig und platzhalter,
+   jede Messung entfallen. Die Spalten der CSV bleiben gleich — entfallen
+   steht nur im JSON. */
+/* 6 (16.10.2026): Ein Schluessel wechselt die Bedeutung. Die Fersenbruecke
+   heisst seitdem bridge (Baker-Pfad bridgeKnie), hinge ist der Hip Hinge.
+   Spalten unveraendert; ein Export davor meint mit hinge die Fersenbruecke. */
+const EXPORT_SCHEMA = 6;
 const EXPORT_SPALTEN = [
   "datum","workout","uebung","uebung_name","seite","variante","stufe_nr",
   "zusatz_kg","zusatz_seite","zusatz_position","koerpergewicht_kg","last","satz","saetze_geplant","sekunden","ziel_sekunden",
@@ -6432,7 +7080,11 @@ function messreihen(){
         nachgetragen: ses.manuell ? 1 : 0,
         fassung: BUILD,
         zone_gezaehlt: ses.zoneGezaehlt || "",
-        modus: ses.modus || ""
+        modus: ses.modus || "",
+        /* Nur im JSON: Die Sprosse dieser Messung gibt es nicht mehr (die
+           Ringe der Fersenbruecke, Build 2026-10-15 a). stufe_nr zeigt dann
+           die Sprosse, auf die sie umgezogen ist; Name und Last stimmen. */
+        entfallen: ses.entfalleneSprosse ? 1 : 0
       });
     });
   }
@@ -6477,6 +7129,12 @@ function messreihenJSON(){
             + "Hat eine Stufe mindestgewicht_kg, ist zusatz_kg dort nie kleiner "
             + "(Hyperextension, Gewicht vor der Brust: ohne Gewicht waere die Stufe "
             + "leichter als die darunter).",
+    mess_status: "stufen[].vorlaeufig=true: Fuer diese Sprosse gibt es noch keinen "
+               + "gueltigen Halt, weder in der Liste des Builds noch auf diesem Geraet "
+               + "(gueltig = frisch, nicht ausKurve, im Messfenster). platzhalter=true: Die "
+               + "Last der Sprosse ist ein Platzhalter und noch nicht aus Messungen "
+               + "abgeleitet. entfallen=1 an einer Messung: Ihre Sprosse gibt es nicht "
+               + "mehr; stufe_nr ist die Sprosse, auf die sie umgezogen ist.",
     spalten: EXPORT_SPALTEN,
     zonen: ZONES.map(z=>({id:z.id, name:z.name, von_s:z.lo, bis_s:z.hi})),
     /* Satzkurve (Build 2026-10-06 h): Rohstoff fuer den spaeteren Abgleich
@@ -6486,7 +7144,7 @@ function messreihenJSON(){
     satzmodell_nutzer: satzExport(satzModell(null, null)),
     satzmodelle: Object.entries(S.ex).flatMap(([k, v]) => (v.sides || [null]).map(sd =>
       Object.assign({uebung:k, seite:sd}, satzExport(satzModell(k, sd))))),
-    uebungen: Object.entries(S.ex).map(([k,v])=>({
+    uebungen: Object.entries(S.ex).map(([k,v])=>Object.assign({
       id:k, name:v.name, region:v.region, gruppe:v.group, seiten:v.sides || null,
       /* extra_k fehlte hier und war damit extern nicht rekonstruierbar: Beim
          Seitstuetz (extra_k = 2) rechnete jeder fremde Konsument falsch. */
@@ -6505,9 +7163,10 @@ function messreihenJSON(){
       art: leiterArt(k),
       /* last bleibt die Grundlast; mindestgewicht_kg nur, wo es eins gibt. */
       stufen: v.levels.map((L,i)=>Object.assign({nr:i+1, name:L.name, last:L.load,
-        geraet: geraetId(L.geraet) || null, verfuegbar: geraetDa(L.geraet)},
+        geraet: geraetId(L.geraet) || null, verfuegbar: geraetDa(L.geraet),
+        beidbeinig: !!L.beid, vorlaeufig: sprosseVorlaeufig(k, i), platzhalter: !!L.platzhalter},
         kgMindest(k, i) > 0 ? {mindestgewicht_kg: kgMindest(k, i)} : {}))
-    })),
+    }, (DEFAULT_EX[k] || {}).teilVon ? {teil_von: DEFAULT_EX[k].teilVon} : {})),
     messungen: messreihen()
   }, null, 2);
 }
@@ -6628,7 +7287,8 @@ function renderHome(){
      Zonen-Kuchen mit den drei Zonen zum Antippen (Luke, 06.10.2026, nach Grip
      Gains). Damit ist die Zonenwahl je Übung zurück auf Heute — nicht als
      eigene Karte, sondern an der Zeile, zu der sie gehört. */
-  const drin = new Set(p.blocks.map(b => b.exercise));
+  /* Ein Baker-Block zaehlt fuer die Fersenbruecke — er hat keine eigene Zeile. */
+  const drin = new Set(p.blocks.map(b => einheitVon(b.exercise)));
   const tage = n => n === 1 ? "morgen" : `in ${n} Tagen`;
   const listeKarte = () => `<div class="card flat" id="heuteListe">
     ${uebungslage().map(u => {
@@ -6683,21 +7343,28 @@ function renderHome(){
      andere Zone antippt. */
   const kuchenZeile = u => {
     const e = S.ex[u.ex];
-    const bl = p.blocks.find(b => b.exercise === u.ex);
+    const bl = p.blocks.find(b => einheitVon(b.exercise) === u.ex);
     const heute = bl ? bl.zone : null;
-    /* Bei Haltungen nur der Kuchen der Haltung, die heute laeuft. */
-    const seiten = kurvenSeiten(u.ex, e.sides || [null]);
-    const kann = new Set(seiten.flatMap(sd => erreichbareZonen(u.ex, sd)));
+    /* Bei Haltungen nur der Kuchen der Haltung, die heute laeuft. Mit
+       Baker-Haekchen die gesunden Beine auf der Hoehenleiter und daneben je
+       angehaktem Bein ein Kuchen des Baker-Pfads. */
+    const pfad = kniePfadAn(u.ex) ? kniePfad(u.ex) : null;
+    const kuchen = (pfad ? seitenAktiv(u.ex) : kurvenSeiten(u.ex, e.sides || [null]))
+      .map(sd => ({ex: u.ex, sd, name: sd}))
+      .concat(pfad ? kurvenSeiten(pfad, seitenAktiv(pfad))
+                       .map(sd => ({ex: pfad, sd, name: `Knie ${sd}`})) : []);
+    const kann = new Set(kuchen.flatMap(k => erreichbareZonen(k.ex, k.sd)));
     const ruht = (u.tor.gewaehlt && u.tor.ruht > 0) ? u.tor.ruht : 0;
     const empf = empfohleneZone(u.ex, p);
     /* Je Seite die Zone ihres eigenen Blocks; ein beidbeiniger Block (ohne
        Seite) gilt fuer beide. */
-    const zoneDerSeite = sd => {
-      const b = p.blocks.find(x => x.exercise === u.ex && (x.side || null) === (sd || null));
+    const zoneDerSeite = (ex, sd) => {
+      const b = p.blocks.find(x => x.exercise === ex && (x.side || null) === (sd || null));
       return b ? b.zone : heute;
     };
     return `<div class="kz" id="kz-${u.ex}">
-      <div class="kzK">${seiten.map(sd => kuchenSVG(zonenAnteile(u.ex, sd), sd, zoneDerSeite(sd))).join("")}</div>
+      <div class="kzK">${kuchen.map(k => kuchenSVG(zonenAnteile(k.ex, k.sd), k.name,
+                                                      zoneDerSeite(k.ex, k.sd))).join("")}</div>
       <div class="kzZ">${ZONES.map(z => {
         const sel = z.id === heute, aus = !sel && !kann.has(z.id), em = z.id === empf;
         return `<button class="z${z.id}${sel ? " sel" : ""}${em ? " empf" : ""}" data-hz="${z.id}"
@@ -6941,6 +7608,28 @@ function verlaufsKarte(pts){
     Stelle der Sitzung steht.</p>
   </div>`;
 }
+/* Mess-Status im Profil (Luke, 15.10.2026). Mit Kurve steht das Kuerzel in
+   der Tabelle „Was du auf jeder Stufe schaffst"; ohne Kurve gibt es die
+   Tabelle nicht, dann zeigt diese Liste die Sprossen und welche davon noch
+   vorlaeufig sind. */
+function vorlLegende(ex, gem){
+  const L = (S.ex[ex] && S.ex[ex].levels) || [];
+  return L.some((x, i) => !gem.has(i))
+    ? `<p class="tiny vorl" style="margin-top:8px">Vorläufig: ${VORLAEUFIG_SATZ}.</p>` : "";
+}
+function sprossenKarte(ex){
+  const L = (S.ex[ex] && S.ex[ex].levels) || [], gem = gemesseneSprossen(ex);
+  if(!L.length) return "";
+  return `<div class="card">
+    <h3 style="margin-top:0">Die Sprossen</h3>
+    <table><tbody>${L.map((l, i) => `<tr${!stufeErlaubt(ex, i)?' style="opacity:.45"':""}>
+      <td><span class="tiny" style="opacity:.6">${i+1}</span> ${l.name}${
+        i===curLevel()?' <span class="tiny">· aktuell</span>':""}${
+        gem.has(i)?"":`<span class="tiny vorl">${VORLAEUFIG_KURZ}</span>`}</td></tr>`).join("")}
+    </tbody></table>
+    ${vorlLegende(ex, gem)}
+  </div>`;
+}
 function renderProfile(){
   const pts = points(), f = curFit(), cov = zoneCoverage();
   el("profSub").textContent = `${labelOf(S.exercise,S.side)} · ${pts.length} Messpunkt${pts.length===1?"":"e"}`;
@@ -6973,12 +7662,12 @@ function renderProfile(){
           <p class="tiny">Dafür braucht die App mindestens zwei Messungen in
           <b>verschiedenen</b> Stufen oder mit verschiedenem Gewicht. Zwei Messungen unter
           derselben Last ergeben keine Kurve — das ist keine Ungenauigkeit, sondern rechnerisch
-          nicht lösbar.</p></div>`)
+          nicht lösbar.</p></div>` + sprossenKarte(S.exercise))
       + profilRestKarte();
     wireCurveSelect("profCurve");
     return;
   }
-  const ready = profileReady();
+  const ready = profileReady(), gem = gemesseneSprossen(S.exercise);
   const kann = erreichbareZonen(S.exercise, S.side);
   el("profBody").innerHTML = waehler + `
     <div class="card">
@@ -7015,6 +7704,7 @@ function renderProfile(){
           <td><span class="tiny" style="opacity:.6">${i+1}</span> ${
             mind > 0 ? stufenName(S.exercise, i, mind) : l.name}${
             i===curLevel()?' <span class="tiny">· aktuell</span>':""}${
+            gem.has(i)?"":`<span class="tiny vorl">${VORLAEUFIG_KURZ}</span>`}${
             !da?` <span class="tiny">· ${fehltText(l, i)}</span>`:""}</td>
           <td class="n">${ll.toFixed(2)}</td>
           <td class="n">${!drin ? '<span class="tiny">nicht gemessen</span>'
@@ -7024,6 +7714,7 @@ function renderProfile(){
                 : isFinite(t)&&t<20?'<span class="tiny">zu schwer</span>'
                 :'<span class="tiny">zu leicht</span>'}</td></tr>`;
       }).join("")}</tbody></table>
+      ${vorlLegende(S.exercise, gem)}
       <p class="tiny" style="margin-top:8px">Die Kurve ist zwischen <b>${komma(f.lo,2)}</b> und
       <b>${komma(f.hi,2)}</b> gemessen. Was außerhalb liegt, bekommt keine Vorhersage — eine
       hochgerechnete Zahl sähe genauso aus wie eine gemessene, und das wäre der Fehler.</p>
@@ -7149,7 +7840,7 @@ function dauerMitHaekchen(u, an, drin){
    heraus (alle Zonen ruhen), gibt es keine Empfehlung: null. */
 function empfohleneZone(ex, plan){
   const gr = groupOf(ex);
-  const zoneIm = bl => { const b = bl && bl.find(x => x.exercise === ex); return b ? b.zone : null; };
+  const zoneIm = bl => { const b = bl && bl.find(x => einheitVon(x.exercise) === ex); return b ? b.zone : null; };
   if(!zoneWahlHeute(gr)) return zoneIm(plan && plan.blocks);
   return aufProbe(() => {
     zoneWahlSetzen(gr, ""); S.plan = null; S.planDay = null;
@@ -7208,7 +7899,7 @@ function kuchenSVG(n, seite, heute){
    zur Rotation, statt sie als eigene Wahl festzuschreiben. */
 function heuteZoneTippen(ex, z){
   const gr = groupOf(ex), eigene = zoneWahlHeute(gr);
-  const bl = S.plan && S.planDay === today() && S.plan.blocks.find(b => b.exercise === ex);
+  const bl = S.plan && S.planDay === today() && S.plan.blocks.find(b => einheitVon(b.exercise) === ex);
   if(eigene === z || (eigene && empfohleneZone(ex) === z)) zoneWahlSetzen(gr, "");
   else if(!eigene && bl && bl.zone === z) return false;
   else zoneWahlSetzen(gr, z);
@@ -7299,6 +7990,10 @@ function renderSetup(){
       verschwindet aus der Auswahl, behält aber ihre Nummer. Sonst bekämen deine alten Messungen
       im Export rückwirkend eine andere Stufennummer.</p>
     </div>
+    ${kniePfad("bridge") ? `<div class="card">
+      <h3 style="margin-top:0">Fersenbrücke</h3>
+      ${knieWahlKarte("knM")}
+    </div>` : ""}
     <div class="card">
       <h3 style="margin-top:0">Länge einer Sitzung</h3>
       <p class="tiny" style="margin-top:0">Höchstens so viele Blöcke pro Sitzung. Eine
@@ -7498,7 +8193,7 @@ function renderSetup(){
       else {
         const mind = kgMindest(ex, lvl);
         if(kg < mind){
-          hint.textContent = `Vor der Brust zählt ab ${String(mind).replace(".", ",")} kg.`;
+          hint.textContent = `${DEFAULT_EX[ex].mindestText || "Vor der Brust"} zählt ab ${String(mind).replace(".", ",")} kg.`;
           hint.style.color = "var(--bad)"; return;
         }
       }
@@ -7608,6 +8303,19 @@ function renderSetup(){
          Stufe zeigen, die es gerade nicht mehr gibt. */
       S.plan = null; S.planDay = null; save();
       renderAmOrt("ger_" + g.id);
+    };
+  });
+  /* Baker-Haekchen auch hier, nicht nur auf der Karte der Fersenbruecke.
+     Luke, 15.10.2026: „ja häkchen zusätzlich". Sind beide Beine angehakt und
+     fehlt die Rolle, ist die Fersenbruecke gesperrt, und ihre Karte erscheint
+     nicht mehr — hier bleibt der Weg zurueck offen. */
+  document.querySelectorAll("#setupBody [data-knie]").forEach(b => {
+    b.onchange = () => {
+      if(!S.knieInnen) S.knieInnen = {links:false, rechts:false};
+      S.knieInnen[b.getAttribute("data-knie")] = b.checked;
+      knieImLauf();
+      S.plan = null; S.planDay = null; save();
+      renderAmOrt(b.id);
     };
   });
   /* Kein renderAmOrt() hier: das Feld haette sonst bei jedem Tastendruck den
@@ -7722,7 +8430,7 @@ function renderOnboard(){
 
   const pick = el("exPick");
   pick.innerHTML = "";
-  Object.entries(S.ex).forEach(([k,v])=>{
+  Object.entries(S.ex).filter(([k]) => !istKniePfad(k)).forEach(([k,v])=>{
     const b = document.createElement("button");
     b.style.cssText = "width:100%;text-align:left;padding:16px";
     /* Ohne Fallback stuende hier woertlich "undefined", sobald eine Uebung

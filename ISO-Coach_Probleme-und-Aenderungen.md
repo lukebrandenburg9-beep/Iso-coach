@@ -2731,11 +2731,417 @@ Die Vorauswahl gestreckt passt also zur Mehrheit. Unter den Knöpfen steht:
 - Export: `mindestgewicht_kg` an einer Stufe nur, wo er über 0 liegt; `last` bleibt die
   Grundlast 0,847.
 
+### P76 · Fersenbrücke: Mess-Status, beidbeinige Rampe, Pfad fürs innere Knie
+
+Luke, 15.10., mit drei Handoffs aus dem Spaziergang: „lies dir die beiden dokumente mal durch
+und guck ob wir die neue funktion in die app integrieren können. Ich werde im Trainingsraum die
+fehlenden daten versuchen so gut es geht zu sammeln über die nächsten tage."
+
+Die Handoffs verlangen dreierlei:
+
+- **Mess-Status:** pro Sprosse „gemessen / noch nicht gemessen". Eine nicht gemessene Sprosse
+  steht in Rot, und der Hinweis „verschwindet automatisch, sobald für die Sprosse ein Messwert
+  existiert".
+- **Zweite Achse für die Fersenbrücke:** beidbeinig oder einbeinig. Dazu „beidbeinig als Rampe
+  möglichst hoch (bis beidbeinig Faszienrolle), DANN auf einbeinige Sprosse springen". Die Ringe
+  fallen weg, „zu viel Equipment".
+- **Eigener Pfad bei Knieproblemen:** ein Häkchen „Probleme mediales Knie / Baker-Zyste". Der
+  Pfad wird über die Stellung des Sprunggelenks skaliert: Zehen runter ist die niedrige Dosis,
+  Zehen zum Knie das Ziel.
+
+Auf die Rückfragen:
+
+| Frage | Lukes Antwort |
+|---|---|
+| Wann verschwindet das Rot? | „Deine oder eigene": wenn du die Sprosse gemessen hast oder auf dem Gerät ein gültiger Halt darauf liegt. |
+| Leiter jetzt auf 90° umbauen? | „Erst nach dem Test" im Spiegel. |
+| Wie sieht der Pfad fürs Knie aus? | „Eigene Leiter auf der Rolle", mit eigener Kurve. |
+| Wann geht es dort weiter? | „Schmerz entscheidet". |
+| Häkchen je Übung oder je Bein? | „je bein, es kann aber auch die beidbeinige leiter trainiert werden dann machen füße/knie das gleiche" |
+| Beidbeinige Lasten | „Platzhalter in deiner Reihenfolge" |
+| Namen oder Lastfaktoren von Hand geändert? | „Weiß nicht, vorher Export" |
+| Kniewinkel im Pfad fürs Knie | „Kläre ich im Trainingsraum" |
+| Dort erst beidbeinig oder gleich einbeinig? | „Erst beidbeinig, dann einbeinig" |
+| Das gesunde Bein, solange der Pfad beidbeinig läuft | „Nur der beidbeinige Halt" |
+| Zum Planentwurf | „Alle beidbeinigen Sprossen liegen unter einbeinig Stuhl. Die App klettert die ganze Rampe hoch und steigt erst danach auf einbeinig um. Die Leiter wird anhand der realen Messungen hinterher neu evaluiert." |
+| Sind beide Knie angehakt und fehlt die Rolle, kommst du nicht mehr an die Häkchen. Häkchen zusätzlich an einer zweiten Stelle? | „ja häkchen zusätzlich" |
+| Zählt eine beidbeinige Sprosse als gemessen, wenn du sie länger als 300 s hältst? | „nein 300s weiterhin ausschließen" |
+
+**Gebaut in 2026-10-15 a.**
+
+*Mess-Status, für alle Übungen.* Unter der Sprossenauswahl auf der Karte steht in Rot
+„Sprossenwert noch vorläufig, muss noch gemessen werden". In der Auswahl selbst und in der
+Profiltabelle steht hinter dem Namen „· vorläufig", darunter die Legende. Das Rot verschwindet
+in zwei Fällen:
+
+- **Du hast die Sprosse gemessen.** Dann trägt sie im Code die Marke `gemessen`. Die Liste kommt
+  aus deinem Export und wird mit jedem Build nachgezogen.
+- **Auf diesem Gerät liegt ein gültiger Halt darauf.** Gültig heißt: frisch, nicht aus der Kurve
+  genommen, 20 bis 300 s. Die Seite ist egal, ein beidbeiniger Halt zählt mit.
+
+Gelesen wird die mitgelieferte Leiter, nie die gespeicherte, damit eine alte Kopie im Speicher
+das Rot nicht festhält. Ohne Kurve gibt es im Profil die Karte „Die Sprossen" mit derselben
+Markierung. Timer, Verlauf und Nachtrag bleiben ohne.
+
+*Beidbeinige Rampe.* Sechs neue Sprossen auf denselben Unterlagen wie einbeinig, davor
+gesetzt:
+
+| Sprosse | Last | Herkunft |
+|---|---|---|
+| Beidbeinig · Fersen auf Stuhlsitz (~45 cm) · Knie etwa rechtwinklig | 0,148 | Platzhalter |
+| Beidbeinig · Fersen auf Hocker (~30 cm) · Knie etwa rechtwinklig | 0,166 | Platzhalter |
+| Beidbeinig · Fersen auf Kiste (~20 cm) · Knie leicht geöffnet | 0,186 | Platzhalter |
+| Beidbeinig · Fersen am Boden · Knie deutlich geöffnet | 0,209 | Platzhalter |
+| Beidbeinig · Fersen am Boden · Beine fast gestreckt | 0,235 | Platzhalter |
+| Beidbeinig · Fersen auf der Faszienrolle · Beine fast gestreckt | 0,264 | Platzhalter |
+| Die sechs einbeinigen Sprossen, Stuhl bis Rolle | 0,296 bis 0,850 | unverändert |
+
+- **Die Platzhalter steigen geometrisch,** `0,148 · 2^(k/6)`. Unten steht die halbe Last von
+  einbeinig Stuhl. Der Schritt von beidbeinig Rolle auf einbeinig Stuhl ist genau ein regulärer.
+- **Die App klettert die Rampe ganz hinauf.** Springt Regel 2a über mehrere Sprossen, hält sie
+  an der Grenze an, also auf einbeinig Stuhl. Das gilt nur für Leitern mit mehr als einer
+  beidbeinigen Sprosse; Wadenheben und Handtuchrolle laufen wie vorher.
+- **Neue Nutzer beginnen auf beidbeinig Stuhl.** Auf der Karte stehen die Knöpfe beidbeinig und
+  einbeinig, vorgewählt und änderbar. So kannst du die beidbeinigen Sprossen gezielt messen.
+- **Wer die Fersenbrücke schon trainiert hat, bleibt einbeinig.** Stände, Sitzungen, ein
+  laufendes Workout und die Anker ziehen um sechs Nummern hoch: alt Stuhl 0 wird 6, alt Rolle 5
+  wird 11. Die alte Ringe-Sprosse zeigt auf die Rolle, ihre Sitzungen tragen die Marke
+  `entfalleneSprosse`. Umgezogen wird nur die Nummer, Last und Seite bleiben, jeder Messpunkt
+  bleibt in der Kurve. Fehlt auf einer Seite der Stand, steht sie danach auf einbeinig Stuhl.
+- **Zusatzgewicht** gibt es weiterhin ab „Ferse am Boden · Knie deutlich geöffnet".
+- Ein beidbeiniger Halt zählt für beide Seiten, wie beim Wadenheben.
+
+*Pfad fürs innere Knie.* Auf der Karte der Fersenbrücke stehen zwei Häkchen „Probleme mediales
+Knie / Baker-Zyste", eines je Bein. Dieselben Häkchen stehen unter *Mehr* in der Karte
+„Fersenbrücke", direkt nach den Geräten. Ist eines gesetzt, steht darunter: „Eine Baker-Zyste ist
+meist Folge eines Gelenkproblems – anhaltender Schmerz innen hinten am Knie gehört abgeklärt. Im
+Reizzustand Zehen runter zuerst." Das angehakte Bein läuft dann auf einer eigenen Leiter, alles
+auf der Faszienrolle:
+
+| Sprosse | Last | Herkunft |
+|---|---|---|
+| Beidbeinig · Fersen auf der Rolle · Zehen runter | 0,500 | Platzhalter |
+| Beidbeinig · Fersen auf der Rolle · Fuß neutral | 0,561 | Platzhalter |
+| Beidbeinig · Fersen auf der Rolle · Zehen zum Knie | 0,630 | Platzhalter |
+| Beidbeinig · Vorfüße auf der Rolle · Zehen runter | 0,707 | Platzhalter |
+| Beidbeinig · Vorfüße auf der Rolle · Fuß neutral | 0,794 | Platzhalter |
+| Beidbeinig · Vorfüße auf der Rolle · Zehen zum Knie | 0,891 | Platzhalter |
+| Ferse auf der Rolle · Zehen runter | 1,000 | Platzhalter |
+| Ferse auf der Rolle · Fuß neutral | 1,122 | Platzhalter |
+| Ferse auf der Rolle · Zehen zum Knie | 1,260 | Platzhalter |
+| Vorfuß auf der Rolle · Zehen runter | 1,414 | Platzhalter |
+| Vorfuß auf der Rolle · Fuß neutral | 1,587 | Platzhalter |
+| Vorfuß auf der Rolle · Zehen zum Knie | 1,782 | Platzhalter |
+
+- **Die Lasten ordnen nur.** Die Leiter hat ihre eigene Kurve, die Zahlen sagen allein, was
+  schwerer ist. Ob Ferse oder Vorfuß mehr zieht, ist offen. Deshalb ist die Reihenfolge der
+  mittleren Sprossen vorläufig.
+- **Kniewinkel:** vorläufig 90°. Er steht auf der Karte rot unter dem Titel.
+- **Der Schmerz entscheidet.** Hältst du zweimal in Folge die Vorgabe ohne Schmerzabbruch, geht
+  es eine Sprosse weiter. Bei zwei Schmerzabbrüchen in Folge geht es eine zurück. Verfehlst du
+  die Vorgabe, bleibt die Sprosse, und die Zählung beginnt von vorn. Die Regeln 2a bis 4 laufen
+  hier nicht.
+- **Die Vorgabe** kommt aus der eigenen Kurve. Solange es keine gibt, ist es die Mitte der Zone.
+- **Geplant wird je nach Häkchen:**
+
+  | Häkchen | Was die App plant |
+  |---|---|
+  | Keins | Die Fersenbrücke wie bisher. |
+  | Beide Beine | Nur den Pfad fürs Knie. |
+  | Ein Bein, Pfad noch beidbeinig | Einen beidbeinigen Halt auf dem Pfad, keinen eigenen Block fürs gesunde Bein. |
+  | Ein Bein, Pfad einbeinig | Einen Block auf dem Pfad fürs angehakte Bein und einen einbeinigen Block auf der Höhenleiter fürs andere. Der mit weniger Messpunkten kommt zuerst und frisch. |
+
+- **Das gesunde Bein geht nie auf beidbeinig,** solange ein Knie angehakt ist; beidbeinig ist
+  dann der Halt auf dem Pfad. Es beginnt auf einbeinig Stuhl, und keine Regel stuft es auf eine
+  beidbeinige Sprosse zurück.
+- **Ein Haken baut sofort um.** Die noch nicht begonnenen Blöcke der Fersenbrücke werden neu
+  gebaut, ohne Neuladen. Auf der Karte des Pfads gibt es keine Knöpfe beidbeinig und einbeinig.
+- **Ein Haken unter *Mehr*** baut den Plan für heute neu. Läuft gerade ein Workout oder ist eines
+  unterbrochen, werden seine Blöcke der Fersenbrücke umgebaut, solange von ihr noch nichts
+  gelaufen ist; der Block, an dem du stehst, bleibt. Ist von der Fersenbrücke schon etwas
+  gelaufen, gilt der Haken ab dem nächsten Workout.
+- Auf *Heute* bleibt es eine Zeile „Fersenbrücke". Der Kuchen des angehakten Beins heißt
+  „Knie links" bzw. „Knie rechts".
+- **Ohne Faszienrolle** wird das angehakte Bein nicht trainiert. Sind beide Beine angehakt, steht
+  die Fersenbrücke auf *Heute* mit „Gerät fehlt".
+- Die Warnfrage vor der ersten Fersenbrücke gilt auch für den Pfad, sie kommt nur einmal.
+
+*Export, Schema 5.* Jede Stufe bekommt `beidbeinig`, `vorlaeufig` und `platzhalter`, jede
+Messung im JSON `entfallen`. Der Pfad fürs Knie erscheint als eigene Übung mit `teil_von: "hinge"`.
+Ein neues Feld `mess_status` erklärt `vorlaeufig`. Die Spalten der CSV bleiben gleich.
+
+**Für Luke.**
+
+- **Alle Texte sind Vorschläge zum Umformulieren:** die zwölf Sprossennamen des Pfads, die sechs
+  beidbeinigen Sprossennamen, der Name „Fersenbrücke fürs innere Knie", der Hinweistext des Pfads,
+  der Satz zur Abklärung, der rote Satz, das Kürzel „· vorläufig", die Legende, „Kniewinkel
+  vorläufig 90°" und die Meldungen nach dem Satz auf dem Pfad.
+- **Was ich im Plan falsch hatte:** Dort stand, die Platzhalter machten deine Kurve „etwas
+  pessimistisch". Wahrscheinlich ist es andersherum. Einbeinig belastet ein Bein mehr als doppelt so
+  stark wie beidbeinig; die echte beidbeinige Last liegt also eher unter der halben Einbeinlast.
+  Unten auf der Rampe ist der Platzhalter genau die halbe Last, also eher zu hoch. Ein Halt dort
+  wird damit einer zu schweren Last zugeschrieben, und die Kurve wird eher optimistisch. Oben auf
+  der Rampe ist die Richtung offen. Ein zu optimistischer Wert fällt auf, weil du die Vorgabe dann
+  verfehlst, und Regel 3 fängt ihn ab.
+- **Halte über 300 s (entschieden 15.10.):** Sie bleiben ausgeschlossen. Hältst du eine
+  beidbeinige Sprosse länger, ist der Halt nicht gültig, und das Rot bleibt. Für die Lastrechnung
+  reicht es trotzdem, wenn du „über 300 s" notierst.
+
+**Der Preis.**
+
+- **Die Platzhalter landen in deiner einbeinigen Kurve.** Ein beidbeiniger Halt geht mit der
+  Platzhalterlast hinein, und gespeichert wird die Last, die zum Zeitpunkt galt. Ziehe ich die
+  Lasten nach deinen Messungen nach, behalten deine schon gemachten beidbeinigen Halte die alte
+  Zahl. Sie umzurechnen ist ein Umzug, und ob er läuft, entscheidest du.
+- **Die Leiter wird nach deinen Messungen neu bewertet:** echte Lasten, der Punkt, an dem
+  einbeinig Stuhl in die beidbeinige Rampe fällt, und ob die Reihenfolge stehen bleibt. Das
+  Ergebnis bekommst du als Vorschlag.
+- **Ein Halt löscht das Rot auf deinem Gerät,** auch solange die Last noch ein Platzhalter ist. So
+  hast du es festgelegt.
+- **Der Pfad fürs Knie ist keine Lastleiter.** Eine Kurve braucht zwei verschiedene Sprossen;
+  vorher kommt die Vorgabe aus der Mitte der Zone.
+- **Sind beide Beine angehakt und fehlt die Rolle,** ist die Fersenbrücke gesperrt, und ihre
+  Karte erscheint nicht. Zurück geht es über die Häkchen unter *Mehr*. Setzt du dort mitten im
+  Workout beide Haken ohne Rolle, fällt die Fersenbrücke aus diesem Workout heraus; den Haken zu
+  lösen holt sie erst im nächsten zurück.
+- **Zwei Schmerzabbrüche auf einbeinig Stuhl** führen beim gesunden Bein zur Meldung, dass es
+  keine leichtere Sprosse gibt, solange ein Knie angehakt ist. Beidbeinig wäre leichter, ist dann
+  aber der Halt auf dem Pfad.
+- **Die Fassung der Übungsliste springt von 25 auf 26.** Damit wird die gespeicherte Leiter durch
+  die mitgelieferte ersetzt; Namen oder Faktoren, die du von Hand geändert hättest, wären weg.
+  Deshalb vorher der Export. Deine Pausen-Einstellungen bleiben.
+- **Andere Geräte am selben Tag aktualisieren.** Ein Gerät mit der alten Fassung im Cache könnte
+  Sitzungen mit alter Nummerierung synchronisieren.
+- In der Kurvengrafik nehmen die beidbeinigen Sprossen links etwa ein Fünftel der Lastachse ein.
+
+**Für den Nachbau:**
+
+- `DEFAULT_EX.hinge`: zwölf Sprossen, 0 bis 5 mit `beid:true, platzhalter:true`, 6 bis 11 die
+  alten einbeinigen. `extraAb:9`, `startStufe:0`. `EX_VERSION` 26, `HINGE_BEID_AT` 26,
+  `HINGE_UMZUG = {0:6, …, 5:11, 6:11}`, `REST_RESET_AT` 25.
+- Umzug: `hingeUmziehen(lv, sessions)` für die Stände, `hingeObjekt` für Sitzung,
+  `levelVorschlag`, `rohStufe` und Anker, `hingeLauf` für ein laufendes Workout. In `normalize` vor
+  `beidUmzug`. Zweimal ausgeführt ändert er nichts.
+- Mehrere beidbeinige Sprossen: `beidOben(ex)` ersetzt `beidIndex` (die höchste verfügbare),
+  `beidRampe(ex)` heißt mehr als eine. Die Grenze in Regel 2a vergleicht `beidStufe` vor und nach
+  dem Schritt. `stufenBoden(ex)` ist die tiefste Sprosse, auf die eine Regel zurückstufen darf.
+  `mkBlock` setzt auf einer Rampe beim ersten Einstieg `startStufe`, sonst die leichteste
+  erlaubte Sprosse.
+- Mess-Status: `messpunktGueltig(s)` (auch in `points()`), `gemesseneSprossen(ex)` aus
+  `DEFAULT_EX[ex].levels[i].gemessen` und den gültigen Sitzungen, `sprosseVorlaeufig(ex, i)`,
+  `VORLAEUFIG_SATZ`, `VORLAEUFIG_KURZ`, CSS `.vorl`. Profil: `sprossenKarte(ex)`,
+  `vorlLegende(ex, gem)`.
+- Pfad fürs Knie: `DEFAULT_EX.hingeKnie` mit `teilVon:"hinge"`, `ohneGewicht`, `schmerzGefuehrt`,
+  `knieWinkelVorlaeufig`, `startStufe:0`. `S.knieInnen = {links, rechts}`. Helfer `kniePfad`,
+  `istKniePfad`, `einheitVon`, `knieSeiten`, `seitenAktiv`, `kniePfadAn`, `beidErlaubt`.
+  Planung über `fersenTeile(host)` und `planTeile(ex)`, Block über `knieBlock`, Regeln über
+  `knieRegeln` mit `KNIE_HOCH = 2`. Karte: `knieWahlKarte(ort)` (eigene ids je Ort, `kn` auf der
+  Karte, `knM` unter *Mehr*), `knieUmbauen(i)` über `knieBloeckeNeu(plan, i)`, `KNIE_SICHER`.
+  Unter *Mehr*: `knieImLauf()` baut ein laufendes (`RUN`) oder unterbrochenes Workout
+  (`S.lauf`) um, solange von der Fersenbrücke nichts gelaufen ist.
+
+### P77 · Hip Hinge als neunte Übung, die Fersenbrücke heißt im Code `bridge`
+
+Luke, 15.10., mit einem Handoff „Hip Hinge / Romanian Deadlift — Sprossenleiter ISO-App": sechs
+Sprossen vom Hinge im Sitzen bis zum B-Stance. Ziel ist die Sehne am Sitzbein, das obere Ende der
+Oberschenkelrückseite. Die Übung ergänzt die Fersenbrücke, die am unteren Ende arbeitet. Offen
+war im Handoff, wo beim Camporini das Gewicht liegt, vorn oder hinten. Dazu: „Dannach bauen wir
+die app erstmal mit den sprossen wie gehabt ohne die ganzen camporini deadlift varianten im
+einzelnen zu erklären oder zu ergänzen, es bleibt bei einer sprosse". Die Recherche zu den
+Varianten liegt außerhalb des Repos.
+
+Auf die Rückfragen:
+
+| Frage | Lukes Antwort |
+|---|---|
+| Welcher Fuß steht bei deinem Camporini wo? | „Hinten, Ferse auf Keil": rechter Fuß vorn, linker hinten mit der ganzen Sohle auf dem Keil, die Last links |
+| Sprosse 3 „stehend, Körpergewicht" (im Handoff ergänzt) | „Behalten" |
+| Reihenfolge Camporini vor B-Stance | „Handoff-Reihenfolge lassen", bis die Waagen gemessen haben |
+| Die Fersenbrücke heißt im Code schon `hinge` | „Ferse bekommt ‚bridge' und der hip hinge ‚hinge'" |
+| Erholung | „Ja, eigene Gruppe" — Hip Hinge und Fersenbrücke dürfen an einem Tag laufen |
+| Welches Bein arbeitet bei Camporini und B-Stance? | „Nach Recherche entscheiden" |
+
+**Gebaut in 2026-10-16 a.**
+
+*Umbenennung.* Die Fersenbrücke heißt im Code `bridge`, ihr Pfad fürs innere Knie `bridgeKnie`,
+die Gruppe `bridge`. Gespeicherte Daten zieht die App beim ersten Start um: `EX_VERSION` 27,
+`BRIDGE_AT` 27. Als erster Schritt in `normalize()`, noch auf den Rohdaten, benennt
+`bridgeUmbenennen(d)` jeden Schlüssel `hinge` und `hinge|Seite` in `bridge` um, ebenso `hingeKnie`.
+Das gilt für Stände, Gewichte, Fehlserien, Auswahl, Warnfrage, getrennte Seiten, Lage, Haltung,
+die gewählte Übung, die Tageswahl, die Sitzungen, das unterbrochene Workout, die geparkte
+Heimausstattung und die Zonen- und Ausführungswahl des Tages. Danach laufen die Umzüge vom 15.10.
+wie bisher, jetzt auf `bridge`. Lasten und Sprossennummern bleiben, was sie waren.
+
+*Hip Hinge.* Neue Übung `hinge`, Gruppe `hinge`, Seiten links und rechts. Gerechnet wird mit
+dem Hüftmoment des Oberkörpers je arbeitendem Bein; stehend beidbeinig ist 0,50.
+
+| Sprosse | Last | Herkunft |
+|---|---|---|
+| Sitzend · auf der Stuhlkante aus der Hüfte nach vorn gekippt | 0,320 | Platzhalter, ×1,25 unter der nächsten |
+| Sitzend · Gesäß knapp über der Sitzfläche (Lift-Off) | 0,400 | Platzhalter, ×1,25 unter stehend |
+| Stehend · Körpergewicht | 0,500 | gerechnet: halbes Hüftmoment des Oberkörpers |
+| Stehend · Gewicht in beiden Händen | ab 0,625, mit Mindestgewicht | gerechnet |
+| Camporini · Bein hinten, ganze Sohle auf dem Keil | 0,650 | Gewichtsanteil hinten, von Luke einmal gemessen |
+| B-Stance · Bein vorn, hinterer Fuß nur auf den Zehen | 0,750 | Gewichtsanteil vorn, angenommen |
+
+- **Sprosse 1 bis 4 beidbeinig, 5 und 6 je Seite.** Alle sechs tragen `platzhalter` und stehen
+  rot, bis Luke misst.
+- **Im Sitzen ist das Hüftmoment bei gleicher Neigung dasselbe wie im Stehen.** Leichter ist
+  es, weil das stark gebeugte Knie die Oberschenkelrückseite entspannt. Das rechnet kein
+  Hebelmodell, darum Platzhalter.
+- **Gewicht:** ab Sprosse 4, in hängenden Armen senkrecht unter den Schultern, `extraK` 2,12
+  (52 cm Hebel von der Hüfte zur Schulter gegen ein Hüftmoment des Oberkörpers von 24,5 % des
+  Körpergewichts mal Meter). `kgJeSprosse`: Sprosse 4, Camporini und B-Stance merken sich je ein
+  eigenes Gewicht.
+- **Mindestgewicht auf Sprosse 4.** Ohne Gewicht ist sie dieselbe Stellung wie Sprosse 3. Neues
+  Feld `mindSprung: 1.25` an der Sprosse: Die App beginnt mit dem kleinsten Gewicht im
+  2,5-kg-Raster, mit dem sie mindestens ×1,25 über der Sprosse darunter liegt. 10 kg bei 80 kg
+  Körpergewicht. Muster ist die Brust-Sprosse der Hyperextension, `kgMindest` rechnet seitdem
+  auch für eine Sprosse mitten in der Leiter.
+- **„Links" heißt: Das linke Bein arbeitet.** Beim Camporini steht es hinten auf dem Keil, die
+  Last in derselben Hand. Beim B-Stance steht es vorn, die Last in der Hand der hinteren Seite.
+  Zwischen Sprosse 5 und 6 wechselt damit das arbeitende Bein den Platz — das ist ein dritter
+  Bruch in der Leiter neben 2 → 3 (Knie gebeugt → fast gestreckt) und 4 → 5 (beidbeinig →
+  versetzt).
+- **Eigene Warnfrage:** Ausstrahlen bis in Wade oder Fuß, Taubheit oder Kraftverlust, plötzlicher
+  Beginn mit Knall oder Bluterguss. Schmerz am Sitzbein beim Sitzen und Vorbeugen ist hier die
+  Zielbeschwerde, kein Warnzeichen.
+- **Ohne Geräte** bleiben „Stehend · Körpergewicht" und der B-Stance. Ein Keil ist kein Gerät,
+  ein Buch tut es auch; die Sitz-Sprossen brauchen einen Stuhl.
+- **Export:** Schema 6, weil `hinge` die Bedeutung wechselt.
+
+**Der Preis.**
+
+- **Zwei Abstände fallen nach Rechnung durch Tor 2 (×1,25):** stehend mit Mindestgewicht zum
+  Camporini ×1,03, Camporini zum B-Stance ×1,15, beides bei 80 kg. Trägt der Camporini dasselbe
+  Gewicht wie Sprosse 4, sind es ×1,30. Die Gesamtspanne ×2,34 besteht Tor 1.
+- **Die Waage misst Gewicht, nicht Hüftmoment.** Das Hüftmoment eines Beins ist seine Bodenkraft
+  mal dem waagerechten Abstand vom Fuß zur Hüfte, und beim Hinge liegt der hintere Fuß näher an
+  der Hüfte. Bei 65 zu 35 trägt im Modell das hintere Bein das größere Hüftmoment nur bis 14 cm
+  Fußabstand (45° Rumpfneigung) bzw. 17 cm (60°). Bei 20 cm und 45° hat es noch 44 %. Die Messung
+  mit zwei Waagen schreibt deshalb den Fußabstand mit. Bestätigt sie das Modell, kippt die
+  Seitenzuordnung der Camporini-Sprosse, und die schon gespeicherten Camporini-Sitzungen brauchen
+  einen Umzug von einer Seite auf die andere.
+- **Die Haltetiefe muss in allen Sprossen gleich sein.** Sie kürzt sich in jedem Verhältnis nur
+  heraus, wenn sie konstant ist; 45° statt 60° sind schon ×1,22. Der Hinweistext nennt die
+  Wand-Methode.
+- **Die Fassung der Übungsliste springt auf 27.** Wer noch auf 25 steht, verliert von Hand
+  geänderte Namen und Faktoren schon durch den Sprung auf 26; der auf 27 kostet nichts
+  zusätzlich.
+- **Wer Exporte zusammenführt,** muss die Schemanummer lesen: bis 5 ist `hinge` die
+  Fersenbrücke, ab 6 der Hip Hinge.
+
+**Für den Nachbau:**
+
+- Die Namen in P76 heißen seitdem `bridge…`: `DEFAULT_EX.bridge`, `DEFAULT_EX.bridgeKnie` mit
+  `teilVon:"bridge"`, `BRIDGE_BEID_AT`, `BRIDGE_UMZUG`, `BRIDGE_ALT_LAST`, `bridgeKey`,
+  `bridgeUmziehen`, `bridgeObjekt`, `bridgeLauf`, `kniePfad("bridge")`.
+- Umbenennung: `BRIDGE_AT` 27, `BRIDGE_NAME`, `bridgeName(k)` für einen Schlüssel mit oder ohne
+  Seite, `bridgeSchluessel(o)` für ein Objekt, `bridgeUebung(o)` für Sitzung und Block,
+  `bridgeUmbenennen(d)` für den ganzen Stand. Fehlende Felder bleiben fehlend, damit
+  `Object.assign(fresh(), d)` die Vorgaben nicht mit `undefined` überschreibt. Zweimal
+  ausgeführt ändert sie nichts.
+- `DEFAULT_EX.hinge`: `extraAb:3`, `extraK:2.12`, `gewichtMindestens`, `mindestText`,
+  `kgJeSprosse`, `startStufe:0`, `seitenRuf`, `warnung`. Sprosse 4 mit `mindSprung:1.25`, 5 und 6
+  mit `nameMitGewicht`, 3 und 6 mit `ort:"boden"`.
+- `kgMindest(ex, level)`: rechnet für die oberste Sprosse wie bisher und zusätzlich für jede
+  Sprosse mit `mindSprung`, gegen die Last der Sprosse darunter mal `mindSprung`.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-16 a — Hip Hinge, die Fersenbrücke heißt im Code `bridge`
+
+**Befund (Luke).** Ein Handoff vom 15.10. bringt den Hip Hinge als neunte Übung, sechs Sprossen
+vom Hinge im Sitzen bis zum B-Stance, für die Sehne am Sitzbein (P77). Der Schlüssel `hinge`
+gehörte bis dahin der Fersenbrücke.
+
+**Gebaut.**
+
+- **Umbenennung:** Die Fersenbrücke heißt im Code `bridge`, ihr Pfad fürs Knie `bridgeKnie`.
+  Gespeicherte Daten ziehen beim ersten Start um, Lasten und Nummern bleiben.
+- **Hip Hinge:** sechs Sprossen, 1 bis 4 beidbeinig, Camporini und B-Stance je Seite, alle rot.
+  Eigene Gruppe, eigene Warnfrage, Gewicht ab Sprosse 4 mit Mindestgewicht, je Sprosse ein
+  eigenes Gewicht.
+- **Export:** Schema 6.
+- README angepasst.
+
+**Geprüft.** Im Node-Abgleich mit dem Skript aus `index.html`, 67 Prüfungen, keine Abweichung:
+
+- **Umzug:** Spielstände der Fassungen 25 und 26 mit der Fersenbrücke unter `hinge`, mit Ständen,
+  Gewicht, Fehlserie, Auswahl, Warnfrage, getrennten Seiten, gewählter Übung, Tageswahl, Zonen-
+  und Ausführungswahl, Sitzungen, Baker-Sitzung und unterbrochenem Workout. Alles steht danach
+  unter `bridge`, Nummern und Lasten unverändert, unter `hinge` liegt nichts, der Hip Hinge hat
+  keine Messpunkte und keine beantwortete Warnfrage. Zweimal ausgeführt ändert der Umzug nichts.
+- **Hip Hinge:** sechs Sprossen, Mindestgewicht 10 kg bei 80 kg auf Sprosse 4 und keines auf 5
+  und 6, Last mit Mindestgewicht 0,633, unter Sprosse 4 kein Gewichtsfeld, eigene Gruppen,
+  beidbeinig bis Sprosse 4, Name mit Gewicht, ohne Geräte nur Sprosse 3 und 6.
+- **Gegen den Stand vor dem Umbau:** Die übrigen acht Übungen sind in der Definition gleich, die
+  Fersenbrücke bis auf die Gruppe, der Pfad fürs Knie bis auf Gruppe und `teilVon`. Ein Spielstand
+  ohne Fersenbrücke kommt gleich aus `normalize()`. Mindestgewicht der Hyperextension bei 50 bis
+  120 kg unverändert, alle Lasten der übrigen Übungen mit 10 kg gleich.
+
+Im Browser bei 375 × 812: neuer Nutzer bis zum ersten Hip Hinge — Warnfrage beim ersten Mal,
+Fersenbrücke und Hip Hinge zusammen im Plan (11 min), beidbeinig die vier Sitz- und
+Steh-Sprossen, einbeinig Camporini und B-Stance mit Gewichtsfeld, alle „· vorläufig" mit rotem
+Satz. Dann ein Spielstand der Fassung 26 mit der Fersenbrücke unter `hinge`, neu geladen: alles
+unter `bridge`, gespeichert als 27. Keine Konsolenfehler.
+
+### 2026-10-15 a — Fersenbrücke: Mess-Status, beidbeinige Rampe, Pfad fürs innere Knie
+
+**Befund (Luke).** Drei Handoffs aus dem Spaziergang vom 15.10. Du sammelst als Einziger
+Messpunkte, also soll die App zeigen, welche Sprossenwerte noch vorläufig sind. Die Fersenbrücke
+bekommt eine beidbeinige Rampe vor der einbeinigen Leiter, die Ringe fallen weg. Dazu kommt ein
+eigener Pfad für Probleme am inneren Knie (P76).
+
+**Gebaut.**
+
+- **Mess-Status für alle Übungen:** roter Satz auf der Karte, „· vorläufig" in Auswahl und
+  Profil. Das Rot verschwindet durch die Marke im Code oder durch einen gültigen Halt auf dem
+  Gerät.
+- **Fersenbrücke:** sechs beidbeinige Platzhalter-Sprossen vor den sechs einbeinigen. Neue Nutzer
+  klettern die Rampe ganz hinauf, Regel 2a hält an der Grenze. Bestehende Stände und Sitzungen
+  ziehen sechs Nummern hoch.
+- **Pfad fürs innere Knie:** eigene Leiter auf der Faszienrolle, Häkchen je Bein, der Schmerz
+  entscheidet. Erst beidbeinig, dann einbeinig. Die Häkchen stehen auf der Karte und unter
+  *Mehr*.
+- **Export:** Schema 5.
+- README angepasst.
+
+**Geprüft.** Im Node-Abgleich mit dem Skript aus `index.html` gegen den Stand vom 09.10.:
+
+- **Umzug:** Ein Spielstand der Fassung 25 zieht richtig um, Stände, Sitzungen, laufendes Workout
+  und Anker eingeschlossen. Zweimal ausgeführt ändert er nichts. `points()` liefert für jede Kurve
+  dieselben Punkte wie vorher, nur mit der neuen Sprossennummer.
+- **Wadenheben und Handtuchrolle:** sechs Fälle (Wahl beidbeinig, Plan, Regeln) gleich wie
+  vorher.
+- **Rampe:** Ein unmessbar leichter Halt springt höchstens bis einbeinig Stuhl. Zwei
+  Schmerzabbrüche dort führen auf beidbeinig zurück, mit Rolle auf beidbeinig Rolle, ohne auf
+  „Fersen am Boden · Beine fast gestreckt".
+- **Mess-Status:** Die Marke im Code und ein gültiger Halt löschen das Rot. Ein Halt, der nicht
+  frisch ist, aus der Kurve genommen wurde oder unter 20 bzw. über 300 s liegt, löscht es nicht.
+  Profil mit und ohne Kurve, Export mit unveränderter CSV-Kopfzeile.
+- **Pfad fürs Knie:** zweimal gut heißt weiter, zweimal Schmerz zurück, verfehlt bleibt.
+  Solange der Pfad beidbeinig läuft, gibt es einen Block, danach zwei. Beide Knie ohne Rolle
+  ergeben „Gerät fehlt".
+
+Im Browser bei 375 × 812 mit vier Spielständen geprüft: neuer Nutzer, ein Knie ohne und mit Rolle,
+beide Knie ohne Rolle, umgezogener Stand der Fassung 25. Dabei fiel auf, dass das gesunde Bein
+eines neuen Nutzers mit angehaktem Knie auf einbeinig Hocker begann statt auf Stuhl. Die
+Einstiegsrechnung verteilte die erlaubten Sprossen wie bei jeder Leiter; auf einer Rampe nimmt
+sie jetzt die leichteste erlaubte Sprosse. Keine Konsolenfehler, Build-Anzeige unter *Mehr*
+richtig.
+
+Nachgezogen nach deiner Antwort: die Häkchen unter *Mehr*. Im Node-Abgleich sechs Fälle:
+Workout läuft und die Fersenbrücke kommt noch (Umbau, Lösen stellt den alten Ablauf her), schon
+gelaufen (bleibt), unterbrochen auf der Fersenbrücke (Umbau), erster Satz schon gehalten
+(bleibt), beide Knie ohne Rolle (fällt heraus), und die Karte unter *Mehr* mit eigenen ids. Die
+übrigen Reihen liefern dasselbe wie vorher. Im Browser: beide Knie ohne Rolle, auf *Heute*
+„Gerät fehlt", unter *Mehr* den rechten Haken gelöst, danach steht die Fersenbrücke wieder zur
+Wahl.
 
 ### 2026-10-09 a — Hyperextension
 
@@ -5281,6 +5687,10 @@ als Teil des Ansatz-Pfads? Das ist eine Produktentscheidung, keine technische.
     stehen deshalb mit ausdrücklich geschätztem Lastfaktor in der Leiter und gehören als **erstes**
     nachgemessen. Zeigt sich, dass die Rolle die Last nicht hebt, wird sie zur Variante derselben
     Sprosse statt zu einer eigenen.
+
+    **Teilweise erledigt (Luke, 15.10.), gebaut in Build 2026-10-15 a (P76):** Die Ringe sind raus.
+    Die Rolle bleibt mit geschätzter Last oben auf der einbeinigen Leiter und als oberste Sprosse
+    der beidbeinigen Rampe. Beide stehen in der App rot als vorläufig. Die Frage selbst ist offen.
 16. **Die Kontrollposition hat noch keine Instanz.** Beide Übungen, die Luke als „schlecht
     skalierbar" genannt hat, haben sich als vollwertige Leitern herausgestellt — der Schrägzug über
     Fußabstand und Gurtlänge, die Fersenbrücke über den Fersenabstand. Der Mechanismus ist gebaut
@@ -5485,6 +5895,25 @@ als Teil des Ansatz-Pfads? Das ist eine Produktentscheidung, keine technische.
 
     **Entschieden (Luke, 29.09.), gebaut in Build 2026-09-29 b (P62):** Die Standbeinseite ist
     raus, das Gewicht geht nur auf die Knieseite. Der Gürtel ruht vorläufig.
+
+30. **Die Fersenbrücke auf 90° normieren (P76).** Der Plan aus dem Spaziergang: Der Kniewinkel
+    fällt als Achse weg, die Übung spezialisiert sich auf den knienahen Teil, und den
+    sitzbeinnahen übernimmt die Hüftvorbeuge. Dann ersetzt der Stepper mit drei Stufen Hocker und
+    Kiste. Das wartet auf deinen Test im Spiegel: Hältst du 90° auf jeder Höhe, vom Stuhl bis zum
+    Boden? Dazu gehören die Höhen der drei Stepper-Stufen in Zentimetern und der Vergleich 90°
+    gegen etwa 130°: Wo zieht es knienah am meisten? Bis dahin bleibt die Leiter mit dem sich
+    öffnenden Knie.
+31. **Kniewinkel und Reihenfolge im Pfad fürs innere Knie (P76).** Gebaut mit 90° und der
+    Reihenfolge Ferse vor Vorfuß, darin jeweils Zehen runter, neutral, Zehen zum Knie. Offen ist:
+    Zieht die Rolle unter dem Vorfuß mehr als unter der Ferse? Und wie fühlen sich Zehen runter und
+    Zehen zum Knie am inneren Knie an? Dazu der Kniewinkel, 90° gegen etwa 130°. Die
+    sanfteste Stellung (Ferse, Zehen runter) und die härteste (Vorfuß, Zehen zum Knie) stehen fest.
+32. **Die beidbeinige Rampe der Fersenbrücke ist ein Platzhalter (P76).** Ihre sechs Lasten sind
+    gesetzt, nicht gemessen. Aus deinen beidbeinigen Haltezeiten rechne ich über deine einbeinige
+    Kurve die echten Lasten und den Punkt, an dem einbeinig Stuhl in die Rampe fällt. Das
+    Ergebnis kommt als Vorschlag: neue Lasten, gegebenenfalls eine andere Reihenfolge, und ob die
+    schon gemachten beidbeinigen Halte umgerechnet werden. Offen auch: Ist einbeinig Stuhl als
+    Einstieg nach der Rampe zu schwer?
 
 ---
 

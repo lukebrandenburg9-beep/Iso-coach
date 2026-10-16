@@ -108,7 +108,7 @@ Rechenlogik:
   zwei Einheiten derselben Muskelgruppe, sieben Tage bis dieselbe Zone wiederkommt.
   Während der drei Einstiegstests genügen **24 Stunden** — sonst zöge sich das Onboarding über
   drei Wochen. Übungen **ohne Überschneidung** (Liegestütz, Ausfallschritt, Seitstütz, Schrägzug,
-  Fersenbrücke, Hyperextension) dürfen am selben Tag getestet werden; die App sagt am Pausentag, welche Gruppe noch frei ist. Der Pausentag
+  Fersenbrücke, Hip Hinge, Hyperextension) dürfen am selben Tag getestet werden; die App sagt am Pausentag, welche Gruppe noch frei ist. Der Pausentag
   nennt Grund und Termin und lässt sich bewusst übergehen. Werte unter *Mehr → Erholung*.
 - **Höchstens sechs Blöcke** je Workout. Fünf Übungen, davon drei zweiseitig, wären acht Blöcke
   — in der Kraftausdauer über eine Stunde. Die App nimmt deshalb die freigegebenen Übungen in der
@@ -123,6 +123,11 @@ Rechenlogik:
 - **Die Kurve gilt nur, wo gemessen wurde.** Sie merkt sich die kleinste und größte Last, aus der
   sie stammt. Außerhalb zeichnet das Profil gestrichelt und schreibt „außerhalb" statt einer Zahl
   — keine Vorhersage über Lasten, bei denen du nie warst.
+- **Vorläufige Sprossen stehen in Rot.** Solange eine Sprosse nicht gemessen ist, steht unter
+  der Auswahl auf der Karte „Sprossenwert noch vorläufig, muss noch gemessen werden", in der
+  Auswahl selbst und im Profil das Kürzel „· vorläufig". Das Rot verschwindet, sobald die Sprosse
+  in der Liste der nachgemessenen Sprossen steht (sie wächst mit jedem Build) oder auf diesem
+  Gerät ein gültiger Halt darauf liegt: frisch, in der Kurve, 20 bis 300 s, egal welche Seite.
 - **Kontrollposition.** Liegen die verfügbaren Stufen einer Übung weniger als Faktor 1,25
   auseinander, gibt es **keine Kurve**, sondern einen Verlauf der Haltezeit über die Wochen. Zwei
   zu eng beieinander liegende Lasten ergeben rechnerisch keine Kurve — sie ergeben eine, die
@@ -132,7 +137,8 @@ Rechenlogik:
 - Red-Flag-Abfrage im Onboarding, Timer mit Tonsignalen, 20-Sekunden-Pausen, Export/Import.
 - **Sicherheitsfrage, wenn eine Übung eine neue Körperregion öffnet.** Der Fragebogen läuft sonst
   nur im Onboarding — vor der ersten Fersenbrücke wird die Frage zur proximalen Hamstring-Sehne
-  nachgeholt.
+  nachgeholt, vor dem ersten Hip Hinge die nach Ausstrahlen ins Bein, Taubheit und plötzlichem
+  Beginn.
 
 **Bewusst nicht drin:** CMF. Die Begründung stand bis zum 17.09. auch in der App und ist dort
 wieder raus — sie erklärt ein Verfahren, das der Nutzer nie zu sehen bekommt. Nachzulesen als
@@ -148,8 +154,7 @@ aus — Arbeitsplatte, Tisch, Stuhl, Hocker, Stepper, Kiste, Kissen. Gerät brau
 | Gerät | wofür | voreingestellt |
 |---|---|---|
 | Etwas zum Daranziehen | Schrägzug, **die ganze Übung** | an — eine stabile Tischkante zählt mit |
-| Faszienrolle | Fersenbrücke, obere Stufe | aus |
-| Turnringe | Fersenbrücke, oberste Stufe | aus |
+| Faszienrolle | Fersenbrücke, oberste Stufe beidbeinig und einbeinig, dazu der ganze Pfad fürs innere Knie | aus |
 | Kettlebell oder Kurzhantel | Aufrechter Läufer, Zusatzgewicht | aus |
 | Personenwaage mit Zeiger (analog) | Isometrisches Wadenheben, einbeinig mit Entlastung | aus |
 
@@ -205,11 +210,31 @@ Körpergewichte pro Arm plus ein Drehmoment um die Längsachse, das der Rumpf ge
 Die **Fersenbrücke** skaliert über den Fersenabstand — wie weit die Ferse vom Gesäß weg steht.
 Kurzer Hebel leicht, langer Hebel schwer; die „Long-Lever-Brücke" ist keine zweite Übung, sondern
 das obere Ende derselben Leiter. Die unteren vier Stufen sind von einem zweiten, unabhängigen
-Segmentmodell bestätigt. **Faszienrolle und Ringe sind geschätzt** und stehen in der App als
-solche gekennzeichnet: Ob die Rolle die Last wirklich hebt oder nur den Stabilisierungsaufwand,
-ist offen — bei gleicher Fersenhöhe ist das Hüftmoment dasselbe. Das ist genau das Muster, an dem
-beim Seitstütz die Fußerhöhung als Scheinstufe aufgeflogen ist, und steht deshalb als Erstes auf
-der Liste der Dinge, die nachgemessen gehören.
+Segmentmodell bestätigt. **Die Faszienrolle ist geschätzt** und steht in der App rot als
+vorläufig: Ob die Rolle die Last wirklich hebt oder nur den Stabilisierungsaufwand, ist offen —
+bei gleicher Fersenhöhe ist das Hüftmoment dasselbe. Das ist genau das Muster, an dem beim
+Seitstütz die Fußerhöhung als Scheinstufe aufgeflogen ist, und steht deshalb als Erstes auf der
+Liste der Dinge, die nachgemessen gehören. Die Ringe sind seit dem 15.10. raus, sie waren zu viel
+Gerät.
+
+Vor den sechs einbeinigen Sprossen steht seit dem 15.10. eine **beidbeinige Rampe** auf denselben
+sechs Unterlagen, von beidbeinig Stuhl bis beidbeinig Rolle. Wer neu anfängt, klettert sie ganz
+hinauf und steigt erst dann auf einbeinig Stuhl um. Alle beidbeinigen Sprossen liegen unter
+einbeinig Stuhl, ihre Lasten sind **Platzhalter**: Einbeinig belastet ein Bein mehr als doppelt so
+stark wie beidbeinig, die reine Gewichtsrechnung (halbe Last) unterschätzt das. Die echten Werte
+kommen aus gemessenen Haltezeiten. Auf der Karte lässt sich beidbeinig oder einbeinig wählen; die
+App wählt vor.
+
+**Der Pfad fürs innere Knie.** Auf der Karte der Fersenbrücke steht je Bein ein Häkchen
+„Probleme mediales Knie / Baker-Zyste", dieselben Häkchen stehen unter *Mehr*. Für ein angehaktes Bein gibt es eine eigene Leiter auf
+der Faszienrolle mit eigener Kurve. Die Sprossen sind die Fußstellung mal dem Kontakt: Zehen
+runter, Fuß neutral und Zehen zum Knie, jeweils mit der Ferse oder dem Vorfuß auf der Rolle, erst
+beidbeinig, dann einbeinig. Zehen runter fordert wenig Innendrehung im Schienbein und ist der
+Einstieg im gereizten Zustand; Zehen zum Knie holt genau diese Richtung zurück und ist das Ziel.
+Weiter geht es nach zwei Halten in Folge ohne Schmerz, zurück nach zwei Schmerzabbrüchen in
+Folge. Solange der Pfad beidbeinig läuft, ist das gesunde Bein dort mit drin und bekommt keinen
+eigenen Block. Ohne Faszienrolle wird das angehakte Bein nicht trainiert. Kniewinkel (vorläufig
+90°) und die Reihenfolge der mittleren Sprossen sind noch offen und stehen in der App rot.
 
 Bei der **Hyperextension** liegt die Kante eines Steppers mit Kissen auf Höhe des Bauchnabels,
 die Füße stehen hinten an der Wand, und der Oberkörper wird frei und waagerecht gehalten. Die
@@ -233,6 +258,39 @@ Ischialgien gehen von der Bandscheibe aus (Koes 2007), und dann ziehen Sitzen un
 Bein. Beim engen Wirbelkanal ist es umgekehrt, dort ziehen Stehen und Gehen ins Bein (Inufusa
 1996). Genau diese zwei Sätze stehen beim ersten Mal unter den Knöpfen.
 
+Der **Hip Hinge** belastet die Sehne am Sitzbein, das obere Ende der Oberschenkelrückseite. Er
+ergänzt die Fersenbrücke, die am unteren Ende arbeitet, hat eine eigene Erholungsgruppe und darf
+am selben Tag laufen. Die Bewegung kommt aus der Hüfte, der Rücken bleibt neutral, im Stehen
+sind die Knie leicht gebeugt und bleiben es. Gerechnet wird mit dem Hüftmoment des Oberkörpers je
+arbeitendem Bein, stehend beidbeinig ist 0,50:
+
+| Sprosse | Last | Herkunft |
+|---|---|---|
+| Sitzend, aus der Hüfte nach vorn gekippt | 0,32 | Platzhalter |
+| Sitzend, Gesäß knapp über der Sitzfläche | 0,40 | Platzhalter |
+| Stehend, Körpergewicht | 0,50 | gerechnet |
+| Stehend, Gewicht in beiden Händen | ab 0,63, mit Mindestgewicht | gerechnet |
+| Camporini, Bein hinten, ganze Sohle auf dem Keil | 0,65 | Gewichtsanteil hinten, einmal gemessen |
+| B-Stance, Bein vorn, hinterer Fuß nur auf den Zehen | 0,75 | angenommen |
+
+Im Sitzen ist das Hüftmoment bei gleicher Neigung dasselbe wie im Stehen. Leichter ist es, weil
+das stark gebeugte Knie die Oberschenkelrückseite entspannt, und das rechnet kein Hebelmodell —
+darum Platzhalter. Beim **Camporini** steht der hintere Fuß mit der ganzen Sohle auf einem Keil,
+die Ferse höher als der Vorfuß, und das hintere Bein trägt den größeren Teil des Gewichts. Beim
+**B-Stance** ist es umgekehrt, das vordere trägt. „Links" heißt deshalb: Das linke Bein arbeitet
+— beim Camporini steht es hinten, beim B-Stance vorn. Ein Keil ist kein Gerät, ein Buch tut es
+auch.
+
+Zwei Dinge sind offen und stehen deshalb alle sechs Sprossen rot. **Erstens** liegen zwei
+Abstände nach Rechnung unter dem Mindestabstand ×1,25: stehend mit Gewicht zum Camporini und
+Camporini zum B-Stance. **Zweitens** misst die Waage Gewicht, nicht Hebel. Das Hüftmoment eines
+Beins ist seine Bodenkraft mal dem Abstand vom Fuß zur Hüfte, und beim Hinge liegt der hintere
+Fuß näher an der Hüfte. Im Modell trägt beim Camporini ab etwa 15 cm Fußabstand das vordere Bein
+das größere Hüftmoment, obwohl das hintere mehr Gewicht trägt. Die Messung mit zwei Waagen
+schreibt deshalb den Fußabstand mit. Die Haltetiefe muss in allen Sprossen gleich sein: 45° statt
+60° Rumpfneigung sind schon ×1,22. Am einfachsten mit dem Rücken zur Wand, die Fersen eine feste
+Zahl Fußlängen davor, das Gesäß knapp vor der Wand.
+
 **Zusatzgewicht ist eine eigene Achse, keine Leitersprosse.** Die Leiter bleibt reines
 Körpergewicht; Kilogramm kommen ab einer Stufe je Übung dazu (Liegestütz ab „Boden",
 Ausfallschritt ab „Hinterer Fuß ~20 cm erhöht"). Der Seitstütz bleibt reines Körpergewicht,
@@ -245,6 +303,11 @@ bezogen auf diese Sprosse (30 cm Hebel vom Nabel bis zur Mitte des Brustbeins). 
 sie leichter als die Y-Haltung, denn die Arme liegen dann am Rumpf. Die App beginnt deshalb mit
 dem kleinsten Gewicht im 2,5-kg-Raster, mit dem die Sprosse mindestens so schwer ist wie Y: 7,5 kg
 bei 59 bis 88 kg Körpergewicht, 10 kg bis 117 kg. Dafür braucht die App das Körpergewicht: *Mehr → Messung*.
+Beim Hip Hinge hängt das Gewicht in den Händen senkrecht unter den Schultern: `2,12·X/BW` (52 cm
+von der Hüfte zur Schulter). Auch dort gibt es ein Mindestgewicht, denn „Stehend, Gewicht in beiden
+Händen" ist ohne Gewicht dieselbe Stellung wie „Stehend, Körpergewicht": das kleinste Gewicht, mit
+dem die Sprosse mindestens ×1,25 schwerer ist, 10 kg bei 80 kg Körpergewicht. Camporini und
+B-Stance haben je ein eigenes Gewicht, getragen in der Hand der Seite, deren Fuß hinten steht.
 Beim aufrechten Läufer trägt das Gewicht die ganze Leiter: Die einzige Sprosse heißt bei 0 kg
 „Ohne Zusatzlast" und mit Kettlebell „Mit Zusatzgewicht". Wo die Kettlebell sitzt — Front Rack
 `2,33·X/BW` oder Suitcase `3,22·X/BW` —, wählst du je Seite, denn links und rechts brauchen oft
