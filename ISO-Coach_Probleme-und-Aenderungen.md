@@ -3047,11 +3047,81 @@ dem Hüftmoment des Oberkörpers je arbeitendem Bein; stehend beidbeinig ist 0,5
 - `kgMindest(ex, level)`: rechnet für die oberste Sprosse wie bisher und zusätzlich für jede
   Sprosse mit `mindSprung`, gegen die Last der Sprosse darunter mal `mindSprung`.
 
+### P78 · Ohne Pause: eine Übung so oft am Tag, wie du willst
+
+Luke, 16.10.: „gib mir die fersenbrücke in der app bitte dauerhaft frei so das ich mehrmals pro
+tag trainieren kann".
+
+**Gebaut in 2026-10-16 b.**
+
+- **Ein Haken je Übung unter *Mehr → Erholung*, Abschnitt „Ohne Pause".** Gesetzt hebt er für die
+  Übung beide Sperren auf: einmal am Tag und die Zonenruhe von sieben Tagen. Die App plant sie
+  dann auf *Heute*, auch wenn sie heute schon gelaufen ist.
+- **Gespeichert wird je Muskelgruppe,** weil das Erholungstor je Gruppe rechnet. Der Pfad fürs
+  innere Knie gehört zur Gruppe der Fersenbrücke und ist mit ihr frei. Er steht deshalb nicht
+  als eigene Zeile in der Liste.
+- **Die Rotation wählt die Zone weiter selbst.** Sie nimmt die Zone, die am längsten nicht dran
+  war. Drei Einheiten an einem Tag laufen damit nacheinander durch alle drei Zonen. Eine selbst
+  gesetzte Zone auf *Heute* gilt wie bisher.
+- **Eine Sperre bleibt:** Nach einem Schmerzabbruch ist die Übung für den Rest des Tages zu. Das
+  entspricht der bestehenden Regel, dass ein zweiter Versuch nach Schmerz am selben Tag nicht
+  freigegeben wird.
+- Ohne Haken ändert sich nichts. Neu im Spielstand ist nur das Feld `ohnePause`, leer
+  vorbelegt. Die Fassung der Übungsliste bleibt 27, kein Umzug.
+
+**Der Preis.**
+
+- **Die zweite Einheit am Tag zählt als frisch.** Die App prüft beim ersten Block nicht, ob die
+  Gruppe heute schon gearbeitet hat. Ist der Muskel vom Vormittag noch müde, hält er kürzer, und
+  die Kurve der Fersenbrücke wird etwas pessimistisch. Das ist die sichere Richtung, aber es
+  verwischt die Messung. Wer sauber messen will, legt die Einheiten weit auseinander.
+- **Die Leiter kann an einem Tag steigen.** Die Regeln zählen Einheiten, nicht Tage. Zwei gute
+  Einheiten am Vormittag und am Nachmittag reichen für einen Schritt.
+- **Die Einstiegstests laufen ebenfalls frei.** Wer den Haken vor dem dritten Einstiegs-Workout
+  setzt, kann alle drei an einem Tag machen. Für dich betrifft das nur den Hip Hinge.
+- **Der Haken gilt auf dem Gerät, auf dem er gesetzt ist.** Er liegt im Spielstand und wandert
+  mit Export und Import.
+
+**Für den Nachbau:**
+
+- `S.ohnePause` = `{gruppe: true}`, in `fresh()` als `{}` vorbelegt; `normalize()` übernimmt es
+  über `Object.assign(fresh(), d)`.
+- `ohnePause(gr)` liest das Feld, `schmerzHeute(gr)` sucht heute eine Sitzung der Gruppe mit
+  einem Satz `pain`.
+- `gateGroup(gr)`: `frei = ohnePause(gr) && !schmerzHeute(gr)`. Ist `frei` gesetzt, entfällt die
+  Tagessperre. Hinter der eigenen Zonenwahl gibt das Tor `{ok:true, ohnePause:true}` zurück,
+  bevor die Zonenruhe geprüft wird.
+- Die Liste unter *Mehr → Erholung* (`ohnePauseEdit`) zeigt jede aktive Übung ohne den Pfad fürs
+  Knie, dazu jede inaktive mit gesetztem Haken. Ein Wechsel verwirft den Plan des Tages.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-16 b — Ohne Pause
+
+**Befund (Luke).** Die Fersenbrücke soll mehrmals am Tag laufen dürfen, dauerhaft (P78).
+
+**Gebaut.**
+
+- **Haken „Ohne Pause" je Übung** unter *Mehr → Erholung*. Er hebt die Tagessperre und die
+  Zonenruhe auf, gespeichert je Muskelgruppe. Der Pfad fürs innere Knie ist mit der
+  Fersenbrücke frei.
+- **Nach einem Schmerzabbruch** bleibt die Übung für den Tag zu.
+- README angepasst.
+
+**Geprüft.** Im Browser bei 375 × 812 mit Testständen:
+
+- Fersenbrücke heute schon trainiert, ohne Haken: Tor zu, Grund „einmal am Tag". Mit Haken: Tor
+  offen, die Fersenbrücke steht im Plan, in der Zone, die am längsten nicht dran war.
+- Heute ein Satz mit Schmerzabbruch: Tor wieder zu, trotz Haken.
+- Einheiten vor 1, 2 und 3 Tagen, alle Zonen in Ruhe: ohne Haken zu mit vier Tagen Wartezeit,
+  mit Haken offen.
+- Andere Gruppen (Wade) bleiben vom Haken unberührt.
+- Der Haken bleibt nach dem Neuladen stehen. Kein waagerechtes Scrollen bei 375 px, keine
+  Konsolenfehler.
 
 ### 2026-10-16 a — Hip Hinge, die Fersenbrücke heißt im Code `bridge`
 
@@ -5914,6 +5984,15 @@ als Teil des Ansatz-Pfads? Das ist eine Produktentscheidung, keine technische.
     Ergebnis kommt als Vorschlag: neue Lasten, gegebenenfalls eine andere Reihenfolge, und ob die
     schon gemachten beidbeinigen Halte umgerechnet werden. Offen auch: Ist einbeinig Stuhl als
     Einstieg nach der Rampe zu schwer?
+33. **Ein Block unter dem Becken in der Fersenbrücke (Recherche vom 16.10., außerhalb des
+    Repos).** Auf Stuhl, Hocker und Kiste kann das Becken absinken. Das macht die Übung leichter,
+    weil die Oberschenkelrückseite länger und damit stärker wird, obwohl die äußere Last leicht
+    steigt. Vorschlag: ein Block unter den Sitzbeinen, eine Handbreit unter dem Becken in voller
+    Streckung, das Becken schwebt knapp darüber, Aufsetzen beendet den Halt. Das ergibt 18 bis 24°
+    Hüftbeugung und 7 bis 21 % mehr Kniemoment je nach Sprosse. Offen sind: Block ja oder nein und
+    welches Maß, wie über dem Block gehalten wird, eine feste Fersen-Anweisung (heranziehen oder
+    nur nach unten drücken, für den Pfad fürs innere Knie getrennt) und was mit den alten
+    Messpunkten geschieht.
 
 ---
 

@@ -1563,7 +1563,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-16 a";
+const BUILD = "2026-10-16 b";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -2254,6 +2254,8 @@ function fresh(){
     /* Fersenbruecke: Probleme inneres Knie / Baker-Zyste, je Bein. Ein Haken
        schickt dieses Bein auf die eigene Leiter bridgeKnie (Luke, 15.10.2026). */
     knieInnen:{links:false, rechts:false},
+    /* Ohne Pause, je Gruppe (Luke, 16.10.2026) — siehe ohnePause(). */
+    ohnePause:{},
     sessions:[], plan:null, redflag:false,
     rest:{...DEFAULT_REST}, planDay:null, reaction:REACTION_DEFAULT
   };
@@ -3899,11 +3901,25 @@ function zoneAge(gr){
   for(const z of ZONES) out[z.id] = zl[z.id] === null ? Infinity : t - zl[z.id];
   return out;
 }
+/* Ohne Pause (Luke, 16.10.2026: „gib mir die fersenbrücke in der app bitte
+   dauerhaft frei so das ich mehrmals pro tag trainieren kann"). Ein Haken je
+   Uebung unter Mehr → Erholung. Gespeichert wird je GRUPPE, weil das Tor je
+   Gruppe rechnet — der Baker-Pfad haengt damit an der Fersenbruecke. Der Haken
+   hebt beide Sperren auf, einmal am Tag und die Zonenruhe; die Rotation waehlt
+   die Zone weiter wie bisher. Eine Sperre bleibt: Nach einem Schmerzabbruch ist
+   die Gruppe fuer den Rest des Tages zu (siehe ergiebig). */
+function ohnePause(gr){ return !!(S.ohnePause && S.ohnePause[gr]); }
+function schmerzHeute(gr){
+  const t = today();
+  return S.sessions.some(ses => groupOf(ses.exercise) === gr && dayNum(ses.date) === t
+    && (ses.sets || []).some(st => st && st.pain));
+}
 /* Darf DIESE Muskelgruppe heute trainiert werden? */
 function gateGroup(gr){
   const t = today(), la = lastWorkoutDay(gr);
   const onboarding = groupWorkoutCount(gr) < 3;
-  if(la !== null && (t - la) < MIN_GAP_DAYS)
+  const frei = ohnePause(gr) && !schmerzHeute(gr);
+  if(!frei && la !== null && (t - la) < MIN_GAP_DAYS)
     return {ok:false, kind:"day", wait: MIN_GAP_DAYS - (t - la), lastDay: la, onboarding, group:gr};
   if(onboarding) return {ok:true, onboarding, group:gr};
   /* Laeuft der Formtrend fuer die Gruppe, sperrt die Zonenruhe nicht mehr —
@@ -3921,6 +3937,7 @@ function gateGroup(gr){
   const gewaehlt = zoneWahlHeute(gr);
   if(gewaehlt)
     return {ok:true, group:gr, gewaehlt, ruht: Math.max(0, restOf(gewaehlt) - age[gewaehlt])};
+  if(frei) return {ok:true, group:gr, ohnePause:true};
   /* Gewartet wird nur auf Zonen, die die Gruppe erreicht. Eine nie
      erreichbare Zone hat Alter "unendlich" und hielt die Gruppe bisher immer
      offen — die Ruhe der einzigen echten Zone lief dann ins Leere. */
@@ -8022,6 +8039,7 @@ function renderSetup(){
       sind erlaubt. Die Pause je Zone begrenzt die Menge: Bei sieben Tagen je Zone sind es
       höchstens drei Einheiten pro Woche.</p>
       <button class="ghost" style="width:100%;margin-top:8px" id="restSave">Speichern</button>
+      <div id="ohnePauseEdit"></div>
     </div>
     <div class="card">
       <h3 style="margin-top:0">Premium</h3>
@@ -8340,6 +8358,22 @@ function renderSetup(){
                    <input type="number" step="1" min="0" max="14" value="${restOf(z.id)}" data-r="${z.id}">`;
     rhost.appendChild(d);
   });
+  /* Ohne Pause: angehakte Uebungen, und jede, deren Haken noch steht. */
+  const ohost = el("ohnePauseEdit");
+  if(ohost){
+    const reihen = Object.keys(S.ex).filter(ex => !istKniePfad(ex)
+      && (S.aktiv[ex] !== false || ohnePause(groupOf(ex))));
+    ohost.innerHTML = `<p class="tiny" style="margin:16px 0 8px"><b>Ohne Pause.</b> Diese
+      Übungen kannst du trainieren, so oft du willst, auch mehrmals am Tag. Nach einem
+      Schmerzabbruch ist für den Tag trotzdem Schluss.</p>`
+      + reihen.map(ex => `<label class="chk" style="margin-bottom:6px">
+          <input type="checkbox" data-op="${groupOf(ex)}" ${ohnePause(groupOf(ex)) ? "checked" : ""}>
+          <span>${S.ex[ex].name}</span></label>`).join("");
+    ohost.querySelectorAll("[data-op]").forEach(inp => inp.onchange = e => {
+      S.ohnePause = Object.assign({}, S.ohnePause, {[inp.dataset.op]: e.target.checked});
+      S.plan = null; S.planDay = null; save(); renderAmOrt("ohnePauseEdit");
+    });
+  }
   el("restSave").onclick = ()=>{
     rhost.querySelectorAll("[data-r]").forEach(inp=>{
       const v = parseInt(inp.value, 10);

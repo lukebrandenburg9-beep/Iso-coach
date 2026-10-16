@@ -110,6 +110,9 @@ Rechenlogik:
   drei Wochen. Übungen **ohne Überschneidung** (Liegestütz, Ausfallschritt, Seitstütz, Schrägzug,
   Fersenbrücke, Hip Hinge, Hyperextension) dürfen am selben Tag getestet werden; die App sagt am Pausentag, welche Gruppe noch frei ist. Der Pausentag
   nennt Grund und Termin und lässt sich bewusst übergehen. Werte unter *Mehr → Erholung*.
+  Dort steht auch **„Ohne Pause"**: Ein Haken je Übung hebt Tagessperre und Zonenruhe auf, die
+  Übung läuft dann so oft am Tag, wie du willst. Nach einem Schmerzabbruch ist für den Tag
+  trotzdem Schluss. Die zweite Einheit am Tag zählt in der Kurve als frisch.
 - **Höchstens sechs Blöcke** je Workout. Fünf Übungen, davon drei zweiseitig, wären acht Blöcke
   — in der Kraftausdauer über eine Stunde. Die App nimmt deshalb die freigegebenen Übungen in der
   Reihenfolge, wie lange ihre **Kurve** nicht mehr gemessen wurde, und stellt den Rest auf die
