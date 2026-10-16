@@ -242,16 +242,15 @@ kommen aus gemessenen Haltezeiten. Auf der Karte lässt sich beidbeinig oder ein
 App wählt vor.
 
 **Der Pfad fürs innere Knie.** Auf der Karte der Fersenbrücke steht je Bein ein Häkchen
-„Probleme mediales Knie / Baker-Zyste", dieselben Häkchen stehen unter *Mehr*. Für ein angehaktes Bein gibt es eine eigene Leiter auf
-der Faszienrolle mit eigener Kurve. Die Sprossen sind die Fußstellung mal dem Kontakt: Zehen
-runter, Fuß neutral und Zehen zum Knie, jeweils mit der Ferse oder dem Vorfuß auf der Rolle, erst
-beidbeinig, dann einbeinig. Zehen runter fordert wenig Innendrehung im Schienbein und ist der
-Einstieg im gereizten Zustand; Zehen zum Knie holt genau diese Richtung zurück und ist das Ziel.
-Weiter geht es nach zwei Halten in Folge ohne Schmerz, zurück nach zwei Schmerzabbrüchen in
-Folge. Solange der Pfad beidbeinig läuft, ist das gesunde Bein dort mit drin und bekommt keinen
-eigenen Trainingsblock. Ohne Faszienrolle wird das angehakte Bein nicht trainiert. Kniewinkel (vorläufig
-90°) und die Reihenfolge der mittleren Sprossen sind noch offen und stehen in der App rot. Der
-Yogablock steht dort hochkant, mit derselben Berührungsregel.
+„Probleme mediales Knie / Baker-Zyste", dieselben Häkchen stehen unter *Mehr*. Ein angehaktes Bein
+bekommt eine eigene Leiter auf der Faszienrolle mit eigener Kurve. Sie hat zwei Sprossen, beide mit
+der Ferse auf der Rolle: erst beidbeinig, dann einbeinig. Vorfuß und Fußstellung sind seit dem 16.10.
+raus (P83). Der Vorfuß geht auf die Wade, und die Fußstellung macht in der Brücke keinen Unterschied.
+Weiter geht es nach zwei Halten in Folge ohne Schmerz, zurück nach zwei Schmerzabbrüchen in Folge.
+Solange der Pfad beidbeinig läuft, ist das gesunde Bein dort mit drin und bekommt keinen eigenen
+Trainingsblock. Ohne Faszienrolle wird das angehakte Bein nicht trainiert. Der Kniewinkel (vorläufig
+90°) ist noch offen und steht in der App rot. Der Yogablock steht dort hochkant, mit derselben
+Berührungsregel.
 
 Bei der **Hyperextension** liegt die Kante eines Steppers mit Kissen auf Höhe des Bauchnabels,
 die Füße stehen hinten an der Wand, und der Oberkörper wird frei und waagerecht gehalten. Die

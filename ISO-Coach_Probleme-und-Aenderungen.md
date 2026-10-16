@@ -3474,11 +3474,121 @@ drei.
   das Video liegen bei Luke unter `simulation/testkunde-ausfallschritt/`. Der Patch passt auf
   Build e vor dem Einbau; im Build steckt das jetzt selbst.
 
+### P83 · Pfad fürs innere Knie nur mit der Ferse auf der Rolle, ohne Fußstellung
+
+Luke, 16.10., nach dem Test mit dem Yogablock: Die Fersenbrücke „klappt auf der Faszienrolle
+hervorragend“, man achtet nur darauf, das Knie bei 90° zu halten, und zieht die Ferse zurück, wenn
+das Becken zum Block sinkt, „sehr, sehr geile Variation“. Zum Kontakt: „Vorfuß auf der
+Faszienrolle, das ist mehr wadenlastig, und Ferse auf der Faszienrolle ist auf jeden Fall mehr …
+für die Beinrückseite“, und „wir wollen ja auch nicht so viel Overlap mit den Wadenübungen haben“.
+Zur Fußstellung: Beim Beinbeuger am Kabelzug schmerzt Plantarflexion weniger als Dorsalextension,
+„das Ganze lässt sich aber bei der Fersenbrücke nicht feststellen“.
+
+**Lukes Entscheidungen.**
+
+| Frage | Lukes Antwort |
+|---|---|
+| Vorfuß auf der Rolle? | „Vorfuß raus“ |
+| Fußstellung (Zehen runter, neutral, Zehen zum Knie)? | „Fußstellung raus“ |
+| Kniewinkel 90° oder 135°? | offen, siehe Teil 4 #31 |
+
+**Gebaut in 2026-10-16 f.**
+
+- **Zwei Sprossen statt zwölf:** „Beidbeinig · Fersen auf der Rolle“, dann „Ferse auf der Rolle“.
+  Weiter geht es wie bisher nach zwei Halten ohne Schmerz, zurück nach zwei Schmerzabbrüchen.
+- **Lasten:** Beide Sprossen sind dieselbe Ausführung wie „Faszienrolle · Knie 90°“ der normalen
+  Brücke und tragen deshalb dieselben Platzhalter, 0,258 und 0,708. So steht für eine Bewegung nur
+  eine Annahme in der App. Beide stehen rot als vorläufig. Die Kurve bleibt eine eigene.
+- **Hinweistext:** „die Ferse auf der Faszienrolle“ statt „die Faszienrolle unter dem Fuß“. Der Satz
+  zur Drehung im Schienbein ist raus.
+- **Satz unter dem Häkchen:** „Im Reizzustand Zehen runter zuerst.“ ist raus.
+- **Meldungen der Schmerzregel:** „schwerste Stufe“ und „die Stufe bleibt“ statt „Stellung“.
+- **Umzug:** Stand, Sitzungen und angefangenes Workout ziehen auf die neuen Nummern.
+
+  | Alte Sprossen | Neue Sprosse | Marke |
+  |---|---|---|
+  | 1–3 Beidbeinig · Fersen · Zehen runter, neutral, Zehen zum Knie | 1 Beidbeinig · Fersen auf der Rolle | keine |
+  | 4–6 Beidbeinig · Vorfüße · dieselben drei Stellungen | 1 Beidbeinig · Fersen auf der Rolle | entfallene Sprosse |
+  | 7–9 Ferse · Zehen runter, neutral, Zehen zum Knie | 2 Ferse auf der Rolle | keine |
+  | 10–12 Vorfuß · dieselben drei Stellungen | 2 Ferse auf der Rolle | entfallene Sprosse |
+
+  Die Fersen-Sprossen bekommen keine Marke, weil die Fußstellung in der Brücke keinen Unterschied
+  macht. Gemessen wurde also dieselbe Ausführung. Die Vorfuß-Sprossen bekommen sie, weil dort ein
+  anderer Kontakt und mehr Wade im Spiel war. Alle Punkte bleiben in der Kurve.
+
+**Der Preis.**
+
+- **Nach zwei guten Halten beidbeinig ist der Pfad oben.** Zwischen beidbeinig und einbeinig gibt es
+  keine Zwischenstufe mehr. Nach den Platzhaltern ist das ein Sprung auf das 2,7-fache. Bisher lagen
+  die Sprossen je etwa 12 % auseinander. Wer einbeinig zweimal mit Schmerz abbricht, fällt auf
+  beidbeinig zurück und braucht wieder zwei gute Halte. Danach wächst nur noch die Haltezeit, ohne
+  Gewicht.
+- **Der Pfad unterscheidet sich kaum noch von der normalen Brücke.** Die Ausführung ist dieselbe wie
+  „Faszienrolle · Knie 90°“. Eigen bleiben ihm die Kurve, der Schmerz als Taktgeber, kein Gewicht
+  und kein 135°. Ein Bein verlässt den Pfad nur, wenn du das Häkchen abnimmst. Siehe Teil 4 #37.
+- **Seit P82 fehlt oben irgendwann die Kurve.** Der Pfad hat kein Gewicht und keine Sprosse über
+  „Ferse auf der Rolle“. Nach 30 einbeinigen Einheiten liegen deshalb alle Punkte, mit denen die Kurve
+  rechnet, auf derselben Last. Dann gibt es keine Kurve mehr, und die Zielzeit kommt aus der Mitte
+  der Zone.
+- **Alte Punkte im Pfad behalten ihre alte Zahl** (0,5 bis 1,78), die neuen Sprossen rechnen mit
+  0,258 und 0,708. In einer Kurve passen beide nicht zusammen. Bei dir gibt es keine solchen Punkte
+  (Exporte vom 16.10., 09:27 und 10:55).
+- **Wer seine Leiter von Hand umbenannt oder umgewichtet hat, verliert das,** wie bei jedem Sprung
+  der Fassung.
+
+**Für den Nachbau:**
+
+- `EX_VERSION` 31, `BRIDGE_KNIE_AT` = 31. `BRIDGE_KNIE_UMZUG` = `{0:0, 1:0, 2:0, 3:0, 4:0, 5:0,
+  6:1, 7:1, 8:1, 9:1, 10:1, 11:1}`, `BRIDGE_KNIE_ENTFALLEN` = {3, 4, 5, 9, 10, 11},
+  `BRIDGE_KNIE_ALT_LAST` für Sitzungen ohne Last (`0,5 · 2^(k/6)`).
+- `bridgeKnieUmziehen(levels)` für jeden Schlüssel `bridgeKnie` und `bridgeKnie|…`.
+  `bridgeKnieObjekt(o, offen)` zieht `level`, `levelVorschlag`, `rohStufe` und `anker.level` um.
+  Gehaltene Objekte bekommen fehlende Last aus `ALT_LAST` und auf den Vorfuß-Sprossen
+  `entfalleneSprosse`. Ein offener Block zieht nur mit der Nummer um, wie bei `pushObjekt`.
+  `bridgeKnieLauf(lauf)` für Plan und gelaufene Blöcke.
+- `normalize()`: Stand nach `lungeOhne9Umziehen`, Sitzungen und Lauf als äußerste Stufe der Kette.
+  Ein Stand mit Schlüssel ohne Seite (`bridgeKnie`) zieht zuerst um und wird dann von `beidUmzug`
+  auf beide Seiten verteilt.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-16 f — Pfad fürs innere Knie nur mit der Ferse
+
+**Befund (Luke).** Im Test mit dem Yogablock auf der Faszienrolle geht der Vorfuß auf die Wade, die
+Ferse auf die Beinrückseite. Die Fußstellung macht in der Brücke am Knie keinen Unterschied (P83).
+
+**Gebaut.**
+
+- **Pfad fürs innere Knie mit zwei Sprossen:** erst beidbeinig, dann einbeinig, beide mit der Ferse
+  auf der Rolle. Fassung der Übungsliste 31.
+- **Lasten** wie bei „Faszienrolle · Knie 90°“ der normalen Brücke, 0,258 und 0,708, rot vorläufig.
+- **Texte:** Hinweistext, Satz unter dem Häkchen und Meldungen der Schmerzregel ohne Fußstellung.
+- **Umzug:** Stand, Sitzungen und angefangenes Workout ziehen auf die neuen Nummern. Alle Punkte
+  bleiben in der Kurve, die auf Vorfuß-Sprossen mit Marke.
+
+**Geprüft.**
+
+- Im Browser über `normalize()`, auf dem Stand mit P82:
+  - Ein Stand der Fassung 30 mit Sitzungen auf allen zwölf alten Nummern, darunter eine ohne Last.
+  - Vorschlag, Rohstufe und Anker ziehen mit um.
+  - Bei einem angefangenen Workout zieht der offene Block nur mit der Nummer um, der gelaufene
+    bekommt die Marke.
+  - Ein Schlüssel ohne Seite wird auf beide Seiten verteilt, der Zähler „gut“ bleibt.
+  - Zweimal angewandt ändert es nichts.
+  - Ein Stand der Fassung 26 (`hingeKnie`) läuft durch Umbenennung und Umzug.
+  - Die normale Fersenbrücke und die anderen Übungen bleiben unberührt.
+- Bei 375 × 812, ein Bein angehakt:
+  - Steht der Pfad beidbeinig, gibt es einen Halt „Beidbeinig · Fersen auf der Rolle“.
+  - Steht er einbeinig, gibt es zwei Übungen: den Pfad am angehakten Bein und die normale Brücke am
+    anderen.
+  - Hinweis, Block-Zeile, „Kniewinkel vorläufig 90°“ und die rote Zeile stehen da. Das Profil zeigt
+    zwei Sprossen. Keine Konsolenfehler.
+  - Wird das Häkchen abgenommen, plant die App das Bein wieder in der normalen Leiter. Beide Stände
+    bleiben erhalten.
 
 ### 2026-10-16 e — Ausfallschritt ohne Sprosse 9, Kurzhanteln statt Rucksack, Kraftkurve mit Pfeil und 30 Punkten
 
@@ -6454,11 +6564,9 @@ als Teil des Ansatz-Pfads? Das ist eine Produktentscheidung, keine technische.
     mit 90° und 135° in der Leiter, das fast gestreckte Bein ist raus. Der Stepper ersetzt Hocker
     und Kiste noch nicht. Was die Messungen der nächsten Wochen zeigen, entscheidet über die Leiter
     (#34).
-31. **Kniewinkel und Reihenfolge im Pfad fürs innere Knie (P76).** Gebaut mit 90° und der
-    Reihenfolge Ferse vor Vorfuß, darin jeweils Zehen runter, neutral, Zehen zum Knie. Offen ist:
-    Zieht die Rolle unter dem Vorfuß mehr als unter der Ferse? Und wie fühlen sich Zehen runter und
-    Zehen zum Knie am inneren Knie an? Dazu der Kniewinkel, 90° gegen etwa 130°. Die
-    sanfteste Stellung (Ferse, Zehen runter) und die härteste (Vorfuß, Zehen zum Knie) stehen fest.
+31. **Kniewinkel im Pfad fürs innere Knie (P76, P83).** Entschieden (Luke, 16.10.): nur die Ferse
+    auf der Rolle, ohne Fußstellung, zwei Sprossen (P83). Offen bleibt der Kniewinkel, 90° gegen
+    135°. Gebaut ist 90°.
 32. **Die beidbeinige Rampe der Fersenbrücke ist ein Platzhalter (P76).** Ihre sechs Lasten sind
     gesetzt, nicht gemessen. Aus deinen beidbeinigen Haltezeiten rechne ich über deine einbeinige
     Kurve die echten Lasten und den Punkt, an dem einbeinig Stuhl in die Rampe fällt. Das
@@ -6497,6 +6605,11 @@ als Teil des Ansatz-Pfads? Das ist eine Produktentscheidung, keine technische.
     **Entschieden (Luke, 16.10.), gebaut in Build `2026-10-16 e`:** „Grenze 30 Punkte. Bau es in die
     App ein.“ Die 30 gelten für jede Kurve. Das Ausgrauen läuft über das Fit-Gewicht, der älteste
     der 30 Punkte ist noch gut halb sichtbar.
+37. **Wann verlässt ein Bein den Pfad fürs innere Knie? (P83)** Der Pfad endet bei „Ferse auf der
+    Rolle“. Heute verlässt ein Bein ihn nur, wenn du das Häkchen abnimmst. Dann gilt für das Bein
+    wieder sein Stand in der normalen Leiter, der Pfad behält seinen eigenen. Offen ist zweierlei.
+    Soll die App das Abnehmen vorschlagen, etwa nach einer Zahl schmerzfreier Einheiten einbeinig?
+    Und auf welcher Sprosse der normalen Leiter soll das Bein dann landen?
 
 ---
 

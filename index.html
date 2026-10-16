@@ -939,46 +939,39 @@ const DEFAULT_EX = {
      Luke, Spaziergang 15.10.2026. Wer bei der Fersenbruecke "Probleme
      inneres Knie / Baker-Zyste" anhakt (je Bein, S.knieInnen), bekommt fuer
      dieses Bein statt der Hoehenleiter diese hier. Sie ist keine Lastleiter:
-     Die Sprossen sind Fussstellung mal Kontakt auf der Faszienrolle. Zehen
-     runter (Plantarflexion) koppelt mit Tibia-Aussenrotation und fordert
-     wenig Innenrotation — der Einstieg im gereizten Zustand. Zehen zum Knie
-     (Dorsalextension) koppelt mit Tibia-Innenrotation und holt genau die
-     fehlende Richtung zurueck — das Ziel. Erst beidbeinig, dann einbeinig.
      Weiter geht es, wenn der Schmerz es erlaubt (KNIE_HOCH), nicht wenn die
      Kurve es sagt — siehe den Zweig schmerzGefuehrt in applyRules.
+     Bis Fassung 30 skalierte sie ueber den Kontakt auf der Rolle (Ferse,
+     Vorfuss) mal die Fussstellung (Zehen runter, neutral, Zehen zum Knie),
+     zwoelf Sprossen. Lukes Test am 16.10.2026: Der Vorfuss ist wadenlastig,
+     die Ferse geht auf die Beinrueckseite — die Ferse bleibt, fuer die Wade
+     gibt es eigene Uebungen. Die Fussstellung macht in der Bruecke keinen
+     Unterschied am Knie (am Beinbeuger am Kabelzug schon: Plantarflexion
+     schmerzt weniger). Beides ist raus, es bleiben zwei Sprossen: erst
+     beidbeinig, dann einbeinig. Siehe BRIDGE_KNIE_AT.
      Eigene Uebung im Code, damit sie eine eigene Kurve, eigene Staende und
      eigene Zeilen im Export hat. Geplant wird sie immer zusammen mit bridge
      (fersenTeile) und steht in keiner Uebungsauswahl.
-     Lasten: nur relativ, 0,5 * 2^(k/6) — die Kurve ist eine eigene, die Zahl
-     ordnet nur. Die Reihenfolge der mittleren Sprossen (was zieht mehr,
-     Ferse oder Vorfuss?) und der Kniewinkel sind vorlaeufig, bis Luke im
-     Trainingsraum getestet hat. */
+     Lasten: Beide Sprossen sind dieselbe Ausfuehrung wie die Sprossen
+     "Faszienrolle" der normalen Bruecke bei Knie 90 Grad, also tragen sie
+     dieselben Platzhalter (0,258 und 0,708) — eine Annahme statt zwei.
+     Aendern sich die dort, hier mitziehen. Die Kurve bleibt eine eigene.
+     Der Kniewinkel ist vorlaeufig 90 Grad, bis Luke ihn festlegt. */
   bridgeKnie: {
     name:"Fersenbrücke fürs innere Knie", region:"Kniekehle innen", group:"bridge",
     sides:["links","rechts"], teilVon:"bridge", ohneGewicht:true,
     schmerzGefuehrt:true, startStufe:0,
     seitenRuf:{links:"LINKES BEIN TRÄGT", rechts:"RECHTES BEIN TRÄGT"},
-    hint:"Rücken am Boden, Knie etwa rechtwinklig (90°), die Faszienrolle unter dem Fuß. "
-        +"Becken hoch, bis Schulter, Hüfte und Knie eine Linie bilden. Die Stellung des "
-        +"Fußes leitet die Drehung im Schienbein ein — du drehst nicht aktiv im Knie. "
+    hint:"Rücken am Boden, Knie etwa rechtwinklig (90°), die Ferse auf der Faszienrolle. "
+        +"Becken hoch, bis Schulter, Hüfte und Knie eine Linie bilden. "
         +"Zieht es innen hinten am Knie mehr als ein Ziehen, eine Sprosse zurück. "
         +"Unter den Sitzbeinen steht ein Yogablock hochkant. Berührst du ihn leicht, drück "
         +"das Becken wieder hoch. Liegt das Becken mit Druck auf dem Block, ist der Halt "
         +"zu Ende.",
     knieWinkelVorlaeufig:true,
     levels:[
-      {name:"Beidbeinig · Fersen auf der Rolle · Zehen runter",       load:0.500, beid:true, platzhalter:true, geraet:"rolle", block:"hochkant"},
-      {name:"Beidbeinig · Fersen auf der Rolle · Fuß neutral",        load:0.561, beid:true, platzhalter:true, geraet:"rolle", block:"hochkant"},
-      {name:"Beidbeinig · Fersen auf der Rolle · Zehen zum Knie",     load:0.630, beid:true, platzhalter:true, geraet:"rolle", block:"hochkant"},
-      {name:"Beidbeinig · Vorfüße auf der Rolle · Zehen runter",      load:0.707, beid:true, platzhalter:true, geraet:"rolle", block:"hochkant"},
-      {name:"Beidbeinig · Vorfüße auf der Rolle · Fuß neutral",       load:0.794, beid:true, platzhalter:true, geraet:"rolle", block:"hochkant"},
-      {name:"Beidbeinig · Vorfüße auf der Rolle · Zehen zum Knie",    load:0.891, beid:true, platzhalter:true, geraet:"rolle", block:"hochkant"},
-      {name:"Ferse auf der Rolle · Zehen runter",                     load:1.000, platzhalter:true, geraet:"rolle", block:"hochkant"},
-      {name:"Ferse auf der Rolle · Fuß neutral",                      load:1.122, platzhalter:true, geraet:"rolle", block:"hochkant"},
-      {name:"Ferse auf der Rolle · Zehen zum Knie",                   load:1.260, platzhalter:true, geraet:"rolle", block:"hochkant"},
-      {name:"Vorfuß auf der Rolle · Zehen runter",                    load:1.414, platzhalter:true, geraet:"rolle", block:"hochkant"},
-      {name:"Vorfuß auf der Rolle · Fuß neutral",                     load:1.587, platzhalter:true, geraet:"rolle", block:"hochkant"},
-      {name:"Vorfuß auf der Rolle · Zehen zum Knie",                  load:1.782, platzhalter:true, geraet:"rolle", block:"hochkant"}
+      {name:"Beidbeinig · Fersen auf der Rolle", load:0.258, beid:true, platzhalter:true, geraet:"rolle", block:"hochkant"},
+      {name:"Ferse auf der Rolle",               load:0.708, platzhalter:true, geraet:"rolle", block:"hochkant"}
     ]
   },
 
@@ -1647,7 +1640,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-16 e";
+const BUILD = "2026-10-16 f";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -1678,7 +1671,10 @@ const AW_V = 1;
 /* 30 (16.10.2026, Build e): Ausfallschritt ohne "Hinterer Fuss auf dem
    Stepper · Knie bis 1 Stufe", die oberste Sprosse rueckt auf 9; Gewicht
    heisst Kurzhanteln oder Kettlebells. Siehe LUNGE_OHNE9_AT. */
-const EX_VERSION = 30;
+/* 31 (16.10.2026, Build f): Pfad fuers innere Knie nur mit der
+   Ferse auf der Rolle, ohne Fussstellung — zwei Sprossen statt zwoelf.
+   Siehe BRIDGE_KNIE_AT. */
+const EX_VERSION = 31;
 /* Der Sprung auf 26 setzt die Pausen je Zone NICHT mehr zurueck: Sie sind
    Lukes Einstellung, keine mitgelieferte Uebungsdefinition. Zurueckgesetzt
    wird nur, wer von vor 25 kommt — so wie bisher bei jedem Sprung. */
@@ -2448,6 +2444,48 @@ function lungeOhne9Lauf(lauf){
     plan: Object.assign({}, lauf.plan, {blocks: (lauf.plan.blocks || []).map(b => lungeOhne9Objekt(b, true))}),
     fertig: (lauf.fertig || []).map(o => lungeOhne9Objekt(o))});
 }
+/* ── Fassung 31 (16.10.2026): Pfad fuers innere Knie nur mit der Ferse ────
+   Alt (je Haelfte, beidbeinig 0-5, einbeinig 6-11): Ferse · Zehen runter ·
+        Ferse · neutral · Ferse · Zehen zum Knie · Vorfuss · Zehen runter ·
+        Vorfuss · neutral · Vorfuss · Zehen zum Knie
+   Neu: 0 beidbeinig Fersen · 1 einbeinig Ferse
+   Die drei Fersen-Sprossen einer Haelfte ziehen ohne Marke auf ihre neue
+   Sprosse: Die Fussstellung macht in der Bruecke keinen Unterschied (Luke,
+   16.10.2026), gemessen wurde also dieselbe Ausfuehrung. Die Vorfuss-
+   Sprossen ziehen auch dorthin und tragen die Marke entfalleneSprosse —
+   anderer Kontakt, mehr Wade. Alle Punkte bleiben in der Kurve mit der
+   Last, die sie beim Speichern bekommen haben; Messpunkte verwirft nur
+   Luke. Ein offener Block zieht nur mit der Nummer um, wie bei pushObjekt. */
+const BRIDGE_KNIE_AT       = 31;
+const BRIDGE_KNIE_UMZUG    = {0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:1, 7:1, 8:1, 9:1, 10:1, 11:1};
+const BRIDGE_KNIE_ENTFALLEN = new Set([3, 4, 5, 9, 10, 11]);
+const BRIDGE_KNIE_ALT_LAST = {0:0.500, 1:0.561, 2:0.630, 3:0.707, 4:0.794, 5:0.891,
+                              6:1.000, 7:1.122, 8:1.260, 9:1.414, 10:1.587, 11:1.782};
+const knieKey = k => (k === "bridgeKnie" || String(k).indexOf("bridgeKnie|") === 0);
+function bridgeKnieUmziehen(lv){
+  const L = Object.assign({}, lv || {});
+  for(const k of Object.keys(L))
+    if(knieKey(k) && BRIDGE_KNIE_UMZUG[L[k]] != null) L[k] = BRIDGE_KNIE_UMZUG[L[k]];
+  return L;
+}
+function bridgeKnieObjekt(o, offen){
+  if(!o || o.exercise !== "bridgeKnie" || BRIDGE_KNIE_UMZUG[o.level] == null) return o;
+  const um = v => (BRIDGE_KNIE_UMZUG[v] != null ? BRIDGE_KNIE_UMZUG[v] : v);
+  const neu = {level: um(o.level)};
+  if(o.levelVorschlag != null) neu.levelVorschlag = um(o.levelVorschlag);
+  if(o.rohStufe != null) neu.rohStufe = um(o.rohStufe);
+  if(o.anker && o.anker.level != null) neu.anker = Object.assign({}, o.anker, {level: um(o.anker.level)});
+  if(offen) return Object.assign({}, o, neu);
+  if(!(o.load > 0)) neu.load = BRIDGE_KNIE_ALT_LAST[o.level];
+  if(BRIDGE_KNIE_ENTFALLEN.has(o.level)) neu.entfalleneSprosse = true;
+  return Object.assign({}, o, neu);
+}
+function bridgeKnieLauf(lauf){
+  if(!lauf || !lauf.plan) return lauf;
+  return Object.assign({}, lauf, {
+    plan: Object.assign({}, lauf.plan, {blocks: (lauf.plan.blocks || []).map(b => bridgeKnieObjekt(b, true))}),
+    fertig: (lauf.fertig || []).map(o => bridgeKnieObjekt(o))});
+}
 /* Training ohne Geraete (Build 2026-10-01 b). Steht vor load(), weil
    normalize() den gespeicherten Modus damit prueft. Seit 2026-10-01 c heisst
    der Schalter "Volles Equipment" / "Nur Koerpergewicht", die Wand ist ein
@@ -2535,6 +2573,7 @@ function normalize(d){
   const pushUmzug     = !leitersturz && (d.exVersion || 1) < PUSH_NEU_AT;
   const bridgeWinkel  = !leitersturz && (d.exVersion || 1) < BRIDGE_WINKEL_AT;
   const lungeOhne9    = !leitersturz && (d.exVersion || 1) < LUNGE_OHNE9_AT;
+  const knieFerse     = !leitersturz && (d.exVersion || 1) < BRIDGE_KNIE_AT;
   const ex = stale ? structuredClone(DEFAULT_EX)
                    : Object.assign(structuredClone(DEFAULT_EX), d.ex || {});
   /* Erst die Band-Verschiebung von Fassung 11, dann der Umzug auf das freie
@@ -2560,6 +2599,7 @@ function normalize(d){
   if(bridgeWinkel) roh.levels = bridgeWinkelUmziehen(roh.levels);
   if(pushUmzug) roh.levels = pushUmziehen(roh.levels);
   if(lungeOhne9) roh.levels = lungeOhne9Umziehen(roh.levels);
+  if(knieFerse) roh.levels = bridgeKnieUmziehen(roh.levels);
   const umzug  = beidUmzug(ex, roh.levels, roh.extra,
                            leitersturz ? {} : (d.streak || {}));
   /* Nach beidUmzug: Erst dann stehen alle Wadenschluessel je Seite. */
@@ -2623,7 +2663,8 @@ function normalize(d){
                                        einen Wand-Sitzung richtigstellen
                                        (LUNGE_WAND_MESS_AT) — sie laeuft auf
                                        der schon umgezogenen Nummer. */
-                                    sessions: (ses => lungeOhne9 ? ses.map(o => lungeOhne9Objekt(o)) : ses)(
+                                    sessions: (ses => knieFerse ? ses.map(o => bridgeKnieObjekt(o)) : ses)(
+                                              (ses => lungeOhne9 ? ses.map(o => lungeOhne9Objekt(o)) : ses)(
                                               (ses => bridgeWinkel ? ses.map(bridgeWinkelObjekt) : ses)(
                                               (ses => pushUmzug ? pushSessions(ses) : ses)(
                                               (ses => bridgeUmzug ? ses.map(bridgeObjekt) : ses)(
@@ -2633,7 +2674,7 @@ function normalize(d){
                                               (ses => lungeMess ? lungeWandMessung(ses) : ses)(
                                                 (ses => lungeUmzug ? lungeSessions(ses) : ses)(
                                                   rowSkala ? rowSkalaVerwerfen(d.sessions)
-                                                           : (d.sessions || [])))))))))),
+                                                           : (d.sessions || []))))))))))),
                                     sync: d.sync || {},
                                     /* Zugpunkt ist voreingestellt an — eine stabile
                                        Tischkante reicht und hat praktisch jeder. Rolle und
@@ -2651,7 +2692,8 @@ function normalize(d){
                                     gefragt: d.gefragt || {},
                                     /* Ein angefangener Lauf ueberlebt das Neuladen. */
                                     lauf: (d.lauf && d.lauf.plan)
-                                          ? (l => lungeOhne9 ? lungeOhne9Lauf(l) : l)(
+                                          ? (l => knieFerse ? bridgeKnieLauf(l) : l)(
+                                            (l => lungeOhne9 ? lungeOhne9Lauf(l) : l)(
                                             (l => bridgeWinkel ? bridgeWinkelLauf(l) : l)(
                                             (l => pushUmzug ? pushLauf(l) : l)(
                                             (l => bridgeUmzug ? bridgeLauf(l) : l)(
@@ -2660,7 +2702,7 @@ function normalize(d){
                                             (l => handtuchUmzug ? handtuchLauf(l, bwAlt) : l)(
                                             (l => waageUmzug ? wadeWaageLauf(l, bwAlt, ex.wade) : l)(
                                               (l => rucksackUmzug ? wadeRucksackLauf(l, waageLo) : l)(
-                                              wadeUmzug ? wadeLauf(d.lauf, bwAlt) : d.lauf)))))))))
+                                              wadeUmzug ? wadeLauf(d.lauf, bwAlt) : d.lauf))))))))))
                                           : null,
                                     lage: knie ? knie.lage : (d.lage || {}),
                                     haltung: (d.haltung && typeof d.haltung === "object")
@@ -5392,12 +5434,12 @@ function knieRegeln(session, etikett){
         msgs.push({t:"ok", x:`${etikett}: zweimal in Folge ohne Schmerz gehalten → eine Stufe `
           + `weiter auf „${name()}".`});
       } else msgs.push({t:"ok", x:`${etikett}: ohne Schmerz gehalten — das ist schon die `
-        + `schwerste Stellung.`});
+        + `schwerste Stufe.`});
     } else msgs.push({t:"ok", x:`${etikett}: ohne Schmerz gehalten. Noch einmal, dann geht `
       + `es eine Stufe weiter.`});
   } else {
     st.pain = 0; st.gut = 0;
-    msgs.push({t:"ok", x:`${etikett}: unter der Vorgabe — die Stellung bleibt.`});
+    msgs.push({t:"ok", x:`${etikett}: unter der Vorgabe — die Stufe bleibt.`});
   }
   const serie = schmerzSerie();
   if(serie) msgs.push(serie);
@@ -6316,7 +6358,7 @@ function ausfUmbauen(i){
    der Satz zur Abklaerung darunter — der Hinweis gehoert laut Handoff in die
    App, und er gilt, solange ein Knie angehakt ist. */
 const KNIE_SICHER = "Eine Baker-Zyste ist meist Folge eines Gelenkproblems – anhaltender Schmerz "
-  + "innen hinten am Knie gehört abgeklärt. Im Reizzustand Zehen runter zuerst.";
+  + "innen hinten am Knie gehört abgeklärt.";
 function knieWahlKarte(ort){
   const k = S.knieInnen || {}, id = ort || "kn";
   return `<div style="margin-top:12px">${["links", "rechts"].map(sd => `
