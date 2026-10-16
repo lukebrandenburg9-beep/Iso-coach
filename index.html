@@ -817,10 +817,39 @@ const DEFAULT_EX = {
      regulaerer. Ersetzen durch Lukes beidbeinige Haltezeiten, abgebildet
      ueber seine einbeinige Kurve. Die reine Gewichtsrechnung waere die
      Haelfte der Einbeinlast und unterschaetzt einbeinig systematisch
-     (Leitfaden 15.10., Evidenzteil) — deshalb gemessen, nicht gerechnet. */
+     (Leitfaden 15.10., Evidenzteil) — deshalb gemessen, nicht gerechnet.
+
+     Seit Build 2026-10-16 d (EX_VERSION 29) gibt es nur noch zwei
+     Kniewinkel, 90 und 135 Grad, und jede Unterlage in beiden (Luke,
+     16.10.2026: "wir wollten das fast gestreckte Knie erstmal rausnehmen und
+     nur die kniewinkel 90 und 135° anbieten"). Reihenfolge je Unterlage
+     erst 90, dann 135 Grad, Luke: "die 135° sind etwas schwerer als 90° aber
+     oft nicht so schwer wie 90° auf der naechsten stufen ... wir gucken was
+     die messwerte der naechsten wochen ergeben". Die Kiste mit leicht
+     geoeffnetem Knie und Boden und Rolle mit fast gestrecktem Bein fallen
+     weg; BRIDGE_WINKEL_UMZUG zieht Staende und Sitzungen mit.
+     Lasten einbeinig: Stuhl 90, Hocker 90 und Boden 135 behalten ihre Werte
+     (dieselbe Stellung wie vorher). Dazwischen geometrisch, jede 135-Grad-
+     Sprosse in der Mitte zwischen 90 Grad auf ihrer und auf der naechsten
+     Unterlage: Stuhl -> Hocker Faktor 1,184 je Schritt, Hocker -> Boden 135
+     Faktor 1,0932, darueber fortgeschrieben. PLATZHALTER, bis Lukes
+     Messungen da sind. Mein Segmentmodell sagt dagegen: Bei gleichem
+     Kniewinkel aendert die Hoehe die Last kaum, der Winkel macht den Sprung
+     (Recherche_Fersenbruecke-Hueftstreckung.md). Die Messung entscheidet.
+     Beidbeinig: wieder geometrisch 0,148 * 2^(k/10), ein regulaerer Schritt
+     unter einbeinig Stuhl.
+     Im Namen steht der Kniewinkel vorn: Am Handy schneidet das Auswahlfeld
+     nach etwa 37 Zeichen ab, und "Knie 90" gegen "Knie 135" ist genau das,
+     was man sehen muss.
+     block: wie der Yogablock unter den Sitzbeinen steht (Luke, 16.10.2026:
+     Rolle hochkant, Boden flach; Stuhl aufrecht, Hocker hochkant auf einem
+     5-cm-Buch, Kiste hochkant). Eine Stellung je Unterlage, bei 135 Grad
+     knapp unter dem Becken, bei 90 Grad bleibt mehr Luft. Leichte Beruehrung
+     wird korrigiert, Druck auf dem Block beendet den Halt.
+   */
   bridge: {
     name:"Fersenbrücke", region:"Oberschenkelrückseite", group:"bridge",
-    sides:["links","rechts"], extraAb:9, extraK:1.4,
+    sides:["links","rechts"], extraAb:17, extraK:1.4,
     /* Neue Nutzer beginnen beidbeinig auf dem Stuhl. */
     startStufe:0,
     seitenRuf:{links:"LINKES BEIN TRÄGT", rechts:"RECHTES BEIN TRÄGT"},
@@ -830,7 +859,11 @@ const DEFAULT_EX = {
         +"Unterlage, Zehen zeigen nach oben, Becken hoch drücken, bis Schulter, Hüfte und "
         +"Knie eine Linie bilden. Das freie Bein bleibt angewinkelt in der Luft — nicht "
         +"abstützen. Gearbeitet wird in der Ferse, nicht im Fußballen. Wenn es vorne im "
-        +"Oberschenkel krampft, ist das Becken zu tief.",
+        +"Oberschenkel krampft, ist das Becken zu tief. Knie 90° heißt rechtwinklig, 135° "
+        +"liegt halb zwischen rechtwinklig und gestreckt. Unter den Sitzbeinen steht ein "
+        +"Yogablock, so wie bei der Sprosse angegeben. Berührst du ihn leicht, drück das "
+        +"Becken wieder hoch. Liegt das Becken mit Druck auf dem Block, ist der Halt zu "
+        +"Ende. Kein Block da? Ein Stapel Bücher in derselben Höhe geht genauso.",
     seitenHinweis:"Dieses Bein hat eben noch das Becken gehalten, während die andere Seite "
                  +"gearbeitet hat — beide Oberschenkelrückseiten stabilisieren mit.",
     /* Der Red-Flag-Fragebogen laeuft nur im Onboarding. Eine Uebung, die
@@ -855,18 +888,26 @@ const DEFAULT_EX = {
     /* gemessen:true = Luke hat diese Sprosse gemessen; dann steht sie nicht
        mehr rot da (siehe sprosseVorlaeufig). Nachgezogen mit jedem Build. */
     levels:[
-      {name:"Beidbeinig · Fersen auf Stuhlsitz (~45 cm) · Knie etwa rechtwinklig", load:0.148, beid:true, platzhalter:true},
-      {name:"Beidbeinig · Fersen auf Hocker (~30 cm) · Knie etwa rechtwinklig",    load:0.166, beid:true, platzhalter:true},
-      {name:"Beidbeinig · Fersen auf Kiste (~20 cm) · Knie leicht geöffnet",       load:0.186, beid:true, platzhalter:true},
-      {name:"Beidbeinig · Fersen am Boden · Knie deutlich geöffnet",               load:0.209, beid:true, platzhalter:true, ort:"boden"},
-      {name:"Beidbeinig · Fersen am Boden · Beine fast gestreckt",                 load:0.235, beid:true, platzhalter:true, ort:"boden"},
-      {name:"Beidbeinig · Fersen auf der Faszienrolle · Beine fast gestreckt",     load:0.264, beid:true, platzhalter:true, geraet:"rolle"},
-      {name:"Ferse auf Stuhlsitz (~45 cm) · Knie etwa rechtwinklig", load:0.296},
-      {name:"Ferse auf Hocker (~30 cm) · Knie etwa rechtwinklig",    load:0.415},
-      {name:"Ferse auf Kiste (~20 cm) · Knie leicht geöffnet",       load:0.561},
-      {name:"Ferse am Boden · Knie deutlich geöffnet",               load:0.648, ort:"boden"},
-      {name:"Ferse am Boden · Bein fast gestreckt (langer Hebel)",   load:0.760, ort:"boden"},
-      {name:"Ferse auf der Faszienrolle · Bein fast gestreckt",      load:0.850, geraet:"rolle"}
+      {name:"Beidbeinig · Knie 90° · Stuhlsitz (~45 cm)", load:0.148, beid:true, platzhalter:true, block:"aufrecht"},
+      {name:"Beidbeinig · Knie 135° · Stuhlsitz (~45 cm)", load:0.159, beid:true, platzhalter:true, block:"aufrecht"},
+      {name:"Beidbeinig · Knie 90° · Hocker (~30 cm)", load:0.170, beid:true, platzhalter:true, block:"hocker"},
+      {name:"Beidbeinig · Knie 135° · Hocker (~30 cm)", load:0.182, beid:true, platzhalter:true, block:"hocker"},
+      {name:"Beidbeinig · Knie 90° · Kiste (~20 cm)", load:0.195, beid:true, platzhalter:true, block:"hochkant"},
+      {name:"Beidbeinig · Knie 135° · Kiste (~20 cm)", load:0.209, beid:true, platzhalter:true, block:"hochkant"},
+      {name:"Beidbeinig · Knie 90° · Boden", load:0.224, beid:true, platzhalter:true, block:"flach", ort:"boden"},
+      {name:"Beidbeinig · Knie 135° · Boden", load:0.240, beid:true, platzhalter:true, block:"flach", ort:"boden"},
+      {name:"Beidbeinig · Knie 90° · Faszienrolle", load:0.258, beid:true, platzhalter:true, block:"hochkant", geraet:"rolle"},
+      {name:"Beidbeinig · Knie 135° · Faszienrolle", load:0.276, beid:true, platzhalter:true, block:"hochkant", geraet:"rolle"},
+      {name:"Knie 90° · Stuhlsitz (~45 cm)", load:0.296, block:"aufrecht"},
+      {name:"Knie 135° · Stuhlsitz (~45 cm)", load:0.350, platzhalter:true, block:"aufrecht"},
+      {name:"Knie 90° · Hocker (~30 cm)", load:0.415, block:"hocker"},
+      {name:"Knie 135° · Hocker (~30 cm)", load:0.454, platzhalter:true, block:"hocker"},
+      {name:"Knie 90° · Kiste (~20 cm)", load:0.496, platzhalter:true, block:"hochkant"},
+      {name:"Knie 135° · Kiste (~20 cm)", load:0.542, platzhalter:true, block:"hochkant"},
+      {name:"Knie 90° · Boden", load:0.593, platzhalter:true, block:"flach", ort:"boden"},
+      {name:"Knie 135° · Boden", load:0.648, block:"flach", ort:"boden"},
+      {name:"Knie 90° · Faszienrolle", load:0.708, platzhalter:true, block:"hochkant", geraet:"rolle"},
+      {name:"Knie 135° · Faszienrolle", load:0.774, platzhalter:true, block:"hochkant", geraet:"rolle"}
     ]
   },
 
@@ -896,21 +937,24 @@ const DEFAULT_EX = {
     hint:"Rücken am Boden, Knie etwa rechtwinklig (90°), die Faszienrolle unter dem Fuß. "
         +"Becken hoch, bis Schulter, Hüfte und Knie eine Linie bilden. Die Stellung des "
         +"Fußes leitet die Drehung im Schienbein ein — du drehst nicht aktiv im Knie. "
-        +"Zieht es innen hinten am Knie mehr als ein Ziehen, eine Sprosse zurück.",
+        +"Zieht es innen hinten am Knie mehr als ein Ziehen, eine Sprosse zurück. "
+        +"Unter den Sitzbeinen steht ein Yogablock hochkant. Berührst du ihn leicht, drück "
+        +"das Becken wieder hoch. Liegt das Becken mit Druck auf dem Block, ist der Halt "
+        +"zu Ende.",
     knieWinkelVorlaeufig:true,
     levels:[
-      {name:"Beidbeinig · Fersen auf der Rolle · Zehen runter",       load:0.500, beid:true, platzhalter:true, geraet:"rolle"},
-      {name:"Beidbeinig · Fersen auf der Rolle · Fuß neutral",        load:0.561, beid:true, platzhalter:true, geraet:"rolle"},
-      {name:"Beidbeinig · Fersen auf der Rolle · Zehen zum Knie",     load:0.630, beid:true, platzhalter:true, geraet:"rolle"},
-      {name:"Beidbeinig · Vorfüße auf der Rolle · Zehen runter",      load:0.707, beid:true, platzhalter:true, geraet:"rolle"},
-      {name:"Beidbeinig · Vorfüße auf der Rolle · Fuß neutral",       load:0.794, beid:true, platzhalter:true, geraet:"rolle"},
-      {name:"Beidbeinig · Vorfüße auf der Rolle · Zehen zum Knie",    load:0.891, beid:true, platzhalter:true, geraet:"rolle"},
-      {name:"Ferse auf der Rolle · Zehen runter",                     load:1.000, platzhalter:true, geraet:"rolle"},
-      {name:"Ferse auf der Rolle · Fuß neutral",                      load:1.122, platzhalter:true, geraet:"rolle"},
-      {name:"Ferse auf der Rolle · Zehen zum Knie",                   load:1.260, platzhalter:true, geraet:"rolle"},
-      {name:"Vorfuß auf der Rolle · Zehen runter",                    load:1.414, platzhalter:true, geraet:"rolle"},
-      {name:"Vorfuß auf der Rolle · Fuß neutral",                     load:1.587, platzhalter:true, geraet:"rolle"},
-      {name:"Vorfuß auf der Rolle · Zehen zum Knie",                  load:1.782, platzhalter:true, geraet:"rolle"}
+      {name:"Beidbeinig · Fersen auf der Rolle · Zehen runter",       load:0.500, beid:true, platzhalter:true, geraet:"rolle", block:"hochkant"},
+      {name:"Beidbeinig · Fersen auf der Rolle · Fuß neutral",        load:0.561, beid:true, platzhalter:true, geraet:"rolle", block:"hochkant"},
+      {name:"Beidbeinig · Fersen auf der Rolle · Zehen zum Knie",     load:0.630, beid:true, platzhalter:true, geraet:"rolle", block:"hochkant"},
+      {name:"Beidbeinig · Vorfüße auf der Rolle · Zehen runter",      load:0.707, beid:true, platzhalter:true, geraet:"rolle", block:"hochkant"},
+      {name:"Beidbeinig · Vorfüße auf der Rolle · Fuß neutral",       load:0.794, beid:true, platzhalter:true, geraet:"rolle", block:"hochkant"},
+      {name:"Beidbeinig · Vorfüße auf der Rolle · Zehen zum Knie",    load:0.891, beid:true, platzhalter:true, geraet:"rolle", block:"hochkant"},
+      {name:"Ferse auf der Rolle · Zehen runter",                     load:1.000, platzhalter:true, geraet:"rolle", block:"hochkant"},
+      {name:"Ferse auf der Rolle · Fuß neutral",                      load:1.122, platzhalter:true, geraet:"rolle", block:"hochkant"},
+      {name:"Ferse auf der Rolle · Zehen zum Knie",                   load:1.260, platzhalter:true, geraet:"rolle", block:"hochkant"},
+      {name:"Vorfuß auf der Rolle · Zehen runter",                    load:1.414, platzhalter:true, geraet:"rolle", block:"hochkant"},
+      {name:"Vorfuß auf der Rolle · Fuß neutral",                     load:1.587, platzhalter:true, geraet:"rolle", block:"hochkant"},
+      {name:"Vorfuß auf der Rolle · Zehen zum Knie",                  load:1.782, platzhalter:true, geraet:"rolle", block:"hochkant"}
     ]
   },
 
@@ -1579,7 +1623,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-16 c";
+const BUILD = "2026-10-16 d";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -1604,7 +1648,10 @@ const AW_V = 1;
    Siehe BRIDGE_AT. */
 /* 28 (16.10.2026): Liegestuetz ohne "Wand · 4 Fusslaengen", die
    Kuechenarbeitsplatte rueckt vor "Knie abgelegt". Siehe PUSH_NEU_AT. */
-const EX_VERSION = 28;
+/* 29 (16.10.2026, Build d): Fersenbruecke mit fuenf Unterlagen in zwei
+   Kniewinkeln (90 und 135 Grad), das fast gestreckte Bein ist raus, dazu
+   der Yogablock je Sprosse. Siehe BRIDGE_WINKEL_AT. */
+const EX_VERSION = 29;
 /* Der Sprung auf 26 setzt die Pausen je Zone NICHT mehr zurueck: Sie sind
    Lukes Einstellung, keine mitgelieferte Uebungsdefinition. Zurueckgesetzt
    wird nur, wer von vor 25 kommt — so wie bisher bei jedem Sprung. */
@@ -2289,6 +2336,49 @@ function pushLauf(lauf){
     plan: Object.assign({}, lauf.plan, {blocks: (lauf.plan.blocks || []).map(b => pushObjekt(b, true))}),
     fertig: (lauf.fertig || []).map(pushGehalten)});
 }
+/* ── Fassung 29 (16.10.2026): Fersenbruecke in zwei Kniewinkeln ──────────
+   Alt (je Haelfte, beidbeinig 0-5, einbeinig 6-11): Stuhl · Hocker ·
+        Kiste leicht geoeffnet · Boden deutlich geoeffnet · Boden fast
+        gestreckt · Rolle fast gestreckt
+   Neu (beidbeinig 0-9, einbeinig 10-19): Stuhl 90 · Stuhl 135 · Hocker 90 ·
+        Hocker 135 · Kiste 90 · Kiste 135 · Boden 90 · Boden 135 · Rolle 90 ·
+        Rolle 135
+   Stuhl und Hocker standen schon rechtwinklig, "Boden deutlich geoeffnet"
+   ist Boden 135 — diese drei ziehen nur die Nummer um. Die Kiste mit leicht
+   geoeffnetem Knie zieht auf Kiste 135, das fast gestreckte Bein (Boden und
+   Rolle) auf Rolle 135, die oberste Sprosse. Ihre Sitzungen tragen die
+   Marke entfalleneSprosse: Sie bleiben in der Kurve, mit der Last, die sie
+   beim Speichern bekommen haben (Luke, 16.10.2026: "Alles bleibt wie es
+   ist"), loeschen aber das Rot der neuen Sprosse nicht. Nur die Nummer
+   zieht um, wie bei BRIDGE_UMZUG. */
+const BRIDGE_WINKEL_AT = 29;
+const BRIDGE_WINKEL_UMZUG = {0:0, 1:2, 2:5, 3:7, 4:9, 5:9, 6:10, 7:12, 8:15, 9:17, 10:19, 11:19};
+const BRIDGE_WINKEL_ENTFALLEN = new Set([2, 4, 5, 8, 10, 11]);
+const BRIDGE_WINKEL_ALT_LAST = {0:0.148, 1:0.166, 2:0.186, 3:0.209, 4:0.235, 5:0.264,
+                                6:0.296, 7:0.415, 8:0.561, 9:0.648, 10:0.760, 11:0.850};
+function bridgeWinkelUmziehen(lv){
+  const L = Object.assign({}, lv || {});
+  for(const k of Object.keys(L))
+    if(bridgeKey(k) && BRIDGE_WINKEL_UMZUG[L[k]] != null) L[k] = BRIDGE_WINKEL_UMZUG[L[k]];
+  return L;
+}
+function bridgeWinkelObjekt(o){
+  if(!o || o.exercise !== "bridge" || BRIDGE_WINKEL_UMZUG[o.level] == null) return o;
+  const um = v => (BRIDGE_WINKEL_UMZUG[v] != null ? BRIDGE_WINKEL_UMZUG[v] : v);
+  const neu = {level: um(o.level)};
+  if(o.levelVorschlag != null) neu.levelVorschlag = um(o.levelVorschlag);
+  if(o.rohStufe != null) neu.rohStufe = um(o.rohStufe);
+  if(o.anker && o.anker.level != null) neu.anker = Object.assign({}, o.anker, {level: um(o.anker.level)});
+  if(!(o.load > 0)) neu.load = BRIDGE_WINKEL_ALT_LAST[o.level];
+  if(BRIDGE_WINKEL_ENTFALLEN.has(o.level)) neu.entfalleneSprosse = true;
+  return Object.assign({}, o, neu);
+}
+function bridgeWinkelLauf(lauf){
+  if(!lauf || !lauf.plan) return lauf;
+  return Object.assign({}, lauf, {
+    plan: Object.assign({}, lauf.plan, {blocks: (lauf.plan.blocks || []).map(bridgeWinkelObjekt)}),
+    fertig: (lauf.fertig || []).map(bridgeWinkelObjekt)});
+}
 /* Training ohne Geraete (Build 2026-10-01 b). Steht vor load(), weil
    normalize() den gespeicherten Modus damit prueft. Seit 2026-10-01 c heisst
    der Schalter "Volles Equipment" / "Nur Koerpergewicht", die Wand ist ein
@@ -2374,6 +2464,7 @@ function normalize(d){
   const knieseite     = (d.exVersion || 1) < LAEUFER_KNIESEITE_AT;
   const bridgeUmzug   = !leitersturz && (d.exVersion || 1) < BRIDGE_BEID_AT;
   const pushUmzug     = !leitersturz && (d.exVersion || 1) < PUSH_NEU_AT;
+  const bridgeWinkel  = !leitersturz && (d.exVersion || 1) < BRIDGE_WINKEL_AT;
   const ex = stale ? structuredClone(DEFAULT_EX)
                    : Object.assign(structuredClone(DEFAULT_EX), d.ex || {});
   /* Erst die Band-Verschiebung von Fassung 11, dann der Umzug auf das freie
@@ -2396,6 +2487,7 @@ function normalize(d){
      beidUmzug verteilt einen Altschluessel "bridge" ohne Seite auf beide
      Seiten — mit der schon umgezogenen Nummer. */
   if(bridgeUmzug) roh.levels = bridgeUmziehen(roh.levels, d.sessions);
+  if(bridgeWinkel) roh.levels = bridgeWinkelUmziehen(roh.levels);
   if(pushUmzug) roh.levels = pushUmziehen(roh.levels);
   const umzug  = beidUmzug(ex, roh.levels, roh.extra,
                            leitersturz ? {} : (d.streak || {}));
@@ -2460,7 +2552,8 @@ function normalize(d){
                                        einen Wand-Sitzung richtigstellen
                                        (LUNGE_WAND_MESS_AT) — sie laeuft auf
                                        der schon umgezogenen Nummer. */
-                                    sessions: (ses => pushUmzug ? pushSessions(ses) : ses)(
+                                    sessions: (ses => bridgeWinkel ? ses.map(bridgeWinkelObjekt) : ses)(
+                                              (ses => pushUmzug ? pushSessions(ses) : ses)(
                                               (ses => bridgeUmzug ? ses.map(bridgeObjekt) : ses)(
                                               (ses => handtuchEin ? ses.map(handtuchEinObjekt) : ses)(
                                               (ses => handtuchUmzug ? ses.map(o => handtuchObjekt(o, bwAlt)) : ses)(
@@ -2468,7 +2561,7 @@ function normalize(d){
                                               (ses => lungeMess ? lungeWandMessung(ses) : ses)(
                                                 (ses => lungeUmzug ? lungeSessions(ses) : ses)(
                                                   rowSkala ? rowSkalaVerwerfen(d.sessions)
-                                                           : (d.sessions || [])))))))),
+                                                           : (d.sessions || []))))))))),
                                     sync: d.sync || {},
                                     /* Zugpunkt ist voreingestellt an — eine stabile
                                        Tischkante reicht und hat praktisch jeder. Rolle und
@@ -2486,14 +2579,15 @@ function normalize(d){
                                     gefragt: d.gefragt || {},
                                     /* Ein angefangener Lauf ueberlebt das Neuladen. */
                                     lauf: (d.lauf && d.lauf.plan)
-                                          ? (l => pushUmzug ? pushLauf(l) : l)(
+                                          ? (l => bridgeWinkel ? bridgeWinkelLauf(l) : l)(
+                                            (l => pushUmzug ? pushLauf(l) : l)(
                                             (l => bridgeUmzug ? bridgeLauf(l) : l)(
                                             (l => (knie && knie.um) ? laeuferKnieseiteLauf(l, knie.um) : l)(
                                             (l => handtuchEin ? handtuchEinLauf(l, bwAlt, ex.handtuch, waageDa) : l)(
                                             (l => handtuchUmzug ? handtuchLauf(l, bwAlt) : l)(
                                             (l => waageUmzug ? wadeWaageLauf(l, bwAlt, ex.wade) : l)(
                                               (l => rucksackUmzug ? wadeRucksackLauf(l, waageLo) : l)(
-                                              wadeUmzug ? wadeLauf(d.lauf, bwAlt) : d.lauf)))))))
+                                              wadeUmzug ? wadeLauf(d.lauf, bwAlt) : d.lauf))))))))
                                           : null,
                                     lage: knie ? knie.lage : (d.lage || {}),
                                     haltung: (d.haltung && typeof d.haltung === "object")
@@ -3263,6 +3357,21 @@ function points(ex, side){
    damit von selbst auf der Kurve und prueft den neuen Wert nicht. */
 const VORLAEUFIG_SATZ = "Sprossenwert noch vorläufig, muss noch gemessen werden";
 const VORLAEUFIG_KURZ = " · vorläufig";
+/* Yogablock unter den Sitzbeinen, Fersenbruecke (Luke, 16.10.2026). Die
+   Sprosse traegt nur die Stellung, der Satz steht hier: Block 22,5 x 12 x
+   7,5 cm. Wie VORLAEUFIG_SATZ aus DEFAULT_EX, nie aus dem gespeicherten
+   S.ex. */
+const BLOCK_STELLUNG = {
+  aufrecht: "aufrecht (etwa 22 cm)",
+  hocker:   "hochkant auf einem 5 cm dicken Buch (etwa 17 cm)",
+  hochkant: "hochkant (etwa 12 cm)",
+  flach:    "flach (etwa 7,5 cm)"
+};
+function blockSatz(ex, i){
+  const L = DEFAULT_EX[ex] && DEFAULT_EX[ex].levels && DEFAULT_EX[ex].levels[i];
+  const st = L && BLOCK_STELLUNG[L.block];
+  return st ? `Yogablock unter den Sitzbeinen: ${st}` : "";
+}
 function gemesseneSprossen(ex){
   const g = new Set();
   ((DEFAULT_EX[ex] && DEFAULT_EX[ex].levels) || []).forEach((L, i) => { if(L && L.gemessen) g.add(i); });
@@ -6315,6 +6424,8 @@ function blockIntro(i){
           st.name}${sprosseVorlaeufig(q.exercise, st.i) ? VORLAEUFIG_KURZ : ""}</option>`).join("")}</select>`}
       ${sprosseVorlaeufig(q.exercise, q.level)
         ? `<p class="tiny vorl" style="margin:5px 0 0">${VORLAEUFIG_SATZ}</p>` : ""}
+      ${blockSatz(q.exercise, q.level)
+        ? `<p class="tiny" style="margin:5px 0 0">${blockSatz(q.exercise, q.level)}</p>` : ""}
       ${(mitKg && zwei) ? `<div class="zw drei">${seitenWahl(q.exercise).map(o => `<button
         class="${Math.sign(q.extra || 0) === o.v ? "sel" : "ghost"}" data-t="${t}"
         data-sw="${o.v}">${o.titel}<span>${o.unter}</span></button>`).join("")}</div>` : ""}

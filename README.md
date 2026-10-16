@@ -157,7 +157,7 @@ aus — Arbeitsplatte, Tisch, Stuhl, Hocker, Stepper, Kiste, Kissen. Gerät brau
 | Gerät | wofür | voreingestellt |
 |---|---|---|
 | Etwas zum Daranziehen | Schrägzug, **die ganze Übung** | an — eine stabile Tischkante zählt mit |
-| Faszienrolle | Fersenbrücke, oberste Stufe beidbeinig und einbeinig, dazu der ganze Pfad fürs innere Knie | aus |
+| Faszienrolle | Fersenbrücke, die zwei obersten Stufen beidbeinig und einbeinig (Knie 90° und 135°), dazu der ganze Pfad fürs innere Knie | aus |
 | Kettlebell oder Kurzhantel | Aufrechter Läufer, Zusatzgewicht | aus |
 | Personenwaage mit Zeiger (analog) | Isometrisches Wadenheben, einbeinig mit Entlastung | aus |
 
@@ -210,18 +210,28 @@ Last wieder. Oberhalb geht es nur mit Zusatzgewicht weiter.
 Der **einarmige** Schrägzug ist keine Stufe davon, sondern eine andere Übung: rund 1,4
 Körpergewichte pro Arm plus ein Drehmoment um die Längsachse, das der Rumpf gegenhält.
 
-Die **Fersenbrücke** skaliert über den Fersenabstand — wie weit die Ferse vom Gesäß weg steht.
-Kurzer Hebel leicht, langer Hebel schwer; die „Long-Lever-Brücke" ist keine zweite Übung, sondern
-das obere Ende derselben Leiter. Die unteren vier Stufen sind von einem zweiten, unabhängigen
-Segmentmodell bestätigt. **Die Faszienrolle ist geschätzt** und steht in der App rot als
-vorläufig: Ob die Rolle die Last wirklich hebt oder nur den Stabilisierungsaufwand, ist offen —
-bei gleicher Fersenhöhe ist das Hüftmoment dasselbe. Das ist genau das Muster, an dem beim
-Seitstütz die Fußerhöhung als Scheinstufe aufgeflogen ist, und steht deshalb als Erstes auf der
-Liste der Dinge, die nachgemessen gehören. Die Ringe sind seit dem 15.10. raus, sie waren zu viel
-Gerät.
+Die **Fersenbrücke** skaliert über zwei Dinge: die Höhe der Unterlage unter der Ferse (Stuhlsitz,
+Hocker, Kiste, Boden, Faszienrolle) und den Kniewinkel. Seit dem 16.10. gibt es nur noch zwei
+Winkel, **90° und 135°**, und jede Unterlage in beiden: erst 90°, dann 135°. Das fast gestreckte
+Bein ist raus. 135° ist etwas schwerer als 90° auf derselben Unterlage, aber oft leichter als 90°
+auf der nächsten. Stuhl 90°, Hocker 90° und Boden 135° tragen ihre alten, gerechneten Werte, alle
+übrigen Sprossen sind **Platzhalter** und stehen in der App rot als vorläufig, bis gemessene
+Haltezeiten da sind. Ein Segmentmodell sagt, dass die Höhe bei gleichem Winkel kaum etwas ändert
+und der Winkel fast alles. Die Messungen entscheiden, ob die Leiter so bleibt.
 
-Vor den sechs einbeinigen Sprossen steht seit dem 15.10. eine **beidbeinige Rampe** auf denselben
-sechs Unterlagen, von beidbeinig Stuhl bis beidbeinig Rolle. Wer neu anfängt, klettert sie ganz
+Unter den Sitzbeinen steht ein **Yogablock** (22,5 × 12 × 7,5 cm), damit das Becken nicht
+unbemerkt absinkt. Abgesunken wird die Oberschenkelrückseite länger und stärker, und derselbe Halt
+auf derselben Sprosse würde etwas anderes messen. Die Karte sagt je Sprosse, wie der Block steht:
+Stuhl aufrecht, Hocker hochkant auf einem 5 cm dicken Buch, Kiste hochkant, Boden flach, Rolle
+hochkant. Leichte Berührung wird korrigiert, Druck auf dem Block beendet den Halt.
+
+**Die Faszienrolle ist geschätzt:** Ob die Rolle die Last wirklich hebt oder nur den
+Stabilisierungsaufwand, ist offen. Bei gleicher Fersenhöhe ist das Hüftmoment dasselbe. Das ist
+genau das Muster, an dem beim Seitstütz die Fußerhöhung als Scheinstufe aufgeflogen ist. Die
+Ringe sind seit dem 15.10. raus, sie waren zu viel Gerät.
+
+Vor den zehn einbeinigen Sprossen steht eine **beidbeinige Rampe** auf denselben Unterlagen und
+Winkeln, von beidbeinig Stuhl 90° bis beidbeinig Rolle 135°. Wer neu anfängt, klettert sie ganz
 hinauf und steigt erst dann auf einbeinig Stuhl um. Alle beidbeinigen Sprossen liegen unter
 einbeinig Stuhl, ihre Lasten sind **Platzhalter**: Einbeinig belastet ein Bein mehr als doppelt so
 stark wie beidbeinig, die reine Gewichtsrechnung (halbe Last) unterschätzt das. Die echten Werte
@@ -236,8 +246,9 @@ beidbeinig, dann einbeinig. Zehen runter fordert wenig Innendrehung im Schienbei
 Einstieg im gereizten Zustand; Zehen zum Knie holt genau diese Richtung zurück und ist das Ziel.
 Weiter geht es nach zwei Halten in Folge ohne Schmerz, zurück nach zwei Schmerzabbrüchen in
 Folge. Solange der Pfad beidbeinig läuft, ist das gesunde Bein dort mit drin und bekommt keinen
-eigenen Block. Ohne Faszienrolle wird das angehakte Bein nicht trainiert. Kniewinkel (vorläufig
-90°) und die Reihenfolge der mittleren Sprossen sind noch offen und stehen in der App rot.
+eigenen Trainingsblock. Ohne Faszienrolle wird das angehakte Bein nicht trainiert. Kniewinkel (vorläufig
+90°) und die Reihenfolge der mittleren Sprossen sind noch offen und stehen in der App rot. Der
+Yogablock steht dort hochkant, mit derselben Berührungsregel.
 
 Bei der **Hyperextension** liegt die Kante eines Steppers mit Kissen auf Höhe des Bauchnabels,
 die Füße stehen hinten an der Wand, und der Oberkörper wird frei und waagerecht gehalten. Die

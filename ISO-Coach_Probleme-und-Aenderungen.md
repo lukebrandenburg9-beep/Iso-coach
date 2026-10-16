@@ -3167,11 +3167,154 @@ logarithmisch). Ohne den eingefrorenen 14.09. liegt kein Punkt mehr bei „+10 k
   zuerst, dann die übrigen nach Last. `B` = 38 + 13 je weitere Zeile, `H` = 12 + 240 + `B`.
 - `th, td`: `hyphens: auto` (die Seite hat `lang="de"`).
 
+### P80 · Fersenbrücke nur noch mit Knie 90° und 135°, Yogablock unter den Sitzbeinen
+
+Luke, 16.10.: „wir wollten das fast gestreckte Knie erstmal rausnehmen und nur die kniewinkel 90
+und 135° anbieten“. Dazu der Block unter dem Becken (Recherche vom 16.10., Teil 4 #33): „mach bei
+rolle - block hochkan da der genauso hoch ist wie der steppe, beim boden block flach, da sich am
+boden nach und nach die wirbelsäule abrollt“.
+
+**Lukes Entscheidungen.**
+
+| Frage | Lukes Antwort |
+|---|---|
+| Welche Sprossen? | „Jede Unterlage in beiden Winkeln“ |
+| In welcher Reihenfolge? | „die 135° sind etwas schwerer als 90° aber oft nicht so schwer wie 90° auf der nächsten stufen, fang mit option 2 "je unterlage beide winkel" an und wir gucken was die messwerte der nächsten wochen ergeben“ |
+| Block auf Stuhl, Hocker, Kiste | „So übernehmen“: aufrecht, hochkant auf einem 5 cm dicken Buch, hochkant |
+| Was, wenn das Becken den Block berührt? | „leichte berührung wird korrigert, entsteht druck auf dem block wird übung abgebrochen“ |
+| Was sagt die App zur Ferse? | „Gar nichts sagen“ |
+| Was geschieht mit den alten Messpunkten? | „Alles bleibt wie es ist“ |
+
+**Gebaut in 2026-10-16 d.**
+
+- **20 Sprossen, je Unterlage erst Knie 90°, dann 135°.** Unterlagen in der Reihenfolge
+  Stuhlsitz (~45 cm), Hocker (~30 cm), Kiste (~20 cm), Boden, Faszienrolle. Beidbeinig 1 bis 10,
+  einbeinig 11 bis 20. Das fast gestreckte Bein ist raus.
+- **Der Kniewinkel steht vorn im Namen,** etwa „Knie 90° · Stuhlsitz (~45 cm)“ oder „Beidbeinig ·
+  Knie 135° · Hocker (~30 cm)“. Am Handy schneidet das Auswahlfeld nach etwa 37 Zeichen ab. Mit der
+  Unterlage vorn war „Knie 9…“ das Letzte, was zu lesen war, und bei beidbeinig fehlte der Winkel
+  ganz.
+- **Unter dem Auswahlfeld steht der Block,** z. B. „Yogablock unter den Sitzbeinen: hochkant auf
+  einem 5 cm dicken Buch (etwa 17 cm)“. Er wechselt mit der Sprosse.
+
+  | Unterlage | Block | Höhe |
+  |---|---|---|
+  | Stuhlsitz | aufrecht | etwa 22 cm |
+  | Hocker | hochkant auf einem 5 cm dicken Buch | etwa 17 cm |
+  | Kiste | hochkant | etwa 12 cm |
+  | Boden | flach | etwa 7,5 cm |
+  | Faszienrolle | hochkant | etwa 12 cm |
+
+- **Der Hinweistext** erklärt die Winkel (90° rechtwinklig, 135° halb zwischen rechtwinklig und
+  gestreckt), die Berührungsregel und den Bücherstapel als Ersatz für den Block. Zur Ferse sagt er
+  nichts Neues.
+- **Pfad fürs innere Knie:** Block hochkant auf jeder Sprosse, dieselbe Berührungsregel.
+- **Zusatzgewicht ab „Knie 135° · Boden“.** Das ist die Stellung, ab der es bisher kam („Boden ·
+  Knie deutlich geöffnet“).
+
+**Die Lasten.** Stuhl 90°, Hocker 90° und Boden 135° sind dieselbe Stellung wie vorher und behalten
+ihren Wert. Alles andere ist nach deiner Regel gesetzt: Jede 135°-Sprosse liegt in der Mitte
+zwischen 90° auf ihrer und 90° auf der nächsten Unterlage (geometrisch). Von Hocker 90° bis Boden
+135° sind es vier gleiche Schritte, darüber geht es mit demselben Schritt weiter.
+
+| Sprosse (einbeinig) | Last | Herkunft |
+|---|---|---|
+| Knie 90° · Stuhlsitz | 0,296 | wie bisher „Stuhlsitz · Knie etwa rechtwinklig“ |
+| Knie 135° · Stuhlsitz | 0,350 | Platzhalter |
+| Knie 90° · Hocker | 0,415 | wie bisher „Hocker · Knie etwa rechtwinklig“ |
+| Knie 135° · Hocker | 0,454 | Platzhalter |
+| Knie 90° · Kiste | 0,496 | Platzhalter |
+| Knie 135° · Kiste | 0,542 | Platzhalter |
+| Knie 90° · Boden | 0,593 | Platzhalter |
+| Knie 135° · Boden | 0,648 | wie bisher „Boden · Knie deutlich geöffnet“ |
+| Knie 90° · Faszienrolle | 0,708 | Platzhalter, fortgeschrieben |
+| Knie 135° · Faszienrolle | 0,774 | Platzhalter, fortgeschrieben |
+
+Beidbeinig wieder geometrisch, 0,148 · 2^(k/10), also 0,148 bis 0,276. Der Schritt auf einbeinig
+Stuhl (0,296) ist wieder genau ein regulärer. Alle zehn sind Platzhalter.
+
+**Der Umzug.**
+
+| Alte Sprosse | Neue Sprosse | |
+|---|---|---|
+| Stuhlsitz, Knie etwa rechtwinklig | Knie 90° · Stuhlsitz | dieselbe Stellung |
+| Hocker, Knie etwa rechtwinklig | Knie 90° · Hocker | dieselbe Stellung |
+| Kiste, Knie leicht geöffnet | Knie 135° · Kiste | entfällt |
+| Boden, Knie deutlich geöffnet | Knie 135° · Boden | dieselbe Stellung |
+| Boden, Bein fast gestreckt | Knie 135° · Faszienrolle | entfällt |
+| Faszienrolle, Bein fast gestreckt | Knie 135° · Faszienrolle | entfällt |
+
+Beidbeinig genauso. Stand, Sitzungen und ein angefangenes Workout ziehen mit. Jeder Messpunkt
+bleibt mit seiner gespeicherten Last in der Kurve. Ein Punkt auf einer entfallenen Sprosse trägt
+die Marke `entfalleneSprosse`: Er löscht das Rot der neuen Sprosse nicht, denn gemessen ist dort
+eine andere Stellung.
+
+**Der Preis.**
+
+- **Die Platzhalter folgen deiner Regel, nicht meinem Modell.** Das Segmentmodell sagt: Bei gleichem
+  Kniewinkel ändert die Höhe die Last kaum (vom Stuhl bis zum Boden Hüftmoment +13 %, Kniemoment
+  −30 %). Der Kniewinkel macht den Sprung, von 90° auf 135° etwa +30 %. Die alten Faktoren sagen
+  vom Stuhl auf den Hocker bei gleichem Winkel +40 %. Woher sie kommen, ist nicht mehr nachzubauen.
+  Hat das Modell recht, liegen viele der 20 Sprossen fast gleichauf. Deine Messungen der nächsten
+  Wochen entscheiden das.
+- **Bei 135° steht der Block knapp unter dem Becken,** in voller Streckung etwa 1 bis 3 cm. Bei
+  breitem Becken liegt er womöglich schon an. Einmal im Liegen probieren. Bei 90° bleibt mehr als
+  eine Handbreit Luft. Dort fängt der Block nur grobes Absinken ab.
+- **Alte Punkte auf entfallenen Sprossen** stehen mit ihrer alten Last in der Kurve, obwohl es die
+  Stellung nicht mehr gibt. So hast du es entschieden.
+- **Sieben einbeinige Sprossen sind neu und ungemessen,** dazu alle zehn beidbeinigen. Sie stehen
+  rot als vorläufig.
+- **Wer seine Leiter von Hand umbenannt oder umgewichtet hat, verliert das,** wie bei jedem Sprung
+  der Fassung.
+
+**Für den Nachbau:**
+
+- `EX_VERSION` 29, `BRIDGE_WINKEL_AT` = 29. `BRIDGE_WINKEL_UMZUG` = `{0:0, 1:2, 2:5, 3:7, 4:9,
+  5:9, 6:10, 7:12, 8:15, 9:17, 10:19, 11:19}`, `BRIDGE_WINKEL_ENTFALLEN` = {2, 4, 5, 8, 10, 11},
+  `BRIDGE_WINKEL_ALT_LAST` für Sitzungen ohne Last.
+- `bridgeWinkelUmziehen(levels)` für jeden Schlüssel `bridge` und `bridge|…` (nicht `bridgeKnie`).
+  `bridgeWinkelObjekt(o)` zieht `level`, `levelVorschlag`, `rohStufe` und `anker.level` um und
+  setzt `entfalleneSprosse`. `bridgeWinkelLauf(lauf)` für Plan und gelaufene Blöcke.
+- `normalize()`: Stand nach `bridgeUmziehen` und vor `pushUmziehen`, Sitzungen und Lauf als
+  äußerste Stufe der Kette. Wer von vor Fassung 26 kommt, durchläuft beide Umzüge.
+- Sprossenfeld `block`: `aufrecht`, `hocker`, `hochkant` oder `flach`. Den Satz baut
+  `blockSatz(ex, i)` aus `BLOCK_STELLUNG`, gelesen aus `DEFAULT_EX` wie `sprosseVorlaeufig`.
+  `teilHTML()` zeigt ihn unter der roten Zeile.
+- `bridge.extraAb` 9 → 17.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-16 d — Fersenbrücke mit Knie 90° und 135°, Yogablock unter den Sitzbeinen
+
+**Befund (Luke).** Das fast gestreckte Knie fliegt raus, angeboten werden nur noch 90° und 135°,
+jede Unterlage in beiden Winkeln. Unter den Sitzbeinen steht ein Yogablock, der das Absinken des
+Beckens begrenzt (P80).
+
+**Gebaut.**
+
+- **Fersenbrücke mit 20 Sprossen:** Stuhlsitz, Hocker, Kiste, Boden und Faszienrolle, je erst Knie
+  90°, dann 135°, beidbeinig und einbeinig. Fassung der Übungsliste 29.
+- **Kniewinkel vorn im Namen,** damit er am Handy im Auswahlfeld zu lesen ist.
+- **Block-Zeile auf der Karte** je Sprosse, Berührungsregel und Bücherstapel im Hinweistext, auch
+  im Pfad fürs innere Knie.
+- **Lasten:** drei alte Werte bleiben, der Rest sind Platzhalter nach Lukes Regel, rot vorläufig.
+- **Umzug:** Stand, Sitzungen und angefangenes Workout ziehen auf die neuen Nummern. Alle Punkte
+  bleiben in der Kurve, die auf entfallenen Sprossen mit Marke.
+
+**Geprüft.**
+
+- Im Browser über `normalize()`: Stand der Fassung 28 (links Boden geöffnet → 17, rechts Hocker →
+  12), Sitzungen auf allen alten Nummern, eine ohne Last, eine mit Vorschlag, Rohstufe und Anker,
+  dazu ein angefangenes Workout. Zweimal angewandt ändert es nichts. Ein Stand von Fassung 25
+  (Schlüssel `hinge`) läuft durch Umbenennung und beide Umzüge. Pfad fürs innere Knie und andere
+  Übungen bleiben unberührt.
+- Bei 375 × 812: Kniewinkel im Auswahlfeld lesbar, Block-Zeile wechselt mit der Sprosse, rote Zeile
+  nur auf ungemessenen Sprossen, Punkte auf entfallenen Sprossen löschen das Rot nicht, Profil mit
+  allen 20 Sprossen, keine Konsolenfehler.
 
 ### 2026-10-16 c — Liegestütz ohne „Wand · 4 Fußlängen", jede Sprosse auf der Achse
 
@@ -5865,6 +6008,9 @@ als Teil des Ansatz-Pfads? Das ist eine Produktentscheidung, keine technische.
     **Teilweise erledigt (Luke, 15.10.), gebaut in Build 2026-10-15 a (P76):** Die Ringe sind raus.
     Die Rolle bleibt mit geschätzter Last oben auf der einbeinigen Leiter und als oberste Sprosse
     der beidbeinigen Rampe. Beide stehen in der App rot als vorläufig. Die Frage selbst ist offen.
+
+    **Seit 2026-10-16 d (P80)** steht die Rolle mit Knie 90° und 135° oben auf beiden Rampen,
+    weiter mit geschätzter Last.
 16. **Die Kontrollposition hat noch keine Instanz.** Beide Übungen, die Luke als „schlecht
     skalierbar" genannt hat, haben sich als vollwertige Leitern herausgestellt — der Schrägzug über
     Fußabstand und Gurtlänge, die Fersenbrücke über den Fersenabstand. Der Mechanismus ist gebaut
@@ -6077,6 +6223,11 @@ als Teil des Ansatz-Pfads? Das ist eine Produktentscheidung, keine technische.
     Boden? Dazu gehören die Höhen der drei Stepper-Stufen in Zentimetern und der Vergleich 90°
     gegen etwa 130°: Wo zieht es knienah am meisten? Bis dahin bleibt die Leiter mit dem sich
     öffnenden Knie.
+
+    **Ersetzt (Luke, 16.10.), gebaut in 2026-10-16 d (P80):** Statt nur 90° steht jede Unterlage
+    mit 90° und 135° in der Leiter, das fast gestreckte Bein ist raus. Der Stepper ersetzt Hocker
+    und Kiste noch nicht. Was die Messungen der nächsten Wochen zeigen, entscheidet über die Leiter
+    (#34).
 31. **Kniewinkel und Reihenfolge im Pfad fürs innere Knie (P76).** Gebaut mit 90° und der
     Reihenfolge Ferse vor Vorfuß, darin jeweils Zehen runter, neutral, Zehen zum Knie. Offen ist:
     Zieht die Rolle unter dem Vorfuß mehr als unter der Ferse? Und wie fühlen sich Zehen runter und
@@ -6088,6 +6239,9 @@ als Teil des Ansatz-Pfads? Das ist eine Produktentscheidung, keine technische.
     Ergebnis kommt als Vorschlag: neue Lasten, gegebenenfalls eine andere Reihenfolge, und ob die
     schon gemachten beidbeinigen Halte umgerechnet werden. Offen auch: Ist einbeinig Stuhl als
     Einstieg nach der Rampe zu schwer?
+
+    **Seit 2026-10-16 d (P80)** hat die Rampe zehn Sprossen, wieder geometrisch gesetzt. Dazu
+    kommen sieben einbeinige Platzhalter zwischen den drei alten Werten.
 33. **Ein Block unter dem Becken in der Fersenbrücke (Recherche vom 16.10., außerhalb des
     Repos).** Auf Stuhl, Hocker und Kiste kann das Becken absinken. Das macht die Übung leichter,
     weil die Oberschenkelrückseite länger und damit stärker wird, obwohl die äußere Last leicht
@@ -6097,6 +6251,18 @@ als Teil des Ansatz-Pfads? Das ist eine Produktentscheidung, keine technische.
     welches Maß, wie über dem Block gehalten wird, eine feste Fersen-Anweisung (heranziehen oder
     nur nach unten drücken, für den Pfad fürs innere Knie getrennt) und was mit den alten
     Messpunkten geschieht.
+
+    **Entschieden (Luke, 16.10.), gebaut in 2026-10-16 d (P80):** Ein Yogablock je Unterlage,
+    gleich für beide Winkel: Stuhl aufrecht, Hocker hochkant auf einem 5 cm dicken Buch, Kiste
+    hochkant, Boden flach, Rolle hochkant. Leichte Berührung wird korrigiert, Druck auf dem Block
+    beendet den Halt. Zur Ferse sagt die App nichts. Die alten Punkte bleiben, wie sie sind. Offen
+    bleibt, ob der Block bei 135° und breitem Becken schon in voller Streckung anliegt.
+34. **Ändert die Höhe der Unterlage bei gleichem Kniewinkel die Last? (P80)** Die Leiter steht auf
+    Lukes Regel: 135° etwas schwerer als 90° auf derselben Unterlage, oft leichter als 90° auf der
+    nächsten. Das Segmentmodell sagt, die Höhe ändert kaum etwas und der Winkel fast alles. Dann
+    lägen 90° auf dem Hocker und 135° auf dem Stuhl nicht hintereinander, sondern umgekehrt, und
+    viele Sprossen fast gleichauf. Lukes Messungen der nächsten Wochen entscheiden, ob die Leiter so
+    bleibt, ob Unterlagen zusammenfallen und ob der Stepper Hocker und Kiste ersetzt.
 
 ---
 
