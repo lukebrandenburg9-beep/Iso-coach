@@ -139,7 +139,10 @@ td.n,.kpi b{font-family:var(--mono)}
 .bar>i{display:block;height:100%;background:var(--acc);width:0;transition:width .25s linear}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 table{width:100%;border-collapse:collapse;font-size:13.5px}
-th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line)}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);
+      -webkit-hyphens:auto;hyphens:auto}
+/* Silbentrennung (2026-10-16 c): "Küchenarbeitsplatte" in der Stufentabelle
+   schob die Seite auf dem Handy 40 px ueber den Rand. */
 th{color:var(--tx3);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em}
 td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .chk{display:flex;align-items:flex-start;gap:11px;padding:13px;background:var(--panel2);
@@ -565,17 +568,30 @@ const DEFAULT_EX = {
        Leiter das richtige Werkzeug: Wer mehr Last braucht, geht erst eine
        Stufe hoch. extraK sagt, wie stark ein Kilo wirkt, gemessen in
        Koerpergewichts-Anteilen — siehe Kommentar bei lastVon(). */
-    extraAb:6, extraK:1,
+    extraAb:5, extraK:1,
     extraHint:"Rucksack, körpernah zwischen den Schulterblättern.",
     hint:"Körper eine gerade Linie von der Ferse bis zum Kopf, Schulterblätter stabil. "
         +"Füße so weit zurück, dass du die Last in den Händen spürst. Liegt eine Stufe zwischen "
         +"zwei Zonen, hilft ein Rucksack — das ist die feinste Verstellung, die du hast.",
+    /* 16.10.2026 (Fassung 28): "Wand · Fuesse 4 Fusslaengen weg" (0,39) ist
+       raus. Luke: "die übung ist extrem unergonomisch und schwer eigenlich
+       schrägbankdrücken und der kopf ist im weg". Seine Messung dort (12.10.,
+       69 s) lag rund 45 s unter der Kurve — die Last 0,39 beschrieb nicht,
+       was er gehalten hat.
+       Die Kuechenarbeitsplatte rueckt dafuer VOR "Knie abgelegt". Luke: "ich
+       glaube die küchenplatte/fensterbank ist leichter". Seine Daten sagen
+       dasselbe: Aus seiner Kurve ohne den Kuechenpunkt zurueckgerechnet
+       haelt er 101,2 s bei 0,38 (mit dem Wandpunkt) bis 0,44 (ohne ihn) —
+       nicht bei 0,55. Auch Suprak 2011 passt nicht zu 0,55: Schon die
+       61-cm-Ablage liegt dort bei 55 %, 90 cm muss leichter sein.
+       HERKUNFT 0,40: Mitte dieser Spanne, VORLAEUFIG, bis Luke auf der
+       Platte neu misst. Seine Sitzung vom 28.09. zieht mit (PUSH_NEU_AT).
+       Alle anderen Lasten unveraendert. Zusatzgewicht weiter ab "Boden". */
     levels:[
       {name:"Wand, Hände schulterhoch · Füße 2 Fußlängen weg", load:0.23, ort:"wand"},
       {name:"Wand · Füße 3 Fußlängen weg",                     load:0.32, ort:"wand"},
-      {name:"Wand · Füße 4 Fußlängen weg",                     load:0.39, ort:"wand"},
+      {name:"Küchenarbeitsplatte (~90 cm)",                    load:0.40},
       {name:"Boden, Knie abgelegt",                            load:0.49, ort:"boden"},
-      {name:"Küchenarbeitsplatte (~90 cm)",                    load:0.55},
       {name:"Stuhlsitz / Sofakante (~45 cm)",                  load:0.61},
       {name:"Boden",                                           load:0.68, ort:"boden"},
       {name:"Boden, Füße auf einer Stufe (~20 cm)",            load:0.78},
@@ -1563,7 +1579,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-16 b";
+const BUILD = "2026-10-16 c";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -1586,7 +1602,9 @@ const AW_V = 1;
 /* 27 (16.10.2026): Die Fersenbruecke heisst im Code bridge, der Baker-Pfad
    bridgeKnie — der Name hinge gehoert jetzt der neuen Uebung Hip Hinge.
    Siehe BRIDGE_AT. */
-const EX_VERSION = 27;
+/* 28 (16.10.2026): Liegestuetz ohne "Wand · 4 Fusslaengen", die
+   Kuechenarbeitsplatte rueckt vor "Knie abgelegt". Siehe PUSH_NEU_AT. */
+const EX_VERSION = 28;
 /* Der Sprung auf 26 setzt die Pausen je Zone NICHT mehr zurueck: Sie sind
    Lukes Einstellung, keine mitgelieferte Uebungsdefinition. Zurueckgesetzt
    wird nur, wer von vor 25 kommt — so wie bisher bei jedem Sprung. */
@@ -2194,6 +2212,83 @@ function bridgeUmbenennen(d){
     if(d[f] && d[f].je) n[f] = Object.assign({}, d[f], {je: bridgeSchluessel(d[f].je)});
   return n;
 }
+/* ── Fassung 28 (16.10.2026): Liegestuetz ohne "Wand · 4 Fusslaengen" ─────
+   Alt: 0 Wand 2 · 1 Wand 3 · 2 Wand 4 · 3 Knie · 4 Kueche · 5 Stuhlsitz ·
+        6 Boden · 7 Stufe · 8 Stuhl
+   Neu: 0 Wand 2 · 1 Wand 3 · 2 Kueche · 3 Knie · 4 Stuhlsitz · 5 Boden ·
+        6 Stufe · 7 Stuhl
+   Ein Stand auf der gestrichenen Sprosse zieht auf die Kueche (0,40), die
+   der alten Last 0,39 am naechsten liegt.
+   Drei Sitzungen verlassen die Kurve, alle drei auf Lukes Entscheidung vom
+   16.10. — sie bleiben im Verlauf, abgeblendet und mit Grund:
+   - die Messungen auf der gestrichenen Sprosse ("Stellung gestrichen"),
+   - alles von Liegestuetz und Ausfallschritt vor PUSH_SKALA_BIS ("alte
+     Skala"). Bis Build 28f64bb (14.09., 11:22) war die leichteste Stufe 1,00
+     und jede andere ein Vielfaches davon. Lukes erster Liegestuetz
+     ("an der Wand, aufrecht", 143 s) stand deshalb bei Last 1,00 — auf der
+     heutigen Achse "Fuesse auf dem Stuhl + 10 kg". Dasselbe beim
+     Ausfallschritt ("beide Hände abgestützt", 74,9 s).
+   Die Kueche zieht MIT ihrer Last um, 0,55 → 0,40, anders als bei jedem
+   Umzug davor: Diesmal ist nicht die Nummer falsch, sondern der Leiterwert,
+   den die Sitzung beim Speichern eingefroren hat. Die Haltezeit bleibt; die
+   alte Last steht in loadVorher. */
+const PUSH_NEU_AT    = 28;
+const PUSH_UMZUG     = {0:0, 1:1, 2:2, 3:3, 4:2, 5:4, 6:5, 7:6, 8:7};
+const PUSH_ALT_LAST  = {0:0.23, 1:0.32, 2:0.39, 3:0.49, 4:0.55, 5:0.61, 6:0.68, 7:0.78, 8:0.88};
+const PUSH_GESTRICHEN = 2;
+const PUSH_KUECHE_ALT = 4;
+const PUSH_KUECHE_FAKTOR = 0.40 / 0.55;
+const PUSH_SKALA_BIS = "2026-09-14T09:22:15Z";
+const pushKey = k => (k === "push" || String(k).indexOf("push|") === 0);
+function pushUmziehen(lv){
+  const L = Object.assign({}, lv || {});
+  for(const k of Object.keys(L))
+    if(pushKey(k) && PUSH_UMZUG[L[k]] != null) L[k] = PUSH_UMZUG[L[k]];
+  return L;
+}
+/* Sitzung, gelaufener Block oder offener Block, wie bridgeObjekt. Ein
+   offener Block ist noch nicht gehalten: Er zieht nur mit der Nummer um,
+   seine Last rechnet blockSichern() beim Halten aus der neuen Leiter. */
+function pushObjekt(o, offen){
+  if(!o || o.exercise !== "push" || PUSH_UMZUG[o.level] == null) return o;
+  const um = v => (PUSH_UMZUG[v] != null ? PUSH_UMZUG[v] : v);
+  const neu = {level: um(o.level)};
+  if(o.levelVorschlag != null) neu.levelVorschlag = um(o.levelVorschlag);
+  if(o.rohStufe != null) neu.rohStufe = um(o.rohStufe);
+  if(o.anker && o.anker.level != null) neu.anker = Object.assign({}, o.anker, {level: um(o.anker.level)});
+  if(offen) return Object.assign({}, o, neu);
+  const last = (o.load > 0) ? o.load : PUSH_ALT_LAST[o.level];
+  if(o.level === PUSH_KUECHE_ALT){
+    neu.load = Math.round(last * PUSH_KUECHE_FAKTOR * 1000) / 1000;
+    neu.loadVorher = last;
+  } else if(!(o.load > 0)) neu.load = last;
+  if(o.level === PUSH_GESTRICHEN) neu.entfalleneSprosse = true;
+  return Object.assign({}, o, neu);
+}
+/* Gehalten, also Sitzung oder gelaufener Block: Umzug, dann der Grund fuer
+   die gestrichene Sprosse. Ein schon gesetzter Grund bleibt stehen. Der
+   gelaufene Block traegt ihn mit in die Sitzung, die scOk aus ihm macht. */
+function pushGehalten(o){
+  const n = pushObjekt(o);
+  return (n && n.entfalleneSprosse && !n.ausKurve)
+    ? Object.assign({}, n, {ausKurve:"Stellung gestrichen"}) : n;
+}
+/* Fuer gespeicherte Sitzungen zuerst die alte Skala: Sie haengt am Datum,
+   nicht an der Nummer. */
+function pushSessions(sessions){
+  return (sessions || []).map(s => {
+    if(!s || (s.exercise !== "push" && s.exercise !== "lunge")) return s;
+    if(!s.ausKurve && s.date && s.date < PUSH_SKALA_BIS)
+      s = Object.assign({}, s, {ausKurve:"alte Skala"});
+    return s.exercise === "push" ? pushGehalten(s) : s;
+  });
+}
+function pushLauf(lauf){
+  if(!lauf || !lauf.plan) return lauf;
+  return Object.assign({}, lauf, {
+    plan: Object.assign({}, lauf.plan, {blocks: (lauf.plan.blocks || []).map(b => pushObjekt(b, true))}),
+    fertig: (lauf.fertig || []).map(pushGehalten)});
+}
 /* Training ohne Geraete (Build 2026-10-01 b). Steht vor load(), weil
    normalize() den gespeicherten Modus damit prueft. Seit 2026-10-01 c heisst
    der Schalter "Volles Equipment" / "Nur Koerpergewicht", die Wand ist ein
@@ -2278,6 +2373,7 @@ function normalize(d){
   const handtuchEin   = !leitersturz && (d.exVersion || 1) < HANDTUCH_WAAGE_AT;
   const knieseite     = (d.exVersion || 1) < LAEUFER_KNIESEITE_AT;
   const bridgeUmzug   = !leitersturz && (d.exVersion || 1) < BRIDGE_BEID_AT;
+  const pushUmzug     = !leitersturz && (d.exVersion || 1) < PUSH_NEU_AT;
   const ex = stale ? structuredClone(DEFAULT_EX)
                    : Object.assign(structuredClone(DEFAULT_EX), d.ex || {});
   /* Erst die Band-Verschiebung von Fassung 11, dann der Umzug auf das freie
@@ -2300,6 +2396,7 @@ function normalize(d){
      beidUmzug verteilt einen Altschluessel "bridge" ohne Seite auf beide
      Seiten — mit der schon umgezogenen Nummer. */
   if(bridgeUmzug) roh.levels = bridgeUmziehen(roh.levels, d.sessions);
+  if(pushUmzug) roh.levels = pushUmziehen(roh.levels);
   const umzug  = beidUmzug(ex, roh.levels, roh.extra,
                            leitersturz ? {} : (d.streak || {}));
   /* Nach beidUmzug: Erst dann stehen alle Wadenschluessel je Seite. */
@@ -2363,14 +2460,15 @@ function normalize(d){
                                        einen Wand-Sitzung richtigstellen
                                        (LUNGE_WAND_MESS_AT) — sie laeuft auf
                                        der schon umgezogenen Nummer. */
-                                    sessions: (ses => bridgeUmzug ? ses.map(bridgeObjekt) : ses)(
+                                    sessions: (ses => pushUmzug ? pushSessions(ses) : ses)(
+                                              (ses => bridgeUmzug ? ses.map(bridgeObjekt) : ses)(
                                               (ses => handtuchEin ? ses.map(handtuchEinObjekt) : ses)(
                                               (ses => handtuchUmzug ? ses.map(o => handtuchObjekt(o, bwAlt)) : ses)(
                                               (ses => wadeUmzug ? ses.map(o => wadeObjekt(o, bwAlt)) : ses)(
                                               (ses => lungeMess ? lungeWandMessung(ses) : ses)(
                                                 (ses => lungeUmzug ? lungeSessions(ses) : ses)(
                                                   rowSkala ? rowSkalaVerwerfen(d.sessions)
-                                                           : (d.sessions || []))))))),
+                                                           : (d.sessions || [])))))))),
                                     sync: d.sync || {},
                                     /* Zugpunkt ist voreingestellt an — eine stabile
                                        Tischkante reicht und hat praktisch jeder. Rolle und
@@ -2388,13 +2486,14 @@ function normalize(d){
                                     gefragt: d.gefragt || {},
                                     /* Ein angefangener Lauf ueberlebt das Neuladen. */
                                     lauf: (d.lauf && d.lauf.plan)
-                                          ? (l => bridgeUmzug ? bridgeLauf(l) : l)(
+                                          ? (l => pushUmzug ? pushLauf(l) : l)(
+                                            (l => bridgeUmzug ? bridgeLauf(l) : l)(
                                             (l => (knie && knie.um) ? laeuferKnieseiteLauf(l, knie.um) : l)(
                                             (l => handtuchEin ? handtuchEinLauf(l, bwAlt, ex.handtuch, waageDa) : l)(
                                             (l => handtuchUmzug ? handtuchLauf(l, bwAlt) : l)(
                                             (l => waageUmzug ? wadeWaageLauf(l, bwAlt, ex.wade) : l)(
                                               (l => rucksackUmzug ? wadeRucksackLauf(l, waageLo) : l)(
-                                              wadeUmzug ? wadeLauf(d.lauf, bwAlt) : d.lauf))))))
+                                              wadeUmzug ? wadeLauf(d.lauf, bwAlt) : d.lauf)))))))
                                           : null,
                                     lage: knie ? knie.lage : (d.lage || {}),
                                     haltung: (d.haltung && typeof d.haltung === "object")
@@ -3158,14 +3257,18 @@ function points(ex, side){
    (gemessen:true in DEFAULT_EX, mit jedem Build aus seinem Export
    nachgezogen) oder wenn auf diesem Geraet ein gueltiger Halt auf ihr liegt —
    frisch, in der Kurve, im Messfenster, gleich welche Seite. Gelesen wird
-   DEFAULT_EX, nie das gespeicherte S.ex: Die Liste waechst mit dem Build. */
+   DEFAULT_EX, nie das gespeicherte S.ex: Die Liste waechst mit dem Build.
+   Ein Halt mit loadVorher zaehlt nicht: Seine Last hat ein Umzug aus der
+   Kurve zurueckgerechnet (Kueche beim Liegestuetz, PUSH_NEU_AT). Er liegt
+   damit von selbst auf der Kurve und prueft den neuen Wert nicht. */
 const VORLAEUFIG_SATZ = "Sprossenwert noch vorläufig, muss noch gemessen werden";
 const VORLAEUFIG_KURZ = " · vorläufig";
 function gemesseneSprossen(ex){
   const g = new Set();
   ((DEFAULT_EX[ex] && DEFAULT_EX[ex].levels) || []).forEach((L, i) => { if(L && L.gemessen) g.add(i); });
   for(const s of S.sessions)
-    if(s.exercise === ex && Number.isFinite(s.level) && !s.entfalleneSprosse && messpunktGueltig(s))
+    if(s.exercise === ex && Number.isFinite(s.level) && !s.entfalleneSprosse
+       && s.loadVorher == null && messpunktGueltig(s))
       g.add(s.level);
   return g;
 }
@@ -6755,7 +6858,7 @@ function finishWorkout(){
       /* Beim beidbeinigen Halt beide Leitern — es war EINE Belastung fuer
          beide Seiten. */
       /* Im Modus ohne Geraete auf die naechste erlaubte Sprosse darunter:
-         Liegestuetz Nur Koerpergewicht von "Boden" (7) auf "Knie abgelegt" (4), nicht
+         Liegestuetz Nur Koerpergewicht von "Boden" (6) auf "Knie abgelegt" (4), nicht
          auf den Stuhlsitz, den es im Hotel nicht gibt. */
       /* Ist bei der Fersenbruecke ein Bein angehakt, geht das gesunde nicht
          auf die beidbeinige Rampe zurueck (stufenBoden). */
@@ -6890,7 +6993,7 @@ function stufenLegende(pts){
    darunter beschreibt genau diese, nicht eine neu gerechnete. */
 let achseZuletzt = null;
 function curveSVG(f, pts){
-  const W=400, H=290, L=42, R=12, TP=12, B=38;
+  const W=400, L=42, R=12, TP=12, PLOT=240;
   const exK = S.exercise;
   const lv = curEx().levels;
   const ga = gewichtAchse(exK, S.side);
@@ -6912,6 +7015,32 @@ function curveSVG(f, pts){
   const x1 = Math.max(...loads)*1.06;
   const y1 = 170;
   const X = v => L + (v-x0)/(x1-x0)*(W-L-R);
+  /* Jede Sprosse bekommt ihre Nummer (Luke, 16.10.2026: "nicht jede sprosse
+     in der kraftkurve eingezeichnet"). Vorher stand bei mehr als fuenf
+     Sprossen nur jede zweite da, und eine Nummer fast auf der aktuellen
+     entfiel ganz. Jetzt: Wo zwei Nummern sich beruehren wuerden, rutscht die
+     spaetere eine Zeile tiefer — Hyperextension Y und Brust mit
+     Mindestgewicht trennen bei 80 kg nur ein paar Pixel. Die aktuelle Sprosse
+     steht immer in der ersten Zeile. Das Bild waechst um jede Zeile nach
+     unten, die Kurve selbst behaelt ihre Hoehe. */
+  const breite = i => 6.8 * String(i+1).length;
+  const zeile = [];                     /* Zeile je Sprosse, 0 = oberste */
+  const inZeile = [];                   /* je Zeile: [{x, b}] */
+  const setzen = i => {
+    const x = X(sprossenLast(exK, i)), b = breite(i);
+    if(!Number.isFinite(x)){ zeile[i] = 0; return; }
+    for(let z = 0; ; z++){
+      const da = inZeile[z] || (inZeile[z] = []);
+      if(da.every(o => Math.abs(o.x - x) >= (o.b + b)/2 + 3)){ da.push({x, b}); zeile[i] = z; return; }
+    }
+  };
+  const cur = curLevel();
+  if(lv[cur]) setzen(cur);
+  lv.map((l,i) => i).filter(i => i !== cur)
+    .sort((a,b) => sprossenLast(exK, a) - sprossenLast(exK, b)).forEach(setzen);
+  const ZH = 13;                        /* Hoehe einer Nummernzeile */
+  const B = 38 + ZH * Math.max(0, inZeile.length - 1);
+  const H = TP + PLOT + B;
   const Y = v => TP + (1 - Math.min(v,y1)/y1)*(H-TP-B);
   let g = "";
 
@@ -6927,20 +7056,14 @@ function curveSVG(f, pts){
           <text x="${L-6}" y="${Y(v)+4}" text-anchor="end" font-size="11.5" fill="var(--tx3)">${v}s</text>`;
   });
   const belegt = [];                    /* x-Positionen beschrifteter Marken */
-  /* Liegt eine Nummer fast auf der der aktuellen Sprosse, entfaellt sie: Y und
-     die Brust mit Mindestgewicht trennen bei 80 kg nur 0,015 Last, also ein
-     paar Pixel — "5" und "6" stuenden uebereinander. */
-  const xCur = X(sprossenLast(exK, curLevel()));
   lv.forEach((l,i)=>{
     const xl = X(sprossenLast(exK, i));
-    const zeigen = (lv.length <= 5 || i===curLevel() || i%2===0)
-                && (i === curLevel() || Math.abs(xl - xCur) >= 14);
-    if(zeigen) belegt.push(xl);
+    belegt.push(xl);
     g += `<line x1="${xl}" y1="${TP}" x2="${xl}" y2="${H-B}"
            stroke="var(--line)" stroke-dasharray="2 4" stroke-width="1"/>
-          ${zeigen ? `<text x="${xl}" y="${H-B+15}" text-anchor="middle"
-           font-size="11.5" fill="${i===curLevel()?"var(--acc)":"var(--tx3)"}"
-           font-weight="${i===curLevel()?700:400}">${i+1}</text>` : ""}`;
+          <text x="${xl}" y="${H-B+15+ZH*(zeile[i]||0)}" text-anchor="middle"
+           font-size="11.5" fill="${i===cur?"var(--acc)":"var(--tx3)"}"
+           font-weight="${i===cur?700:400}">${i+1}</text>`;
   });
   /* Gewichtsmarken auf der obersten Sprosse: nur die, die in der Zeichnung
      liegen, und keine, die einer Sprossennummer zu nahe kaeme. */

@@ -3094,11 +3094,115 @@ tag trainieren kann".
 - Die Liste unter *Mehr → Erholung* (`ohnePauseEdit`) zeigt jede aktive Übung ohne den Pfad fürs
   Knie, dazu jede inaktive mit gesetztem Haken. Ein Wechsel verwirft den Plan des Tages.
 
+### P79 · Liegestütz ohne „Wand · 4 Fußlängen", Küche vor „Knie abgelegt", jede Sprosse auf der Achse
+
+Luke, 16.10.: „entferne die sprosse 3 - füße 4 fußlängen weg - die übung ist extrem unergonomisch
+und schwer eigenlich schrägbankdrücken und der kopf ist im weg". Dazu ein Ausreißer „bei 10+ im
+Kraftausdauerbereich" und: „in der app [ist] nicht jede sprosse in der kraftkurve eingezeichnet".
+
+**Der Ausreißer.** Lukes erster Liegestütz vom 14.09. („an der Wand, aufrecht", 143 s) lief vor
+Build `28f64bb` (14.09., 11:22). Bis dahin war die leichteste Stufe Last 1,00, jede andere ein
+Vielfaches davon. Die Sitzung hat diese 1,00 beim Speichern eingefroren. Auf der heutigen Achse
+steht sie damit bei „Füße auf dem Stuhl + 10 kg". Beim Ausfallschritt links vom selben Morgen
+(„beide Hände abgestützt", 74,9 s) ist es dasselbe.
+
+**Lukes Entscheidungen.** Drei Punkte verlassen die Kurve: die Messung auf der gestrichenen Sprosse
+(12.10., 69 s), der Liegestütz vom 14.09. und der Ausfallschritt links vom 14.09. Die Lücke soll
+„anhand der vorhandenen daten" neu sortiert werden: „ich glaube die küchenplatte/fensterbank ist
+leichter, ansonsten teste ich noch nach".
+
+**Gebaut in 2026-10-16 c.**
+
+- **Die Leiter hat acht Sprossen.** 1 Wand, 2 Fußlängen (0,23) · 2 Wand, 3 Fußlängen (0,32) ·
+  3 Küchenarbeitsplatte (0,40) · 4 Knie abgelegt (0,49) · 5 Stuhlsitz (0,61) · 6 Boden (0,68) ·
+  7 Füße auf einer Stufe (0,78) · 8 Füße auf einem Stuhl (0,88). Zusatzgewicht weiter ab „Boden".
+- **Küchenarbeitsplatte 0,55 → 0,40, vorläufig.** Rechnet man Lukes Kurve ohne den Küchenpunkt,
+  passen seine 101,2 s vom 28.09. zu 0,38 (mit dem Punkt an der Wand) bis 0,44 (ohne ihn). 0,40 ist
+  die Mitte. Auch Suprak 2011 spricht gegen 0,55: Schon an einer 61-cm-Ablage stehen dort rund 55 %
+  des Körpergewichts auf den Händen, 90 cm müssen leichter sein.
+- **Die Sitzung vom 28.09. zieht mit ihrer Last um.** Bei jedem Umzug davor hat sich nur die Nummer
+  verschoben. Diesmal ist der Leiterwert falsch, den die Sitzung eingefroren hat. Sie steht jetzt
+  bei 0,40, die alte Last in `loadVorher`, die Haltezeit bleibt. Weil 0,40 aus der Kurve stammt,
+  liegt der Punkt von selbst auf ihr. Er zählt deshalb nicht als Messung der Sprosse: Die Küche
+  bleibt rot „vorläufig", bis Luke dort neu hält.
+- **Die drei Punkte bleiben im Verlauf,** abgeblendet und mit Grund: „Stellung gestrichen" bzw.
+  „alte Skala". Im Export steht bei ihnen `in_kurve` = 0.
+- **Lukes Stand** rückt von der gestrichenen Sprosse auf die Küche, jeder andere eine Nummer tiefer.
+  Ein angefangenes Workout zieht mit.
+- **Jede Sprosse steht auf der Achse der Kraftkurve.** Bisher war bei mehr als fünf Sprossen nur
+  jede zweite Nummer beschriftet. Eine Nummer, die fast auf der aktuellen lag, fiel ganz weg. Jetzt
+  steht jede Nummer da. Würden sich zwei berühren, rutscht die spätere eine Zeile tiefer. Die
+  aktuelle Sprosse steht immer oben. Beim Ausfallschritt, bei der Fersenbrücke und bei der
+  Hyperextension braucht das heute eine zweite Zeile, das Bild wird dann 13 Einheiten höher.
+- **Silbentrennung in Tabellen.** „Küchenarbeitsplatte" in *Profil → Was du auf jeder Stufe
+  schaffst* hat die Seite am Handy 40 px über den Rand geschoben. Das war schon vor diesem Build so.
+
+**Was die Kurve davon hat.** Die Punkte streuen um die Kurve mit 0,132 statt 0,406 (rmse,
+logarithmisch). Ohne den eingefrorenen 14.09. liegt kein Punkt mehr bei „+10 kg".
+
+**Was offen bleibt.**
+
+- **Die Küche ist geschätzt.** Eine frische Messung dort zeigt, ob 0,40 stimmt.
+- **„Wand, 3 Fußlängen", „Knie abgelegt" und „Füße auf einer Stufe"** hat Luke nie gemessen.
+- **Der Punkt an der Wand (15.09., 133 s) liegt deutlich unter der Kurve.** Woran das liegt, ist
+  nicht gemessen. Mit nur einem Punkt auf der Sprosse lässt es sich nicht sagen.
+- **Wer seine Leiter von Hand umbenannt oder umgewichtet hat, verliert das,** wie bei jedem Sprung
+  der Fassung.
+
+**Für den Nachbau:**
+
+- `EX_VERSION` 28, `PUSH_NEU_AT` = 28. `PUSH_UMZUG` = `{0:0, 1:1, 2:2, 3:3, 4:2, 5:4, 6:5, 7:6,
+  8:7}`. Alt 2 (Wand 4) zeigt auf die Küche, die mit 0,40 der alten Last 0,39 am nächsten liegt.
+- `pushUmziehen(levels)` für jeden Schlüssel `push`. `pushObjekt(o, offen)` zieht `level`,
+  `levelVorschlag`, `rohStufe` und `anker.level` um. Bei alt 4 rechnet es `load` × 0,40/0,55 und
+  setzt `loadVorher`, bei alt 2 setzt es `entfalleneSprosse`. Ein offener Block (`offen`) zieht nur
+  mit der Nummer um, seine Last rechnet `blockSichern()` beim Halten.
+- `pushGehalten(o)` setzt bei `entfalleneSprosse` den Grund `ausKurve: "Stellung gestrichen"`.
+  `pushSessions()` setzt vorher bei Liegestütz und Ausfallschritt mit `date` < `PUSH_SKALA_BIS`
+  (`2026-09-14T09:22:15Z`) `ausKurve: "alte Skala"`. Ein schon gesetzter Grund bleibt stehen.
+- `normalize()`: `pushUmzug` nach dem Umzug der Fersenbrücke, auf Stand, Sitzungen und Lauf.
+- `gemesseneSprossen()` überspringt Sitzungen mit `loadVorher`.
+- `curveSVG()`: `setzen(i)` legt jede Nummer in die erste Zeile, in der sie mit Abstand
+  (b₁ + b₂)/2 + 3 zu jeder Nummer dort passt (b = 6,8 je Ziffer). Die aktuelle Sprosse kommt
+  zuerst, dann die übrigen nach Last. `B` = 38 + 13 je weitere Zeile, `H` = 12 + 240 + `B`.
+- `th, td`: `hyphens: auto` (die Seite hat `lang="de"`).
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-16 c — Liegestütz ohne „Wand · 4 Fußlängen", jede Sprosse auf der Achse
+
+**Befund (Luke).** Die Sprosse „Wand · Füße 4 Fußlängen weg" ist unergonomisch und eigentlich
+Schrägbankdrücken. Bei „+10" steht ein Ausreißer im Kraftausdauerbereich. Auf der Kraftkurve ist
+nicht jede Sprosse eingezeichnet (P79).
+
+**Gebaut.**
+
+- **Liegestütz-Leiter mit acht Sprossen:** „Wand · 4 Fußlängen" raus, die Küchenarbeitsplatte rückt
+  mit 0,40 (vorläufig, vorher 0,55) vor „Knie abgelegt". Fassung der Übungsliste 28.
+- **Umzug:** Stand, Sitzungen und angefangenes Workout ziehen auf die neuen Nummern. Lukes
+  Sitzung auf der Küche zieht mit ihrer Last um und hält die alte in `loadVorher`.
+- **Aus der Kurve, auf Lukes Entscheidung:** die Messung auf der gestrichenen Sprosse sowie
+  Liegestütz und Ausfallschritt vom 14.09. vor dem Skalenwechsel. Alle drei bleiben im Verlauf
+  sichtbar.
+- **Jede Sprossennummer auf der Achse,** dicht liegende in einer zweiten Zeile.
+- **Silbentrennung in Tabellen** gegen das waagerechte Scrollen in der Stufentabelle.
+
+**Geprüft.**
+
+- In Node: Umzug von Stand, Sitzungen und Lauf mit Lukes Liegestütz-Sitzungen aus dem Export vom
+  16.10. Ein schon gesetzter Grund bleibt stehen, andere Übungen bleiben unberührt, die
+  Originalobjekte bleiben unverändert.
+- Im Browser bei 375 × 812 mit einem Stand der Fassung 27 aus demselben Export: Fassung 28 nach dem
+  Laden, Stand auf der Küche, neun Punkte in der Kurve, rmse 0,132. Alle acht Nummern auf der
+  Achse, kein Punkt bei „+10". Im Verlauf die zwei Liegestütz-Sitzungen abgeblendet mit Grund. Die
+  Küche bleibt „vorläufig".
+- Achse aller elf Übungen: jede Nummer da, keine Überlappung. Zweite Zeile bei Ausfallschritt,
+  Fersenbrücke und Hyperextension.
+- Kein waagerechtes Scrollen bei 375 px, keine Konsolenfehler.
 
 ### 2026-10-16 b — Ohne Pause
 
