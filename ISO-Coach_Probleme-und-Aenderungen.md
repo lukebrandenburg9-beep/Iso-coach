@@ -3282,11 +3282,237 @@ eine andere Stellung.
   `teilHTML()` zeigt ihn unter der roten Zeile.
 - `bridge.extraAb` 9 → 17.
 
+### P81 · Ausfallschritt ohne Sprosse 9, Gewicht heißt Kurzhanteln oder Kettlebells
+
+Luke, 16.10.: Auf der Kurve „Ausfallschritt links“ steht „ein messpunkt zwischen 8 und 9 den ich
+nicht verstehe“. Zur Sprosse 9, „Hinterer Fuß auf dem Stepper (20 cm) · Knie bis 1 Stufe“: „was ist
+damit gemeint? ich glaube die sprosse kann weg“. Und zum Gewicht: „wie kommst du auf "rucksack?" wir
+nehmen hier normal kurzhanteln oder kettlebells“.
+
+**Der Punkt zwischen 8 und 9.** Die Achse der Kraftkurve ist die Last, nicht die Sprossennummer.
+Der Punkt ist Sprosse 8 („Knie knapp über den Boden“, 0,90) mit 10 kg am 29.09., also Last 1,01.
+Er liegt richtig, er ist nur nicht als Sprosse 8 mit Gewicht zu erkennen. Wie das sichtbar wird,
+steht in P82.
+
+**Sprosse 9 war nicht ausführbar.** Beim Leiterumbau am 21.09. ist die alte halbe Tiefe in
+Stepperhöhen übersetzt worden. Steht der Stepper unter dem hinteren Fuß, liegt unter dem Knie
+keine Stufe mehr. Auf ihr lag nie ein Satz.
+
+**Lukes Entscheidungen.**
+
+| Frage | Lukes Antwort |
+|---|---|
+| Sprosse 9? | „Streichen, 10 wird 9“ |
+| Wo hängt das Gewicht? | „erstmal seitlich neben dem körper, später mit empfehlungen nach bill hartman z.B gegenüberliegende hand oder rackposition“ |
+
+**Gebaut in 2026-10-16 e.**
+
+- **Die Leiter hat neun Sprossen.** Die oberste, „Hinterer Fuß auf dem Stepper (20 cm) · Knie knapp
+  über den Boden“ (1,25), ist jetzt die 9. Die Lücke von 0,90 auf 1,25 schließt das Gewicht auf
+  Sprosse 8, so wie Luke sie trainiert (29.09. +10 kg = 1,01, 07.10. +35 kg = 1,29).
+- **Gewichtstext:** „Kurzhanteln oder Kettlebells, seitlich neben dem Körper gehalten.“ Der
+  Hinweistext sagt dasselbe statt „Rucksack“. Der Hebel bleibt 1, ein Kilo zählt als ein Kilo.
+- **Umzug:** Stand, Sitzungen und angefangenes Workout ziehen mit. Wer auf der gestrichenen Sprosse
+  stand, fällt auf Sprosse 8 zurück, nicht auf die schwerere 9. Ein Satz auf der gestrichenen
+  Sprosse bliebe mit seiner Last in der Kurve und trüge die Marke `entfalleneSprosse`. Bei Luke
+  gibt es keinen.
+
+**Was offen bleibt.**
+
+- **Andere Haltungen** (gegenüberliegende Hand, Rack) kommen später, siehe Teil 4 #35.
+- **Wer seine Leiter von Hand umbenannt oder umgewichtet hat, verliert das,** wie bei jedem Sprung
+  der Fassung.
+
+**Für den Nachbau:**
+
+- `EX_VERSION` 30, `LUNGE_OHNE9_AT` = 30. `LUNGE_OHNE9_UMZUG` = `{8:7, 9:8}`,
+  `LUNGE_OHNE9_ALT_LAST` = `{8:1.05, 9:1.25}`, `LUNGE_OHNE9_GESTRICHEN` = 8.
+- `lungeOhne9Umziehen(levels)` für jeden Schlüssel `lunge` und `lunge|…`. `lungeOhne9Objekt(o,
+  offen)` zieht `level`, `levelVorschlag`, `rohStufe` und `anker.level` um. Gehaltene Objekte
+  bekommen fehlende Last aus `ALT_LAST` und auf alt 8 `entfalleneSprosse`, kein `ausKurve`. Ein
+  offener Block zieht nur mit der Nummer um, wie bei `pushObjekt`.
+- `normalize()`: Stand nach `pushUmziehen`, Sitzungen und Lauf als äußerste Stufe der Kette.
+- `lunge.extraHint` und der letzte Satz von `lunge.hint` neu.
+
+### P82 · Gewicht auf der Kraftkurve: Pfeil von der Sprosse, alte Punkte grauen aus
+
+**Stand 16.10.2026: eingebaut in Build `2026-10-16 e`, Grenze 30 Punkte.** Luke: „Grenze 30
+Punkte. Bau es in die App ein.“
+
+Luke, 16.10., zum Punkt zwischen 8 und 9 (P81): „ich überlege gerade wie wir das im diagramm der
+kraftkurve sinnvoll darstellen“. Zum Vorschlag, einen Pfeil von der Sprosse zum Punkt zu ziehen:
+„sehr geile idee. was passiert wenn sich hier mehrere messpunkte tummeln nach gewisser zeit, kann
+man 5-10 messpunkte visualisieren ohne dass es zu voll wird? ältere messpunkte sollen sich graduell
+ja auch ausgrauen und irgendwann verschwinden z.b nach 6 monaten oder 30-60 trainingseinheiten“.
+
+**Die Darstellung.**
+
+- **Pfeil.** Ein Punkt mit Gewicht bekommt einen waagerechten Pfeil. Er beginnt mit einem kurzen
+  Querstrich auf der gestrichelten Linie seiner Sprosse und endet am Punkt, auf der Höhe der
+  Haltezeit. So ist zu sehen, dass Sprosse 8 mit 10 kg weiter rechts liegt, weil das Gewicht sie
+  schwerer macht. Bei Entlastung (negative kg) zeigt der Pfeil nach links. Ist er kürzer als 9 px,
+  fällt er weg. Der Punkt liegt dann praktisch auf der Linie.
+- **Zahl.** „+10 kg“ steht über dem Pfeil, sonst darunter. Vergeben wird vom neuesten Punkt zum
+  ältesten. Eine Zahl entfällt, wenn sie eine andere Zahl, einen Punkt oder einen Zonennamen
+  verdecken oder aus der Zeichnung ragen würde.
+- **Ausgrauen.** Gezählt wird in neueren Punkten derselben Kurve, nicht in Tagen. Farbe und
+  Deckkraft folgen dem Gewicht des Punkts im Fit, `DECAY^(neuere Punkte)`. Bei 1 ist er voll
+  türkis, mit kleinerem Gewicht wird er grauer und blasser. Er zeigt also selbst, wie viel er noch
+  zählt.
+- **Verschwinden.** Ab der Grenze ist ein Punkt aus dem Bild **und** aus der Kurve.
+
+**Lukes Entscheidungen.**
+
+| Frage | Lukes Antwort |
+|---|---|
+| Wonach altert ein Punkt? | Nach neueren Punkten, nicht nach Tagen |
+| Welche Punkte bekommen einen Pfeil? | Alle mit Gewicht, die Zahl nur, wo Platz ist |
+| Was passiert mit den alten Daten? | „alle daten bleiben erhalten, die aktuelle kraftkurve bedient sich aber aktueller messpunkte, diese sind stärker gewichtet wie bei grip gains auch“ |
+| Nach wie vielen Punkten verschwindet einer? | „lass uns das mit dem testkunden testen wieviel das diagram optisch verträgt“. Nach dem Testkunden: „Grenze 30 Punkte“ |
+| Wie sieht die kg-Zahl aus? | „filigraner 1-2px in grau“ |
+
+**Was „alle Daten bleiben“ heißt.** Verlauf und Export behalten jeden Punkt. Die Kurve rechnet nur
+mit den Punkten im Bild, gewichtet wie bisher mit `DECAY` 0,97 je neuerem Punkt. Gerechnet wird
+also genau mit den Punkten, die zu sehen sind.
+
+**Der Testkunde.**
+
+- **Zeitraum:** 70 Einheiten Ausfallschritt links in einem Jahr (17.10.2025 bis 16.10.2026),
+  Körpergewicht 80 kg, fester Startwert.
+- **Der Kunde:** ein Anfänger, der von Sprosse 1 bis Sprosse 9 mit Gewicht kommt. Seine wahre Kurve
+  ist t = W'/(P − CP).
+- **Wachstum:** Die Last, die er 75 s hält, wächst von 0,36 auf 1,30, am Anfang schnell, dann
+  flacher. CP steigt von 0,25 auf 1,01, W' von 8 auf 22.
+- **Je Einheit:**
+  - eine Zielzone: Maximalkraft 40 %, Hypertrophie 35 %, Kraftausdauer 25 %
+  - die passende Sprosse, ab Sprosse 6 mit Kurzhanteln in 2,5-kg-Schritten bis 40 kg
+  - in gut einem Drittel der Fälle die Sprosse darunter mit mehr Gewicht
+- **Streuung:** Die Haltezeit streut um 8 %. 6 % der Einheiten enden mit Schmerzabbruch, 30 % früher.
+- **Was herauskam:**
+  - alle neun Sprossen: 2, 1, 3, 2, 4, 8, 13, 30 und 7 Einheiten
+  - 55 Einheiten mit Gewicht, 3 Schmerzabbrüche
+  - eine Einheit außerhalb des Messfensters, also 69 Punkte
+- **Verglichen:** Grenze 15, 30, 45 und ohne Grenze (die App heute), nebeneinander, Einheit für
+  Einheit. Video, Standbilder und Generator liegen bei Luke unter `simulation/testkunde-ausfallschritt/`.
+
+**Ergebnis im Bild.**
+
+- **15 Punkte:** bleibt bis zum Schluss lesbar. Pfeile und Zahlen trennen sich.
+- **30 Punkte:** die Mitte wird voll. Pfeile von derselben Sprosse stapeln sich zu einem Kamm.
+  Lesbar, aber nicht auf einen Blick.
+- **45 Punkte und ohne Grenze:** Brei. Die Zahlen finden ihren Pfeil nicht mehr.
+
+**Ergebnis in der Rechnung.** Gemessen ist, wie gut die Kurve die nächste Einheit vorhersagt, und
+zwar als Lastfehler. Die Frage dahinter: Welche Last hätte die Kurve für die tatsächlich gehaltene
+Zeit vorgeschlagen, und wie weit liegt sie von der Last, die wirklich gehalten wurde? Das ist die
+Frage, die der Planer stellt. Ausgewertet sind die Einheiten 13 bis 70 ohne Schmerzabbruch, also 55
+Vorhersagen. Zum Vergleich steht ein Fortgeschrittener daneben. Er legt im Jahr 10 % zu (die Last für
+75 s steigt von 0,95 auf 1,05), sonst gilt alles wie beim Anfänger.
+
+| Grenze | Anfänger: Lastfehler im Median | Anfänger: Anteil über 30 % | Anfänger: CP am Rand | Fortgeschrittener: Lastfehler im Median |
+|---|---|---|---|---|
+| 10 | 8 % | 2 % | 0 | 2 % |
+| 15 | 10 % | 11 % | 0 | 2 % |
+| 20 | 14 % | 24 % | 0 | 2 % |
+| 30 | 26 % | 40 % | 9 | 2 % |
+| 45 | 47 % | 73 % | 29 | 3 % |
+| ohne (heute) | 55 % | 75 % | 40 | 3 % |
+
+**Warum die Kurve ohne Grenze kippt.** `fitRechnen` sucht CP nur unterhalb der leichtesten Last
+aller Punkte, denn t = W'/(P − CP) gilt nur für P > CP. Ein alter Punkt auf Sprosse 1 (0,36) hält
+CP deshalb für immer unter 0,36, auch wenn der Kunde längst 1,0 trägt. `DECAY` hilft dagegen nicht:
+Das kleine Gewicht macht den Punkt leiser, die Schranke bleibt. Dasselbe gilt für jeden alten Punkt
+auf einer Last, die der Kunde heute unbegrenzt halten würde. Beim Testkunden liegt die Kurve ohne
+Grenze schon nach fünf Monaten (Einheit 30) weit unter den aktuellen Punkten. Bei Luke fällt das
+bisher nicht auf: Seine Punkte fangen bei Sprosse 5 an, und er legt langsamer zu.
+
+**Was daraus folgt.** Beim Fortgeschrittenen ist jede Grenze gleich gut. Die Streuung von 8 % mittelt
+sich schon über 10 Punkte heraus. Beim Anfänger gewinnt die kleinere Grenze, und ins Bild passen
+15. Bild und Rechnung zeigen beide auf 15. Bei Lukes Takt auf Ausfallschritt links, 5,4 Punkte im
+Monat, sind 15 Punkte knapp drei Monate.
+
+**Lukes Wahl: 30 Punkte, für jede Kurve.** Das gilt je Übung, Seite und Haltung. Bei Lukes Takt
+sind das auf Ausfallschritt links gut fünf Monate, beim Liegestütz (10,4 Punkte im Monat) knapp
+drei.
+
+**Was sich damit erledigt hat.**
+
+- **Die Grenze** (Teil 4 #36).
+- **Ausgrauen.** Es läuft über das Fit-Gewicht. Bei 30 Punkten hat der älteste noch Gewicht 0,41
+  und Deckkraft 0,56. Er graut also sichtbar aus, bevor er verschwindet. Über die Grenze hätte das
+  Ausgrauen nur bei 15 laufen müssen.
+
+**Für den Nachbau:**
+
+- `points()` gibt `extra` mit (`+s.extra || 0`).
+- `curveSVG(f, pts)` zeichnet in dieser Reihenfolge: erst die Pfeile, dann die Punkte, dann die
+  Zahlen.
+- **Pfeil:** von `X(sprossenLast(ex, p.level))` nach `X(p.load)` auf `Y(p.time)`. Strich 1,6 px,
+  Querstrich 8 px. Die Spitze ist 5 × 6,4 px und endet 7,5 px vor der Punktmitte.
+- **Gewicht je Punkt** `w = DECAY^(n-1-i)`:
+  - Farbe `color-mix(in srgb, var(--acc) {100·w}%, var(--tx3))`, bei Schmerz `--bad`
+  - Deckkraft `0,25 + 0,75 · w`
+- **Zahlen:** vergeben vom neuesten Punkt zum ältesten.
+  - Schrift 8,5 px, normal, Farbe `--tx3`, Rand in Hintergrundfarbe 1,6 px. Deckkraft wie der Punkt.
+  - Sie steht mittig über dem Pfeil. Ist der Pfeil kurz, rückt sie vor ihren Punkt: Ihre Kante
+    bleibt 7 px vor der Punktmitte.
+  - Kandidaten: Grundlinie 4,5 px über und 11,5 px unter dem Pfeil
+  - Hindernisse: alle Punkte (12 × 12 px), fremde Pfeile (8 px hoch), schon gesetzte Zahlen,
+    Zonennamen, die Beschriftung „CP“, Rand der Zeichnung
+- **Die Grenze wirkt vor `fit()`.** `PUNKTE_GRENZE = 30`, `kurvenPunkte(ex, side)` ist
+  `points(ex, side).slice(-30)`.
+  - **Mit den letzten 30** rechnen `curFit` (Planer, Startseite, Profil, auch die zwei Stellen, die
+    bis Build d `fit(points())` direkt riefen), `zoneCoverage` (wann die Kurve steht) und im Verlauf
+    „… davon in der Kurve“.
+  - **Mit allen Punkten** bleiben `points()` selbst, der Verlauf, die Sprossenliste im Profil, der
+    Export, die Tagesform, „seit wann nicht gemessen“, die Reihenfolge der Übungen und der
+    Mess-Status der Sprossen.
+  - **Export:** `in_kurve` bleibt, was es war: Satz 1 einer frischen Messung im Messfenster. Es
+    heißt nicht „unter den letzten 30“. Wer die Kurve der App nachrechnen will, nimmt je Kurve die
+    letzten 30 Zeilen mit `in_kurve = 1`.
+- **Testkunde:** Generator `film.js` mit festem Startwert 16102026, die Kurvenänderung als Patch und
+  das Video liegen bei Luke unter `simulation/testkunde-ausfallschritt/`. Der Patch passt auf
+  Build e vor dem Einbau; im Build steckt das jetzt selbst.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-16 e — Ausfallschritt ohne Sprosse 9, Kurzhanteln statt Rucksack, Kraftkurve mit Pfeil und 30 Punkten
+
+**Befund (Luke).** Sprosse 9 „Hinterer Fuß auf dem Stepper (20 cm) · Knie bis 1 Stufe“ ist nicht
+ausführbar. Zusatzgewicht beim Ausfallschritt sind Kurzhanteln oder Kettlebells, kein Rucksack
+(P81). Auf der Kraftkurve ist ein Punkt mit Gewicht nicht als solcher zu erkennen, und alte Punkte
+bleiben für immer im Bild und in der Rechnung (P82).
+
+**Gebaut.**
+
+- **Ausfallschritt mit neun Sprossen:** Sprosse 9 raus, die oberste rückt auf 9. Fassung der
+  Übungsliste 30.
+- **Gewicht:** Kurzhanteln oder Kettlebells, seitlich neben dem Körper gehalten, im Gewichtshinweis
+  und im Hinweistext.
+- **Umzug:** Stand, Sitzungen und angefangenes Workout ziehen auf die neuen Nummern. Alle Punkte
+  bleiben erhalten.
+- **Pfeil auf der Kraftkurve (P82):** Ein Punkt mit Gewicht bekommt einen Pfeil von der Linie
+  seiner Sprosse. Die kg-Zahl steht klein und grau daneben, wo Platz ist.
+- **Ausgrauen:** Farbe und Deckkraft eines Punkts folgen seinem Gewicht im Fit.
+- **Grenze 30:** Kurve und Fit rechnen mit den letzten 30 Punkten je Kurve. Verlauf und Export
+  behalten alle. Im Profil steht dann hinter der Zahl der Messpunkte „· die letzten 30 in der
+  Kurve“, die Legende sagt es in einem Satz.
+
+**Geprüft.**
+
+- Im Browser über `normalize()`: Stand der Fassung 29 (links auf alt 9 → 8, rechts auf alt 10 → 9),
+  Sitzungen auf alt 8, 9 und 10, eine ohne Last, eine mit Vorschlag, Rohstufe und Anker, dazu ein
+  angefangenes Workout mit offenem und gelaufenem Block. Zweimal angewandt ändert es nichts.
+  Liegestütz bleibt unberührt.
+- Profil zeigt neun Sprossen, keine Konsolenfehler.
+- Kraftkurve mit den Sitzungen des Testkunden (P82) bei Einheit 20, 45 und 70, auf 400 px Breite:
+  19, 30 und 30 Punkte in der Kurve. Im Verlauf „20 / 45 / 70 Messungen · 19 / 30 / 30 davon in
+  der Kurve“. Keine Zahl verdeckt eine andere Zahl, einen Punkt, einen fremden Pfeil, einen
+  Zonennamen oder „CP“. Startseite, Verlauf und Profil ohne Konsolenfehler.
 
 ### 2026-10-16 d — Fersenbrücke mit Knie 90° und 135°, Yogablock unter den Sitzbeinen
 
@@ -6263,6 +6489,14 @@ als Teil des Ansatz-Pfads? Das ist eine Produktentscheidung, keine technische.
     lägen 90° auf dem Hocker und 135° auf dem Stuhl nicht hintereinander, sondern umgekehrt, und
     viele Sprossen fast gleichauf. Lukes Messungen der nächsten Wochen entscheiden, ob die Leiter so
     bleibt, ob Unterlagen zusammenfallen und ob der Stepper Hocker und Kiste ersetzt.
+35. **Weitere Gewichtshaltungen beim Ausfallschritt (P81).** Seit 2026-10-16 e hängen Kurzhanteln
+    oder Kettlebells seitlich neben dem Körper. Luke, 16.10.: „später mit empfehlungen nach bill
+    hartman z.B gegenüberliegende hand oder rackposition etc... das machen wir aber später“. Offen:
+    welche Haltungen, ob sie die Last anders zählen und ob die Wahl je Übung oder je Satz gilt.
+36. **Nach wie vielen neueren Punkten verschwindet ein Punkt aus Kraftkurve und Fit? (P82)**
+    **Entschieden (Luke, 16.10.), gebaut in Build `2026-10-16 e`:** „Grenze 30 Punkte. Bau es in die
+    App ein.“ Die 30 gelten für jede Kurve. Das Ausgrauen läuft über das Fit-Gewicht, der älteste
+    der 30 Punkte ist noch gut halb sichtbar.
 
 ---
 

@@ -74,7 +74,10 @@ Der Prototyp setzt Abschnitt 4 des Handoffs um — er ist kein Timer mit Deko, s
 Rechenlogik:
 
 - **Die Kurve** `t = W'/(P − CP)`, gefittet über eine eindimensionale Suche, ältere Messpunkte
-  werden mit 3 % je neuerem Punkt abgewertet.
+  werden mit 3 % je neuerem Punkt abgewertet. **Sie rechnet mit den letzten 30 Punkten** je
+  Kurve, ältere bleiben in Verlauf und Export. Im Profil wird ein älterer Punkt so blass, wie
+  wenig er noch zählt. Ein Punkt mit Gewicht bekommt einen Pfeil von der Linie seiner Sprosse,
+  die kg-Zahl steht klein und grau daneben, wo Platz ist.
 - **Gespreiztes Onboarding** über drei Stufen (leicht / mittel / schwer) statt einer. Der
   Einstieg hängt an der **Kurve**, nicht am Workout: Eine Übung, die später dazukommt, holt ihre
   fehlenden Zonen nach. Gezählt werden dabei leere Zonen, nicht Messungen — zwei gespreizte
@@ -307,7 +310,8 @@ Zahl Fußlängen davor, das Gesäß knapp vor der Wand.
 
 **Zusatzgewicht ist eine eigene Achse, keine Leitersprosse.** Die Leiter bleibt reines
 Körpergewicht; Kilogramm kommen ab einer Stufe je Übung dazu (Liegestütz ab „Boden",
-Ausfallschritt ab „Hinterer Fuß ~20 cm erhöht"). Der Seitstütz bleibt reines Körpergewicht,
+Ausfallschritt ab „Kniestand · Knie bis Stepper, 2 Stufen (15 cm)", mit Kurzhanteln oder
+Kettlebells seitlich neben dem Körper). Der Seitstütz bleibt reines Körpergewicht,
 seine Leiter endet bei „Standard". Wie stark ein Kilo wirkt, ist übungsabhängig: Bei Liegestütz
 und Ausfallschritt wächst die Last mit `X/BW`. Beim Schrägzug sind es `1,3·X/BW` (Rucksack hoch auf den
 Schulterblättern; rutscht er aufs Becken, wirkt dasselbe Gewicht nur zu drei Vierteln), bei der

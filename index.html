@@ -434,6 +434,16 @@ const PAIN_BACK  = 2;    // Regel 1: zweimal in Folge → Level zurück
 const MISS_BACK  = 3;    // Regel 3: dreimal in Folge → Level zurück
 const KNIE_HOCH  = 2;    // Baker-Pfad: zweimal Vorgabe ohne Schmerz → eine Sprosse weiter
 const DECAY      = 0.97; // Alterung der Messpunkte (Abschnitt 4.1)
+/* Die Kurve rechnet mit den letzten 30 Messpunkten einer Kurve (Luke,
+   16.10.2026, P82): "alle daten bleiben erhalten, die aktuelle kraftkurve
+   bedient sich aber aktueller messpunkte". Ein aelterer Punkt verschwindet
+   aus Zeichnung UND Fit; Verlauf, Export und Mess-Status lesen weiter alle.
+   Ohne Grenze hielt ein alter Punkt auf leichter Last CP fuer immer unter
+   sich (fitRechnen sucht CP nur unterhalb der leichtesten Last) — beim
+   Testkunden kippte die Kurve so nach fuenf Monaten. Gewaehlt nach dem
+   Testkunden vom 16.10.: 15 waere rechnerisch genauer, 30 traegt das Bild
+   gerade noch. */
+const PUNKTE_GRENZE = 30;
 
 /* ── Das Messfenster ────────────────────────────────────────────
    Lukes Vorgabe vom 18.09.2026, ausgeloest durch die erste Messung des
@@ -601,8 +611,14 @@ const DEFAULT_EX = {
   lunge: {
     name:"Ausfallschritt", region:"Knie", group:"legs", sides:["links","rechts"],
     seitenRuf:{links:"LINKER FUß VORNE", rechts:"RECHTER FUß VORNE"},
+    /* Gewicht (16.10.2026, Fassung 30): Kurzhanteln oder Kettlebells seitlich
+       neben dem Koerper statt Rucksack oder Weste. Luke: "wir nehmen hier
+       normal kurzhanteln oder kettlebells ... erstmal seitlich neben dem
+       körper". extraK bleibt 1: Haengende Gewichte sitzen so nah am
+       Koerperschwerpunkt wie der Rucksack. Weitere Haltungen
+       (gegenueberliegende Hand, Rack) kommen spaeter, mit eigener Wahl. */
     extraAb:5, extraK:1,
-    extraHint:"Rucksack oder Weste, körpernah getragen.",
+    extraHint:"Kurzhanteln oder Kettlebells, seitlich neben dem Körper gehalten.",
     hint:"»Links« heißt: der LINKE Fuß steht vorne. "
         +"Zwei Stellungen in einer Leiter — die Sprosse sagt, welche. STEHEND AN DER WAND: "
         +"vorderer Fuß mit den Zehen an die Wand, hinterer Fuß im angegebenen Abstand dahinter, "
@@ -611,7 +627,8 @@ const DEFAULT_EX = {
         +"KNIESTAND: aufgebrochener Kniestand, vorderes Knie rechtwinklig, Rumpf aufrecht, das "
         +"hintere Knie senkt sich bis knapp über die genannte Höhe und berührt sie nicht. "
         +"Beides Mal: keine Handstütze; ein Fingerkontakt an der Wand fürs Gleichgewicht ist in "
-        +"Ordnung. Zwischen zwei Sprossen stellst du am feinsten über einen Rucksack nach.",
+        +"Ordnung. Zwischen zwei Sprossen stellst du am feinsten über Kurzhanteln oder "
+        +"Kettlebells nach, seitlich neben dem Körper gehalten.",
     /* 21.09.2026: Leiter neu gebaut. Sie traegt jetzt ZWEI Stellungen, weil Lukes
        Messpunkte in der einen liegen und seine neue Sprosse in der anderen.
        Frueher stufte die Tiefe ueber eine Ablage unter dem hinteren Knie; Luke hat
@@ -632,7 +649,15 @@ const DEFAULT_EX = {
        - Sprossen 1 bis 4 sind GERECHNET, nicht gemessen: aus dem vorderen Kniewinkel,
          den die Wandstellung erzwingt (56° / 64° / 72° / 82°), linear skaliert und ueber
          den 0,65-Faktor an die Kniestand-Sprossen angeschlossen.
-       Vor dem ersten Training auf einer neuen Sprosse muss gemessen werden. */
+       Vor dem ersten Training auf einer neuen Sprosse muss gemessen werden.
+
+       16.10.2026 (Fassung 30): "Hinterer Fuss auf dem Stepper (20 cm) · Knie
+       bis 1 Stufe" (1,05) ist raus. Luke: "ich glaube die sprosse kann weg".
+       Sie war nicht ausfuehrbar: Der Stepper steht schon unter dem hinteren
+       Fuss, unter dem Knie liegt keine Stufe. Auf ihr lag nie ein Satz. Die
+       Luecke 0,90 -> 1,25 schliesst das Gewicht auf "Knie knapp über den
+       Boden", so trainiert Luke sie ohnehin (29.09. +10 kg = 1,01; 07.10.
+       +35 kg = 1,29). Siehe LUNGE_OHNE9_AT. */
     levels:[
       {name:"Stehend an der Wand · hinterer Fuß 1,5 Fußlängen",  load:0.36, ort:"wand"},
       {name:"Stehend an der Wand · 2 Fußlängen",                 load:0.41, ort:"wand"},
@@ -642,7 +667,6 @@ const DEFAULT_EX = {
       {name:"Kniestand · Knie bis Stepper, 2 Stufen (15 cm)",    load:0.63},
       {name:"Kniestand · Knie bis Stepper, 1 Stufe (10 cm)",     load:0.72},
       {name:"Kniestand · Knie knapp über den Boden",             load:0.90, ort:"boden"},
-      {name:"Hinterer Fuß auf dem Stepper (20 cm) · Knie bis 1 Stufe", load:1.05},
       {name:"Hinterer Fuß auf dem Stepper (20 cm) · Knie knapp über den Boden", load:1.25}
     ]
   },
@@ -1623,7 +1647,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-16 d";
+const BUILD = "2026-10-16 e";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -1651,7 +1675,10 @@ const AW_V = 1;
 /* 29 (16.10.2026, Build d): Fersenbruecke mit fuenf Unterlagen in zwei
    Kniewinkeln (90 und 135 Grad), das fast gestreckte Bein ist raus, dazu
    der Yogablock je Sprosse. Siehe BRIDGE_WINKEL_AT. */
-const EX_VERSION = 29;
+/* 30 (16.10.2026, Build e): Ausfallschritt ohne "Hinterer Fuss auf dem
+   Stepper · Knie bis 1 Stufe", die oberste Sprosse rueckt auf 9; Gewicht
+   heisst Kurzhanteln oder Kettlebells. Siehe LUNGE_OHNE9_AT. */
+const EX_VERSION = 30;
 /* Der Sprung auf 26 setzt die Pausen je Zone NICHT mehr zurueck: Sie sind
    Lukes Einstellung, keine mitgelieferte Uebungsdefinition. Zurueckgesetzt
    wird nur, wer von vor 25 kommt — so wie bisher bei jedem Sprung. */
@@ -2379,6 +2406,48 @@ function bridgeWinkelLauf(lauf){
     plan: Object.assign({}, lauf.plan, {blocks: (lauf.plan.blocks || []).map(bridgeWinkelObjekt)}),
     fertig: (lauf.fertig || []).map(bridgeWinkelObjekt)});
 }
+/* ── Fassung 30 (16.10.2026): Ausfallschritt ohne Sprosse 9 ──────────────
+   Alt (0-9): ... · 7 Knie knapp ueber den Boden (0,90) · 8 Hinterer Fuss
+        auf dem Stepper, Knie bis 1 Stufe (1,05) · 9 Hinterer Fuss auf dem
+        Stepper, Knie knapp ueber den Boden (1,25)
+   Neu (0-8): 0-7 unveraendert · 8 Hinterer Fuss auf dem Stepper, Knie knapp
+        ueber den Boden (1,25)
+   Die oberste Sprosse zieht nur mit der Nummer um. Wer auf der gestrichenen
+   stand, faellt auf "Knie knapp über den Boden" zurueck, nicht auf die
+   schwerere 1,25: Den Schritt dazwischen macht das Gewicht. Saetze auf der
+   gestrichenen Sprosse gab es bei Luke keine; kaeme einer vor, traegt er die
+   Marke entfalleneSprosse und bleibt in der Kurve mit seiner Last — Messpunkte
+   verwirft nur Luke. Ein offener Block zieht nur mit der Nummer um, wie bei
+   pushObjekt. */
+const LUNGE_OHNE9_AT       = 30;
+const LUNGE_OHNE9_UMZUG    = {8:7, 9:8};
+const LUNGE_OHNE9_ALT_LAST = {8:1.05, 9:1.25};
+const LUNGE_OHNE9_GESTRICHEN = 8;
+const lungeKey = k => (k === "lunge" || String(k).indexOf("lunge|") === 0);
+function lungeOhne9Umziehen(lv){
+  const L = Object.assign({}, lv || {});
+  for(const k of Object.keys(L))
+    if(lungeKey(k) && LUNGE_OHNE9_UMZUG[L[k]] != null) L[k] = LUNGE_OHNE9_UMZUG[L[k]];
+  return L;
+}
+function lungeOhne9Objekt(o, offen){
+  if(!o || o.exercise !== "lunge" || LUNGE_OHNE9_UMZUG[o.level] == null) return o;
+  const um = v => (LUNGE_OHNE9_UMZUG[v] != null ? LUNGE_OHNE9_UMZUG[v] : v);
+  const neu = {level: um(o.level)};
+  if(o.levelVorschlag != null) neu.levelVorschlag = um(o.levelVorschlag);
+  if(o.rohStufe != null) neu.rohStufe = um(o.rohStufe);
+  if(o.anker && o.anker.level != null) neu.anker = Object.assign({}, o.anker, {level: um(o.anker.level)});
+  if(offen) return Object.assign({}, o, neu);
+  if(!(o.load > 0)) neu.load = LUNGE_OHNE9_ALT_LAST[o.level];
+  if(o.level === LUNGE_OHNE9_GESTRICHEN) neu.entfalleneSprosse = true;
+  return Object.assign({}, o, neu);
+}
+function lungeOhne9Lauf(lauf){
+  if(!lauf || !lauf.plan) return lauf;
+  return Object.assign({}, lauf, {
+    plan: Object.assign({}, lauf.plan, {blocks: (lauf.plan.blocks || []).map(b => lungeOhne9Objekt(b, true))}),
+    fertig: (lauf.fertig || []).map(o => lungeOhne9Objekt(o))});
+}
 /* Training ohne Geraete (Build 2026-10-01 b). Steht vor load(), weil
    normalize() den gespeicherten Modus damit prueft. Seit 2026-10-01 c heisst
    der Schalter "Volles Equipment" / "Nur Koerpergewicht", die Wand ist ein
@@ -2465,6 +2534,7 @@ function normalize(d){
   const bridgeUmzug   = !leitersturz && (d.exVersion || 1) < BRIDGE_BEID_AT;
   const pushUmzug     = !leitersturz && (d.exVersion || 1) < PUSH_NEU_AT;
   const bridgeWinkel  = !leitersturz && (d.exVersion || 1) < BRIDGE_WINKEL_AT;
+  const lungeOhne9    = !leitersturz && (d.exVersion || 1) < LUNGE_OHNE9_AT;
   const ex = stale ? structuredClone(DEFAULT_EX)
                    : Object.assign(structuredClone(DEFAULT_EX), d.ex || {});
   /* Erst die Band-Verschiebung von Fassung 11, dann der Umzug auf das freie
@@ -2489,6 +2559,7 @@ function normalize(d){
   if(bridgeUmzug) roh.levels = bridgeUmziehen(roh.levels, d.sessions);
   if(bridgeWinkel) roh.levels = bridgeWinkelUmziehen(roh.levels);
   if(pushUmzug) roh.levels = pushUmziehen(roh.levels);
+  if(lungeOhne9) roh.levels = lungeOhne9Umziehen(roh.levels);
   const umzug  = beidUmzug(ex, roh.levels, roh.extra,
                            leitersturz ? {} : (d.streak || {}));
   /* Nach beidUmzug: Erst dann stehen alle Wadenschluessel je Seite. */
@@ -2552,7 +2623,8 @@ function normalize(d){
                                        einen Wand-Sitzung richtigstellen
                                        (LUNGE_WAND_MESS_AT) — sie laeuft auf
                                        der schon umgezogenen Nummer. */
-                                    sessions: (ses => bridgeWinkel ? ses.map(bridgeWinkelObjekt) : ses)(
+                                    sessions: (ses => lungeOhne9 ? ses.map(o => lungeOhne9Objekt(o)) : ses)(
+                                              (ses => bridgeWinkel ? ses.map(bridgeWinkelObjekt) : ses)(
                                               (ses => pushUmzug ? pushSessions(ses) : ses)(
                                               (ses => bridgeUmzug ? ses.map(bridgeObjekt) : ses)(
                                               (ses => handtuchEin ? ses.map(handtuchEinObjekt) : ses)(
@@ -2561,7 +2633,7 @@ function normalize(d){
                                               (ses => lungeMess ? lungeWandMessung(ses) : ses)(
                                                 (ses => lungeUmzug ? lungeSessions(ses) : ses)(
                                                   rowSkala ? rowSkalaVerwerfen(d.sessions)
-                                                           : (d.sessions || []))))))))),
+                                                           : (d.sessions || [])))))))))),
                                     sync: d.sync || {},
                                     /* Zugpunkt ist voreingestellt an — eine stabile
                                        Tischkante reicht und hat praktisch jeder. Rolle und
@@ -2579,7 +2651,8 @@ function normalize(d){
                                     gefragt: d.gefragt || {},
                                     /* Ein angefangener Lauf ueberlebt das Neuladen. */
                                     lauf: (d.lauf && d.lauf.plan)
-                                          ? (l => bridgeWinkel ? bridgeWinkelLauf(l) : l)(
+                                          ? (l => lungeOhne9 ? lungeOhne9Lauf(l) : l)(
+                                            (l => bridgeWinkel ? bridgeWinkelLauf(l) : l)(
                                             (l => pushUmzug ? pushLauf(l) : l)(
                                             (l => bridgeUmzug ? bridgeLauf(l) : l)(
                                             (l => (knie && knie.um) ? laeuferKnieseiteLauf(l, knie.um) : l)(
@@ -2587,7 +2660,7 @@ function normalize(d){
                                             (l => handtuchUmzug ? handtuchLauf(l, bwAlt) : l)(
                                             (l => waageUmzug ? wadeWaageLauf(l, bwAlt, ex.wade) : l)(
                                               (l => rucksackUmzug ? wadeRucksackLauf(l, waageLo) : l)(
-                                              wadeUmzug ? wadeLauf(d.lauf, bwAlt) : d.lauf))))))))
+                                              wadeUmzug ? wadeLauf(d.lauf, bwAlt) : d.lauf)))))))))
                                           : null,
                                     lage: knie ? knie.lage : (d.lage || {}),
                                     haltung: (d.haltung && typeof d.haltung === "object")
@@ -3338,7 +3411,8 @@ function points(ex, side){
     if(!zaehltFuer(s, ex, side)) continue;
     if(!messpunktGueltig(s)) continue;
     const first = s.sets[0];
-    out.push({load: s.load, time: first.time, pain: !!first.pain, date: s.date, level: s.level});
+    out.push({load: s.load, time: first.time, pain: !!first.pain, date: s.date, level: s.level,
+              extra: +s.extra || 0});
   }
   return out;
 }
@@ -3382,7 +3456,10 @@ function gemesseneSprossen(ex){
   return g;
 }
 function sprosseVorlaeufig(ex, i){ return !gemesseneSprossen(ex).has(i); }
-const curFit = (ex, side) => fit(points(ex, side));
+/* Die Punkte, mit denen die Kurve rechnet und die sie zeichnet — die
+   letzten PUNKTE_GRENZE. points() bleibt die ganze Messreihe. */
+const kurvenPunkte = (ex, side) => points(ex, side).slice(-PUNKTE_GRENZE);
+const curFit = (ex, side) => fit(kurvenPunkte(ex, side));
 
 /* ── Satzkurve: wie lange Satz 2, 3, … halten ───────────────────────
    Build 2026-10-06 h. Luke: "waehrend der onboarding phase wird mit den
@@ -3527,7 +3604,7 @@ function zoneOf(t){
 }
 function zoneCoverage(ex, side){
   const cov = {A:0, B:0, C:0};
-  for(const p of points(ex, side)) cov[zoneOf(p.time).id]++;
+  for(const p of kurvenPunkte(ex, side)) cov[zoneOf(p.time).id]++;
   return cov;
 }
 
@@ -4834,7 +4911,7 @@ function knieBlock(ex, side, zone, target, fresh, fest){
     const drunter = stufen.filter(st => st.i <= level);
     level = (drunter.length ? drunter[drunter.length - 1] : stufen[0]).i;
   }
-  const f = fit(points(ex, side));
+  const f = curFit(ex, side);
   const last = lastVon(ex, level, 0, side);
   const tt = (f && imBereich(f, last)) ? predictTime(f, last) : NaN;
   const vorhergesagt = isFinite(tt);
@@ -4863,7 +4940,7 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
   const fehlt = (workoutOnb || fest) ? [] : fehlendeZonen(ex, side);
   const luecke = (fehlt.length && zoneCoverage(ex, side)[zone] > 0) ? fehlt[0] : null;
   if(luecke){ zone = luecke.z; target = luecke.t; }
-  const f   = fit(points(ex, side));
+  const f   = curFit(ex, side);
   const lv  = S.ex[ex].levels;
   const stufen = stufenFuerSeite(ex, side);
   const nahe = i => stufen.length
@@ -7225,13 +7302,79 @@ function curveSVG(f, pts){
             <text x="${X(f.cp)+4}" y="${TP+11}" font-size="11" fill="var(--tx2)">CP</text>`;
     }
   }
-  pts.forEach(p=>{
-    const t = Math.min(p.time,y1);
-    g += p.pain
-      ? `<circle cx="${X(p.load)}" cy="${Y(t)}" r="5.5" fill="var(--bg)"
-          stroke="var(--bad)" stroke-width="2.6"/>`
-      : `<circle cx="${X(p.load)}" cy="${Y(t)}" r="5"
-          fill="var(--acc)" stroke="var(--bg)" stroke-width="2"/>`;
+  /* Pfeil und Ausgrauen (Luke, 16.10.2026, P82). Ein Punkt mit Gewicht
+     bekommt einen waagerechten Pfeil von der Linie seiner Sprosse zum Punkt,
+     auf der Hoehe seiner Haltezeit: "sehr geile idee". Die Zahl "+10 kg"
+     steht nur, wo Platz ist — vergeben vom neuesten Punkt zum aeltesten —,
+     klein und grau: "filigraner 1-2px in grau".
+     Aeltere Punkte grauen aus, gezaehlt in neueren Punkten derselben Kurve:
+     Deckkraft und Farbe folgen dem Gewicht im Fit, DECAY^(neuere Punkte).
+     So blass ein Punkt ist, so wenig zaehlt er noch. pts sind die
+     Kurvenpunkte, also hoechstens PUNKTE_GRENZE. */
+  const n = pts.length;
+  const wichte = pts.map((_, i) => Math.pow(DECAY, n - 1 - i));
+  const farbe = (c, w) => `color-mix(in srgb, ${c} ${Math.round(100 * w)}%, var(--tx3))`;
+  const deck = w => (0.25 + 0.75 * w).toFixed(2);
+  const kgText = kg => (kg > 0 ? "+" : "\u2212") + String(Math.abs(kg)).replace(".", ",") + " kg";
+  const lage = pts.map(p => {
+    const xa = X(sprossenLast(exK, p.level)), xb = X(p.load);
+    return {xa, xb, y: Y(Math.min(p.time, y1)),
+            pfeil: !!p.extra && Number.isFinite(xa) && Math.abs(xb - xa) >= 9};
+  });
+  /* Platz fuer die Zahlen: neuester Punkt zuerst. Hindernisse sind alle
+     Punkte, die fremden Pfeile, die schon gesetzten Zahlen, die Zonennamen
+     und das "CP"; ueber oder unter dem Pfeil, sonst entfaellt sie. Die Zahl
+     steht mittig ueber dem Pfeil, rueckt aber vor ihren Punkt, wenn der
+     Pfeil kurz ist. */
+  const kisten = lage.map(o => ({l:o.xb-6, r:o.xb+6, t:o.y-6, b:o.y+6}));
+  const pfeile = lage.map(o => o.pfeil
+    ? {l:Math.min(o.xa, o.xb), r:Math.max(o.xa, o.xb), t:o.y-4, b:o.y+4} : null);
+  const stoesst = (a, b) => a.l < b.r && b.l < a.r && a.t < b.b && b.t < a.b;
+  const zahl = new Array(n).fill(null);
+  const gesetzt = ZONES.map((z, zi) => {
+    const yt = Y(zi===2 ? y1 : Math.min(z.hi,y1)), yb = Y(zi===0 ? 0 : z.lo), ym = (yt+yb)/2+4;
+    return {l: W-R-5 - 7.2*z.name.length, r: W-R-3, t: ym-11, b: ym+3};
+  });
+  if(cpZeigen && f.cp > x0 && f.cp < x1)
+    gesetzt.push({l: X(f.cp)+3, r: X(f.cp)+20, t: TP, b: TP+14});
+  for(let i = n - 1; i >= 0; i--){
+    const o = lage[i], p = pts[i];
+    if(!o.pfeil) continue;
+    const txt = kgText(p.extra), b = 5.2 * txt.length + 2;
+    const xm = o.xb > o.xa ? Math.min((o.xa + o.xb) / 2, o.xb - 7 - b / 2)
+                           : Math.max((o.xa + o.xb) / 2, o.xb + 7 + b / 2);
+    for(const dy of [-4.5, 11.5]){
+      const k = {l:xm-b/2, r:xm+b/2, t:o.y+dy-8, b:o.y+dy+2};
+      if(k.l < L || k.r > W - R || k.t < TP || k.b > H - B) continue;
+      if(gesetzt.some(x => stoesst(k, x))) continue;
+      if(kisten.some(x => stoesst(k, x))) continue;
+      if(pfeile.some((x, j) => x && j !== i && stoesst(k, x))) continue;
+      gesetzt.push(k); zahl[i] = {txt, x: xm, y: o.y + dy}; break;
+    }
+  }
+  pts.forEach((p, i)=>{
+    const o = lage[i], w = wichte[i];
+    if(!o.pfeil) return;
+    const c = farbe(p.pain ? "var(--bad)" : "var(--acc)", w), s = Math.sign(o.xb - o.xa);
+    const xe = o.xb - s * 7.5;
+    g += `<g opacity="${deck(w)}" style="stroke:${c};fill:${c}">
+          <line x1="${o.xa}" y1="${o.y-4}" x2="${o.xa}" y2="${o.y+4}" stroke-width="1.6"/>
+          <line x1="${o.xa}" y1="${o.y}" x2="${xe - s*3}" y2="${o.y}" stroke-width="1.6"/>
+          <path d="M${xe} ${o.y} L${xe - s*5} ${o.y-3.2} L${xe - s*5} ${o.y+3.2} Z" stroke="none"/></g>`;
+  });
+  pts.forEach((p, i)=>{
+    const o = lage[i], w = wichte[i];
+    g += `<g opacity="${deck(w)}">` + (p.pain
+      ? `<circle cx="${o.xb}" cy="${o.y}" r="5.5" fill="var(--bg)"
+          style="stroke:${farbe("var(--bad)", w)}" stroke-width="2.6"/>`
+      : `<circle cx="${o.xb}" cy="${o.y}" r="5"
+          style="fill:${farbe("var(--acc)", w)}" stroke="var(--bg)" stroke-width="2"/>`) + `</g>`;
+  });
+  zahl.forEach((z, i)=>{
+    if(!z) return;
+    g += `<text x="${z.x}" y="${z.y}" text-anchor="middle" font-size="8.5" font-weight="400"
+           opacity="${deck(wichte[i])}" fill="var(--tx3)" stroke="var(--bg)" stroke-width="1.6"
+           paint-order="stroke">${z.txt}</text>`;
   });
   return `<svg viewBox="0 0 ${W} ${H}" role="img"
     aria-label="Force Curve: Haltezeit über Last">${g}</svg>`;
@@ -7882,8 +8025,9 @@ function sprossenKarte(ex){
   </div>`;
 }
 function renderProfile(){
-  const pts = points(), f = curFit(), cov = zoneCoverage();
-  el("profSub").textContent = `${labelOf(S.exercise,S.side)} · ${pts.length} Messpunkt${pts.length===1?"":"e"}`;
+  const pts = points(), kurve = kurvenPunkte(), f = curFit(), cov = zoneCoverage();
+  el("profSub").textContent = `${labelOf(S.exercise,S.side)} · ${pts.length} Messpunkt${pts.length===1?"":"e"}${
+    pts.length > kurve.length ? ` · die letzten ${kurve.length} in der Kurve` : ""}`;
 
   const waehler = `<div class="card flat" style="margin-top:0">
       <label class="tiny" for="profCurve" style="display:block;margin-bottom:4px">Kurve</label>
@@ -7922,15 +8066,16 @@ function renderProfile(){
   const kann = erreichbareZonen(S.exercise, S.side);
   el("profBody").innerHTML = waehler + `
     <div class="card">
-      ${curveSVG(f, pts)}
+      ${curveSVG(f, kurve)}
       <p class="tiny" style="margin-top:8px">Punkte sind deine Messungen, ein offener Ring bedeutet
-      Schmerzabbruch.${f.randUnten ? "" : ` Die gestrichelte senkrechte Linie ist die Last,
+      Schmerzabbruch. Ein Pfeil führt von der Stufe zu einer Messung mit Gewicht. Ältere Punkte
+      werden blasser, die Kurve rechnet mit deinen letzten ${PUNKTE_GRENZE}.${f.randUnten ? "" : ` Die gestrichelte senkrechte Linie ist die Last,
       unterhalb derer du rechnerisch sehr lange halten könntest.`}</p>
       ${stufenLegende(pts)}
     </div>
     ${formKarte(S.exercise)}
     ${!ready ? `<div class="note warn">Die Kurve steht auf
-      ${pts.length} Punkt${pts.length===1?"":"en"} und ${kann.filter(id=>cov[id]>0).length}
+      ${kurve.length} Punkt${kurve.length===1?"":"en"} und ${kann.filter(id=>cov[id]>0).length}
       von ${anzahl(kann.length, "erreichbaren Zone", "erreichbaren Zonen")}. Sie zeigt schon eine
       Richtung, ist aber noch keine belastbare Grundlage.</div>`
       : `<div class="note">${kann.length===3 ? "Alle drei Zonen sind belegt"
@@ -7980,7 +8125,7 @@ function renderHistory(){
      Verwirrung gesorgt: Hier stehen ALLE Bloecke der Kurve, im Profil nur die,
      die den Fit tragen. Also beide nebeneinander, statt zwei Zahlen an zwei
      Orten, die sich zu widersprechen scheinen. */
-  const inKurve = points(S.exercise, S.side).length;
+  const inKurve = kurvenPunkte(S.exercise, S.side).length;
   el("histSub").textContent = `${labelOf(S.exercise,S.side)} · ${
     anzahl(mine.length, "Messung", "Messungen")} · ${inKurve} davon in der Kurve`;
   const waehler = `<div class="card flat" style="margin-top:0">
