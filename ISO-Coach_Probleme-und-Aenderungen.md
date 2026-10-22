@@ -3652,11 +3652,109 @@ auch per Klick abgewählt werden, wenn der Kunde das nicht mehr nachholen möcht
   Kurzeinheit nie direkt auf die zweite Seite. Die Sitzung trägt `kurz`. `EXPORT_SCHEMA` 7,
   letzte Spalte `kurzeinheit`.
 
+### P85 · Endgradiges Wadenheben mit Faszienrolle: Yogablock unter der Ferse, Rolle vor dem Knie
+
+Luke, 22.10.: „Endgradiges Wadenheben mit Faszienrolle --> auch hier ferse mit yogablock
+constrainen und Knievorschub mit faszienrolle, perfekt“. Gemeint ist das bisherige isometrische
+Wadenheben mit Handtuchrolle (`handtuch`): „wir benennen nur die Übung um, es ist faktisch die
+gleiche“.
+
+**Lukes Entscheidungen.**
+
+| Frage | Lukes Antwort |
+|---|---|
+| Neue Übung oder dieselbe? | „wir benennen nur die Übung um, es ist faktisch die gleiche“ |
+| Bleibt das Handtuch unter den Zehen? | „Handtuchrolle, Handtuch bleibt“ |
+| Wo wird gehalten, wie liegt der Block? | „Oben, Block flach 7,5 cm“ |
+| Was gilt am Block? | „Wie in der Brücke“: leichte Berührung korrigieren, Druck beendet den Halt |
+
+**Gebaut in 2026-10-22 a.**
+
+- **Neuer Name** „Endgradiges Wadenheben mit Faszienrolle“, überall in der App: Plan, Karte,
+  Übungsliste, Sicherheitsfrage („Bevor du das endgradige Wadenheben zum ersten Mal machst“) und
+  die Exportspalte `uebung_name`. Der Schlüssel bleibt `handtuch`.
+- **Neuer Hinweistext:** Boden statt Erhöhung, Gesicht zur Wand, Handtuch unter den Zehen wie
+  bisher, Faszienrolle waagerecht zwischen Knie und Wand, Yogablock flach (etwa 7,5 cm) unter den
+  Fersen. Gehalten wird oben. Die Knie liegen an der Rolle an, ohne dass man sich hineinlehnt. Am
+  Block gilt die Regel der Fersenbrücke, ein Bücherstapel derselben Höhe geht auch.
+- **Mit Waage** kommt unter den Block etwas in der Höhe der Waage, damit die Grenze für die Ferse
+  gleich bleibt.
+- **Bildunterschrift** zum Foto aus Rathleff u. a. 2015: Dort steht der Vorfuß auf einer Erhöhung,
+  und es sind Wiederholungen. Die App sagt beides dazu und nennt Boden, Block und Rolle.
+- **Querverweise** im isometrischen Wadenheben, im aufrechten Läufer und bei Faszienrolle und
+  Waage unter den Geräten nennen den neuen Namen.
+- **Leiter, Lasten, Gruppen und Kurve bleiben.** Beidbeinig 0,50, einbeinig 1,00, Rucksack bis
+  60 kg, mit Waage beidbeinig bis 40 kg. Oben gehalten trägt der Vorfuß dasselbe, ob er auf dem
+  Boden oder auf einer Erhöhung steht. Kein Umzug, kein Sprung der Übungsfassung, die alten Punkte
+  bleiben in der Kurve.
+- **Name und Sicherheitsfrage kommen beim Laden immer aus dem Build.** Beide lassen sich in der
+  App nicht bearbeiten. So kommt eine Umbenennung an, ohne dass die Übungsfassung springt und
+  selbst benannte Stufen verloren gehen.
+
+**Der Preis.**
+
+- **Der Abstand der Füße zur Wand fehlt.** Die Rolle legt nur fest, wie weit das Knie von der Wand
+  weg ist. Den Kniewinkel legt sie erst fest, wenn auch der Fuß an einer festen Stelle steht. Steht
+  er weit weg, erreicht das Knie die Rolle nur im Hineinlehnen. Steht er nah, drückt die Rolle das
+  Knie nach hinten. Überschlag: Zehen an der Wand und eine Rolle von etwa 15 cm Durchmesser ergeben
+  ein fast senkrechtes Schienbein. Offen (Teil 4).
+- **Die Waage hebt den Vorfuß.** Eine analoge Personenwaage ist grob 4 bis 6 cm hoch. Ohne
+  Ausgleich unter dem Block schrumpft die Grenze von 7,5 auf etwa 2 bis 3 cm. Der Ausgleich steht
+  im Text, ist aber ergänzt und nicht von Luke vorgegeben (Teil 4).
+- **Mit dem Gesicht zur Wand braucht die Entlastung eine Auflage neben dem Körper.** An der Wand
+  selbst nimmt man sich kein Gewicht ab, die Hände drücken dort waagerecht. Der Text sagt wie
+  bisher „auf einer Auflage“.
+- **Die Rolle ist kein Gerät an der Sprosse.** Wer keine angehakt hat, bekommt die Übung weiter,
+  mit einem Text, der eine Rolle verlangt. Als Gerät gesetzt fiele die Übung für alle ohne Rolle
+  ganz weg, weil beide Sprossen sie bräuchten.
+- **Wie hoch die Ferse oben steht, ist geschätzt.** Ferse bis Großzehengrundgelenk etwa 19 cm, der
+  flache Block entspricht dann etwa 23° Fußneigung. Oben steht die Ferse vermutlich 10 bis 13 cm
+  hoch, bis zum Block bleiben also etwa 3 bis 5 cm. Nicht gemessen.
+- **Die Grenze am Block ist neu.** Bisher sagte der Text nicht, wann der Halt endet. Ob der Block
+  Halte früher oder später beendet als bisher, zeigt erst die Messung. Ein Knick in der Kurve nach
+  dem Umstieg ist möglich. Die alten Punkte bleiben, wie sie sind.
+- **Der Export zeigt den neuen Namen auch für alte Sitzungen.** `uebung_name` ist der Anzeigename
+  zum Exportzeitpunkt, `uebung` bleibt `handtuch`.
+
+**Für den Nachbau:**
+
+- Schlüssel `handtuch`, `EX_VERSION` bleibt 31. In `normalize` werden nach dem Zusammenführen
+  `name` und `warnung` jeder Übung aus `DEFAULT_EX` übernommen.
+- Die Ausführung steht nur im Hinweistext, in der Bildunterschrift und bei `GERAETE` (`rolle`,
+  `waage`). Kein neues Feld, keine Sprosse mit `geraet`.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-22 a — Endgradiges Wadenheben mit Faszienrolle
+
+**Befund (Luke).** Getestet: Auch beim Wadenheben mit Handtuchrolle begrenzt ein Yogablock die
+Ferse und eine Faszienrolle den Weg des Knies nach vorn. Die Übung bleibt dieselbe und heißt jetzt
+anders (P85).
+
+**Gebaut.**
+
+- **Name** „Endgradiges Wadenheben mit Faszienrolle“, Sicherheitsfrage mit neuem Titel.
+- **Hinweistext:** Boden, Gesicht zur Wand, Handtuch bleibt, Rolle zwischen Knie und Wand,
+  Yogablock flach unter den Fersen mit der Regel der Fersenbrücke. Mit Waage steht der Block um
+  ihre Höhe höher.
+- **Bildunterschrift, Querverweise und Geräte** mit dem neuen Namen.
+- **Name und Sicherheitsfrage kommen beim Laden aus dem Build.** Übungsfassung bleibt 31, Lasten
+  und Kurve bleiben.
+
+**Geprüft.**
+
+- Bei 375 × 812: Die Übungsliste zeigt den neuen Namen und den neuen Text. Die Sicherheitsfrage
+  trägt „Bevor du das endgradige Wadenheben zum ersten Mal machst“. Die Bildunterschrift nennt
+  Boden, Block und Rolle. Kein „mit Handtuchrolle“ mehr auf der Seite, keine waagerechte
+  Scrollleiste, keine Konsolenfehler.
+- Gespeicherter Stand mit altem Namen, altem Titel der Sicherheitsfrage und einer selbst
+  benannten Stufe: Nach dem Neuladen stehen Name und Titel neu da, die selbst benannte Stufe
+  bleibt.
+- Testdaten danach gelöscht.
 
 ### 2026-10-18 a — Kurzeinheit (20 Min), Nachholblock zum Abwählen
 
@@ -6747,6 +6845,12 @@ als Teil des Ansatz-Pfads? Das ist eine Produktentscheidung, keine technische.
     wieder sein Stand in der normalen Leiter, der Pfad behält seinen eigenen. Offen ist zweierlei.
     Soll die App das Abnehmen vorschlagen, etwa nach einer Zahl schmerzfreier Einheiten einbeinig?
     Und auf welcher Sprosse der normalen Leiter soll das Bein dann landen?
+
+38. **Endgradiges Wadenheben: Wo stehen Fuß, Block und Hände? (P85)** Der Text nennt keinen
+    Abstand der Füße zur Wand, ohne den die Rolle den Kniewinkel nicht festlegt. Mit Waage steht
+    der Block um ihre Höhe höher, das ist ergänzt, nicht vorgegeben. Mit dem Gesicht zur Wand
+    braucht die Entlastung eine waagerechte Auflage neben dem Körper. Offen ist auch, ob die
+    Faszienrolle Pflicht wird. Dann fiele die Übung für alle ohne Rolle weg.
 
 ---
 

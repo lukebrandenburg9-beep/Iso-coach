@@ -170,9 +170,9 @@ aus — Arbeitsplatte, Tisch, Stuhl, Hocker, Stepper, Kiste, Kissen. Gerät brau
 | Gerät | wofür | voreingestellt |
 |---|---|---|
 | Etwas zum Daranziehen | Schrägzug, **die ganze Übung** | an — eine stabile Tischkante zählt mit |
-| Faszienrolle | Fersenbrücke, die zwei obersten Stufen beidbeinig und einbeinig (Knie 90° und 135°), dazu der ganze Pfad fürs innere Knie | aus |
+| Faszienrolle | Fersenbrücke, die zwei obersten Stufen beidbeinig und einbeinig (Knie 90° und 135°), dazu der ganze Pfad fürs innere Knie. Beim endgradigen Wadenheben liegt sie zwischen Knie und Wand, ohne Haken bleibt die Übung trotzdem im Plan | aus |
 | Kettlebell oder Kurzhantel | Aufrechter Läufer, Zusatzgewicht | aus |
-| Personenwaage mit Zeiger (analog) | Isometrisches Wadenheben, einbeinig mit Entlastung | aus |
+| Personenwaage mit Zeiger (analog) | Isometrisches und endgradiges Wadenheben, einbeinig mit Entlastung | aus |
 
 Stufen, die ein fehlendes Gerät brauchen, erscheinen nicht in der Auswahl — aber die
 **Nummerierung bleibt stehen**. Sonst verschöbe sich die gespeicherte Stufe deiner alten
