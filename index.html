@@ -405,12 +405,18 @@ code{background:var(--panel2);padding:1.5px 5px;border-radius:5px;font-size:12.5
    hyperthrophie/kraft rot = maximalkraft". Vorher hiessen sie „Kraft /
    Maximalkraft", „Hypertrophie / Sehnenkonditionierung" und „Kapazität".
    Sichtbar steht nur noch der Name; die Buchstaben bleiben Schluessel im Code,
-   in den Sitzungen und im Export. Die Farben stehen als --zoneA/B/C oben. */
+   in den Sitzungen und im Export. Die Farben stehen als --zoneA/B/C oben.
+   Grenzen seit 22.10.2026 nach Luke: „erweitere den hypertrophiebereich auf
+   60-120sekunden, ausdauer dann nur 120-180sekunden". Vorher B 60–90 s,
+   C 90–150 s. Was an der Zonenmitte oder der C-Obergrenze haengt, liest sie
+   hier ab (zoneMitte, Regel 4, MESS_MAX, ONB_ORDER, FORM_LANG_ZEIT). */
 const ZONES = [
-  {id:"A", name:"Maximalkraft",         lo:20, hi:60,  cls:"pA"},
-  {id:"B", name:"Hypertrophie / Kraft", lo:60, hi:90,  cls:"pB"},
-  {id:"C", name:"Kraftausdauer",        lo:90, hi:150, cls:"pC"}
+  {id:"A", name:"Maximalkraft",         lo:20,  hi:60,  cls:"pA"},
+  {id:"B", name:"Hypertrophie / Kraft", lo:60,  hi:120, cls:"pB"},
+  {id:"C", name:"Kraftausdauer",        lo:120, hi:180, cls:"pC"}
 ];
+const zoneMitte = id => { const z = ZONES.find(x => x.id === id);
+                          return z ? Math.round((z.lo + z.hi) / 2) : 0; };
 function zName(id){
   const z = ZONES.find(x => x.id === id);
   return z ? z.name : String(id || "");
@@ -477,15 +483,17 @@ const PUNKTE_GRENZE = 30;
    braeuchte es ein Feld am Satzende (Muskel / Form / Gleichgewicht /
    abgebrochen), und das gibt es noch nicht.
 
-   Die Grenzen: oben das Doppelte der Zone-C-Obergrenze (150 s), unten
-   genau die Untergrenze von Zone A. Zwischen 150 und 300 s zaehlt ein
+   Die Grenzen: oben das Doppelte der Zone-C-Obergrenze (180 s), unten
+   genau die Untergrenze von Zone A. Zwischen 180 und 360 s zaehlt ein
    Wert weiter — die Randzonen sind offen —, darueber nicht mehr.
+   Bis 22.10.2026 lag Zone C bei 90–150 s und die Grenze damit bei 300 s.
+   Seither steht sie als Rechnung da, damit sie der Zone folgt.
 
    Verworfen heisst NICHT folgenlos: applyRules stuft daraufhin hoch bzw.
    zurueck (Regel 2a). Ohne das bekaeme man beim naechsten Mal dieselbe
    Stufe und dieselbe unbrauchbare Messung. */
-const MESS_MIN = 20;
-const MESS_MAX = 300;
+const MESS_MIN = ZONES[0].lo;
+const MESS_MAX = 2 * ZONES[2].hi;
 const messbar = t => t >= MESS_MIN && t <= MESS_MAX;
 /* Der Hinweis auf die fehlende Zwischensprosse kommt beim ERSTEN unbrauchbaren
    Durchgang, nicht nach einer Serie. Lukes Vorgabe vom 18.09.2026: "nichts ist
@@ -628,7 +636,7 @@ const DEFAULT_EX = {
        körper". extraK bleibt 1: Haengende Gewichte sitzen so nah am
        Koerperschwerpunkt wie der Rucksack. Weitere Haltungen
        (gegenueberliegende Hand, Rack) kommen spaeter, mit eigener Wahl. */
-    extraAb:5, extraK:1,
+    extraAb:3, extraK:1,
     extraHint:"Kurzhanteln oder Kettlebells, seitlich neben dem Körper gehalten.",
     hint:"»Links« heißt: der LINKE Fuß steht vorne. "
         +"Zwei Stellungen in einer Leiter — die Sprosse sagt, welche. STEHEND AN DER WAND: "
@@ -668,11 +676,17 @@ const DEFAULT_EX = {
        Fuss, unter dem Knie liegt keine Stufe. Auf ihr lag nie ein Satz. Die
        Luecke 0,90 -> 1,25 schliesst das Gewicht auf "Knie knapp über den
        Boden", so trainiert Luke sie ohnehin (29.09. +10 kg = 1,01; 07.10.
-       +35 kg = 1,29). Siehe LUNGE_OHNE9_AT. */
+       +35 kg = 1,29). Siehe LUNGE_OHNE9_AT.
+
+       22.10.2026 (Fassung 32): "Stehend an der Wand · hinterer Fuss 1,5
+       Fusslaengen" (0,36) und "2,5 Fusslaengen" (0,46) sind raus. Luke:
+       "streiche mal beim ausfallschritt die sprossen 1,5 fußlängen und 2,5
+       fußlängen das ist zu umständlich". Im Stand bleiben 2 und 3
+       Fusslaengen (64° und 82°), alle Lasten unveraendert. Sieben Sprossen,
+       Gewicht weiter ab "Knie bis Stepper, 2 Stufen" (extraAb 3). Siehe
+       LUNGE_GANZ_AT. */
     levels:[
-      {name:"Stehend an der Wand · hinterer Fuß 1,5 Fußlängen",  load:0.36, ort:"wand"},
       {name:"Stehend an der Wand · 2 Fußlängen",                 load:0.41, ort:"wand"},
-      {name:"Stehend an der Wand · 2,5 Fußlängen",               load:0.46, ort:"wand"},
       {name:"Stehend an der Wand · 3 Fußlängen",                 load:0.52, ort:"wand"},
       {name:"Kniestand · Knie bis Stepper, 3 Stufen (20 cm)",    load:0.55},
       {name:"Kniestand · Knie bis Stepper, 2 Stufen (15 cm)",    load:0.63},
@@ -711,14 +725,37 @@ const DEFAULT_EX = {
        gerechnet, und der Export nennt ihn, damit sie nachrechenbar bleiben. */
     ohneGewicht:true, extraK:2,
     hint:"»Links« heißt: du stützt auf dem LINKEN Unterarm, die linke Rumpfseite arbeitet. "
-        +"Ellenbogen senkrecht unter der Schulter, Hüfte nach oben gedrückt. Der Körper ist "
-        +"eine gerade Linie — auch von vorne gesehen: die obere Hüfte darf nicht nach hinten "
-        +"kippen. Oberer Arm liegt an der Hüfte, Kopf in Verlängerung. Zwischen zwei Stufen "
-        +"stellst du am feinsten über die Höhe der Auflage nach.",
+        +"AN DER WAND: seitlich zur Wand stehen, Füße geschlossen, der wandnahe Fuß im "
+        +"angegebenen Abstand — in eigenen Fußlängen von der Wand weg abgezählt, Ferse an "
+        +"Zehen. Unterarm flach an die Wand, Ellenbogen auf Schulterhöhe. AUF DER AUFLAGE "
+        +"ODER AM BODEN: Ellenbogen senkrecht unter der Schulter, Hüfte nach oben gedrückt. "
+        +"Beides Mal ist der Körper eine gerade Linie — auch von vorne gesehen: die obere "
+        +"Hüfte darf nicht nach hinten kippen. Oberer Arm liegt an der Hüfte, Kopf in "
+        +"Verlängerung. Zwischen zwei Stufen stellst du am feinsten nach: an der Wand über "
+        +"den Fußabstand, sonst über die Höhe der Auflage.",
+    /* 22.10.2026 (Fassung 33): Die drei Sprossen "Knie abgelegt · Unterarm auf
+       Arbeitsplatte / Tischplatte / Stuhlsitz" sind raus. Luke: "im kurzen
+       unterarmstütz komme ich nicht auf die arbeitsplatte oder den tisch,
+       auch nicht auf den stuhl". Im Kniestand liegt die Schulter zu tief fuer
+       jede erhoehte Auflage. Dafuer zwei Sprossen an der Wand, stehend auf
+       den Fuessen, Luke: "beginnen bei 2 füßen stufe eins und abstand 3 füße
+       stufe 2". Geschlossene Fuesse und "der wandnahe Fuss" im Hinweistext
+       sind meine Ergaenzung: Bei 2 Fusslaengen verschieben 5 cm die Last um
+       ein Viertel.
+       HERKUNFT 0,13 und 0,31: GERECHNET mit demselben Lastgesetz wie oben,
+       Last = k * cos(Neigung). Oberarm waagerecht, Ellenbogen auf
+       Schulterhoehe, Anteile nach Winter (Fuss 0,152 H, Oberarm 0,186 H,
+       Schulter 0,818 H) — dadurch fuer jede Koerpergroesse gleich. Neigung
+       81,7 und 70,7 Grad ueber der Waagerechten. k = 0,923, sodass der
+       Standard bei seinen 12,8 Grad 0,90 traegt. VORLAEUFIG, bis Luke im
+       Trainingsraum misst.
+       Die Sprossen mit gestreckten Beinen und erhoehter Auflage (0,70 / 0,77)
+       bleiben unveraendert. Mit dem Oberarm gerechnet wie an der Wand kaemen
+       dort 0,60 und 0,68 heraus (H = 1,80 m) — offen, Papier Teil 4.
+       Umzug alter Staende und Saetze: PLANK_WAND_AT. */
     levels:[
-      {name:"Knie abgelegt · Unterarm auf Arbeitsplatte (~90 cm)",   load:0.20},
-      {name:"Knie abgelegt · Unterarm auf Tischplatte (~75 cm)",     load:0.36},
-      {name:"Knie abgelegt · Unterarm auf Stuhlsitz (~45 cm)",       load:0.50},
+      {name:"Stehend an der Wand · Füße 2 Fußlängen weg",           load:0.13, ort:"wand"},
+      {name:"Stehend an der Wand · Füße 3 Fußlängen weg",           load:0.31, ort:"wand"},
       {name:"Knie abgelegt · Unterarm am Boden (kurzer Hebel)",      load:0.57, ort:"boden"},
       {name:"Beine gestreckt · Unterarm auf Arbeitsplatte (~90 cm)", load:0.70},
       {name:"Beine gestreckt · Unterarm auf Tischplatte (~75 cm)",   load:0.77},
@@ -1649,7 +1686,7 @@ const GERAETE = [
   {id:"waage", name:"Personenwaage mit Zeiger (analog)", was:"Eine Waage, die du unter den "
    +"Vorfuß legen kannst. Sie ist hier kein Zubehör, sondern das Messgerät: die Zahl auf der "
    +"Anzeige IST die Stufe. Sie muss analog sein — eine Digitalwaage schaltet bei stehender "
-   +"Last nach Sekunden ab oder friert die Anzeige ein, und ein Halt dauert 35 bis 120 s.",
+   +"Last nach Sekunden ab oder friert die Anzeige ein, und ein Halt dauert 35 bis 150 s.",
    fuer:"Isometrisches Wadenheben: einbeinig mit Entlastung, sobald beidbeinig mehr als "
        +"30 kg Rucksack bräuchte. Beim endgradigen Wadenheben dasselbe ab 40 kg."}
 ];
@@ -1671,7 +1708,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-22 d";
+const BUILD = "2026-10-22 g";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -1705,7 +1742,11 @@ const AW_V = 1;
 /* 31 (16.10.2026, Build f): Pfad fuers innere Knie nur mit der
    Ferse auf der Rolle, ohne Fussstellung — zwei Sprossen statt zwoelf.
    Siehe BRIDGE_KNIE_AT. */
-const EX_VERSION = 31;
+/* 32 (22.10.2026, Build e): Ausfallschritt ohne die halben Fusslaengen
+   1,5 und 2,5, sieben Sprossen statt neun. Siehe LUNGE_GANZ_AT. */
+/* 33 (22.10.2026, Build g): Seitstuetz ohne die drei Knie-Sprossen auf
+   Moebeln, zwei Wand-Sprossen davor. Siehe PLANK_WAND_AT. */
+const EX_VERSION = 33;
 /* Der Sprung auf 26 setzt die Pausen je Zone NICHT mehr zurueck: Sie sind
    Lukes Einstellung, keine mitgelieferte Uebungsdefinition. Zurueckgesetzt
    wird nur, wer von vor 25 kommt — so wie bisher bei jedem Sprung. */
@@ -2517,6 +2558,121 @@ function bridgeKnieLauf(lauf){
     plan: Object.assign({}, lauf.plan, {blocks: (lauf.plan.blocks || []).map(b => bridgeKnieObjekt(b, true))}),
     fertig: (lauf.fertig || []).map(o => bridgeKnieObjekt(o))});
 }
+/* ── Fassung 32 (22.10.2026): Ausfallschritt ohne halbe Fusslaengen ──────
+   Alt (0-8): 0 Wand 1,5 FL (0,36) · 1 Wand 2 FL (0,41) · 2 Wand 2,5 FL
+        (0,46) · 3 Wand 3 FL · 4-6 Kniestand Stepper 20/15/10 cm · 7 Knie
+        knapp ueber den Boden · 8 hinterer Fuss auf dem Stepper
+   Neu (0-6): 0 Wand 2 FL · 1 Wand 3 FL · 2-4 Kniestand Stepper · 5 Knie
+        knapp ueber den Boden · 6 hinterer Fuss auf dem Stepper
+   Ein Stand auf einer gestrichenen Sprosse zieht auf die Sprosse, deren Last
+   der alten am naechsten liegt, wie beim Liegestuetz (PUSH_NEU_AT): 0,36 und
+   0,46 beide auf 0,41. Saetze dort tragen die Marke entfalleneSprosse und
+   bleiben mit ihrer Last in der Kurve — Messpunkte verwirft nur Luke. Die
+   uebrigen ziehen nur mit der Nummer um. Ein offener Block zieht nur mit der
+   Nummer um, wie bei pushObjekt. Die Vorwahl von heute (vorwahlMerken)
+   traegt Sprossennummern und zieht mit.
+   In normalize laeuft der Umzug NACH LUNGE_OHNE9_AT (in den Ketten aussen):
+   Ein Stand von vor Fassung 30 kommt erst dort auf die neun Sprossen. */
+const LUNGE_GANZ_AT        = 32;
+const LUNGE_GANZ_UMZUG     = {0:0, 1:0, 2:0, 3:1, 4:2, 5:3, 6:4, 7:5, 8:6};
+const LUNGE_GANZ_ALT_LAST  = {0:0.36, 1:0.41, 2:0.46, 3:0.52, 4:0.55, 5:0.63, 6:0.72,
+                              7:0.90, 8:1.25};
+const LUNGE_GANZ_ENTFALLEN = new Set([0, 2]);
+function lungeGanzUmziehen(lv){
+  const L = Object.assign({}, lv || {});
+  for(const k of Object.keys(L))
+    if(lungeKey(k) && LUNGE_GANZ_UMZUG[L[k]] != null) L[k] = LUNGE_GANZ_UMZUG[L[k]];
+  return L;
+}
+function lungeGanzObjekt(o, offen){
+  if(!o || o.exercise !== "lunge" || LUNGE_GANZ_UMZUG[o.level] == null) return o;
+  const um = v => (LUNGE_GANZ_UMZUG[v] != null ? LUNGE_GANZ_UMZUG[v] : v);
+  const neu = {level: um(o.level)};
+  if(o.levelVorschlag != null) neu.levelVorschlag = um(o.levelVorschlag);
+  if(o.rohStufe != null) neu.rohStufe = um(o.rohStufe);
+  if(o.anker && o.anker.level != null) neu.anker = Object.assign({}, o.anker, {level: um(o.anker.level)});
+  if(offen) return Object.assign({}, o, neu);
+  if(!(o.load > 0)) neu.load = LUNGE_GANZ_ALT_LAST[o.level];
+  if(LUNGE_GANZ_ENTFALLEN.has(o.level)) neu.entfalleneSprosse = true;
+  return Object.assign({}, o, neu);
+}
+function lungeGanzLauf(lauf){
+  if(!lauf || !lauf.plan) return lauf;
+  return Object.assign({}, lauf, {
+    plan: Object.assign({}, lauf.plan, {blocks: (lauf.plan.blocks || []).map(b => lungeGanzObjekt(b, true))}),
+    fertig: (lauf.fertig || []).map(o => lungeGanzObjekt(o))});
+}
+function lungeGanzVorwahl(vw){
+  if(!vw || !vw.je) return vw;
+  const je = {};
+  for(const k of Object.keys(vw.je)){
+    const v = vw.je[k];
+    if(!lungeKey(k) || !v){ je[k] = v; continue; }
+    const n = Object.assign({}, v);
+    if(LUNGE_GANZ_UMZUG[v.level] != null) n.level = LUNGE_GANZ_UMZUG[v.level];
+    if(v.kg && LUNGE_GANZ_UMZUG[v.kg.level] != null)
+      n.kg = Object.assign({}, v.kg, {level: LUNGE_GANZ_UMZUG[v.kg.level]});
+    je[k] = n;
+  }
+  return Object.assign({}, vw, {je});
+}
+/* ── Fassung 33 (22.10.2026): Seitstuetz an der Wand statt Knie auf Moebeln ─
+   Alt (0-6): 0 Knie Arbeitsplatte (0,20) · 1 Knie Tisch (0,36) · 2 Knie
+        Stuhlsitz (0,50) · 3 Knie Boden · 4 gestreckt Arbeitsplatte ·
+        5 gestreckt Tisch · 6 gestreckt Boden
+   Neu (0-5): 0 Wand 2 Fusslaengen (0,13) · 1 Wand 3 Fusslaengen (0,31) ·
+        2 Knie Boden · 3 gestreckt Arbeitsplatte · 4 gestreckt Tisch ·
+        5 gestreckt Boden
+   Ein Stand auf einer gestrichenen Sprosse zieht auf die Sprosse, deren Last
+   der alten am naechsten liegt, wie beim Liegestuetz (PUSH_NEU_AT): 0,20 auf
+   0,13, 0,36 auf 0,31, 0,50 auf 0,57. Saetze dort tragen die Marke
+   entfalleneSprosse und bleiben mit ihrer Last in der Kurve — Messpunkte
+   verwirft nur Luke. Die oberen vier ziehen nur mit der Nummer um. Ein
+   offener Block zieht nur mit der Nummer um, wie bei pushObjekt. Die
+   Vorwahl von heute (vorwahlMerken) traegt Sprossennummern und zieht mit. */
+const PLANK_WAND_AT        = 33;
+const PLANK_WAND_UMZUG     = {0:0, 1:1, 2:2, 3:2, 4:3, 5:4, 6:5};
+const PLANK_WAND_ALT_LAST  = {0:0.20, 1:0.36, 2:0.50, 3:0.57, 4:0.70, 5:0.77, 6:0.90};
+const PLANK_WAND_ENTFALLEN = new Set([0, 1, 2]);
+const plankKey = k => (k === "plank" || String(k).indexOf("plank|") === 0);
+function plankWandUmziehen(lv){
+  const L = Object.assign({}, lv || {});
+  for(const k of Object.keys(L))
+    if(plankKey(k) && PLANK_WAND_UMZUG[L[k]] != null) L[k] = PLANK_WAND_UMZUG[L[k]];
+  return L;
+}
+function plankWandObjekt(o, offen){
+  if(!o || o.exercise !== "plank" || PLANK_WAND_UMZUG[o.level] == null) return o;
+  const um = v => (PLANK_WAND_UMZUG[v] != null ? PLANK_WAND_UMZUG[v] : v);
+  const neu = {level: um(o.level)};
+  if(o.levelVorschlag != null) neu.levelVorschlag = um(o.levelVorschlag);
+  if(o.rohStufe != null) neu.rohStufe = um(o.rohStufe);
+  if(o.anker && o.anker.level != null) neu.anker = Object.assign({}, o.anker, {level: um(o.anker.level)});
+  if(offen) return Object.assign({}, o, neu);
+  if(!(o.load > 0)) neu.load = PLANK_WAND_ALT_LAST[o.level];
+  if(PLANK_WAND_ENTFALLEN.has(o.level)) neu.entfalleneSprosse = true;
+  return Object.assign({}, o, neu);
+}
+function plankWandLauf(lauf){
+  if(!lauf || !lauf.plan) return lauf;
+  return Object.assign({}, lauf, {
+    plan: Object.assign({}, lauf.plan, {blocks: (lauf.plan.blocks || []).map(b => plankWandObjekt(b, true))}),
+    fertig: (lauf.fertig || []).map(o => plankWandObjekt(o))});
+}
+function plankWandVorwahl(vw){
+  if(!vw || !vw.je) return vw;
+  const je = {};
+  for(const k of Object.keys(vw.je)){
+    const v = vw.je[k];
+    if(!plankKey(k) || !v){ je[k] = v; continue; }
+    const n = Object.assign({}, v);
+    if(PLANK_WAND_UMZUG[v.level] != null) n.level = PLANK_WAND_UMZUG[v.level];
+    if(v.kg && PLANK_WAND_UMZUG[v.kg.level] != null)
+      n.kg = Object.assign({}, v.kg, {level: PLANK_WAND_UMZUG[v.kg.level]});
+    je[k] = n;
+  }
+  return Object.assign({}, vw, {je});
+}
 /* Training ohne Geraete (Build 2026-10-01 b). Steht vor load(), weil
    normalize() den gespeicherten Modus damit prueft. Seit 2026-10-01 c heisst
    der Schalter "Volles Equipment" / "Nur Koerpergewicht", die Wand ist ein
@@ -2620,6 +2776,15 @@ function normalize(d){
   const bridgeWinkel  = !leitersturz && (d.exVersion || 1) < BRIDGE_WINKEL_AT;
   const lungeOhne9    = !leitersturz && (d.exVersion || 1) < LUNGE_OHNE9_AT;
   const knieFerse     = !leitersturz && (d.exVersion || 1) < BRIDGE_KNIE_AT;
+  const lungeGanz     = !leitersturz && (d.exVersion || 1) < LUNGE_GANZ_AT;
+  const plankWand     = !leitersturz && (d.exVersion || 1) < PLANK_WAND_AT;
+  /* Seitstuetz an der Wand: Die Vorwahl zieht nur hier um, Sitzungen und
+     Lauf in den Ketten unten (innerste Zeile, der Umzug fasst nur plank an). */
+  if(plankWand && d.vorwahl) d = Object.assign({}, d, {vorwahl: plankWandVorwahl(d.vorwahl)});
+  /* Die Vorwahl gibt es erst seit Fassung 31, sie zieht also nur hier um.
+     Sitzungen und Lauf des Ausfallschritts dagegen in den Ketten unten,
+     nach LUNGE_OHNE9_AT. */
+  if(lungeGanz && d.vorwahl) d = Object.assign({}, d, {vorwahl: lungeGanzVorwahl(d.vorwahl)});
   const ex = stale ? structuredClone(DEFAULT_EX)
                    : Object.assign(structuredClone(DEFAULT_EX), d.ex || {});
   /* Name und Sicherheitsfrage kommen immer aus dem Build: Beide lassen sich
@@ -2664,6 +2829,8 @@ function normalize(d){
   if(pushUmzug) roh.levels = pushUmziehen(roh.levels);
   if(lungeOhne9) roh.levels = lungeOhne9Umziehen(roh.levels);
   if(knieFerse) roh.levels = bridgeKnieUmziehen(roh.levels);
+  if(lungeGanz) roh.levels = lungeGanzUmziehen(roh.levels);
+  if(plankWand) roh.levels = plankWandUmziehen(roh.levels);
   const umzug  = beidUmzug(ex, roh.levels, roh.extra,
                            leitersturz ? {} : (d.streak || {}));
   /* Nach beidUmzug: Erst dann stehen alle Wadenschluessel je Seite. */
@@ -2727,7 +2894,8 @@ function normalize(d){
                                        einen Wand-Sitzung richtigstellen
                                        (LUNGE_WAND_MESS_AT) — sie laeuft auf
                                        der schon umgezogenen Nummer. */
-                                    sessions: (ses => knieFerse ? ses.map(o => bridgeKnieObjekt(o)) : ses)(
+                                    sessions: (ses => lungeGanz ? ses.map(o => lungeGanzObjekt(o)) : ses)(
+                                              (ses => knieFerse ? ses.map(o => bridgeKnieObjekt(o)) : ses)(
                                               (ses => lungeOhne9 ? ses.map(o => lungeOhne9Objekt(o)) : ses)(
                                               (ses => bridgeWinkel ? ses.map(bridgeWinkelObjekt) : ses)(
                                               (ses => pushUmzug ? pushSessions(ses) : ses)(
@@ -2737,8 +2905,9 @@ function normalize(d){
                                               (ses => wadeUmzug ? ses.map(o => wadeObjekt(o, bwAlt)) : ses)(
                                               (ses => lungeMess ? lungeWandMessung(ses) : ses)(
                                                 (ses => lungeUmzug ? lungeSessions(ses) : ses)(
+                                                  (ses => plankWand ? ses.map(o => plankWandObjekt(o)) : ses)(
                                                   rowSkala ? rowSkalaVerwerfen(d.sessions)
-                                                           : (d.sessions || []))))))))))),
+                                                           : (d.sessions || []))))))))))))),
                                     sync: d.sync || {},
                                     /* Zugpunkt ist voreingestellt an — eine stabile
                                        Tischkante reicht und hat praktisch jeder. Rolle und
@@ -2759,7 +2928,8 @@ function normalize(d){
                                     gefragt: d.gefragt || {},
                                     /* Ein angefangener Lauf ueberlebt das Neuladen. */
                                     lauf: (d.lauf && d.lauf.plan)
-                                          ? (l => knieFerse ? bridgeKnieLauf(l) : l)(
+                                          ? (l => lungeGanz ? lungeGanzLauf(l) : l)(
+                                            (l => knieFerse ? bridgeKnieLauf(l) : l)(
                                             (l => lungeOhne9 ? lungeOhne9Lauf(l) : l)(
                                             (l => bridgeWinkel ? bridgeWinkelLauf(l) : l)(
                                             (l => pushUmzug ? pushLauf(l) : l)(
@@ -2769,7 +2939,8 @@ function normalize(d){
                                             (l => handtuchUmzug ? handtuchLauf(l, bwAlt) : l)(
                                             (l => waageUmzug ? wadeWaageLauf(l, bwAlt, ex.wade) : l)(
                                               (l => rucksackUmzug ? wadeRucksackLauf(l, waageLo) : l)(
-                                              wadeUmzug ? wadeLauf(d.lauf, bwAlt) : d.lauf))))))))))
+                                              (l => plankWand ? plankWandLauf(l) : l)(
+                                              wadeUmzug ? wadeLauf(d.lauf, bwAlt) : d.lauf))))))))))))
                                           : null,
                                     lage: knie ? knie.lage : (d.lage || {}),
                                     haltung: (d.haltung && typeof d.haltung === "object")
@@ -3763,7 +3934,7 @@ function zoneCoverage(ex, side){
    Nutzer; die App sperrt nach dem Trend nichts. */
 const FORM_KURZ      = 3;   // Trainingstage im kurzen Fenster
 const FORM_LANG_TAGE = 30;  // Fenster der Kraftlinie und Wartezeit bis zur Empfehlung
-const FORM_LANG_ZEIT = 75;  // Sekunden: die Mitte von Zone B
+const FORM_LANG_ZEIT = zoneMitte("B");  // Sekunden: die Mitte von Zone B, bis 22.10.2026 75 s, seither 90 s
 /* Meine Setzungen vom 25.09.2026, nicht Lukes — aenderbar. Unter FORM_TAL ist
    Tal; heraus fuehrt erst FORM_AUFBAU, damit ein einzelner guter Tag nicht
    zwischen "entlasten" und "weiter" hin- und herschaltet. */
@@ -4023,13 +4194,17 @@ function leiterSpanne(ex){
   return 1;
 }
 /* Die 1,25 ist keine Konvention: Bei 8 % Messfehler auf eine Haltezeit reisst
-   ein Zwei-Punkt-Fit darunter das CP um mehr als zehn Prozent mit. Die 1,9 ist
-   das Verhaeltnis, das von Zone C (120 s) bis Zone A (35 s) noetig ist. */
+   ein Zwei-Punkt-Fit darunter das CP um mehr als zehn Prozent mit. Die 2,1 ist
+   das Verhaeltnis, das von Zone C (150 s) bis Zone A (35 s) noetig ist: nach
+   Frey Law & Avin 2,03 (scratchpad/wade.mjs), aufgerundet wie vorher 1,82 auf
+   1,9. Bis 22.10.2026 lag die Mitte von Zone C bei 120 s und der Wert bei 1,9.
+   Er entscheidet nur das Etikett "teil" oder "kurve" (Export, Plan), kein
+   Verhalten. */
 /* Was jemand zu Hause realistisch traegt — nicht die 60 kg, die das
    Eingabefeld zulaesst. Nur fuer die Frage, welche Zonen erreichbar sind. */
 const ZUSATZ_REAL = 20;
 const SPANNE_ZONE = 1.25;
-const SPANNE_VOLL = 1.9;
+const SPANNE_VOLL = 2.1;
 function leiterArt(ex){
   const s = leiterSpanne(ex);
   return s < SPANNE_ZONE ? "punkt" : s < SPANNE_VOLL ? "teil" : "kurve";
@@ -4557,8 +4732,10 @@ function gate(){
    Zone liefern, aus denen sich keine Kurve fitten laesst.
    Gezaehlt werden aber nicht Messungen, sondern ZONEN: was einer Kurve fehlt,
    ist nie "noch zwei Punkte", sondern immer eine bestimmte leere Zone (P5 —
-   Spreizung schlaegt Anzahl). Reihenfolge C -> B -> A: von leicht nach schwer. */
-const ONB_ORDER = [{z:"C", t:120}, {z:"B", t:75}, {z:"A", t:35}];
+   Spreizung schlaegt Anzahl). Reihenfolge C -> B -> A: von leicht nach schwer.
+   C und B zielen auf die Zonenmitte (seit 22.10.2026 also 150 und 90 s statt
+   120 und 75 s), A bleibt bei 35 s. */
+const ONB_ORDER = [{z:"C", t:zoneMitte("C")}, {z:"B", t:zoneMitte("B")}, {z:"A", t:35}];
 function fehlendeZonen(ex, side){
   const cov = zoneCoverage(ex, side);
   const kann = erreichbareZonen(ex, side);
@@ -5804,14 +5981,15 @@ function applyRules(session, etikett){
     /* WIE WEIT danebengelegen wurde, laesst sich beziffern — mit genau der Formel,
        mit der die App den Einstieg ohne Kurve rechnet (siehe ankerpunkt):
            Zielllast / Istlast = ANNAHME_CP + (1 - ANNAHME_CP) * gehalten / Ziel
-       Fuer 300 s gegen Zone C (120 s) ergibt das Faktor 1,75, gegen Zone B 2,5,
-       gegen Zone A 4,8. Tor 2 verlangt von einer Leiter nur 1,25 je Sprosse —
+       Fuer 360 s gegen Zone C (150 s) ergibt das Faktor 1,7, gegen Zone B (90 s)
+       2,5, gegen Zone A (35 s) 5,6. Bis 22.10.2026 (300 s, C 120 s, B 75 s) waren
+       es 1,75, 2,5 und 4,8. Tor 2 verlangt von einer Leiter nur 1,25 je Sprosse —
        EINE Sprosse ist also rechnerisch zu wenig, man kaeme mit hoher
        Wahrscheinlichkeit wieder ausserhalb des Fensters heraus. Deshalb wird so
        weit gestuft, bis die Zielllast erreicht ist, hoechstens aber MAX_SPRUNG
        Schritte weit — derselbe Deckel wie beim Einstieg.
 
-       Die Richtung ist in beiden Faellen die sichere: Ueber 300 s ist die Zeit nur
+       Die Richtung ist in beiden Faellen die sichere: Ueber MESS_MAX ist die Zeit nur
        eine UNTERE Schranke (laenger ging vielleicht auch), der Sprung faellt damit
        eher zu klein aus als zu gross. Unter 20 s ist die Zeit dagegen echt — dort
        ist nur das Modell im Kurzzeitbereich unsicher, und Erleichtern ist die
@@ -5975,19 +6153,21 @@ function applyRules(session, etikett){
 
   /* Regel 4 — schwerer, wenn die Stufe die Obergrenze von Zone C erreicht.
      Am oberen Leiterende geht es ueber das Zusatzgewicht weiter; vorher war
-     dort schlicht Schluss und die Uebung wuchs nie wieder mit. */
+     dort schlicht Schluss und die Uebung wuchs nie wieder mit.
+     Die Grenze liest sie aus ZONES, bis 22.10.2026 stand hier fest 150. */
   const f = curFit(session.exercise, session.side);
   const lastJetzt = lastVon(session.exercise, lvNow(), kgNow(), session.side);
+  const cOben = ZONES[2].hi;
   if(f && !first.pain && !unmessbar && imBereich(f, lastJetzt)){
     const t = predictTime(f, lastJetzt);
-    if(isFinite(t) && t > 150){
+    if(isFinite(t) && t > cOben){
       const wie = erschweren();
       if(wie === "stufe")
-        msgs.push({t:"ok", x:`${etikett}: Diese Stufe trägt über 150 Sekunden → eine Stufe höher auf „${wieJetzt()}".`});
+        msgs.push({t:"ok", x:`${etikett}: Diese Stufe trägt über ${cOben} Sekunden → eine Stufe höher auf „${wieJetzt()}".`});
       else if(wie === "gewicht")
-        msgs.push({t:"ok", x:`${etikett}: Diese Stufe trägt über 150 Sekunden → ${komma(schrittNow(),1)} kg dazu, jetzt „${wieJetzt()}".`});
+        msgs.push({t:"ok", x:`${etikett}: Diese Stufe trägt über ${cOben} Sekunden → ${komma(schrittNow(),1)} kg dazu, jetzt „${wieJetzt()}".`});
       else
-        msgs.push({t:"warn", x:`${etikett}: Diese Position trägt über 150 Sekunden, und schwerer geht sie nicht. Als Kontrollposition ist sie weiter brauchbar — für die Kurve gibt sie nichts mehr her.`});
+        msgs.push({t:"warn", x:`${etikett}: Diese Position trägt über ${cOben} Sekunden, und schwerer geht sie nicht. Als Kontrollposition ist sie weiter brauchbar — für die Kurve gibt sie nichts mehr her.`});
     }
   }
 

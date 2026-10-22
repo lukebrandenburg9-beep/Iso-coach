@@ -90,8 +90,8 @@ Rechenlogik:
   ist**. Ohne Spreizung wird die Kurve wertlos, ohne Erholung die Messung. Zonen, die eine Übung
   mit ihren Sprossen nach den eigenen Messungen nicht erreicht, überspringt die Rotation;
   erreicht sie nur eine, kommt die Übung einmal pro Woche dran.
-- **Drei Zonen, drei Farben:** Maximalkraft (20–60 s, rot), Hypertrophie / Kraft (60–90 s, blau),
-  Kraftausdauer (90–150 s, gelb). Auf *Start* steht unter jeder angehakten Übung je Seite ein
+- **Drei Zonen, drei Farben:** Maximalkraft (20–60 s, rot), Hypertrophie / Kraft (60–120 s, blau),
+  Kraftausdauer (120–180 s, gelb). Bis Build `2026-10-22 e` waren es 60–90 s und 90–150 s. Auf *Start* steht unter jeder angehakten Übung je Seite ein
   Kuchen der letzten 30 Einheiten — gezählt nach der Zone, in der der erste Satz gelandet ist —
   und daneben die drei Zonen zum Antippen. Der Knopf der Zone, die heute läuft, ist voll in ihrer
   Farbe gefüllt. Die Zone, die die App empfiehlt, bleibt orange umrandet, auch wenn man eine
@@ -217,6 +217,11 @@ die dem üblichen Rat widersprechen:
 - **Füße erhöhen ist keine Progression.** Es verschiebt Last auf die Stützschulter (die im
   flachen Seitstütz schon rund 70 % des Körpergewichts trägt); das Rumpfmoment sinkt dabei sogar
   leicht. Die Stufe steht deshalb bewusst nicht in der Leiter.
+- **An der Wand** stehst du auf den Füßen, der Unterarm liegt flach an der Wand, der Ellenbogen auf
+  Schulterhöhe. Der Fußabstand stellt die Neigung ein: 2 Fußlängen tragen 0,13, 3 Fußlängen 0,31.
+  Beides ist mit demselben Gesetz gerechnet, für jede Körpergröße gleich, und vorläufig, bis es
+  gemessen ist (Papier P92). Die Knie-Sprossen auf Möbeln sind seit Build `2026-10-22 g` raus: Mit
+  abgelegten Knien liegt die Schulter zu tief für eine erhöhte Auflage.
 
 Oberhalb des Standards endet die Leiter. Zusatzlast ginge rechnerisch nur nah an der Taille
 (10 kg an der Hüfte sind +25 %, am Brustkorb +3 %), aber der Seitstütz bleibt bewusst eine reine

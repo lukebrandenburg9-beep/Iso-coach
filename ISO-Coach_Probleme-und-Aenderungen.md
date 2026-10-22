@@ -3904,11 +3904,277 @@ Zusatzgewicht.
   3. Danach kommen die Sätze.
 - Datenformat und Export bleiben unverändert, das Schema bleibt 8.
 
+### P90 · Ausfallschritt ohne halbe Fußlängen, und welche Seite frisch beginnt
+
+Luke, 22.10.: „streiche mal beim ausfallschritt die sprossen 1,5 fußlängen und 2,5 fußlängen das ist
+zu umständlich, dazu startet der ausfalschritt auch abwechelnd im workout mit dem rechten fuß vorne?
+wenn immer links startet ist rechts immer die erschöpfte seite und wird nie frisch getestet“
+
+**Gebaut in 2026-10-22 e.**
+
+- **Die Leiter hat sieben Sprossen.** Im Stand bleiben „Stehend an der Wand · 2 Fußlängen“ (0,41)
+  und „3 Fußlängen“ (0,52). Danach folgen unverändert die drei Stepperhöhen im Kniestand, „Knie
+  knapp über den Boden“ und „Hinterer Fuß auf dem Stepper“. Keine Last ändert sich, kein Name.
+- **Das Gewicht kommt weiter ab „Kniestand · Knie bis Stepper, 2 Stufen (15 cm)“,** das ist jetzt
+  Sprosse 4 statt 6.
+- **Umzug:** Stand, Sitzungen, ein angefangenes Workout und die Vorwahl von heute (P89) ziehen mit.
+  Wer auf 1,5 oder 2,5 Fußlängen stand, landet auf 2 Fußlängen, der Sprosse mit der nächsten Last
+  (0,36 und 0,46 → 0,41). Ein Satz auf einer der beiden bleibt mit seiner Last in der Kurve und trägt
+  die Marke `entfalleneSprosse`. In Lukes Export vom 16.10. liegt auf keiner der beiden ein Satz.
+
+**Die Seitenfrage: Der Ausfallschritt wechselt schon.** Gebaut ist dafür nichts, geprüft schon.
+
+- **Die Regel.** Es beginnt die Seite mit weniger frischen Messpunkten (`startSeite`). Sie wird
+  frisch gemessen und zählt für die Kurve. Die andere Seite steht am Ende des Workouts, wird
+  trainiert und zählt nicht. Bei Gleichstand beginnt links. Weil jedes Workout der Startseite einen
+  Punkt gibt, wechselt das von selbst. Ein Rückstand gleicht sich aus, auch wenn eine Seite einmal
+  ausfällt.
+- **Lukes Daten.** Im Export vom 16.10. begann der Ausfallschritt in neun Workouts so: L R R L R L R R
+  L. Rechts begann fünfmal, links viermal, am Ende stehen 5 : 5 gültige frische Punkte. In sieben
+  Workouts begann die Seite, die gleichauf (dann links) oder zurück lag. Die zwei Ausnahmen:
+  - Am 16.09. galt noch die alte Regel, beide Seiten zählten frisch.
+  - Am 07.10. stand nur rechts im Workout.
+
+**Der Preis.**
+
+- **Die leichteste Sprosse ist schwerer:** 41 statt 36 % des Körpergewichts. Wer auf 2 Fußlängen
+  nicht in die Zone kommt, hat darunter nichts mehr.
+- **Im Stand gibt es nur noch einen Schritt,** von 0,41 auf 0,52 (×1,27). Dazwischen lässt sich
+  nicht mit Gewicht nachstellen, das kommt erst ab Sprosse 4.
+- **Bei Gleichstand beginnt immer links.** Über mehrere Workouts gleicht sich das aus, in einem
+  einzelnen Workout nicht.
+
+**Für den Nachbau:**
+
+- `EX_VERSION` 32, `LUNGE_GANZ_AT` = 32. `LUNGE_GANZ_UMZUG` = `{0:0, 1:0, 2:0, 3:1, 4:2, 5:3, 6:4,
+  7:5, 8:6}`, `LUNGE_GANZ_ALT_LAST` mit den Lasten der neun alten Sprossen, `LUNGE_GANZ_ENTFALLEN` =
+  `{0, 2}`.
+- `lungeGanzUmziehen(levels)` für jeden Schlüssel `lunge` und `lunge|…`. `lungeGanzObjekt(o, offen)`
+  zieht `level`, `levelVorschlag`, `rohStufe` und `anker.level` um. Gehaltene Objekte bekommen
+  fehlende Last aus `ALT_LAST` und auf alt 0 und 2 `entfalleneSprosse`. Ein offener Block zieht nur
+  mit der Nummer um. `lungeGanzVorwahl` zieht `level` und `kg.level` der Vorwahl um.
+- `normalize()`:
+  - Die Vorwahl zieht vorab um.
+  - Der Stand zieht nach `bridgeKnieUmziehen` um.
+  - Sitzungen und Lauf laufen als äußerste Stufe der Ketten, also nach `LUNGE_OHNE9_AT`. Ein Stand
+    von vor Fassung 30 kommt erst dort auf die neun Sprossen.
+- `lunge.extraAb` 3. Die Sprossennamen bleiben, `variante` im Export bleibt stabil, `stufe_nr`
+  verschiebt sich.
+
+### P91 · Hypertrophie / Kraft 60–120 s, Kraftausdauer 120–180 s
+
+Luke, 22.10.: „erweitere den hypertrophiebereich auf 60-120sekunden, ausdauer dann nur
+120-180sekunden“.
+
+**Gebaut in 2026-10-22 f.**
+
+- **Die Zonen:** Maximalkraft 20–60 s wie bisher, Hypertrophie / Kraft 60–120 s (vorher 60–90 s),
+  Kraftausdauer 120–180 s (vorher 90–150 s). So stehen sie in den Einstellungen, auf den
+  Zonenknöpfen und im Export.
+- **Die Zielzeit eines Blocks ist die Zonenmitte,** jetzt also 90 s statt 75 s und 150 s statt
+  120 s. Maximalkraft bleibt bei 40 s.
+- **Die Einstiegstests** zielen auf 150 s und 90 s statt auf 120 s und 75 s. Der
+  Maximalkraft-Test bleibt bei 35 s.
+- **Schwerer wird es ab 180 s statt ab 150 s.** Sagt die Kurve für die aktuelle Stufe mehr als
+  180 s voraus, geht es eine Sprosse oder einen Gewichtsschritt hoch. Die Meldung nennt die Zahl
+  aus der Zone.
+- **Das Messfenster reicht bis 360 s statt bis 300 s.** Es war als das Doppelte der
+  Kraftausdauer-Obergrenze festgelegt und folgt ihr jetzt. Die Uhr warnt ab 360 s.
+- **Die Kraftlinie unter der Form** rechnet mit der Last für 90 s statt für 75 s. Sie hängt an
+  der Mitte von Hypertrophie / Kraft.
+- **Das Etikett `kurve` im Export** verlangt eine Lastspanne von 2,1 statt 1,9. Das ist das
+  Verhältnis von 150 s bis 35 s, gerechnet und aufgerundet wie vorher.
+- **Der Text zur Waage unter Geräte:** „ein Halt dauert 35 bis 150 s“ statt „35 bis 120 s“.
+- **Alle diese Zahlen rechnet die App jetzt aus der Zonentabelle.** Eine weitere Änderung der
+  Grenzen ist eine Zeile.
+
+**Der Preis.**
+
+- **Einheiten werden länger.** Der erste Einstiegstest mit den vier vorgewählten Übungen dauert
+  45 statt 40 Minuten. Bei sechs Blöcken schätzt die App jetzt 34–46 Minuten für Hypertrophie /
+  Kraft und 40–50 Minuten für Kraftausdauer.
+- **Alte Messungen zählen anders.** Ein Halt zwischen 90 und 119 s galt als Kraftausdauer und
+  zählt jetzt als Hypertrophie / Kraft. Lag die einzige Kraftausdauer-Messung einer Übung in
+  diesem Bereich, fehlt ihr diese Zone jetzt, und die App holt den Einstiegstest dafür nach. Die
+  gespeicherte Zone einer Sitzung bleibt, und die Zonenruhe rechnet weiter mit ihr.
+- **Halte zwischen 300 und 360 s zählen wieder für die Kurve,** auch alte. Bisher fielen sie
+  heraus.
+- **Die Kraftlinie verschiebt sich rückwirkend.** Die Last für 90 s ist kleiner als die für 75 s.
+  Die ganze Linie liegt also tiefer, auch an alten Tagen. Die Form selbst (0 bis 100) ändert sich
+  nicht.
+- **Die Übungen wachsen später mit,** weil erst ab 180 s vorhergesagter Haltezeit hochgestuft
+  wird.
+- **Der Export beschreibt alte Sitzungen mit den neuen Grenzen.** `zonen` gilt für die ganze
+  Datei. Der Buchstabe einer alten Sitzung meint die Grenzen, die an ihrem Tag galten.
+- **Nicht geändert:** Tor 3 beim Leiterbau (Fenster 35–120 s, Faktor 1,82). Mit der neuen Mitte
+  der Kraftausdauer wird das Fenster weiter, nicht enger. Jede Leiter, die bestanden hat, besteht
+  weiter.
+- **Nicht geändert:** Der Begrüßungstext verspricht für den ersten Test „rund 20 Minuten“. Mit den
+  vier vorgewählten Übungen waren es schon vorher 40, jetzt sind es 45.
+
+**Für den Nachbau:** `ZONES` mit Hypertrophie / Kraft 60–120 und Kraftausdauer 120–180.
+Abgeleitet sind `zoneMitte(id)`, `MESS_MIN = ZONES[0].lo`, `MESS_MAX = 2 · ZONES[2].hi`, die
+Einstiegsziele in `ONB_ORDER` für Kraftausdauer und Hypertrophie / Kraft, `FORM_LANG_ZEIT =
+zoneMitte("B")` und Regel 4 über `ZONES[2].hi`. `SPANNE_VOLL` ist 2,1. Das Export-Schema bleibt 8.
+
+### P92 · Seitstütz an der Wand statt Knie auf Möbeln
+
+Luke, 22.10.: „im kruzen unterarmstütz komme ich nicht auf die arbeitsplatte oder den tisch, auch
+nicht auf den stuhl ich würde hier mit wand und füßen abstand arbeiten beginnen bei 2füßen stufe ein
+und abstand 3 füße stufe 2 ganz normal auf den füen stehen, ich teste dann im trainingraum“.
+
+Mit abgelegten Knien liegt die Schulter zu tief für jede erhöhte Auflage. Die drei Sprossen „Knie
+abgelegt · Unterarm auf Arbeitsplatte / Tischplatte / Stuhlsitz“ ließen sich nicht ausführen.
+
+**Gebaut in 2026-10-22 g.**
+
+- **Die Leiter hat sechs statt sieben Sprossen:**
+
+| Nr. | Sprosse | Last | Ort im Modus |
+|---|---|---|---|
+| 1 | Stehend an der Wand · Füße 2 Fußlängen weg | 0,13 · gerechnet | Wand |
+| 2 | Stehend an der Wand · Füße 3 Fußlängen weg | 0,31 · gerechnet | Wand |
+| 3 | Knie abgelegt · Unterarm am Boden (kurzer Hebel) | 0,57 | Boden |
+| 4 | Beine gestreckt · Unterarm auf Arbeitsplatte (~90 cm) | 0,70 | – |
+| 5 | Beine gestreckt · Unterarm auf Tischplatte (~75 cm) | 0,77 | – |
+| 6 | Beine gestreckt · Unterarm am Boden (Standard) | 0,90 | Boden |
+
+- **Woher 0,13 und 0,31 kommen:** dasselbe Gesetz wie in P20, Last = k · cos(Neigung). An der Wand
+  liegt der Unterarm flach an, der Ellenbogen auf Schulterhöhe, der Oberarm also waagerecht. Mit den
+  Anteilen nach Winter (Fuß 0,152, Oberarm 0,186, Schulterhöhe 0,818 der Körpergröße) ist
+  cos(Neigung) = (Fußlängen · 0,152 − 0,186) / 0,818, für jede Körpergröße gleich. Das gibt 81,7°
+  bei 2 Fußlängen und 70,7° bei 3. k = 0,923, damit der Standard bei seinen 12,8° die 0,90 trägt.
+  Beide Sprossen sind **vorläufig**, bis Luke im Trainingsraum misst. Die App zeigt sie rot.
+- **Hinweistext:** Er hat jetzt einen Teil für die Wand. Seitlich zur Wand stehen, Füße
+  geschlossen, der wandnahe Fuß im angegebenen Abstand, in eigenen Fußlängen von der Wand weg
+  abgezählt, Ferse an Zehen. Unterarm flach an die Wand, Ellenbogen auf Schulterhöhe. „Füße
+  geschlossen“ und „der wandnahe Fuß“ sind meine Ergänzung (siehe den Preis).
+- **Im Modus Nur Körpergewicht** stehen mit Haken Wand jetzt vier Seitstütz-Sprossen zur Wahl,
+  ohne Haken wie bisher die zwei am Boden.
+- **Umzug beim ersten Laden** (Fassung der Übungsliste 33):
+  - Ein Stand auf einer gestrichenen Sprosse zieht auf die Sprosse mit der nächstliegenden Last,
+    wie beim Liegestütz: Arbeitsplatte (0,20) auf 2 Fußlängen (0,13), Tischplatte (0,36) auf
+    3 Fußlängen (0,31), Stuhlsitz (0,50) auf den Kniestand am Boden (0,57).
+  - Die oberen vier Sprossen ziehen nur mit der Nummer um, alt 4 bis 7 wird 3 bis 6.
+  - Sätze auf den gestrichenen Sprossen behalten ihre Last und ihren Namen und tragen die Marke
+    `entfalleneSprosse`. Sie bleiben in der Kurve, Messpunkte verwirft nur Luke. Als Beleg dafür,
+    dass eine neue Sprosse gemessen ist, zählen sie nicht.
+  - Ein offener Lauf und die Vorwahl von heute ziehen mit.
+
+**Der Preis.**
+
+- **Der Sprung von der Wand auf den Boden ist zu groß.** 0,31 → 0,57 ist das 1,84-Fache, über der
+  Grenze von 1,82 aus Tor 3. 0,13 → 0,31 ist das 2,38-Fache. 2,5 Fußlängen gäben 0,22 und lägen
+  dazwischen.
+- **Der Fußabstand ist empfindlich.** ±5 cm geben bei 2 Fußlängen 0,10 bis 0,16, bei 3 Fußlängen
+  0,27 bis 0,34. Deshalb die geschlossenen Füße und der wandnahe Fuß als Bezug. Bei offenem Stand
+  wüsste niemand, welcher Fuß zählt.
+- **Die Leiter wechselt den Hebel jetzt zweimal:** an der Wand auf den Füßen, dann auf den Knien
+  am Boden, dann wieder auf den Füßen. Der Kniestand misst nicht dasselbe wie die Fußversion (P21).
+- **Die oberen Abstände waren schon vorher zu klein:** 1,23, 1,10 und 1,17, unter der Untergrenze
+  von 1,25. Daran ändert dieser Build nichts.
+- **Die gestreckten Sprossen auf Arbeitsplatte und Tisch sind ohne Oberarm gerechnet.** Mit
+  derselben Geometrie wie an der Wand trügen sie 0,60 und 0,68 statt 0,70 und 0,77 (bei 1,80 m
+  Körpergröße). Nicht geändert, offen in Teil 4.
+- **Die Einstiegstests spreizen anders.** Wer den Seitstütz noch nie gemessen hat, beginnt auf
+  Sprosse 2 (0,31), dann 4 (0,70), dann 5 (0,77). Vorher waren es 0,36, 0,57 und 0,77. Die Regel
+  ist dieselbe, die Leiter ist kürzer.
+- **Die Übungsdatei für das Video** (`Uebungen/Seitstütz.md`) hat den neuen Nachschlag. Im Teil
+  darüber stehen noch die Knie-Sprossen auf Möbeln und das Zusatzgewicht. Den Teil schreibt Luke.
+
+**Für den Nachbau:** sechs Sprossen in `plank.levels`, die zwei an der Wand mit `ort:"wand"`.
+Umzug über `PLANK_WAND_AT` = 33 mit `PLANK_WAND_UMZUG` {0:0, 1:1, 2:2, 3:2, 4:3, 5:4, 6:5}, die alte
+Last aus `PLANK_WAND_ALT_LAST`, die Marke für die alten Indizes 0 bis 2. Export und Schema bleiben gleich (8),
+`stufe_nr` verschiebt sich wie in Teil 2 beschrieben.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-22 g — Seitstütz an der Wand statt Knie auf Möbeln
+
+**Befund (Luke).** Mit abgelegten Knien kommt der Unterarm weder auf die Arbeitsplatte noch auf
+Tisch oder Stuhl. Statt der drei Sprossen zwei an der Wand, stehend auf den Füßen, mit 2 und
+3 Fußlängen Abstand (P92).
+
+**Gebaut.** Die Seitstütz-Leiter hat sechs Sprossen, die zwei an der Wand vorne, mit gerechneter,
+vorläufiger Last 0,13 und 0,31. Der Hinweistext erklärt den Wandstand. Gespeicherte Stände,
+Sätze, ein offener Lauf und die Vorwahl ziehen beim ersten Laden um (Fassung der Übungsliste 33).
+
+**Geprüft.** Auf eigenem Port 8772 bei 375 × 812, mit einem erfundenen Stand der Fassung 32.
+
+- Stand links auf alt 1 (Arbeitsplatte) steht danach auf 1 (2 Fußlängen), rechts auf alt 7
+  (Standard) auf 6.
+- Sätze auf alt 1 und 3 behalten 0,20 und 0,50 und tragen die Marke. Ein Satz auf alt 4
+  (Kniestand) steht auf 3 mit 0,57 ohne Marke, einer auf alt 7 auf 6 mit 0,90. Der Vorschlag
+  daneben wandert mit.
+- Offener Lauf: geplante Blöcke nur mit der Nummer, der fertige Satz mit Last und Marke. Vorwahl
+  von heute: alt 3 auf 3, alt 6 auf 5, das Gewicht mit seiner Sprosse.
+- Ein zweites Laden ändert nichts mehr.
+- Liste „Dein Workout“: sechs Sprossen, alle rot „vorläufig“. Der Hinweistext kommt neu aus dem Build.
+- Nur Körpergewicht mit Haken Wand: Sprosse 1, 2, 3 und 6 wählbar. Ohne Haken: 3 und 6.
+- Keine Konsolenfehler. Die Testdaten sind danach gelöscht.
+- **Nicht geprüft:** ein echter Halt an der Wand. Das macht Luke im Trainingsraum.
+
+### 2026-10-22 f — Hypertrophie / Kraft 60–120 s, Kraftausdauer 120–180 s
+
+**Befund (Luke).** Hypertrophie / Kraft soll 60–120 s umfassen, Kraftausdauer nur noch
+120–180 s (P91).
+
+**Gebaut.** Die Zonentabelle hat die neuen Grenzen. Zielzeiten, Einstiegstests, die Hochstufung,
+das Messfenster, die Kraftlinie und das Etikett `kurve` folgen ihr, jetzt als Rechnung statt als
+feste Zahl.
+
+**Geprüft.** Auf eigenem Port 8771 bei 375 × 812, mit leerem Speicher.
+
+- Einstellungen → Länge einer Sitzung zeigt „4 Sätze à 60–120 s“ und „3 Sätze à 120–180 s“, die
+  Zonenwahl „Hypertrophie / Kraft 60–120s“ und „Kraftausdauer 120–180s“.
+- Einstiegstest mit den vier vorgewählten Übungen: alle sechs Blöcke mit Zielzeit 150 s, Dauer
+  45 Minuten. Derselbe Weg in der Sicherung vor der Änderung: 120 s, 40 Minuten.
+- Zuordnung: 59 s ist Maximalkraft, 60 und 119 s sind Hypertrophie / Kraft, 120 s ist
+  Kraftausdauer. 360 s zählt für die Kurve, 361 s nicht.
+- Der Text zur Waage zeigt „35 bis 150 s“.
+- Keine Konsolenfehler. Die Testdaten sind danach gelöscht.
+- **Nicht mit echten Messdaten geprüft:** die Hochstufung ab 180 s. Die Regel liest dieselbe Zahl,
+  die in den Einstellungen steht.
+
+### 2026-10-22 e — Ausfallschritt ohne halbe Fußlängen
+
+**Befund (Luke).** 1,5 und 2,5 Fußlängen sind ihm zu umständlich. Außerdem fragt er, ob der
+Ausfallschritt im Workout abwechselnd mit dem rechten Fuß vorne beginnt (P90).
+
+**Gebaut.**
+
+- Die Leiter hat sieben statt neun Sprossen, Gewicht weiter ab „Knie bis Stepper, 2 Stufen“
+  (Sprosse 4).
+- Umzug für Stand, Sitzungen, angefangenes Workout und Vorwahl. `EX_VERSION` 32.
+- An der Seitenwahl nichts. Sie wechselt schon nach den frischen Punkten je Seite.
+
+**Geprüft.** In Headless Chrome bei 400 px Breite.
+
+- **Umzug von Fassung 31,** in den Nummern der App (die Leiter beginnt bei 1):
+  - Ein Satz auf 1,5 Fußlängen landet auf Sprosse 1 mit Last 0,36 und Marke.
+  - Ein Satz ohne Last auf 2,5 Fußlängen landet auf Sprosse 1 mit 0,46 und Marke.
+  - 3 Fußlängen wird Sprosse 2, 15 cm mit +5 kg wird 4, der Stepper hinten wird 7.
+  - Der Stand „2,5 Fußlängen“ wird „2 Fußlängen“.
+  - Die Vorwahl (Sprosse und Gewichtssprosse) und ein offener Block ziehen mit.
+- **Umzug von Fassung 29** (vor P81): Die damals gestrichene Sprosse (1,05) landet auf „Knie knapp
+  über den Boden“ mit Marke, die alte 10 auf der 7.
+- Ein zweites Laden ändert nichts.
+- Das Profil zeigt sieben Sprossen. Der alte Punkt auf 1,5 Fußlängen steht mit 0,36 in der Kurve.
+  Sprosse 1 bleibt „vorläufig“, weil ein Punkt auf einer entfallenen Sprosse nicht als Messung zählt.
+- **Seitenfolge im Plan:**
+
+  | Frische Punkte vorher | Plan |
+  |---|---|
+  | links 2, rechts 0 | rechts frisch zuerst, links am Ende |
+  | links 0, rechts 1 | links frisch zuerst, rechts am Ende |
+  | links 1, rechts 1 | links frisch zuerst, rechts am Ende |
+  | nach drei Workouts L, R, L | rechts frisch zuerst |
+- Keine Konsolenfehler.
+- **Nicht geprüft:** am Handy.
 
 ### 2026-10-22 d — Start statt Heute, Liste „Dein Workout“
 
@@ -7146,6 +7412,12 @@ als Teil des Ansatz-Pfads? Das ist eine Produktentscheidung, keine technische.
     der Block um ihre Höhe höher, das ist ergänzt, nicht vorgegeben. Mit dem Gesicht zur Wand
     braucht die Entlastung eine waagerechte Auflage neben dem Körper. Offen ist auch, ob die
     Faszienrolle Pflicht wird. Dann fiele die Übung für alle ohne Rolle weg.
+39. **Seitstütz: Wand-Sprossen messen und die Leiter schließen (P92).** 0,13 und 0,31 sind gerechnet.
+    Luke misst im Trainingsraum. Offen ist dreierlei. Der Sprung von 3 Fußlängen auf den Kniestand
+    am Boden ist das 1,84-Fache, über der Grenze von 1,82. Von 2 auf 3 Fußlängen ist er das
+    2,38-Fache, 2,5 Fußlängen gäben 0,22. Und die gestreckten Sprossen auf Arbeitsplatte und Tisch
+    sind ohne Oberarm gerechnet: Mit derselben Geometrie wie an der Wand trügen sie 0,60 und 0,68
+    statt 0,70 und 0,77 (bei 1,80 m Körpergröße).
 
 ---
 
