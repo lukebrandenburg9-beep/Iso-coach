@@ -416,7 +416,13 @@ const PAUSE_S    = 20;   // Abschnitt 3.1 — zugleich Messprotokoll
    Bloecken laeuft keine Uhr. Drei Minuten ist Lukes Annahme vom 18.09.2026,
    und die Schaetzung steht und faellt mit ihr. */
 const PAUSE_BLOCK_S = 180;
-const LEAD_IN    = 8;    // Sekunden zum In-Position-Gehen — nur vor dem ERSTEN Satz
+/* Kurzeinheit (Luke, 18.10.2026): hoechstens 20 Minuten inklusive aller
+   Pausen. Zwischen zwei Bloecken steht dort eine Minute, und die laeuft als
+   Uhr auf der Karte vor dem naechsten Block (blockIntro) — anders als die
+   drei Minuten oben, die nur geschaetzt sind. */
+const KURZ_S       = 1200;
+const PAUSE_KURZ_S = 60;
+const LEAD_IN    = 8;   // Sekunden zum In-Position-Gehen — nur vor dem ERSTEN Satz
                          // eines Blocks. Ab Satz 2 dient die Pause selbst dazu.
                          // Bis 29.09.2026 waren es 3. Luke: "3 sekunden sind etwas
                          // kurz" — Rucksack umschnallen, Waage ablesen, Handtuch
@@ -1640,7 +1646,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-16 f";
+const BUILD = "2026-10-18 a";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -2538,6 +2544,17 @@ function fresh(){
     /* Deckel auf die Blockzahl, und die von Hand zusammengestellte Einheit
        (gilt nur fuer den Tag, an dem sie gewaehlt wurde). */
     maxBloecke:MAX_BLOECKE, heute:null, heuteTag:null,
+    /* Was davon der Nutzer HEUTE selbst angehakt hat — die Vorhaken der App
+       zaehlen nicht (gilt wie heute nur fuer heuteTag). Die Kurzeinheit
+       behaelt diese Uebungen als Letzte (kurzKuerzen). */
+    heuteSelbst:null,
+    /* Kurzeinheit (20 Min): der Tag, an dem sie eingeschaltet wurde. Gilt nur
+       fuer diesen Tag (Luke, 18.10.2026: „Nur für heute"). */
+    kurzTag:null,
+    /* Abgewaehlte Nachholseiten, je Uebung {tag, am}: tag ist der Tag der
+       offenen Seite (offeneSeite), am der Tag der Abwahl — nur an dem darf
+       das Haekchen zurueck. */
+    nachholWeg:{},
     /* Welche uebungseigenen Sicherheitsfragen schon beantwortet sind. */
     gefragt:{},
     /* Premium (Luke, 25.09.2026). Der Prototyp hat keine Anmeldung, deshalb
@@ -2682,6 +2699,9 @@ function normalize(d){
                                     geraete: ger,
                                     maxBloecke: (d.maxBloecke > 0 ? d.maxBloecke : MAX_BLOECKE),
                                     heute: d.heute || null, heuteTag: d.heuteTag || null,
+                                    heuteSelbst: Array.isArray(d.heuteSelbst) ? d.heuteSelbst : null,
+                                    nachholWeg: (d.nachholWeg && typeof d.nachholWeg === "object")
+                                                ? d.nachholWeg : {},
                                     /* Siehe ZW_V: Eine Wahl aus der alten
                                        Oberflaeche war moeglicherweise gar
                                        keine. */
@@ -3334,6 +3354,7 @@ function haltungWechseln(ex, h, teile){
     if(q.nachhol) n.nachhol = true;
     Object.keys(q).forEach(k => delete q[k]); Object.assign(q, n);
   }
+  if(RUN.plan.kurzMax) kurzSaetze(teile, RUN.plan.kurzMax);
   save(); laufSichern();
 }
 /* Ist DIESER Block der beidbeinige Halt? Ein Block ohne Seite bei einer
@@ -4307,8 +4328,27 @@ function ausfuehrbar(ex){ return verfuegbareStufen(ex).length > 0; }
    sie das: Nach "links gestern, rechts heute nachgeholt" war heute nur rechts
    gemessen, also galt links als offen — und am Tag darauf wieder rechts, im
    Wechsel ohne Ende. Darum traegt ein Nachholblock die Marke "nachhol", und
-   die Sitzung erbt sie. */
+   die Sitzung erbt sie.
+
+   Seit Build 2026-10-18 a laesst sich das Nachholen abwaehlen (Luke,
+   18.10.2026: „kann dann aber auch mit einem Häkchen entfernt werden"). Die
+   abgewaehlte Seite ist danach nicht mehr offen — weder fuer die Planung noch
+   fuer das Tor oder die Zone (offeneSeite) —, und die Uebung laeuft wieder
+   nach den normalen Regeln. Bis Mitternacht holt das Haekchen sie zurueck
+   (nachholVerworfen). */
 function offeneSeite(ex){
+  const o = offeneSeiteRoh(ex);
+  const weg = o && S.nachholWeg && S.nachholWeg[ex];
+  return (weg && weg.tag === o.tag) ? null : o;
+}
+/* Die abgewaehlte offene Seite, solange die Abwahl von heute ist — nur dann
+   steht die Zeile auf Heute anhakbar mit "nicht nachholen" da. */
+function nachholVerworfen(ex){
+  const o = offeneSeiteRoh(ex);
+  const weg = o && S.nachholWeg && S.nachholWeg[ex];
+  return (weg && weg.tag === o.tag && weg.am === today()) ? o : null;
+}
+function offeneSeiteRoh(ex){
   const e = S.ex[ex];
   if(!e || !e.sides || e.sides.length < 2) return null;
   /* Baker-Pfad: Das angehakte Bein steht auf einer anderen Leiter als das
@@ -4375,7 +4415,8 @@ function uebungslage(){
     const gr = groupOf(ex);
     const geht = kniePfadAn(ex) ? fersenTeile(ex).length > 0 : ausfuehrbar(ex);
     return {ex, group:gr, aktiv: S.aktiv[ex] !== false && geht,
-            ohneGeraet: !geht, tor: gateGroup(gr), offen: offeneSeite(ex)};
+            ohneGeraet: !geht, tor: gateGroup(gr), offen: offeneSeite(ex),
+            verworfen: nachholVerworfen(ex)};
   });
 }
 /* Was heute tatsaechlich trainiert wird. */
@@ -5246,6 +5287,60 @@ function startSeite(ex){
   const n = sd.map(x => points(ex, x).length);
   return (n[1] < n[0]) ? sd[1] : sd[0];
 }
+/* ── Kurzeinheit (20 Min) ─────────────────────────────────────────────
+   Luke, 18.10.2026: Ein Haken in der Plankarte kuerzt das Workout so, dass es
+   mitsamt allen Pausen hoechstens 20 Minuten dauert. Gilt nur fuer heute. */
+function kurzAn(){ return S.kurzTag === today(); }
+/* Saetze einer Uebung unter der Obergrenze k. Reicht k fuer den Zonen-
+   Standard aller ihrer Bloecke, bleibt der stehen; sonst bekommt jeder Block
+   dieselbe Zahl — links und rechts gleich viele Saetze. Die Obergrenze geht
+   an den Block (kurzMax): Daran erkennt die Dauer die kurze Blockpause, und
+   ein Block, der mitten im Lauf neu gebaut wird, bekommt sie wieder. */
+function kurzSaetze(bloecke, k){
+  if(!bloecke.length) return;
+  const std = bloecke.map(b => SETS_ZONE[b.zoneErwartet || b.zone] || SETS);
+  const alle = k >= Math.max(...std), n = Math.min(k, ...std);
+  bloecke.forEach((b, j) => { b.saetze = alle ? std[j] : n; b.kurzMax = k; });
+}
+/* Erst die Saetze, dann die Uebungen (Luke, 18.10.2026). Gesucht ist die
+   hoechste gemeinsame Obergrenze, unter der alles in 20 Minuten passt — von
+   der Zone her abwaerts bis 1. Passt selbst mit einem Satz je Block nicht
+   alles, geht die ganze Uebung, beide Seiten zusammen, und die Suche beginnt
+   oben neu. Wer zuerst geht:
+     1. Rang — alles andere vor "nicht in den letzten 7 Tagen trainiert" vor
+        "heute selbst angehakt"; der Nachholblock geht als Letzter.
+     2. Bei gleichem Rang die Uebung mit der kuerzesten Wartezeit
+        (uebungWartet) — die laengste bleibt.
+   Ein leeres Workout gibt es nicht: Die letzte Uebung bleibt, auch wenn sie
+   allein laenger dauert. Aufgefuellt wird nicht — wer weniger anhakt,
+   trainiert eben kuerzer. */
+function kurzKuerzen(blocks, dran){
+  const selbst = new Set((S.heuteTag === today() && Array.isArray(S.heuteSelbst))
+                         ? S.heuteSelbst : []);
+  const vor7 = new Set();
+  for(const ses of S.sessions){
+    if(!ergiebig(ses)) continue;
+    const d = dayNum(ses.date);
+    if(d != null && today() - d < 7) vor7.add(einheitVon(ses.exercise));
+  }
+  const rang  = u => u.offen ? 0 : selbst.has(u.ex) ? 1 : vor7.has(u.ex) ? 3 : 2;
+  const warte = u => { const w = uebungWartet(u.ex); return isFinite(w) ? w : 1e9; };
+  const reihe = dran.slice().sort((a, b) => (rang(b) - rang(a)) || (warte(a) - warte(b)));
+  const weg = [];
+  let rest = blocks.slice();
+  for(;;){
+    const einheiten = [...new Set(rest.map(b => einheitVon(b.exercise)))];
+    const kMax = Math.max(1, ...rest.map(b => SETS_ZONE[b.zoneErwartet || b.zone] || SETS));
+    for(let k = kMax; k >= 1; k--){
+      einheiten.forEach(ex => kurzSaetze(rest.filter(b => einheitVon(b.exercise) === ex), k));
+      if(planSekunden(rest) <= KURZ_S) return {blocks: rest, max: k, weg};
+    }
+    const raus = reihe.find(u => einheiten.indexOf(u.ex) >= 0);
+    if(!raus || einheiten.length <= 1) return {blocks: rest, max: 1, weg};
+    weg.push(raus.ex);
+    rest = rest.filter(b => einheitVon(b.exercise) !== raus.ex);
+  }
+}
 function planWorkout(){
   const frei   = heuteDran();
   const dran   = auswahlHeute(frei);
@@ -5310,9 +5405,14 @@ function planWorkout(){
     A.push(mkBlock(u.ex, haltungen(u.ex) ? haltungOf(u.ex) : null,
                    zf.zone, zf.target, true, zf.onboarding, zf.fest));
   }
-  const blocks = A.concat(B);
+  let blocks = A.concat(B);
+  /* Kurzeinheit: Was gekuerzt ist, nennt die Liste auf Heute (kurzWeg); alles
+     Folgende spricht nur noch von dem, was bleibt. */
+  const kurz = kurzAn() ? kurzKuerzen(blocks, dran) : null;
+  if(kurz) blocks = kurz.blocks;
+  const bleibt = kurz ? dran.filter(u => kurz.weg.indexOf(u.ex) < 0) : dran;
   const zonen  = [...new Set(blocks.map(b => b.zone))];
-  const gruende = [...new Set(dran.map(u => zoneFuer(u.group).why))];
+  const gruende = [...new Set(bleibt.map(u => zoneFuer(u.group).why))];
   const vonHand = (S.heuteTag === today() && Array.isArray(S.heute));
   const huefteWegen = u => {
     if(vonHand || u.offen) return null;
@@ -5324,7 +5424,7 @@ function planWorkout(){
     zonen,
     target: blocks.length ? blocks[0].target : 120,
     why: gruende.join(" "),
-    onboarding: dran.some(u => zoneFuer(u.group).onboarding),
+    onboarding: bleibt.some(u => zoneFuer(u.group).onboarding),
     /* Hat der Nutzer die Einheit selbst zusammengestellt, ist nicht der
        Deckel der Grund, warum der Rest fehlt — dann hat er ihn schlicht
        nicht angehakt. Der Satz darunter muss das unterscheiden. */
@@ -5335,7 +5435,7 @@ function planWorkout(){
     /* Warum heute nur EINE Seite im Plan steht, oft in einer Gruppe, die
        die Erholungsregel eigentlich sperrt, muss dastehen — sonst liest sich
        der Plan wie ein Fehler. */
-    nachhol: dran.filter(u => u.offen)
+    nachhol: bleibt.filter(u => u.offen)
                  .map(u => ({ex: u.ex, seite: u.offen.seite})),
     spaeter: spaeter.filter(u => !dran.some(v => konflikt(v.ex, u.ex)) && !huefteWegen(u))
                     .map(u => u.ex),
@@ -5347,6 +5447,11 @@ function planWorkout(){
                     .map(u => ({ex: u.ex, wegen: huefteWegen(u)})),
     /* Reist ueber RUN.plan und S.lauf bis in blockSichern. */
     modus: MODUS_NAME[S.modus] ? S.modus : "normal",
+    /* Kurzeinheit: die gemeinsame Obergrenze der Saetze und was herausfiel.
+       kurzMax reist wie modus mit — Pausenuhr, neu gebaute Bloecke und die
+       Sitzungsmarke lesen sie. */
+    kurzMax: kurz ? kurz.max : null,
+    kurzWeg: kurz ? kurz.weg : [],
     blocks
   };
 }
@@ -5988,7 +6093,8 @@ let RUN = null;
    beim naechsten Start an, dort weiterzumachen. */
 function laufSichern(){
   S.lauf = RUN ? {plan:RUN.plan, b:RUN.b, fertig:RUN.fertig, sets:RUN.sets, i:RUN.i,
-                  tag: today(), start: RUN.start, stand: Date.now()} : null;
+                  tag: today(), start: RUN.start, stand: Date.now(),
+                  pauseAb: RUN.pauseAb || null} : null;
   save();
 }
 function laufVerwerfen(){ RUN = null; S.lauf = null; save(); }
@@ -5997,10 +6103,12 @@ function laufVerwerfen(){ RUN = null; S.lauf = null; save(); }
 function laufFortsetzen(){
   const L = S.lauf;
   RUN = {plan:L.plan, b:L.b||0, fertig:(L.fertig||[]).slice(),
-         sets:(L.sets||[]).slice(), i:L.i||0, start: L.start || L.stand};
+         sets:(L.sets||[]).slice(), i:L.i||0, start: L.start || L.stand,
+         pauseAb: L.pauseAb || null};
   if(RUN.b >= RUN.plan.blocks.length){ finishWorkout(); return; }
   /* Unterbrochen zwischen letztem Satz und Blockwechsel: nachholen. */
-  if(RUN.i >= curSets()){ endBlock(); return; }
+  /* Die Minute der Kurzeinheit zaehlt ab der Unterbrechung, nicht ab jetzt. */
+  if(RUN.i >= curSets()){ endBlock(false, L.stand); return; }
   /* Kein Satz im laufenden Block — also steht die Karte VOR der Übung an.
      Nicht sofort die Uhr starten: die Variante will erst bestätigt werden. */
   if(!RUN.sets.length){ blockIntro(RUN.b); return; }
@@ -6103,8 +6211,11 @@ function zielNeu(bl){
   /* Die Satzzahl folgt nur nach, solange sie noch auf der Vorgabe steht. Wer
      sie selbst hochgestellt hat, hat damit etwas gesagt — das wird nicht
      stillschweigend ueberschrieben. */
-  if(bl.saetze === (SETS_ZONE[vorher] || SETS))
-    bl.saetze = SETS_ZONE[bl.zoneErwartet] || SETS;
+  /* In der Kurzeinheit ist die Vorgabe der Zonen-Standard unter der
+     Obergrenze (kurzSaetze). */
+  const vorgabe = z => Math.min(SETS_ZONE[z] || SETS, bl.kurzMax || Infinity);
+  if(bl.saetze === vorgabe(vorher))
+    bl.saetze = vorgabe(bl.zoneErwartet);
 }
 function stufeSetzen(bl, k){
   const lv = S.ex[bl.exercise].levels;
@@ -6350,6 +6461,8 @@ function ausfUmbauen(i){
     if(par) neu.push(zweiter); else nach.push(zweiter);
   }
   RUN.plan.blocks = vor.concat(neu, nach);
+  if(RUN.plan.kurzMax)
+    kurzSaetze(RUN.plan.blocks.slice(i).filter(b => b.exercise === ex), RUN.plan.kurzMax);
   RUN.b = i; RUN.sets = []; RUN.i = 0;
   save(); laufSichern();
 }
@@ -6384,6 +6497,8 @@ function knieBloeckeNeu(plan, i){
   const neu = teile.slice(0, 1).map(t => mkBlock(t.ex, t.side, zf.zone, zf.target, true, onb, zf.fest));
   teile.slice(1).forEach(t => nach.push(mkBlock(t.ex, t.side, zf.zone, zf.target, false, onb, zf.fest)));
   plan.blocks = vor.concat(neu, nach);
+  if(plan.kurzMax)
+    kurzSaetze(plan.blocks.slice(i).filter(b => einheitVon(b.exercise) === einheit), plan.kurzMax);
 }
 function knieUmbauen(i){
   knieBloeckeNeu(RUN.plan, i);
@@ -6454,6 +6569,7 @@ function satzKurveSVG(zeiten, zone){
     zeiten.map(t => Math.round(t)).join(", ")} Sekunden">${g}</svg><div class="skGes">Gesamt <b>${
     Math.floor(ges / 60)}:${String(ges % 60).padStart(2, "0")}</b></div></div>`;
 }
+let kurzIv = null;   /* Uhr der Kurzeinheit zwischen zwei Bloecken */
 function blockIntro(i){
   RUN.b = i;
   const bl = curBlock(), ex = S.ex[bl.exercise], bloecke = RUN.plan.blocks;
@@ -6462,6 +6578,13 @@ function blockIntro(i){
   /* Der Baker-Pfad ist ein Teil der Fersenbruecke: Ihre Frage gilt fuer ihn mit. */
   const einheit = einheitVon(bl.exercise), wEx = S.ex[einheit] || ex;
   if(wEx.warnung && !S.gefragt[einheit]){ warnKarte(i, bl, wEx); return; }
+  /* Kurzeinheit: die Minute vor diesem Block, oben auf der Karte. Sie laeuft
+     nur ab und sperrt nichts — gestartet wird per Tipp, auch vorher. Bei 0
+     ein Ton. Nach einer langen Unterbrechung ist sie laengst um und fehlt.
+     Jedes Neuzeichnen der Karte rechnet sie aus pauseAb neu. */
+  clearInterval(kurzIv); kurzIv = null;
+  const pauseRest = (RUN.plan.kurzMax && i > 0 && RUN.pauseAb)
+    ? PAUSE_KURZ_S - Math.floor((Date.now() - RUN.pauseAb) / 1000) : 0;
   const exKey = bl.exercise, gr = groupOf(exKey);
   const teile = bloecke.filter((b, j) => j >= i && b.exercise === exKey);
   for(const q of teile){
@@ -6575,6 +6698,9 @@ function blockIntro(i){
       <h2 style="margin:0">${ex.name}</h2>
       ${(DEFAULT_EX[exKey] || {}).knieWinkelVorlaeufig
         ? `<p class="tiny vorl" style="margin:4px 0 0">Kniewinkel vorläufig 90°</p>` : ""}
+      ${pauseRest > 0 ? `<div style="text-align:center;margin:12px 0 2px">
+        <div class="big" id="kurzUhr" style="font-size:48px;line-height:1">${pauseRest}</div>
+        <p class="tiny" style="margin:4px 0 0">Sekunden Pause</p></div>` : ""}
       ${schonDran ? "" : zonenWahlKarte(gr)}
       ${awZeigen ? ausfWahlKarte(exKey, bl.zone, "", true) : ""}
       ${(haltungen(exKey) && !schonDran) ? haltungWahlKarte(exKey) : ""}
@@ -6599,6 +6725,14 @@ function blockIntro(i){
      auf derselben Karte, und jede hat ihre eigene Kurve. */
   const zeichne = () => amOrt("ivKarte", () => blockIntro(i));
   const neu = () => { laufSichern(); zeichne(); };
+  if(pauseRest > 0) kurzIv = setInterval(() => {
+    const n = el("kurzUhr");
+    if(!n || !RUN || !RUN.pauseAb){ clearInterval(kurzIv); kurzIv = null; return; }
+    const rest = PAUSE_KURZ_S - Math.floor((Date.now() - RUN.pauseAb) / 1000);
+    n.textContent = Math.max(0, rest);
+    if(rest > 0 && rest <= 3) cueTick();
+    if(rest <= 0){ clearInterval(kurzIv); kurzIv = null; beep(880, 300, .25); }
+  }, 1000);
   document.querySelectorAll("#ivKarte [data-a]").forEach(b => {
     const q = teile[+b.getAttribute("data-t")], a = b.getAttribute("data-a");
     if(a === "stufe"){ b.onchange = e => { stufeSetzen(q, +e.target.value); neu(); }; return; }
@@ -6658,6 +6792,7 @@ function blockIntro(i){
         Object.keys(q).forEach(k => delete q[k]);
         Object.assign(q, n);
       }
+      if(RUN.plan.kurzMax) kurzSaetze(teile, RUN.plan.kurzMax);
       save(); laufSichern(); zeichne();
     };
   });
@@ -6682,6 +6817,7 @@ function blockIntro(i){
     b.onclick = () => { haltungWechseln(exKey, b.getAttribute("data-hl"), teile); zeichne(); };
   });
   el("ivGo").onclick = () => {
+    clearInterval(kurzIv); kurzIv = null; RUN.pauseAb = null;
     teile.forEach(q => { q.eingestellt = true; });
     /* Mit dem Start wird die Vorauswahl zur festen Wahl: Beim naechsten Mal
        steht dieselbe Haltung vorn. */
@@ -6762,7 +6898,9 @@ function afterSet(time, tgt, roh){
   /* Beide Seiten standen auf EINER Karte. Folgt die zweite direkt, fuehrt
      "Weiter" ohne Umweg auf die Uhr — der Knopf sagt, wohin. */
   const naechster = RUN.plan.blocks[RUN.b + 1];
-  const direkt = !!(naechster && naechster.eingestellt
+  /* In der Kurzeinheit nie: Auch zwischen links und rechts steht die Minute,
+     und die laeuft auf der Karte (blockIntro). */
+  const direkt = !!(naechster && naechster.eingestellt && !RUN.plan.kurzMax
                  && naechster.exercise === curBlock().exercise);
   /* Abbrechen lohnt nur, solange noch etwas käme — nach dem letzten Satz des
      letzten Blocks ist "beenden" ohnehin der nächste Schritt. */
@@ -6966,6 +7104,9 @@ function blockSichern(){
     /* Zone nach der ERREICHTEN Zeit — wer eine Stufe selbst waehlt, landet oft woanders. */
     zone: zoneOf(RUN.sets[0].time).id,
     fresh: bl.fresh, userPicked: !!bl.userPicked, nachhol: !!bl.nachhol,
+    /* Aus einer Kurzeinheit (20 Min) — dort stehen weniger Saetze und eine
+       Minute Blockpause. */
+    kurz: !!RUN.plan.kurzMax,
     saetzeGeplant: curSets(),
     sets: RUN.sets.slice()
   }, blockModus(bl)));
@@ -6994,8 +7135,11 @@ function seiteNachruecken(bl){
    die Uhr ohne neue Karte an. Jeder andere Weg hierher (Uebung abgebrochen,
    Satz verworfen) zeigt die Karte — dort ist etwas passiert, das man sehen
    soll. */
-function endBlock(direkt){
+function endBlock(direkt, ab){
   const vorher = curBlock();
+  /* Kurzeinheit: Ab hier laeuft die Minute bis zum naechsten Block. Sie
+     steht im Lauf, damit sie ein Neuladen uebersteht. */
+  RUN.pauseAb = RUN.plan.kurzMax ? (ab || Date.now()) : null;
   if(!blockSichern()){
     RUN.b++; RUN.sets = []; RUN.i = 0;
     seiteNachruecken(vorher);
@@ -7466,12 +7610,12 @@ function historySVG(pts){
 /* 6 (16.10.2026): Ein Schluessel wechselt die Bedeutung. Die Fersenbruecke
    heisst seitdem bridge (Baker-Pfad bridgeKnie), hinge ist der Hip Hinge.
    Spalten unveraendert; ein Export davor meint mit hinge die Fersenbruecke. */
-const EXPORT_SCHEMA = 6;
+const EXPORT_SCHEMA = 7;
 const EXPORT_SPALTEN = [
   "datum","workout","uebung","uebung_name","seite","variante","stufe_nr",
   "zusatz_kg","zusatz_seite","zusatz_position","koerpergewicht_kg","last","satz","saetze_geplant","sekunden","ziel_sekunden",
   "schmerz","frisch","in_kurve","zone_geplant","zone_erreicht",
-  "selbst_gewaehlt","nachgetragen","fassung","zone_gezaehlt","modus"
+  "selbst_gewaehlt","nachgetragen","fassung","zone_gezaehlt","modus","kurzeinheit"
 ];
 function messreihen(){
   const zeilen = [];
@@ -7517,6 +7661,9 @@ function messreihen(){
         fassung: BUILD,
         zone_gezaehlt: ses.zoneGezaehlt || "",
         modus: ses.modus || "",
+        /* 1 = aus einer Kurzeinheit (20 Min, seit Build 2026-10-18 a): weniger
+           Saetze als die Zone vorsieht, eine Minute zwischen den Bloecken. */
+        kurzeinheit: ses.kurz ? 1 : 0,
         /* Nur im JSON: Die Sprosse dieser Messung gibt es nicht mehr (die
            Ringe der Fersenbruecke, Build 2026-10-15 a). stufe_nr zeigt dann
            die Sprosse, auf die sie umgezogen ist; Name und Last stimmen. */
@@ -7726,15 +7873,39 @@ function renderHome(){
   /* Ein Baker-Block zaehlt fuer die Fersenbruecke — er hat keine eigene Zeile. */
   const drin = new Set(p.blocks.map(b => einheitVon(b.exercise)));
   const tage = n => n === 1 ? "morgen" : `in ${n} Tagen`;
+  /* Kurzeinheit: Was nicht in die 20 Minuten passt, steht ohne Haekchen da
+     und sagt es. Ein Haekchen holt es als selbst gewaehlt zurueck — dann geht
+     etwas anderes. */
+  const kurz = !!p.kurzMax, kurzWeg = new Set(p.kurzWeg || []);
+  /* Was eine Uebung in der Kurzeinheit kostet: ihre Bloecke samt der Minute
+     davor. Die Differenz zweier Plaene taugt hier nicht — die Dauer bleibt
+     unter 20 Minuten, wer dazukommt, nimmt anderen die Saetze. Gerundet wird
+     so, dass die Zeilen zusammen genau die Dauer oben ergeben: erst
+     abgerundet, die fehlenden Minuten an die groessten Reste. */
+  const kurzMin = {};
+  if(kurz){
+    const sek = {};
+    p.blocks.forEach((b, i) => { const ex = einheitVon(b.exercise);
+      sek[ex] = (sek[ex] || 0) + blockSekunden(b) + (i ? blockPause(b) : 0); });
+    const alle = Object.keys(sek);
+    alle.forEach(ex => { kurzMin[ex] = Math.floor(sek[ex] / 60); });
+    let fehlt = dauer - alle.reduce((s, ex) => s + kurzMin[ex], 0);
+    alle.sort((a, b) => sek[b] % 60 - sek[a] % 60)
+        .forEach(ex => { if(fehlt > 0){ kurzMin[ex]++; fehlt--; } });
+  }
   const listeKarte = () => `<div class="card flat" id="heuteListe">
     ${uebungslage().map(u => {
       const e = S.ex[u.ex];
-      const frei = !u.ohneGeraet && (u.tor.ok || ignoreRest || !!u.offen);
+      /* Eine heute abgewaehlte Nachholseite bleibt bis Mitternacht anhakbar —
+         auch wenn die Gruppe sonst ruht. */
+      const frei = !u.ohneGeraet && (u.tor.ok || ignoreRest || !!u.offen || !!u.verworfen);
       /* Wer mit einer angehakten Übung nicht an denselben Tag darf, sagt es.
          Das Häkchen tauscht die beiden dann. */
       const partner = drin.has(u.ex) ? null : [...drin].find(x => konflikt(x, u.ex));
       const status = u.ohneGeraet ? (ohneGeraete() ? "nicht bei Nur Körpergewicht" : "Gerät fehlt")
+        : kurzWeg.has(u.ex) ? "passt heute nicht in 20 min"
         : u.offen ? `${u.offen.seite} offen`
+        : u.verworfen ? `${u.verworfen.seite} offen · nicht nachholen`
         : (!u.tor.ok && !ignoreRest)
           ? tage(u.tor.wait)
         : partner ? `nicht zusammen mit ${S.ex[partner].name}` : "";
@@ -7752,6 +7923,7 @@ function renderHome(){
          Haekchen einen Partner tauscht. */
       const an = drin.has(u.ex);
       const min = !frei ? null
+        : kurz ? (an ? Math.max(1, kurzMin[u.ex] || 0) : null)
         : an ? dauer - dauerMitHaekchen(u, false, drin)
         : dauerMitHaekchen(u, true, drin) - dauer;
       const minText = min == null ? ""
@@ -7827,6 +7999,18 @@ function renderHome(){
         <input type="checkbox" id="modusWand" ${S.modus === "wand" ? "checked" : ""}>
         <span><b>Wand</b></span></label>` : ""}</div>`;
   };
+  /* Kurzeinheit (Luke, 18.10.2026): direkt ueber dem Startknopf, gilt nur
+     fuer heute. Angehakt steht rechts, wie viele Saetze je Block bleiben. */
+  const kurzKarte = () => {
+    const n = p.blocks.map(b => b.saetze || SETS);
+    const lo = Math.min(...n), hi = Math.max(...n);
+    const saetze = !kurz ? "" : lo !== hi ? `${lo}–${hi} Sätze`
+                 : `je ${anzahl(lo, "Satz", "Sätze")}`;
+    return `<label class="chk" for="kurzAn" style="margin:12px 0 0">
+      <input type="checkbox" id="kurzAn" ${kurz ? "checked" : ""}>
+      <span><b>Kurzeinheit (20 Min)</b></span>${
+      saetze ? `<span class="chkMin">${saetze}</span>` : ""}</label>`;
+  };
   const modusBinden = () => {
     document.querySelectorAll("#modusWahl button").forEach(b => b.onclick = () => {
       if(b.dataset.modus === "normal") modusSetzen("normal");
@@ -7879,12 +8063,18 @@ function renderHome(){
       ${p.blocks.length ? `
         ${planFolge(p.blocks)}
         <div class="planDauer"><span>Dauer</span><b id="planDauer">${dauer} min</b></div>
+        ${kurzKarte()}
         <button class="primary" style="width:100%;margin-top:14px;padding:16px"
           id="goSess">Workout starten</button>`
       : `<h2 style="margin:0">Nichts angehakt</h2>`}
     </div>
     ${listeKarte()}`;
   listeBinden();
+  if(el("kurzAn")) el("kurzAn").onchange = ev => {
+    S.kurzTag = ev.target.checked ? today() : null;
+    S.plan = null; S.planDay = null; save();
+    renderAmOrt("kurzAn");
+  };
   if(el("goSess")) el("goSess").onclick = ()=>{ beep(660,60,.05); startWorkout(); };
 }
 /* Die Reihenfolge als nummerierte Liste, jeder Block mit vollem Namen und
@@ -8227,29 +8417,56 @@ function renderHistory(){
    ein". Was seitenParallel weiter regelt, ist die REIHENFOLGE: beide Seiten
    stehen nebeneinander im vorderen Teil, damit auch die zweite frisch gemessen
    wird. Nur die Pause dazwischen ist wieder die normale. */
+/* In der Kurzeinheit ist die Blockpause eine Minute (PAUSE_KURZ_S) — die
+   Bloecke tragen dort kurzMax. In Sekunden, weil die Kurzeinheit auf die
+   Sekunde gegen die 20 Minuten rechnet (kurzKuerzen). */
+function blockSekunden(bl){
+  const z = ZONES.find(x => x.id === bl.zone) || ZONES[0];
+  const n = bl.saetze || SETS_ZONE[bl.zone] || SETS;
+  const t = bl.target || Math.round((z.lo + z.hi) / 2);
+  const halt = satzZeiten(t, n, satzModell(bl.exercise, bl.side)).reduce((a, b) => a + b, 0);
+  return LEAD_IN + halt + (n - 1) * PAUSE_S;
+}
+function blockPause(bl){ return bl.kurzMax ? PAUSE_KURZ_S : PAUSE_BLOCK_S; }
+function planSekunden(bloecke){
+  return (bloecke || []).reduce((sum, bl, i) =>
+    sum + (i ? blockPause(bl) : 0) + blockSekunden(bl), 0);
+}
 function planDauer(bloecke){
   if(!bloecke || !bloecke.length) return 0;
-  const summe = bloecke.reduce((sum, bl, i) => {
-    const z = ZONES.find(x => x.id === bl.zone) || ZONES[0];
-    const n = bl.saetze || SETS_ZONE[bl.zone] || SETS;
-    const t = bl.target || Math.round((z.lo + z.hi) / 2);
-    const halt = satzZeiten(t, n, satzModell(bl.exercise, bl.side)).reduce((a, b) => a + b, 0);
-    return sum + (i ? PAUSE_BLOCK_S : 0)
-               + LEAD_IN + halt + (n - 1) * PAUSE_S;
-  }, 0);
-  return Math.max(1, Math.round(summe / 60));
+  return Math.max(1, Math.round(planSekunden(bloecke) / 60));
 }
 /* Was ein Haekchen in der Liste auf Heute an S aendert — EINE Stelle fuer
    den Klick und fuer die Minuten daneben, damit die Vorschau nie etwas
-   anderes rechnet als der Klick danach. */
+   anderes rechnet als der Klick danach.
+   Was die Kurzeinheit herausgekuerzt hat, bleibt in S.heute: Es ist nur fuer
+   die 20 Minuten weg und kommt zurueck, sobald Platz ist oder der Haken
+   "Kurzeinheit" geht. S.heuteSelbst merkt sich, was der Nutzer heute selbst
+   angehakt hat — die Vorhaken der App zaehlen dort nicht. */
 function haekchenSetzen(u, an, drin){
-  const sel = new Set(drin);
+  const p = (S.plan && S.planDay === today()) ? S.plan : null;
+  const sel = new Set([...drin, ...((p && p.kurzWeg) || [])]);
+  const selbst = new Set((S.heuteTag === today() && Array.isArray(S.heuteSelbst))
+                         ? S.heuteSelbst : []);
+  if(!S.nachholWeg) S.nachholWeg = {};
   if(an){
     S.aktiv[u.ex] = true;
-    for(const x of [...sel]) if(konflikt(x, u.ex)) sel.delete(x);
-    sel.add(u.ex);
-  } else sel.delete(u.ex);
-  S.heute = [...sel]; S.heuteTag = today();
+    for(const x of [...sel]) if(konflikt(x, u.ex)){ sel.delete(x); selbst.delete(x); }
+    sel.add(u.ex); selbst.add(u.ex);
+    /* Zurueckgeholt: Die Seite ist wieder offen und wird nachgeholt. */
+    if(u.verworfen) delete S.nachholWeg[u.ex];
+  } else {
+    sel.delete(u.ex); selbst.delete(u.ex);
+    /* Das Haekchen am Nachholblock abgewaehlt: Diese Seite wird nicht mehr
+       nachgeholt (offeneSeite). */
+    if(u.offen) S.nachholWeg[u.ex] = {tag: u.offen.tag, am: today()};
+  }
+  /* Eine Abwahl gilt fuer genau eine offene Seite, und die gibt es hoechstens
+     ein paar Tage (NACHHOL_TAGE). Was laenger her ist, wird nicht mehr
+     gebraucht. */
+  for(const ex of Object.keys(S.nachholWeg))
+    if(!(today() - S.nachholWeg[ex].tag < 30)) delete S.nachholWeg[ex];
+  S.heute = [...sel]; S.heuteSelbst = [...selbst]; S.heuteTag = today();
   S.plan = null; S.planDay = null;
 }
 /* Wie lange dauerte das Workout mit diesem Haekchen? Plant auf Probe und

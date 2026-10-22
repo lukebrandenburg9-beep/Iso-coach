@@ -3550,11 +3550,148 @@ Zur Fußstellung: Beim Beinbeuger am Kabelzug schmerzt Plantarflexion weniger al
   Ein Stand mit Schlüssel ohne Seite (`bridgeKnie`) zieht zuerst um und wird dann von `beidUmzug`
   auf beide Seiten verteilt.
 
+### P84 · Kurzeinheit (20 Min) und Nachholblock zum Abwählen
+
+Luke, 18.10.: Auf der Startseite soll es ein Häkchen „Kurzeinheit (20 Min)“ geben. Ist es gesetzt,
+wird das Training so gekürzt, dass die Einheit mit allen Pausen höchstens 20 Minuten dauert.
+Gerechnet wird die Dauer aus den Daten der App, aus Haltezeiten, Pausen und Satzzahl. Beim Kürzen
+bleiben zuerst die Übungen, die der Kunde selbst gewählt hat, dann die, die diese Woche noch nicht
+dran waren, und alles andere fällt zuerst weg. Später kam der Nachholblock dazu: Er „kann optional
+auch per Klick abgewählt werden, wenn der Kunde das nicht mehr nachholen möchte“. Für die Kurve gilt:
+„nur der erste Punkt, also der Satz, der auch wirklich trainiert wurde, fließt in die Kurve ein“.
+
+**Lukes Entscheidungen.**
+
+| Frage | Lukes Antwort |
+|---|---|
+| Was heißt „selbst gewählt“? | „Heute selbst angehakt“, ein Vorschlag der App zählt nicht |
+| Wann ein Satz, wann zwei? | Wer viele Übungen wählt, macht nur einen Satz. „Falls er weniger Übungen anwählt, werden die Sätze entsprechend erhöht“ |
+| Bis zu wie vielen Sätzen? | „Bis zum Zonen-Standard“ |
+| Höchstens zwei bis drei Übungen? | „Vergiss die Regel“ |
+| Sind 20 Minuten eine harte Grenze? | „20 Minuten sind hart“ |
+| Ausgleich für die kürzere Einheit? | „Wenn kürzer trainiert wird, wird eben kürzer trainiert“ |
+| Was heißt „diese Woche noch nicht trainiert“? | „Letzte 7 Tage“ |
+| Pause zwischen den Übungen? | „1 Minute mit Timer“ |
+| Wo läuft die Minute? | „Auf der nächsten Karte, Start per Tipp“ |
+| Erst Sätze oder erst Übungen kürzen? | „Erst Sätze, dann Übungen“ |
+| Gleiche Satzzahl für alle? | „Gleiche Obergrenze für alle“ |
+| Wer bleibt bei Gleichstand? | „Längste Wartezeit bleibt“ |
+| Wo steht das Häkchen? | „In der Plankarte über dem Start“ |
+| Wie lange gilt es? | „Nur für heute“ |
+| Wo steht der Nachholblock? | „Vor allem anderen“ |
+| Links und rechts einzeln kürzen? | „Nur beide Seiten zusammen“ |
+| Fließen nicht trainierte Sätze rechnerisch in die Kurve? | Nein, nur der trainierte erste Satz |
+
+**Gebaut in 2026-10-18 a.**
+
+- **Häkchen „Kurzeinheit (20 Min)“** in der Plankarte zwischen Dauer und „Workout starten“.
+  Rechts daneben steht „je 3 Sätze“ oder, wenn die Zonen verschieden viele zulassen, „2–3 Sätze“.
+  Das Häkchen gilt bis Mitternacht, am nächsten Tag plant die App wieder normal.
+- **Ausgangspunkt** ist der Plan des Tages oder die selbst zusammengestellte Liste. Die App füllt
+  nichts auf.
+- **Erst Sätze, dann Übungen.** Die App sucht die höchste Satzzahl, die für alle Übungen gleich
+  gilt und in 20 Minuten passt. Sie fängt beim Zonen-Standard an (Maximalkraft 5,
+  Hypertrophie / Kraft 4, Kraftausdauer 3) und geht bis auf einen Satz herunter. Wo der Standard
+  einer Zone kleiner ist, bleibt er. Passt selbst ein Satz je Übung nicht, fällt eine ganze Übung
+  weg, immer beide Seiten zusammen, und die Suche beginnt wieder beim Standard.
+- **Wer zuerst wegfällt:** Übungen, die in den letzten 7 Tagen trainiert wurden. Dann die übrigen
+  Vorschläge der App. Dann die, die der Kunde heute selbst angehakt hat. Der Nachholblock bleibt am
+  längsten. Bei Gleichstand bleibt die Übung, die am längsten wartet. Ein leeres Workout gibt es nie,
+  eine Übung bleibt immer.
+- **Weggefallene Übungen** stehen ohne Häkchen da und tragen „passt heute nicht in 20 min“. Wer
+  eine davon anhakt, zählt sie zu den selbst gewählten, und die App kürzt neu. Die Minuten der
+  angehakten Zeilen ergeben zusammen die Dauer der Plankarte.
+- **Eine Minute Pause zwischen den Blöcken**, auch zwischen links und rechts. Die nächste Karte
+  zeigt sie groß als Countdown, die letzten drei Sekunden ticken, bei null kommt ein Ton. Gestartet
+  wird per Tipp. Die Minute zählt ab dem Ende des letzten Satzes und übersteht Unterbrechen und
+  Neuladen.
+- **Die Karten starten mit der gekürzten Satzzahl.** Der Satzwähler bleibt frei. Wechselt jemand
+  auf der Karte die Zone, rechnet die App den Vorschlag mit derselben Obergrenze neu.
+- **Die Zone bleibt, wie die Rotation sie will.** Die Kurzeinheit ändert nur Satzzahl, Auswahl und
+  Pause.
+- **Kurve:** unverändert. Sie nimmt nur den ersten Satz jeder Übung, so wie er trainiert wurde.
+  Gerechnete Sätze gibt es nicht.
+- **Marke im Verlauf:** Jede Sitzung aus einer Kurzeinheit trägt `kurz`. Der Export hat die Spalte
+  `kurzeinheit` (Schema 7).
+- **Nachholblock zum Abwählen, in jedem Training.** Wer die Zeile mit der offenen Seite abhakt,
+  holt sie nicht nach. Die Zeile heißt dann „rechts offen · nicht nachholen“ und lässt sich bis
+  Mitternacht wieder anhaken. Danach plant die App die Übung wieder ganz normal.
+
+**Der Preis.**
+
+- **Die 20 Minuten sind gerechnete Zeit:** Vorlauf, Halte, Satzpausen und Blockminuten. Wie lange
+  jemand auf einer Karte liest, die Rolle holt oder das Gewicht umhängt, steht nicht drin.
+- **Die Minute hält niemanden fest.** Wer früher tippt, startet früher. Wer den Satzwähler
+  hochdreht, landet über 20 Minuten. Gekürzt wird nur der Vorschlag.
+- **Zwischen links und rechts steht jetzt eine Karte mehr.** Ohne Kurzeinheit startet die zweite
+  Seite direkt aus der ersten. In der Kurzeinheit läuft dazwischen die Minute, also ein Tipp mehr
+  je zweiseitiger Übung.
+- **Ein Satz je Übung bringt der Satzkurve nichts bei.** Sie lernt aus dem Abfall von Satz 1 zu
+  Satz 2 und weiter. Wer nur Kurzeinheiten mit einem Satz macht, bleibt beim Studienwert oder beim
+  alten eigenen Wert. Die Kraftkurve ist davon nicht betroffen.
+- **Nicht angehakte Zeilen zeigen in der Kurzeinheit keine Minuten.** Was eine Übung zusätzlich
+  kosten würde, hängt davon ab, wie viele Sätze danach für alle übrig bleiben.
+- **Die Minuten je Zeile sind verteilt gerundet,** damit sie zusammen die Dauer ergeben. Eine
+  einzelne Zeile kann deshalb eine Minute neben ihrem eigenen gerundeten Wert liegen.
+- **Auf der einmaligen Sicherheitsfrage vor einer neuen Übung steht keine Uhr.** Die Minute läuft
+  im Hintergrund weiter. Wer länger liest, sieht danach den Rest oder die Null, aber keinen Ton.
+- **Eine abgewählte Seite bleibt ohne Messung.** Nach Mitternacht ist die Abwahl endgültig, und
+  die Übung läuft beim nächsten Mal mit beiden Seiten in der Rotation.
+
+**Für den Nachbau:**
+
+- `KURZ_S` = 1200, `PAUSE_KURZ_S` = 60. Stand: `kurzTag` (Tag des Häkchens), `heuteSelbst`
+  (heute selbst angehakte Übungen), `nachholWeg` (je Übung `{tag, am}`: Tag der offenen Seite, Tag
+  der Abwahl, nach 30 Tagen gelöscht).
+- `kurzAn()`, `kurzSaetze(bloecke, k)`, `kurzKuerzen(blocks, dran)`. Dauer über `blockSekunden`,
+  `blockPause` und `planSekunden`. Plan und Blöcke tragen `kurzMax`, der Plan `kurzWeg`.
+  Umbauten im Lauf (Haltung, Ausfall, Kniepfad, Zonenwechsel) wenden `kurzSaetze` erneut an.
+- `offeneSeiteRoh(ex)` ist die alte Rechnung. `offeneSeite(ex)` blendet eine abgewählte Seite aus,
+  `nachholVerworfen(ex)` liefert sie, solange die Abwahl von heute ist.
+- Lauf: `RUN.pauseAb` (Beginn der Minute) wird mit dem Lauf gesichert. `afterSet` geht in der
+  Kurzeinheit nie direkt auf die zweite Seite. Die Sitzung trägt `kurz`. `EXPORT_SCHEMA` 7,
+  letzte Spalte `kurzeinheit`.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-18 a — Kurzeinheit (20 Min), Nachholblock zum Abwählen
+
+**Befund (Luke).** An manchen Tagen sind nur 20 Minuten da. Die App soll das Training dann selbst
+so kürzen, dass es mit allen Pausen hineinpasst. Der Nachholblock soll sich abwählen lassen, wenn
+der Kunde die offene Seite nicht mehr nachholen will (P84).
+
+**Gebaut.**
+
+- **Häkchen „Kurzeinheit (20 Min)“** über „Workout starten“, gilt nur heute.
+- **Kürzen:** erst die Satzzahl für alle gleich, vom Zonen-Standard bis auf einen Satz, dann ganze
+  Übungen. Es fallen zuerst die weg, die in den letzten 7 Tagen trainiert wurden, zuletzt der
+  Nachholblock. Bei Gleichstand bleibt die längste Wartezeit.
+- **Eine Minute Blockpause** mit Countdown und Ton auf der nächsten Karte, Start per Tipp.
+- **Marke `kurz`** an der Sitzung, Exportspalte `kurzeinheit`, Schema 7.
+- **Nachholblock abwählbar** in jedem Training, bis Mitternacht wieder anhakbar.
+
+**Geprüft.**
+
+- Bei 375 × 812 auf erfundenem Stand mit drei Workouts (vor 24, 17 und 10 Tagen) und einem
+  Ausfallschritt links von gestern:
+  - Ohne Häkchen: 6 Blöcke, 35 min. Mit Häkchen: 6 Blöcke je 3 Sätze, 18 min. Je 4 Sätze wären
+    21½ min gewesen.
+  - Alle freien Übungen angehakt: 11 Blöcke je ein Satz, 19 min. Der Liegestütz fällt weg und
+    trägt „passt heute nicht in 20 min“. Die Minuten der Zeilen ergeben zusammen 19.
+  - Nachholblock abgehakt: Die Zeile heißt „Ausfallschritt rechts offen · nicht nachholen“, der
+    Plan hat 5 Blöcke je 4 Sätze, 18 min. Wieder angehakt steht der Nachholblock vorn. Eine Abwahl
+    von gestern zeigt weder den Block noch die Zeile.
+  - Im Lauf: Karte 1 mit 2 Sätzen. Nach dem Block steht auf der nächsten Karte die Minute und
+    zählt herunter, auch über die einmalige Sicherheitsfrage hinweg. Sie bleibt bei 0 stehen und
+    läuft nach Unterbrechen und Neuladen richtig weiter.
+  - Nach dem Abschluss trägt die Sitzung `kurz`. In der CSV steht `kurzeinheit` 1 für beide Sätze
+    und 0 für alle alten Zeilen.
+  - Häkchen von gestern: Die App plant normal. Keine Konsolenfehler.
+- Testdaten danach gelöscht.
 
 ### 2026-10-16 f — Pfad fürs innere Knie nur mit der Ferse
 

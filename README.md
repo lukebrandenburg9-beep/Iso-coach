@@ -122,6 +122,16 @@ Rechenlogik:
   nächste Sitzung zurück; dort stehen sie oben. Wer selbst entscheiden will, benutzt auf der
   Startseite *Heute selbst zusammenstellen* — das gilt nur für diese eine Sitzung und hebt den
   Deckel auf.
+- **Kurzeinheit (20 Min).** Ein Häkchen in der Plankarte über *Workout starten*, gültig bis
+  Mitternacht. Die App kürzt dann so, dass die Einheit mit allen Pausen höchstens 20 Minuten
+  dauert: erst die Satzzahl, für alle Übungen gleich, vom Zonen-Standard bis auf einen Satz, dann
+  ganze Übungen, links und rechts immer zusammen. Zuerst fallen Übungen weg, die in den letzten
+  7 Tagen trainiert wurden, zuletzt die heute selbst angehakten und der Nachholblock. Zwischen den
+  Blöcken läuft eine Minute Pause als Countdown auf der nächsten Karte, gestartet wird per Tipp.
+  Die Kurve nimmt wie immer nur den ersten Satz. Der Export markiert solche Sätze in der Spalte
+  `kurzeinheit`.
+- **Nachholblock zum Abwählen.** Wer die offene Seite nicht mehr nachholen will, nimmt das Häkchen
+  der Zeile ab. Bis Mitternacht lässt es sich wieder setzen, danach plant die App die Übung normal.
 - **Progressionsregeln 1–4** über zwei Bahnen: Leiter und Zusatzgewicht. Am oberen Ende der
   Leiter kommt Gewicht dazu statt gar nichts, am unteren geht erst Gewicht weg, bevor die Stufe
   fällt. Zweimal Schmerzabbruch stuft zurück — und wenn nichts Leichteres mehr da ist, sagt die
