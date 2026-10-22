@@ -47,7 +47,7 @@ fest. App aus dem App-Umschalter wegwischen und neu öffnen.
 **Deine Messwerte überleben die Updates.** Sie liegen unter dem Schlüssel `isocoach.v1` im
 Browser, gebunden an die Adresse. Solange die Adresse gleich bleibt, bleiben die Sessions
 erhalten; geänderte Übungsstufen werden über `EX_VERSION` sauber nachgezogen. Vor größeren
-Umbauten trotzdem einmal über **Mehr → Sichern (Datei)** sichern.
+Umbauten trotzdem einmal über **Einstellungen → Sichern (Datei)** sichern.
 
 **Das Repository ist öffentlich**, weil GitHub Pages ohne bezahltes Konto nur so funktioniert.
 Unbedenklich: In den Dateien stehen keine persönlichen Daten — die Messwerte entstehen erst
@@ -75,7 +75,7 @@ Rechenlogik:
 
 - **Die Kurve** `t = W'/(P − CP)`, gefittet über eine eindimensionale Suche, ältere Messpunkte
   werden mit 3 % je neuerem Punkt abgewertet. **Sie rechnet mit den letzten 30 Punkten** je
-  Kurve, ältere bleiben in Verlauf und Export. Im Profil wird ein älterer Punkt so blass, wie
+  Kurve, ältere bleiben im Export. Im Profil wird ein älterer Punkt so blass, wie
   wenig er noch zählt. Ein Punkt mit Gewicht bekommt einen Pfeil von der Linie seiner Sprosse,
   die kg-Zahl steht klein und grau daneben, wo Platz ist.
 - **Gespreiztes Onboarding** über drei Stufen (leicht / mittel / schwer) statt einer. Der
@@ -112,7 +112,7 @@ Rechenlogik:
   Während der drei Einstiegstests genügen **24 Stunden** — sonst zöge sich das Onboarding über
   drei Wochen. Übungen **ohne Überschneidung** (Liegestütz, Ausfallschritt, Seitstütz, Schrägzug,
   Fersenbrücke, Hip Hinge, Hyperextension) dürfen am selben Tag getestet werden; die App sagt am Pausentag, welche Gruppe noch frei ist. Der Pausentag
-  nennt Grund und Termin und lässt sich bewusst übergehen. Werte unter *Mehr → Erholung*.
+  nennt Grund und Termin und lässt sich bewusst übergehen. Werte unter *Einstellungen → Erholung*.
   Dort steht auch **„Ohne Pause"**: Ein Haken je Übung hebt Tagessperre und Zonenruhe auf, die
   Übung läuft dann so oft am Tag, wie du willst. Nach einem Schmerzabbruch ist für den Tag
   trotzdem Schluss. Die zweite Einheit am Tag zählt in der Kurve als frisch.
@@ -164,7 +164,7 @@ P3 in [ISO-Coach_Probleme-und-Aenderungen.md](ISO-Coach_Probleme-und-Aenderungen
 
 ## Was du an Gerät brauchst
 
-Unter **Mehr → Setup → Geräte** hakst du an, was du hast. Die meisten Übungen kommen mit Möbeln
+Unter **Einstellungen → Geräte** hakst du an, was du hast. Die meisten Übungen kommen mit Möbeln
 aus — Arbeitsplatte, Tisch, Stuhl, Hocker, Stepper, Kiste, Kissen. Gerät braucht es hierfür:
 
 | Gerät | wofür | voreingestellt |
@@ -181,9 +181,12 @@ taucht im Workout gar nicht erst auf.
 
 ---
 
-## Was du einstellen solltest
+## Stufen und Lastfaktoren
 
-Unter **Mehr → Stufen und Lastfaktoren**.
+In der App lassen sie sich seit Build `2026-10-22 a` nicht mehr einstellen. Die Werte sollen nie
+von Hand gesetzt, sondern statistisch aus den Nutzerdaten ermittelt werden (Handoff 4.2). Bis
+dahin stehen sie im Code in `DEFAULT_EX` und gelten für alle. Ein früher von Hand geänderter Wert
+fällt beim nächsten Laden auf den Build zurück; gespeicherte Messpunkte behalten ihren Faktor.
 
 Die Lastfaktoren sind Verhältniszahlen, keine Kilogramm — die leichteste Stufe ist 1,00, alles
 andere bezieht sich darauf. Sie sind **grob geschätzte Startwerte** und liegen in deinem
@@ -193,7 +196,7 @@ Ein Punkt, der sich beim Testen gezeigt hat und den du kennen solltest: **Wie fe
 abgestuft sind, entscheidet, welche Zonen überhaupt trainierbar sind.** Mit den ursprünglich
 fünf groben Stufen war Hypertrophie / Kraft (60–90 s) für einen durchschnittlichen Nutzer gar nicht
 erreichbar — der Sprung von Stufe zu Stufe übersprang sie. Deshalb jetzt acht Stufen mit
-einem Lastverhältnis von etwa 1,15 zwischen benachbarten Stufen. Wenn du die Stufen änderst,
+einem Lastverhältnis von etwa 1,15 zwischen benachbarten Stufen. Wenn du die Stufen im Code änderst,
 prüfe unter **Profil → „Was du auf jeder Stufe schaffst"**, ob noch alle drei Zonen vorkommen.
 
 Der Ausfallschritt ist mein Vorschlag und nicht abgestimmt — Tiefe und Unterstützungsgrad als
@@ -252,7 +255,7 @@ kommen aus gemessenen Haltezeiten. Auf der Karte lässt sich beidbeinig oder ein
 App wählt vor.
 
 **Der Pfad fürs innere Knie.** Auf der Karte der Fersenbrücke steht je Bein ein Häkchen
-„Probleme mediales Knie / Baker-Zyste", dieselben Häkchen stehen unter *Mehr*. Ein angehaktes Bein
+„Probleme mediales Knie / Baker-Zyste", dieselben Häkchen stehen unter *Einstellungen*. Ein angehaktes Bein
 bekommt eine eigene Leiter auf der Faszienrolle mit eigener Kurve. Sie hat zwei Sprossen, beide mit
 der Ferse auf der Rolle: erst beidbeinig, dann einbeinig. Vorfuß und Fußstellung sind seit dem 16.10.
 raus (P83). Der Vorfuß geht auf die Wade, und die Fußstellung macht in der Brücke keinen Unterschied.
@@ -329,7 +332,7 @@ kommt Gewicht nur auf der obersten Sprosse dazu, mit beiden Armen eng vor der Br
 bezogen auf diese Sprosse (30 cm Hebel vom Nabel bis zur Mitte des Brustbeins). Ohne Gewicht wäre
 sie leichter als die Y-Haltung, denn die Arme liegen dann am Rumpf. Die App beginnt deshalb mit
 dem kleinsten Gewicht im 2,5-kg-Raster, mit dem die Sprosse mindestens so schwer ist wie Y: 7,5 kg
-bei 59 bis 88 kg Körpergewicht, 10 kg bis 117 kg. Dafür braucht die App das Körpergewicht: *Mehr → Messung*.
+bei 59 bis 88 kg Körpergewicht, 10 kg bis 117 kg. Dafür braucht die App das Körpergewicht: *Einstellungen → Messung*.
 Beim Hip Hinge hängt das Gewicht in den Händen senkrecht unter den Schultern: `2,12·X/BW` (52 cm
 von der Hüfte zur Schulter). Auch dort gibt es ein Mindestgewicht, denn „Stehend, Gewicht in beiden
 Händen" ist ohne Gewicht dieselbe Stellung wie „Stehend, Körpergewicht": das kleinste Gewicht, mit
@@ -360,7 +363,7 @@ Hand – links". Wechselst du, bleibt die Last gleich und die App rechnet das Ki
 
 ## Datensicherung
 
-**Mehr → Sichern (Datei)** legt eine JSON-Datei ab. Das ist die einzige Sicherung, die es gibt:
+**Einstellungen → Sichern (Datei)** legt eine JSON-Datei ab. Das ist die einzige Sicherung, die es gibt:
 Leerst du die Browserdaten oder wechselst das Gerät, sind die Messwerte weg. Vor jedem
 Browser-Aufräumen einmal sichern.
 

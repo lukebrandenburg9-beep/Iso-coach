@@ -91,7 +91,7 @@ label{display:block;font-size:12.5px;color:var(--tx2);margin-bottom:5px}
 .screen.on{display:block}
 nav{position:fixed;bottom:0;left:0;right:0;background:rgba(18,19,26,.96);
   border-top:1px solid var(--line);backdrop-filter:blur(12px);z-index:40}
-nav .inner{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+nav .inner{max-width:560px;margin:0 auto;display:grid;grid-auto-flow:column;grid-auto-columns:1fr}
 nav button{background:0;border:0;border-radius:0;color:var(--tx3);
   padding:11px 4px calc(13px + env(safe-area-inset-bottom));
   font-size:11px;display:flex;flex-direction:column;align-items:center;gap:3px}
@@ -317,6 +317,8 @@ code{background:var(--panel2);padding:1.5px 5px;border-radius:5px;font-size:12.5
 </section>
 
 <!-- ══════════ VERLAUF ══════════ -->
+<!-- Seit Build 2026-10-22 b ohne Knopf in der Leiste, also nicht erreichbar.
+     Liegt bereit, falls er zurückkommt (siehe nav unten). -->
 <section id="s-history" class="screen">
   <h1>Verlauf</h1>
   <p class="muted" id="histSub"></p>
@@ -355,7 +357,10 @@ code{background:var(--panel2);padding:1.5px 5px;border-radius:5px;font-size:12.5
 <nav><div class="inner">
   <button data-go="home" class="on"><span class="ic">▶</span>Heute</button>
   <button data-go="profile"><span class="ic">◠</span>Profil</button>
-  <button data-go="history"><span class="ic">≡</span>Verlauf</button>
+  <!-- Verlauf aus der Leiste genommen (Luke, 22.10.2026: "hat für den nutzer
+       wenig relevanz"). Bildschirm s-history und renderHistory() bleiben liegen;
+       zurück kommt er mit genau dieser Zeile:
+  <button data-go="history"><span class="ic">≡</span>Verlauf</button> -->
   <button data-go="setup"><span class="ic">⚙</span>Einstellungen</button>
 </div></nav>
 
@@ -1666,7 +1671,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-22 a";
+const BUILD = "2026-10-22 b";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -7648,12 +7653,18 @@ function historySVG(pts){
 /* 6 (16.10.2026): Ein Schluessel wechselt die Bedeutung. Die Fersenbruecke
    heisst seitdem bridge (Baker-Pfad bridgeKnie), hinge ist der Hip Hinge.
    Spalten unveraendert; ein Export davor meint mit hinge die Fersenbruecke. */
-const EXPORT_SCHEMA = 7;
+/* 8 (22.10.2026): Zwei Spalten am Ende, schmerz_ende und aus_kurve_grund.
+   Beides stand bis dahin nur im Verlauf, und der ist seit Build 2026-10-22 b
+   nicht mehr erreichbar (Luke: "ja" zur Frage, ob es in den Export kommt).
+   schmerz_ende haengt am Workout und steht in jeder seiner Zeilen, wie datum
+   und kurzeinheit auch. */
+const EXPORT_SCHEMA = 8;
 const EXPORT_SPALTEN = [
   "datum","workout","uebung","uebung_name","seite","variante","stufe_nr",
   "zusatz_kg","zusatz_seite","zusatz_position","koerpergewicht_kg","last","satz","saetze_geplant","sekunden","ziel_sekunden",
   "schmerz","frisch","in_kurve","zone_geplant","zone_erreicht",
-  "selbst_gewaehlt","nachgetragen","fassung","zone_gezaehlt","modus","kurzeinheit"
+  "selbst_gewaehlt","nachgetragen","fassung","zone_gezaehlt","modus","kurzeinheit",
+  "schmerz_ende","aus_kurve_grund"
 ];
 function messreihen(){
   const zeilen = [];
@@ -7702,6 +7713,13 @@ function messreihen(){
         /* 1 = aus einer Kurzeinheit (20 Min, seit Build 2026-10-18 a): weniger
            Saetze als die Zone vorsieht, eine Minute zwischen den Bloecken. */
         kurzeinheit: ses.kurz ? 1 : 0,
+        /* Schmerzwert 0–10 am Ende des Workouts, gleich fuer alle seine
+           Zeilen. Leer bei nachgetragenen Punkten: dort wird er nicht gefragt. */
+        schmerz_ende: ses.painEnd == null ? "" : ses.painEnd,
+        /* Warum die Messung bewusst aus der Kurve genommen ist ("alte Skala",
+           "Stellung gestrichen"). Leer heisst: kein solcher Grund — in_kurve
+           kann trotzdem 0 sein (vorermuedet, ausserhalb des Messfensters). */
+        aus_kurve_grund: ses.ausKurve || "",
         /* Nur im JSON: Die Sprosse dieser Messung gibt es nicht mehr (die
            Ringe der Fersenbruecke, Build 2026-10-15 a). stufe_nr zeigt dann
            die Sprosse, auf die sie umgezogen ist; Name und Last stimmen. */
@@ -7737,7 +7755,12 @@ function messreihenJSON(){
     fassung: BUILD,
     hinweis: "Eine Zeile je gehaltenem Satz. in_kurve=1 markiert die Punkte, aus denen "
            + "sich CP und W' fitten lassen (Satz 1 einer nicht vorermuedeten Messung). "
-           + "last ist ein Lastverhaeltnis INNERHALB einer Uebung, nicht zwischen Uebungen.",
+           + "last ist ein Lastverhaeltnis INNERHALB einer Uebung, nicht zwischen Uebungen. "
+           + "schmerz_ende ist der Schmerzwert (0-10) am Ende des Workouts und steht in "
+           + "jeder Zeile dieses Workouts; je Workout zaehlen, nicht je Zeile. Leer bei "
+           + "nachgetragenen Punkten. aus_kurve_grund nennt, warum eine Messung bewusst "
+           + "aus der Kurve genommen ist (alte Skala, Stellung gestrichen); leer heisst "
+           + "kein solcher Grund.",
     rechnung: "last = grundlast_der_stufe * (1 + extra_k * zusatz_kg / koerpergewicht_kg). "
             + "extra_k steht je Uebung dabei — ohne den Faktor laesst sich die Spalte last "
             + "nicht nachrechnen. Ist zusatz_kg NEGATIV (zusatz_seite=innen), gilt "
@@ -8318,7 +8341,7 @@ function renderProfile(){
           Erholung zwischen den Sätzen, nicht an der Dauerlast-Schwelle. Zwei Menschen mit ganz
           verschiedenem CP erzeugen bei gleicher Last dieselbe Satzfolge.</p>
           <p class="tiny"><b>Was stattdessen zählt:</b> die Haltezeit bei fester Last über die
-          Wochen. Unten im Verlauf steht sie.${
+          Wochen. Unten unter „Haltezeit über die Zeit“ steht sie.${
             extraAbOf(S.exercise) < S.ex[S.exercise].levels.length
             ? ` Wenn du Zusatzgewicht nimmst, entsteht eine zweite Last — und damit doch eine
                 Kurve.` : ""}</p>
@@ -8632,7 +8655,7 @@ function renderSetup(){
       <h3 style="margin-top:0">Übung</h3>
       <select id="exSel">${Object.entries(S.ex).map(([k,v])=>
         `<option value="${k}" ${k===S.exercise?"selected":""}>${v.name} · ${v.region}</option>`).join("")}</select>
-      <p class="tiny" style="margin-top:8px">Jede Übung hat ihre eigene Kurve und ihren eigenen Verlauf.</p>
+      <p class="tiny" style="margin-top:8px">Jede Übung hat ihre eigene Kurve.</p>
     </div>
     <!-- Luke, 22.10.2026: Die Karte "Stufen und Lastfaktoren" ist raus. "wir
          wollen die werte niemals manuell einstellen. sondern statistisch aus
@@ -9204,7 +9227,7 @@ function render(){
 /* Waehrend eines Laufs fuehrt "Heute" zurueck INS Workout, nicht auf den
    Planungsbildschirm. Vorher sah ein Tipp auf die Leiste aus, als waere das
    Workout weg — RUN lebte weiter, war aber nicht mehr erreichbar. Profil und
-   Verlauf bleiben offen; der Lauf wartet. */
+   Einstellungen bleiben offen; der Lauf wartet. */
 document.querySelectorAll("nav button").forEach(b=> b.onclick = ()=>{
   if(RUN && b.dataset.go === "home" && aktiverScreen !== "home"){ laufFortsetzen(); return; }
   show(b.dataset.go);

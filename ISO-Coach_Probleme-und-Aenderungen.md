@@ -3723,11 +3723,143 @@ gleiche“.
 - Die Ausführung steht nur im Hinweistext, in der Bildunterschrift und bei `GERAETE` (`rolle`,
   `waage`). Kein neues Feld, keine Sprosse mit `geraet`.
 
+### P86 · Einstellungen statt Mehr, ohne „Stufen und Lastfaktoren“
+
+Luke, 22.10.: „die stufen und lastfaktoren funktion im menü "mehr", welches ich in
+"einstellungen" umbenennen würde ist überflüssig, wir wollen die werte niemals manuell
+einstellen. sondrn statistisch aus den userdaten ermitteln“.
+
+**Gebaut in 2026-10-22 a.**
+
+- **Die Karte „Stufen und Lastfaktoren“ ist raus,** mit ihrem Erklärkasten, den Eingabefeldern
+  und dem Speichern-Knopf.
+- **Der Menüpunkt heißt „Einstellungen“ statt „Mehr“.** Die Überschrift des Bildschirms hieß schon
+  so. Die Verweise im Text heißen jetzt „Einstellungen → Messung“, „Einstellungen → Länge einer
+  Sitzung“ und „Einstellungen → Geräte“. Das Wort passt auch bei 320 px Breite in die Leiste.
+- **Stufennamen und Lastfaktoren kommen beim Laden immer aus dem Build,** wie seit P85 schon Name
+  und Sicherheitsfrage. Ohne das wirkte ein früher von Hand geänderter Wert unsichtbar weiter, und
+  niemand könnte ihn mehr zurücksetzen.
+- **Unter Körpergewicht** steht „Die Stufen selbst brauchen kein Gewicht“ statt „Die Lastfaktoren
+  selbst sind Verhältniszahlen“. Sonst stünde dort ein Wort, das auf dem Bildschirm nirgends mehr
+  vorkommt.
+
+**Der Preis.**
+
+- **Ein von Hand geänderter Wert geht beim nächsten Laden ohne Hinweis verloren.** Die gespeicherten
+  Messpunkte behalten ihren Faktor (`load` und `levelName` stehen in der Sitzung), die Kurve
+  verschiebt sich rückwirkend nicht. Neue Punkte stehen auf dem Wert aus dem Build. Lag der eigene
+  weit daneben, bekommt die Kurve einen Knick. Ob auf Lukes Handy je ein Wert geändert wurde, ist
+  nicht bekannt.
+- **Das hebt einen Satz aus P85 auf:** Selbst benannte Stufen gibt es nicht mehr, sie bleiben also
+  auch bei einer Umbenennung nicht stehen.
+- **Das statistische Lernen ist nicht gebaut.** Bis dahin gilt für alle Nutzer derselbe Schätzwert
+  aus dem Code. Es braucht einen Server und mehrere hundert Nutzer (Teil 3, Handoff 4.2).
+- **Eine geänderte Leiter im Build kommt jetzt auch ohne Sprung der Übungsfassung an.** Wer Sprossen
+  neu nummeriert, braucht weiter Sprung und Umzug, sonst zeigt die gespeicherte Stufe eines Nutzers
+  auf eine andere Sprosse.
+
+**Für den Nachbau:**
+
+- In `normalize` nach dem Zusammenführen: `ex[k].levels = structuredClone(DEFAULT_EX[k].levels)`
+  für jede Übung aus `DEFAULT_EX`. `EX_VERSION` bleibt 31.
+- `lvlEdit`, `lvlSave` und ihr Code in `renderSetup` sind raus. Die Klasse `.lvlrow` bleibt, die
+  Erholungswerte nutzen sie.
+
+### P87 · Verlauf nicht mehr in der Leiste
+
+Luke, 22.10.: „ich finde das Menü "Verlauf" unnötig, wir können das menü erstmal entfernen, hat für
+den nutzer wenig relevanz“. Auf Rückfrage: nur aus der Leiste nehmen, der Code bleibt liegen, und
+nichts aus dem Verlauf wandert an eine andere Stelle.
+
+**Gebaut in 2026-10-22 b.**
+
+- **Der Knopf „Verlauf“ ist aus der Leiste raus.** Unten stehen nur noch Heute, Profil und
+  Einstellungen, jeder ein Drittel breit. Die Leiste teilt sich jetzt von selbst auf die Knöpfe
+  auf, die da sind, statt fest auf vier Spalten.
+- **Bildschirm und Code bleiben liegen,** nur ohne Weg dorthin: `s-history`, `renderHistory()` und
+  `historySVG()` sind unverändert. Die Knopfzeile steht als Kommentar in der Leiste. Wird sie wieder
+  eingesetzt, ist der Verlauf zurück.
+- **Zwei Sätze zeigten auf den Verlauf.** Unter Einstellungen → Übung steht „Jede Übung hat ihre
+  eigene Kurve.“ statt „… und ihren eigenen Verlauf.“ Im Profil einer Kontrollposition steht „Unten
+  unter „Haltezeit über die Zeit“ steht sie.“ statt „Unten im Verlauf steht sie.“ Gemeint war dort
+  immer die Karte darunter, nicht der Bildschirm.
+- **Zwei Spalten im Export (Schema 8),** weil zwei Angaben bis dahin nur im Verlauf zu sehen
+  waren. Luke, auf Rückfrage: „ja“.
+  - `schmerz_ende`: der Schmerzwert 0 bis 10 am Ende des Workouts (`painEnd`). Er hängt am
+    Workout und steht in jeder seiner Zeilen, wie `datum` und `kurzeinheit` auch. Leer bei
+    nachgetragenen Punkten, dort wird er nicht gefragt.
+  - `aus_kurve_grund`: warum eine Messung bewusst aus der Kurve genommen ist (`ausKurve`, „alte
+    Skala“ oder „Stellung gestrichen“). Leer heißt kein solcher Grund. `in_kurve` kann trotzdem 0
+    sein, dann ist die Messung vorermüdet oder liegt außerhalb des Messfensters.
+  - Beide hängen hinten an, die Spalten davor bleiben, wo sie waren. Der Hinweistext im JSON
+    erklärt beide.
+
+**Der Preis.**
+
+- **Die Messliste ist vom Bildschirm weg.** Sie war die einzige Stelle, die je Einheit zeigte,
+  welche Messung abgeblendet ist und warum, und welchen Schmerzwert die Einheit am Ende hatte.
+  Beides steht jetzt im Export, ansehen lässt es sich nur noch dort.
+- **Das Diagramm „Erster Satz, nur gemessene Blöcke“ ist mit weg.** Die Kurve im Profil bleibt.
+- **`schmerz_ende` wiederholt sich je Zeile.** Wer daraus einen Mittelwert bildet, muss je Workout
+  zählen, sonst wiegt ein Workout mit 15 Sätzen fünfzehnfach. Das Datenformat-Papier hatte den
+  Wert genau deshalb draußen gelassen.
+
+**Für den Nachbau:** Die Navigation hat drei Ziele, Heute, Profil und Einstellungen. Einen
+Verlauf-Bildschirm braucht der Nachbau nicht. Im Export die zwei Felder oben am Ende der Zeile.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-22 b — Verlauf nicht mehr in der Leiste, zwei Spalten im Export
+
+**Befund (Luke).** Der Verlauf hat für den Nutzer wenig Relevanz und soll erstmal raus. Was nur
+dort stand, kommt in den Export (P87).
+
+**Gebaut.**
+
+- **Knopf „Verlauf“ raus,** die Leiste hat drei gleich breite Knöpfe.
+- **Bildschirm und Code bleiben liegen,** zurück mit einer Zeile.
+- **Zwei Sätze ohne Verweis auf den Verlauf:** Einstellungen → Übung und das Profil einer
+  Kontrollposition.
+- **Export-Schema 8:** `schmerz_ende` und `aus_kurve_grund` am Ende jeder Zeile, in CSV und JSON.
+
+**Geprüft.**
+
+- Bei 375 × 812: drei Knöpfe zu je 125 px, keine waagerechte Scrollleiste, Fassung „2026-10-22 b“
+  steht in der App. Heute, Profil und Einstellungen zeichnen, keine Konsolenfehler.
+- Profil des Pfads fürs innere Knie (Kontrollposition): Der neue Satz steht da.
+- Export mit drei erfundenen Liegestütz-Messungen: CSV mit 29 Spalten, die zwei neuen am Ende.
+  Ein Workout mit zwei Sätzen trägt in beiden Zeilen denselben Schmerzwert, der nachgetragene
+  Punkt einen leeren. Die Messung auf alter Skala trägt „alte Skala“ und `in_kurve` 0. JSON mit
+  Schema 8 und denselben Werten.
+- Geprüft wurde genau der Stand, der committet wird: Die Änderung an der Zeitverzögerung der
+  Stoppuhr aus einer anderen Sitzung lag zur selben Zeit in der Datei und ist nicht dabei.
+- Testdaten danach gelöscht.
+
+### 2026-10-22 a — Einstellungen statt Mehr, ohne „Stufen und Lastfaktoren“
+
+Im selben, noch nicht gepushten Build wie das endgradige Wadenheben.
+
+**Befund (Luke).** Die Werte sollen nie von Hand eingestellt, sondern statistisch aus den
+Nutzerdaten ermittelt werden. Die Karte dafür ist überflüssig, der Menüpunkt soll „Einstellungen“
+heißen (P86).
+
+**Gebaut.**
+
+- **Karte „Stufen und Lastfaktoren“ raus,** mit Eingabefeldern und Speichern-Knopf.
+- **Menüpunkt „Einstellungen“** statt „Mehr“, ebenso in den Verweisen im Text.
+- **Stufennamen und Lastfaktoren kommen beim Laden aus dem Build.** Übungsfassung bleibt 31.
+
+**Geprüft.**
+
+- Gespeicherter Stand mit einem von Hand geänderten Liegestütz-Namen und -Faktor und einem
+  geänderten Ausfallschritt-Faktor: Nach dem Neuladen stehen alle elf Leitern genau wie im Build.
+- Bei 375 × 812: Einstellungen ohne die Karte, „Einstellungen“ in der Leiste ohne Überlauf, auch
+  bei 320 px. Keine waagerechte Scrollleiste, keine Konsolenfehler.
+- Testdaten danach gelöscht.
 
 ### 2026-10-22 a — Endgradiges Wadenheben mit Faszienrolle
 
