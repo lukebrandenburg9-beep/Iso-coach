@@ -304,7 +304,7 @@ code{background:var(--panel2);padding:1.5px 5px;border-radius:5px;font-size:12.5
 
 <!-- ══════════ HEUTE ══════════ -->
 <section id="s-home" class="screen">
-  <h1 id="homeTitle">Heute</h1>
+  <h1 id="homeTitle">Start</h1>
   <p class="muted" id="homeSub"></p>
   <div id="homeBody"></div>
 </section>
@@ -355,7 +355,7 @@ code{background:var(--panel2);padding:1.5px 5px;border-radius:5px;font-size:12.5
 </div>
 
 <nav><div class="inner">
-  <button data-go="home" class="on"><span class="ic">▶</span>Heute</button>
+  <button data-go="home" class="on"><span class="ic">▶</span>Start</button>
   <button data-go="profile"><span class="ic">◠</span>Profil</button>
   <!-- Verlauf aus der Leiste genommen (Luke, 22.10.2026: "hat für den nutzer
        wenig relevanz"). Bildschirm s-history und renderHistory() bleiben liegen;
@@ -1671,7 +1671,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-22 b";
+const BUILD = "2026-10-22 d";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -2576,6 +2576,10 @@ function fresh(){
     /* Kurzeinheit (20 Min): der Tag, an dem sie eingeschaltet wurde. Gilt nur
        fuer diesen Tag (Luke, 18.10.2026: „Nur für heute"). */
     kurzTag:null,
+    /* Sprosse und Saetze, in der Liste "Dein Workout" vorab gewaehlt:
+       {tag, je:{"<uebung>|<seite>": {level, saetze}}}. Gilt nur fuer tag —
+       siehe vorwahlAnwenden. */
+    vorwahl:null,
     /* Abgewaehlte Nachholseiten, je Uebung {tag, am}: tag ist der Tag der
        offenen Seite (offeneSeite), am der Tag der Abwahl — nur an dem darf
        das Haekchen zurueck. */
@@ -2797,6 +2801,9 @@ function save(){
 let DB = null, dbTimer = null, dbState = "prüfen";
 /* Nur für diesen Seitenaufruf: Pausentag bewusst übergangen. Nicht gespeichert. */
 let ignoreRest = false;
+/* Nur für diesen Seitenaufruf: "Weiter" auf Start getippt, also steht statt
+   Start die Liste "Dein Workout" (renderListe). Die Leiste setzt es zurück. */
+let liste = false;
 async function initDB(){
   let cap = null;
   try{
@@ -5334,6 +5341,42 @@ function startSeite(ex){
    Luke, 18.10.2026: Ein Haken in der Plankarte kuerzt das Workout so, dass es
    mitsamt allen Pausen hoechstens 20 Minuten dauert. Gilt nur fuer heute. */
 function kurzAn(){ return S.kurzTag === today(); }
+/* Vorwahl aus der Liste "Dein Workout" (Build 2026-10-22 c). Ein Haekchen,
+   ein Zonen-Tipp, die Kurzeinheit oder der Modus auf Start werfen den Plan
+   weg (S.plan = null) — ohne diese Notiz waere die Wahl nach "Zurueck"
+   verloren. Gemerkt wird nur, was der Nutzer selbst angefasst hat: die
+   Sprosse, die Saetze und — nach einem Griff an Sprosse oder Gewicht — das
+   Gewicht, das dabei dastand, mitsamt seiner Sprosse. Ohne das stuende nach
+   "Zurueck" das Gewicht der geplanten Sprosse da: Vom Ausfallschritt im
+   Wandstand auf die Kniestand-Sprosse mit 2,5 kg gewechselt, kam er mit
+   0 kg zurueck. Am Ende von planWorkout, damit Liste, Minuten neben den
+   Haekchen und Start dieselbe Regel lesen. */
+function vorwahlMerken(q, art){
+  if(!S.vorwahl || S.vorwahl.tag !== today()) S.vorwahl = {tag: today(), je: {}};
+  const k = `${q.exercise}|${q.side || ""}`;
+  const v = S.vorwahl.je[k] || (S.vorwahl.je[k] = {});
+  if(art === "stufe")  v.level  = q.level;
+  if(art === "saetze") v.saetze = q.saetze;
+  if(art === "stufe" || art === "kg") v.kg = {level: q.level, extra: q.extra || 0};
+}
+function vorwahlAnwenden(blocks){
+  if(!S.vorwahl || S.vorwahl.tag !== today()) return;
+  for(const b of blocks){
+    const v = S.vorwahl.je[`${b.exercise}|${b.side || ""}`];
+    if(!v) continue;
+    /* Ueber stufeSetzen: Fehlt heute das Geraet, rastet die Sprosse auf
+       die naechste ausfuehrbare, und die Zielzeit zieht nach. */
+    if(v.level != null && v.level !== b.level) stufeSetzen(b, v.level);
+    /* Das Gewicht nur auf seiner Sprosse — und nicht, wo es der Zone folgt
+       (gewichtFolgt): Dort rechnet die App es nach einem Zonen-Tipp neu. */
+    if(v.kg && v.kg.level === b.level && b.level >= extraAbOf(b.exercise)
+       && !(gewichtFolgt(b.exercise, b.side, b.level)
+            && !extraSelbstGesetzt(kgKey(b.exercise, leiterKey(b.exercise, b.side), b.level)))){
+      b.extra = v.kg.extra; zielNeu(b);
+    }
+    if(v.saetze != null) b.saetze = v.saetze;
+  }
+}
 /* Saetze einer Uebung unter der Obergrenze k. Reicht k fuer den Zonen-
    Standard aller ihrer Bloecke, bleibt der stehen; sonst bekommt jeder Block
    dieselbe Zahl — links und rechts gleich viele Saetze. Die Obergrenze geht
@@ -5453,7 +5496,8 @@ function planWorkout(){
      Folgende spricht nur noch von dem, was bleibt. */
   const kurz = kurzAn() ? kurzKuerzen(blocks, dran) : null;
   if(kurz) blocks = kurz.blocks;
-  const bleibt = kurz ? dran.filter(u => kurz.weg.indexOf(u.ex) < 0) : dran;
+  vorwahlAnwenden(blocks);
+  const bleibt =kurz ? dran.filter(u => kurz.weg.indexOf(u.ex) < 0) : dran;
   const zonen  = [...new Set(blocks.map(b => b.zone))];
   const gruende = [...new Set(bleibt.map(u => zoneFuer(u.group).why))];
   const vonHand = (S.heuteTag === today() && Array.isArray(S.heute));
@@ -6453,7 +6497,7 @@ function warnKarte(i, bl, ex){
       <button class="ghost" style="width:100%;margin-top:8px" id="wkJa">
         Trifft zu — Übung erst mal weglassen</button>
       <p class="tiny" style="margin-top:9px">Die Frage kommt nur dieses eine Mal. Ändert sich
-      etwas, nimm die Übung unter <b>Heute</b> wieder raus.</p>
+      etwas, nimm die Übung unter <b>Start</b> wieder raus.</p>
     </div>`;
   /* Beim Baker-Pfad gilt die Frage der Fersenbruecke, fuer beide Leitern. */
   const einheit = einheitVon(bl.exercise);
@@ -6612,6 +6656,137 @@ function satzKurveSVG(zeiten, zone){
     zeiten.map(t => Math.round(t)).join(", ")} Sekunden">${g}</svg><div class="skGes">Gesamt <b>${
     Math.floor(ges / 60)}:${String(ges % 60).padStart(2, "0")}</b></div></div>`;
 }
+/* Eine Seite: Kopfzeile mit Seite und Zeit, darunter Variante, Seite des
+   Gewichts, Position des Gewichts (beides nur der Laeufer), Gewicht und
+   Saetze. Der Variantenname steht in der Kopfzeile nur, wenn es keine
+   Auswahl gibt, und ohne das Gewicht, wenn der Stepper es zeigt — sonst
+   stuende beides doppelt. Er folgt dem Gewicht (sprossenName): bei 0 kg
+   "Ohne Zusatzlast", darueber "Mit Zusatzgewicht". */
+/* Seit Build 2026-10-22 c auf oberster Ebene statt als Closure in
+   blockIntro: Dieselbe Zeile steht auf der Karte vor der Uebung und in der
+   Liste "Dein Workout" (renderListe) und rechnet an beiden Stellen ueber
+   dieselben Funktionen (stufeSetzen, gewichtSetzen, lageSetzen, zielNeu).
+   mitKurve: die Satzkurve, nur auf der Karte. In der Liste machte sie jede
+   Zeile doppelt so hoch, und die Zielzeit steht ohnehin im Kopf. */
+function teilHTML(q, t, mitKurve){
+  const ex = S.ex[q.exercise];
+  const zE     = ZONES.find(z => z.id === (q.zoneErwartet || q.zone)) || ZONES[0];
+  /* Die beidbeinige Sprosse gehoert auf einen Block OHNE Seite und dort
+     allein — sonst stuende "beidbeinig" unter "links". */
+  const stufen = stufenFuerSeite(q.exercise, q.side);
+  const eb     = extraBereich(q.exercise, q.level);
+  const mitKg  = q.level >= extraAbOf(q.exercise) && eb.hi > eb.lo;
+  /* Zwei Richtungen: die Seite kommt in die drei Knoepfe, der Stepper traegt
+     nur den Betrag. Betrag null IST "Ohne Gewicht" — dann kein Stepper. */
+  const zwei   = !!(ex.extraSeiten && eb.lo < 0 && eb.hi > 0);
+  /* Beim Wadenheben ist die Entlastung keine Zahl, die man umhaengt, sondern
+     eine, die man ABLIEST: Die Waage unter dem Vorfuss soll dein
+     Koerpergewicht weniger die Entlastung zeigen. Genau diese Zahl steht
+     dann im Stepper — minus heisst leichter, plus schwerer, wie ueberall.
+     (Build 2026-09-24 b, mit Build c weg, seit 25.09. a wieder da.) */
+  const waage  = zwei && !!ex.extraSeiten.waage && (q.extra || 0) < 0;
+  const bwK    = (S.bw > 0 ? S.bw : BW_DEFAULT);
+  const kgNow  = waage ? Math.round((bwK + q.extra) * 10) / 10
+               : (zwei ? Math.abs(q.extra || 0) : (q.extra || 0));
+  const kgLo   = waage ? bwK + eb.lo : (zwei ? 0 : eb.lo);
+  const kgHi   = waage ? bwK : (zwei ? ((q.extra || 0) < 0 ? -eb.lo : eb.hi) : eb.hi);
+  /* Front Rack oder Suitcase, je Seite (Build 2026-10-06 g). Nur solange
+     auf dieser Seite Gewicht haengt: ohne Kettlebell gibt es nichts zu
+     setzen. Die Knoepfe sagen, wo sie sitzt — der Stepper darunter
+     deshalb nur noch, auf welcher Seite. */
+  const lagen  = (mitKg && (q.extra || 0) > 0) ? lagenOf(q.exercise) : [];
+  const lg     = lagen.length > 1 ? lageOf(q.exercise, q.side) : null;
+  const knopf  = (a, zeichen, aus, aria) => `<button class="ghost" data-t="${t}"
+    data-a="${a}" aria-label="${aria}"${aus ? " disabled" : ""}>${zeichen}</button>`;
+  /* Das Modell wandert an den Block: Der Timer rechnet spaeter mit genau
+     dem, was diese Kurve zeigt (setTarget). */
+  const sm = satzModell(q.exercise, q.side);
+  q.satzModell = {a: sm.a, q: sm.q};
+  return `<div class="teil">
+    <div class="kopf">
+      <span>${q.side ? `<b>${seitenKopf(q)}</b>` : ""}${stufen.length < 2
+        ? `${q.side ? " · " : ""}${mitKg ? sprossenName(q.exercise, q.level, q.extra)
+                                         : stufenName(q.exercise, q.level, q.extra, q.side)}` : ""}</span>
+      <span>${zE.id !== q.zone ? `<span class="pill ${zE.cls}">${zE.name}</span> ` : ""}<b
+        class="zeit">${fmt(q.target)}</b></span>
+    </div>
+    ${mitKurve ? satzKurveSVG(satzZeiten(q.target, q.saetze, q.satzModell), zE.id) : ""}
+    ${stufen.length < 2 ? "" : `<select data-t="${t}" data-a="stufe" aria-label="Variante">${
+      stufen.map(st => `<option value="${st.i}"${st.i === q.level ? " selected" : ""}>${
+        st.name}${sprosseVorlaeufig(q.exercise, st.i) ? VORLAEUFIG_KURZ : ""}</option>`).join("")}</select>`}
+    ${sprosseVorlaeufig(q.exercise, q.level)
+      ? `<p class="tiny vorl" style="margin:5px 0 0">${VORLAEUFIG_SATZ}</p>` : ""}
+    ${blockSatz(q.exercise, q.level)
+      ? `<p class="tiny" style="margin:5px 0 0">${blockSatz(q.exercise, q.level)}</p>` : ""}
+    ${(mitKg && zwei) ? `<div class="zw drei">${seitenWahl(q.exercise).map(o => `<button
+      class="${Math.sign(q.extra || 0) === o.v ? "sel" : "ghost"}" data-t="${t}"
+      data-sw="${o.v}">${o.titel}<span>${o.unter}</span></button>`).join("")}</div>` : ""}
+    ${lg ? `<div class="zw ${lagen.length === 2 ? "zwei" : "drei"} je">${lagen.map(l => `<button
+      class="${l.id === lg.id ? "sel" : "ghost"}" data-t="${t}" data-lage="${l.id}">${
+      l.titel}<span>${lageUnter(q.exercise, l, q.side)}</span></button>`).join("")}</div>` : ""}
+    <div class="stps">
+      ${(mitKg && !(zwei && !q.extra)) ? `<div class="stp"><span class="tiny">${
+        waage ? "Waage zeigt"
+              : (((q.extra || 0) > 0 && !lg && lageOf(q.exercise, q.side))
+                  ? lageOf(q.exercise, q.side).label : extraLabelVon(q.exercise))}</span>
+        ${knopf("kg-", "−", kgNow <= kgLo, "weniger Gewicht")}
+        <b>${String(kgNow).replace(".", ",")} kg</b>
+        ${knopf("kg+", "+", kgNow >= kgHi, "mehr Gewicht")}</div>` : ""}
+      <div class="stp"><span class="tiny">Sätze</span>
+        ${knopf("s-", "−", q.saetze <= SETS_MIN, "weniger Sätze")}
+        <b>${q.saetze}</b>
+        ${knopf("s+", "+", q.saetze >= SETS_MAX, "mehr Sätze")}</div>
+    </div>
+  </div>`;
+}
+/* Die Knoepfe der Zeilen unter #wurzel. teile ist die Liste, in die data-t
+   zeigt. neu(q, art) sichert und zeichnet am Ort neu; art sagt, was der
+   Nutzer angefasst hat ("stufe", "saetze", "kg") — die Liste merkt sich
+   davon Sprosse und Saetze fuer heute (vorwahlMerken). */
+function teilBinden(wurzel, teile, neu){
+  document.querySelectorAll(`#${wurzel} [data-a]`).forEach(b => {
+    const q = teile[+b.getAttribute("data-t")], a = b.getAttribute("data-a");
+    if(a === "stufe"){ b.onchange = e => { stufeSetzen(q, +e.target.value); neu(q, "stufe"); }; return; }
+    b.onclick = () => {
+      if(a === "s-" || a === "s+"){
+        q.saetze = Math.max(SETS_MIN, Math.min(SETS_MAX, q.saetze + (a === "s+" ? 1 : -1)));
+      } else {
+        const ex   = S.ex[q.exercise];
+        const eb   = extraBereich(q.exercise, q.level);
+        const zwei = !!(ex.extraSeiten && eb.lo < 0 && eb.hi > 0);
+        const vz   = (q.extra || 0) < 0 ? -1 : 1;
+        /* Die Waage-Anzeige zaehlt vorzeichenrichtig: plus heisst mehr auf
+           der Waage, also weniger Entlastung. */
+        const waage = zwei && !!ex.extraSeiten.waage && vz < 0;
+        const betrag = (zwei && !waage ? Math.abs(q.extra || 0) : (q.extra || 0))
+                     + (a === "kg+" ? eb.schritt : -eb.schritt);
+        gewichtSetzen(q, waage ? Math.min(0, betrag)
+                               : (zwei ? vz * Math.max(0, betrag) : betrag));
+      }
+      neu(q, (a === "s-" || a === "s+") ? "saetze" : "kg");
+    };
+  });
+  /* Die drei Knoepfe setzen nur die Seite. Der Betrag bleibt, was er war —
+     wer von "freie Seite" auf "Standbeinseite" wechselt, haengt dieselbe
+     Kettlebell um und tippt sie nicht neu ein. */
+  document.querySelectorAll(`#${wurzel} [data-sw]`).forEach(b => {
+    b.onclick = () => {
+      const q = teile[+b.getAttribute("data-t")];
+      const key = keyOf(q.exercise, q.side);
+      const betrag = Math.abs(q.extra || 0);
+      if(betrag) letzteLast[key] = betrag;
+      gewichtSetzen(q, (+b.getAttribute("data-sw"))
+        * (betrag || letzteLast[key] || extraBereich(q.exercise, q.level).schritt));
+      neu(q, "kg");
+    };
+  });
+  document.querySelectorAll(`#${wurzel} [data-lage]`).forEach(b => {
+    b.onclick = () => {
+      const q = teile[+b.getAttribute("data-t")];
+      lageSetzen(q.exercise, b.getAttribute("data-lage"), teile, q.side); neu(q, "kg");
+    };
+  });
+}
 let kurzIv = null;   /* Uhr der Kurzeinheit zwischen zwei Bloecken */
 function blockIntro(i){
   RUN.b = i;
@@ -6656,83 +6831,6 @@ function blockIntro(i){
   const von = bloecke.filter((_, j) => neuAb(j)).length;
   const nr  = bloecke.slice(0, i + 1).filter((_, j) => neuAb(j)).length;
 
-  /* Eine Seite: Kopfzeile mit Seite und Zeit, darunter Variante, Seite des
-     Gewichts, Position des Gewichts (beides nur der Laeufer), Gewicht und
-     Saetze. Der Variantenname steht in der Kopfzeile nur, wenn es keine
-     Auswahl gibt, und ohne das Gewicht, wenn der Stepper es zeigt — sonst
-     stuende beides doppelt. Er folgt dem Gewicht (sprossenName): bei 0 kg
-     "Ohne Zusatzlast", darueber "Mit Zusatzgewicht". */
-  const teilHTML = (q, t) => {
-    const zE     = ZONES.find(z => z.id === (q.zoneErwartet || q.zone)) || ZONES[0];
-    /* Die beidbeinige Sprosse gehoert auf einen Block OHNE Seite und dort
-       allein — sonst stuende "beidbeinig" unter "links". */
-    const stufen = stufenFuerSeite(q.exercise, q.side);
-    const eb     = extraBereich(q.exercise, q.level);
-    const mitKg  = q.level >= extraAbOf(q.exercise) && eb.hi > eb.lo;
-    /* Zwei Richtungen: die Seite kommt in die drei Knoepfe, der Stepper traegt
-       nur den Betrag. Betrag null IST "Ohne Gewicht" — dann kein Stepper. */
-    const zwei   = !!(ex.extraSeiten && eb.lo < 0 && eb.hi > 0);
-    /* Beim Wadenheben ist die Entlastung keine Zahl, die man umhaengt, sondern
-       eine, die man ABLIEST: Die Waage unter dem Vorfuss soll dein
-       Koerpergewicht weniger die Entlastung zeigen. Genau diese Zahl steht
-       dann im Stepper — minus heisst leichter, plus schwerer, wie ueberall.
-       (Build 2026-09-24 b, mit Build c weg, seit 25.09. a wieder da.) */
-    const waage  = zwei && !!ex.extraSeiten.waage && (q.extra || 0) < 0;
-    const bwK    = (S.bw > 0 ? S.bw : BW_DEFAULT);
-    const kgNow  = waage ? Math.round((bwK + q.extra) * 10) / 10
-                 : (zwei ? Math.abs(q.extra || 0) : (q.extra || 0));
-    const kgLo   = waage ? bwK + eb.lo : (zwei ? 0 : eb.lo);
-    const kgHi   = waage ? bwK : (zwei ? ((q.extra || 0) < 0 ? -eb.lo : eb.hi) : eb.hi);
-    /* Front Rack oder Suitcase, je Seite (Build 2026-10-06 g). Nur solange
-       auf dieser Seite Gewicht haengt: ohne Kettlebell gibt es nichts zu
-       setzen. Die Knoepfe sagen, wo sie sitzt — der Stepper darunter
-       deshalb nur noch, auf welcher Seite. */
-    const lagen  = (mitKg && (q.extra || 0) > 0) ? lagenOf(q.exercise) : [];
-    const lg     = lagen.length > 1 ? lageOf(q.exercise, q.side) : null;
-    const knopf  = (a, zeichen, aus, aria) => `<button class="ghost" data-t="${t}"
-      data-a="${a}" aria-label="${aria}"${aus ? " disabled" : ""}>${zeichen}</button>`;
-    /* Das Modell wandert an den Block: Der Timer rechnet spaeter mit genau
-       dem, was diese Kurve zeigt (setTarget). */
-    const sm = satzModell(q.exercise, q.side);
-    q.satzModell = {a: sm.a, q: sm.q};
-    return `<div class="teil">
-      <div class="kopf">
-        <span>${q.side ? `<b>${seitenKopf(q)}</b>` : ""}${stufen.length < 2
-          ? `${q.side ? " · " : ""}${mitKg ? sprossenName(q.exercise, q.level, q.extra)
-                                           : stufenName(q.exercise, q.level, q.extra, q.side)}` : ""}</span>
-        <span>${zE.id !== q.zone ? `<span class="pill ${zE.cls}">${zE.name}</span> ` : ""}<b
-          class="zeit">${fmt(q.target)}</b></span>
-      </div>
-      ${satzKurveSVG(satzZeiten(q.target, q.saetze, q.satzModell), zE.id)}
-      ${stufen.length < 2 ? "" : `<select data-t="${t}" data-a="stufe" aria-label="Variante">${
-        stufen.map(st => `<option value="${st.i}"${st.i === q.level ? " selected" : ""}>${
-          st.name}${sprosseVorlaeufig(q.exercise, st.i) ? VORLAEUFIG_KURZ : ""}</option>`).join("")}</select>`}
-      ${sprosseVorlaeufig(q.exercise, q.level)
-        ? `<p class="tiny vorl" style="margin:5px 0 0">${VORLAEUFIG_SATZ}</p>` : ""}
-      ${blockSatz(q.exercise, q.level)
-        ? `<p class="tiny" style="margin:5px 0 0">${blockSatz(q.exercise, q.level)}</p>` : ""}
-      ${(mitKg && zwei) ? `<div class="zw drei">${seitenWahl(q.exercise).map(o => `<button
-        class="${Math.sign(q.extra || 0) === o.v ? "sel" : "ghost"}" data-t="${t}"
-        data-sw="${o.v}">${o.titel}<span>${o.unter}</span></button>`).join("")}</div>` : ""}
-      ${lg ? `<div class="zw ${lagen.length === 2 ? "zwei" : "drei"} je">${lagen.map(l => `<button
-        class="${l.id === lg.id ? "sel" : "ghost"}" data-t="${t}" data-lage="${l.id}">${
-        l.titel}<span>${lageUnter(q.exercise, l, q.side)}</span></button>`).join("")}</div>` : ""}
-      <div class="stps">
-        ${(mitKg && !(zwei && !q.extra)) ? `<div class="stp"><span class="tiny">${
-          waage ? "Waage zeigt"
-                : (((q.extra || 0) > 0 && !lg && lageOf(q.exercise, q.side))
-                    ? lageOf(q.exercise, q.side).label : extraLabelVon(q.exercise))}</span>
-          ${knopf("kg-", "−", kgNow <= kgLo, "weniger Gewicht")}
-          <b>${String(kgNow).replace(".", ",")} kg</b>
-          ${knopf("kg+", "+", kgNow >= kgHi, "mehr Gewicht")}</div>` : ""}
-        <div class="stp"><span class="tiny">Sätze</span>
-          ${knopf("s-", "−", q.saetze <= SETS_MIN, "weniger Sätze")}
-          <b>${q.saetze}</b>
-          ${knopf("s+", "+", q.saetze >= SETS_MAX, "mehr Sätze")}</div>
-      </div>
-    </div>`;
-  };
-
   show("home");
   el("homeTitle").textContent = `Übung ${nr} von ${von}`;
   el("homeSub").textContent = "";
@@ -6748,7 +6846,7 @@ function blockIntro(i){
       ${awZeigen ? ausfWahlKarte(exKey, bl.zone, "", true) : ""}
       ${(haltungen(exKey) && !schonDran) ? haltungWahlKarte(exKey) : ""}
       ${knieZeigen ? knieWahlKarte() : ""}
-      ${teile.map(teilHTML).join("")}
+      ${teile.map((q, t) => teilHTML(q, t, true)).join("")}
       ${uebungsbild(bl.exercise, bl.level)}
       <button class="primary" style="width:100%;margin-top:14px;padding:16px" id="ivGo">
         Übung starten</button>
@@ -6776,47 +6874,7 @@ function blockIntro(i){
     if(rest > 0 && rest <= 3) cueTick();
     if(rest <= 0){ clearInterval(kurzIv); kurzIv = null; beep(880, 300, .25); }
   }, 1000);
-  document.querySelectorAll("#ivKarte [data-a]").forEach(b => {
-    const q = teile[+b.getAttribute("data-t")], a = b.getAttribute("data-a");
-    if(a === "stufe"){ b.onchange = e => { stufeSetzen(q, +e.target.value); neu(); }; return; }
-    b.onclick = () => {
-      if(a === "s-" || a === "s+"){
-        q.saetze = Math.max(SETS_MIN, Math.min(SETS_MAX, q.saetze + (a === "s+" ? 1 : -1)));
-      } else {
-        const eb   = extraBereich(q.exercise, q.level);
-        const zwei = !!(ex.extraSeiten && eb.lo < 0 && eb.hi > 0);
-        const vz   = (q.extra || 0) < 0 ? -1 : 1;
-        /* Die Waage-Anzeige zaehlt vorzeichenrichtig: plus heisst mehr auf
-           der Waage, also weniger Entlastung. */
-        const waage = zwei && !!ex.extraSeiten.waage && vz < 0;
-        const betrag = (zwei && !waage ? Math.abs(q.extra || 0) : (q.extra || 0))
-                     + (a === "kg+" ? eb.schritt : -eb.schritt);
-        gewichtSetzen(q, waage ? Math.min(0, betrag)
-                               : (zwei ? vz * Math.max(0, betrag) : betrag));
-      }
-      neu();
-    };
-  });
-  /* Die drei Knoepfe setzen nur die Seite. Der Betrag bleibt, was er war —
-     wer von "freie Seite" auf "Standbeinseite" wechselt, haengt dieselbe
-     Kettlebell um und tippt sie nicht neu ein. */
-  document.querySelectorAll("#ivKarte [data-sw]").forEach(b => {
-    b.onclick = () => {
-      const q = teile[+b.getAttribute("data-t")];
-      const key = keyOf(q.exercise, q.side);
-      const betrag = Math.abs(q.extra || 0);
-      if(betrag) letzteLast[key] = betrag;
-      gewichtSetzen(q, (+b.getAttribute("data-sw"))
-        * (betrag || letzteLast[key] || extraBereich(q.exercise, q.level).schritt));
-      neu();
-    };
-  });
-  document.querySelectorAll("#ivKarte [data-lage]").forEach(b => {
-    b.onclick = () => {
-      const q = teile[+b.getAttribute("data-t")];
-      lageSetzen(q.exercise, b.getAttribute("data-lage"), teile, q.side); neu();
-    };
-  });
+  teilBinden("ivKarte", teile, neu);
   /* Zone im laufenden Workout umstellen. Die Bloecke dieser Uebung werden neu
      gebaut statt der ganze Plan neu geplant — Neuplanen wuerde den laufenden
      Lauf verwerfen. mkBlock bekommt die Wahl als FEST mit, damit die
@@ -6970,7 +7028,7 @@ function afterSet(time, tgt, roh){
         <div><b>${fmt(tgt)}</b><small>Richtwert</small></div>
       </div>
       ${abzug>0 ? `<p class="tiny" style="margin:0 0 14px">Uhr stand bei ${fmt(roh)} —
-        ${abzug} s Reaktionsabzug fürs Herauskommen und Drücken. Gleicher Abzug bei jedem Satz,
+        ${abzug} s Zeitverzögerung der Stoppuhr abgezogen. Gleicher Abzug bei jedem Satz,
         die Verhältnisse bleiben also unberührt. Änderbar unter Einstellungen → Messung.</p>` : ""}
       <label class="chk"><input type="checkbox" id="painChk">
         <span>Ich habe wegen <b>Schmerzen</b> abgebrochen<br>
@@ -7847,7 +7905,7 @@ async function dateiTeilen(name, text, typ, btn){
 
 /* ═══════════ Bildschirme ═══════════ */
 function renderHome(){
-  el("homeTitle").textContent = "Heute";
+  el("homeTitle").textContent = "Start";
   el("homeSub").textContent = "";   /* steht erst fest, wenn der Plan gebaut ist */
 
   /* ── Unterbrochener Lauf ──────────────────────────────────────
@@ -7912,6 +7970,8 @@ function renderHome(){
 
   const p = (S.plan && S.planDay === today()) ? S.plan : planWorkout();
   S.plan = p; S.planDay = today(); save();
+  if(liste && p.blocks.length) return renderListe(p);
+  liste = false;
   const g = gate();
   /* Die Dauer steht in der Plankarte, gross, und springt mit jedem
      Haekchen. Bis Build 2026-10-01 c stand sie klein als "rund 55 min"
@@ -8126,17 +8186,55 @@ function renderHome(){
         <div class="planDauer"><span>Dauer</span><b id="planDauer">${dauer} min</b></div>
         ${kurzKarte()}
         <button class="primary" style="width:100%;margin-top:14px;padding:16px"
-          id="goSess">Workout starten</button>`
+          id="goSess">Weiter</button>`
       : `<h2 style="margin:0">Nichts angehakt</h2>`}
     </div>
     ${listeKarte()}`;
   listeBinden();
   if(el("kurzAn")) el("kurzAn").onchange = ev => {
     S.kurzTag = ev.target.checked ? today() : null;
+    /* Die in der Liste gewaehlten Saetze verfallen, die Sprossen bleiben —
+       sonst hebelte die Vorwahl das Kuerzen aus. */
+    if(S.vorwahl) Object.values(S.vorwahl.je || {}).forEach(v => { delete v.saetze; });
     S.plan = null; S.planDay = null; save();
     renderAmOrt("kurzAn");
   };
-  if(el("goSess")) el("goSess").onclick = ()=>{ beep(660,60,.05); startWorkout(); };
+  if(el("goSess")) el("goSess").onclick = ()=>{ liste = true; render(); };
+}
+/* ── Dein Workout (Build 2026-10-22 c) ─────────────────────────────
+   Luke, 22.10.2026: nach Start „nochmal alle Übungen als Auflistung …
+   dass ich für jede Übung vorher schon Satzzahl und Sprosse auswählen kann".
+   Nur was angehakt ist, in der Reihenfolge des Plans. Eine Karte je Uebung
+   wie vor der Uebung (der Baker-Pfad also mit eigenem Namen), darin je
+   Block bzw. Seite die Zeile von dort (teilHTML), ohne Satzkurve. Die Karte
+   vor der Uebung bleibt; sie ist mit dieser Wahl vorbelegt, weil
+   startWorkout denselben Plan (S.plan) nimmt. */
+function renderListe(p){
+  const bl = p.blocks;
+  for(const q of bl){
+    if(q.saetze == null) q.saetze = SETS_ZONE[q.zone] || SETS;
+    if(q.zoneErwartet == null) q.zoneErwartet = q.zone;
+  }
+  const folge = [...new Set(bl.map(b => b.exercise))];
+  el("homeTitle").textContent = "Dein Workout";
+  el("homeSub").textContent = "";
+  el("homeBody").innerHTML = `<div id="dwListe">
+    <div class="planDauer" style="margin:0 0 12px"><span>Dauer</span><b>${
+      planDauer(bl)} min</b></div>
+    ${folge.map(ex => `<div class="card">
+      <h2 style="margin:0">${S.ex[ex].name}</h2>
+      ${bl.map((q, t) => q.exercise === ex ? teilHTML(q, t, false) : "").join("")}
+    </div>`).join("")}
+    <button class="primary" style="width:100%;margin-top:2px;padding:16px" id="dwGo">Workout
+      starten</button>
+    <button class="ghost" style="width:100%;margin-top:8px" id="dwZurueck">Zurück</button>
+  </div>`;
+  /* Jede Aenderung gesichert und am Ort neu gezeichnet, wie auf der Karte. */
+  teilBinden("dwListe", bl, (q, art) => {
+    vorwahlMerken(q, art); save(); amOrt("dwListe", renderHome);
+  });
+  el("dwGo").onclick = ()=>{ liste = false; beep(660,60,.05); startWorkout(); };
+  el("dwZurueck").onclick = ()=>{ liste = false; render(); };
 }
 /* Die Reihenfolge als nummerierte Liste, jeder Block mit vollem Namen und
    Seite. Luke, 06.10.2026: „1) seitstütz rechts 2) fersenbrücke rechts usw.
@@ -8648,6 +8746,13 @@ function dauerHTML(bloecke){
     Die Spanne ist die Haltezeit selbst: sie steht nicht fest, sondern ist das, was du schaffst.</p>`;
 }
 
+/* Lukes Notiz unter der Zeitverzoegerung der Stoppuhr (22.10.2026). Ohne
+   Verzoegerung gibt es nichts zu sagen. */
+function verzoegerungNotiz(v){
+  return v > 0 ? `Wenn du die Übung abbrichst, hast du ${anzahl(v, "Sekunde", "Sekunden")}
+    Zeit, die Stopptaste zu drücken.` : "";
+}
+
 function renderSetup(){
   const j = JSON.stringify(S);
   el("setupBody").innerHTML = `
@@ -8670,17 +8775,15 @@ function renderSetup(){
       <p class="tiny" style="margin:6px 0 14px">Die Stufen selbst brauchen kein Gewicht. Nötig
       wird es erst, wenn du Zusatzgewicht auflegst: 10 kg wiegen bei
       60 kg Körpergewicht deutlich schwerer als bei 95 kg.</p>
-      <label class="tiny" for="reactSel" style="display:block;margin-bottom:4px">Reaktionsabzug
-        je Satz</label>
+      <!-- Luke, 22.10.2026: Name "Zeitverzoegerung der Stoppuhr" statt
+           "Reaktionsabzug je Satz", darunter nur noch seine eine Notiz. -->
+      <label class="tiny" for="reactSel" style="display:block;margin-bottom:4px">Zeitverzögerung
+        der Stoppuhr</label>
       <select id="reactSel">${[0,1,2,3,4].map(v=>
         `<option value="${v}" ${v===(S.reaction==null?REACTION_DEFAULT:S.reaction)?"selected":""}>${
-          v===0?"kein Abzug":v+" Sekunden"}</option>`).join("")}</select>
-      <p class="tiny" style="margin-top:8px">Zwischen dem Moment, in dem du die Position verlässt,
-      und dem Knopfdruck vergeht Zeit. Der Abzug holt das heraus. Er ist bei jedem Satz gleich
-      groß — die Verhältnisse zwischen den Sätzen bleiben also unberührt, nur das Niveau wandert
-      dorthin, wo es hingehört.</p>
-      <p class="tiny"><b>Änderst du den Wert später</b>, passen alte und neue Messungen nicht mehr
-      exakt zusammen. Am besten jetzt festlegen und dann stehen lassen.</p>
+          v===0?"keine":anzahl(v, "Sekunde", "Sekunden")}</option>`).join("")}</select>
+      <p class="tiny" id="reactNote" style="margin-top:8px">${verzoegerungNotiz(
+        S.reaction==null?REACTION_DEFAULT:S.reaction)}</p>
       <p class="tiny">Vor dem <b>ersten</b> Satz eines Blocks zählt die App ${LEAD_IN} Sekunden
       herunter, damit du in Position kommst. Ab Satz 2 nicht mehr — dafür ist die Pause da.</p>
     </div>
@@ -8970,7 +9073,8 @@ function renderSetup(){
   dbBadge();
   el("exSel").onchange = e=>{ S.exercise = e.target.value; fixSide(); S.plan = null; S.planDay = null; save(); render2(); };
 
-  el("reactSel").onchange = e => { S.reaction = +e.target.value; save(); };
+  el("reactSel").onchange = e => { S.reaction = +e.target.value; save();
+    el("reactNote").textContent = verzoegerungNotiz(S.reaction); };
   el("bwInp").onchange = e => {
     const v = +e.target.value;
     S.bw = (v >= 30 && v <= 200) ? v : BW_DEFAULT;
@@ -9224,12 +9328,14 @@ function render(){
   if(!S.onboarded){ el("s-onboard").classList.add("on"); renderOnboard(); }
   else show("home");
 }
-/* Waehrend eines Laufs fuehrt "Heute" zurueck INS Workout, nicht auf den
+/* Waehrend eines Laufs fuehrt "Start" zurueck INS Workout, nicht auf den
    Planungsbildschirm. Vorher sah ein Tipp auf die Leiste aus, als waere das
    Workout weg — RUN lebte weiter, war aber nicht mehr erreichbar. Profil und
    Einstellungen bleiben offen; der Lauf wartet. */
 document.querySelectorAll("nav button").forEach(b=> b.onclick = ()=>{
   if(RUN && b.dataset.go === "home" && aktiverScreen !== "home"){ laufFortsetzen(); return; }
+  /* Ohne Lauf fuehrt "Start" immer auf Start, auch aus "Dein Workout". */
+  if(!RUN && b.dataset.go === "home") liste = false;
   show(b.dataset.go);
 });
 el("tStop").onclick  = ()=> endSet(false);

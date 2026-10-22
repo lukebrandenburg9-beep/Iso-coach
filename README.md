@@ -91,7 +91,7 @@ Rechenlogik:
   mit ihren Sprossen nach den eigenen Messungen nicht erreicht, überspringt die Rotation;
   erreicht sie nur eine, kommt die Übung einmal pro Woche dran.
 - **Drei Zonen, drei Farben:** Maximalkraft (20–60 s, rot), Hypertrophie / Kraft (60–90 s, blau),
-  Kraftausdauer (90–150 s, gelb). Auf *Heute* steht unter jeder angehakten Übung je Seite ein
+  Kraftausdauer (90–150 s, gelb). Auf *Start* steht unter jeder angehakten Übung je Seite ein
   Kuchen der letzten 30 Einheiten — gezählt nach der Zone, in der der erste Satz gelandet ist —
   und daneben die drei Zonen zum Antippen. Der Knopf der Zone, die heute läuft, ist voll in ihrer
   Farbe gefüllt. Die Zone, die die App empfiehlt, bleibt orange umrandet, auch wenn man eine
@@ -104,7 +104,7 @@ Rechenlogik:
   (nach 20 s Pause ist rund ein Drittel der Reserve zurück, Chorley 2022), danach mit den eigenen
   Messreihen — erst über alle Übungen, dann je Übung und Seite. Der Timer gibt ab Satz 2 genau
   diese Zahlen vor; wer länger hält als geplant, bekommt einen längeren nächsten Satz. Dieselbe
-  Rechnung steckt in der Dauer auf *Heute*.
+  Rechnung steckt in der Dauer auf *Start*.
 - **Erholung:** Dieselbe Muskelgruppe **dreimal pro Woche**, jedes Energiesystem — also jede
   Zone — **einmal pro Woche**. Beides zusammen ist genau eine Rotation: drei Zonen, drei
   Einheiten, ein Mo/Mi/Fr-Rhythmus. Umgesetzt als zwei Schranken: mindestens zwei Tage zwischen
@@ -122,7 +122,7 @@ Rechenlogik:
   nächste Sitzung zurück; dort stehen sie oben. Wer selbst entscheiden will, benutzt auf der
   Startseite *Heute selbst zusammenstellen* — das gilt nur für diese eine Sitzung und hebt den
   Deckel auf.
-- **Kurzeinheit (20 Min).** Ein Häkchen in der Plankarte über *Workout starten*, gültig bis
+- **Kurzeinheit (20 Min).** Ein Häkchen in der Plankarte über *Weiter*, gültig bis
   Mitternacht. Die App kürzt dann so, dass die Einheit mit allen Pausen höchstens 20 Minuten
   dauert: erst die Satzzahl, für alle Übungen gleich, vom Zonen-Standard bis auf einen Satz, dann
   ganze Übungen, links und rechts immer zusammen. Zuerst fallen Übungen weg, die in den letzten
@@ -132,6 +132,12 @@ Rechenlogik:
   `kurzeinheit`.
 - **Nachholblock zum Abwählen.** Wer die offene Seite nicht mehr nachholen will, nimmt das Häkchen
   der Zeile ab. Bis Mitternacht lässt es sich wieder setzen, danach plant die App die Übung normal.
+- **Dein Workout.** *Weiter* auf *Start* führt auf eine Liste der angehakten Übungen in der
+  Reihenfolge des Plans. Dort stellst du für jede Übung schon vorher Sprosse, Zusatzgewicht und
+  Sätze ein, je Seite eine Zeile mit der Zielzeit im Kopf. Oben springt die Dauer mit. Die Karte vor
+  jeder Übung ist damit vorbelegt und lässt sich weiter ändern. Die Wahl gilt bis Mitternacht und
+  bleibt stehen, wenn du auf *Start* etwas an- oder abhakst. Mit der Kurzeinheit verfallen nur die
+  gewählten Sätze.
 - **Progressionsregeln 1–4** über zwei Bahnen: Leiter und Zusatzgewicht. Am oberen Ende der
   Leiter kommt Gewicht dazu statt gar nichts, am unteren geht erst Gewicht weg, bevor die Stufe
   fällt. Zweimal Schmerzabbruch stuft zurück — und wenn nichts Leichteres mehr da ist, sagt die

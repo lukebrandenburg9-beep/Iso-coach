@@ -3807,11 +3807,174 @@ nichts aus dem Verlauf wandert an eine andere Stelle.
 **Für den Nachbau:** Die Navigation hat drei Ziele, Heute, Profil und Einstellungen. Einen
 Verlauf-Bildschirm braucht der Nachbau nicht. Im Export die zwei Felder oben am Ende der Zeile.
 
+### P88 · Zeitverzögerung der Stoppuhr, eine Notiz statt zwei Absätze
+
+Luke, 22.10.: „fasse den satz unter den 2 sekunden auf eine notiz zusammen: "Wenn du die Übung
+abrichst hast du X sekunden Zeit die Stopptaste zu drücken. Damit nenne die funktion
+"Zeitverzögerung der Stoppuhr" korrigere auf rechtschreibfehler“.
+
+**Gebaut in 2026-10-22 c.**
+
+- **Der Wert heißt „Zeitverzögerung der Stoppuhr“** statt „Reaktionsabzug je Satz“, unter
+  Einstellungen → Messung und auf der Ergebniskarte nach einem Satz („… s Zeitverzögerung der
+  Stoppuhr abgezogen“).
+- **Darunter steht nur noch Lukes Satz,** mit der gewählten Zahl: „Wenn du die Übung abbrichst,
+  hast du 2 Sekunden Zeit, die Stopptaste zu drücken.“ Er wechselt sofort mit der Auswahl. Bei
+  „keine“ steht nichts da.
+- **Die Auswahl heißt „keine“, „1 Sekunde“, „2 Sekunden“ …** statt „kein Abzug“ und „1 Sekunden“.
+- **Rechtschreibung:** „abrichst“ → „abbrichst“, „X sekunden“ → „X Sekunden“, Kommas vor „hast“
+  und „die Stopptaste“.
+- Der Absatz zum Countdown vor dem ersten Satz bleibt stehen. Er gehört nicht zur Verzögerung.
+
+**Der Preis.**
+
+- **Die Warnung „Änderst du den Wert später, passen alte und neue Messungen nicht mehr exakt
+  zusammen“ ist weg.** Der Abzug wird beim Speichern eines Satzes von der Uhrzeit abgezogen, ein
+  späterer Wechsel verschiebt also alle neuen Punkte um die Differenz gegen die alten. Der Nutzer
+  erfährt das jetzt nirgends mehr.
+- **Die Begründung ist weg,** dass der Abzug bei jedem Satz gleich ist und die Verhältnisse
+  zwischen den Sätzen nicht berührt. Sie steht weiter auf der Ergebniskarte nach jedem Satz.
+
+**Für den Nachbau:** Auswahl 0 bis 4 Sekunden, Standard 2 (`REACTION_DEFAULT`). Darunter ein
+Satz mit der gewählten Zahl, leer bei 0. Gespeichert wird weiter `S.reaction`, im Export bleibt
+alles gleich.
+
+### P89 · Start statt Heute, davor die Liste „Dein Workout“
+
+Luke, 22.10.: „ich hätte genre nach dem "heute" bildschirm den ich in "start" umbenennen würde,
+gerne nochmal alle Übungen alls auflistung also so wie jetzt aber das ich für jede übung vorher
+schon satzzahl und sprosse auswählen kann“. Auf Rückfrage: nur die angehakten Übungen, die Karte
+vor jeder Übung bleibt und ist vorbelegt, eine Zeile je Seite, in jeder Zeile auch Zielzeit und
+Zusatzgewicht.
+
+**Gebaut in 2026-10-22 d.**
+
+- **„Heute“ heißt „Start“,** in der Leiste, als Überschrift und im Satz unter der Sicherheitsfrage
+  („nimm die Übung unter Start wieder raus“). „Heute nicht“ am Pausentag bleibt. Das ist ein Satz,
+  kein Bildschirmname.
+- **Auf Start steht „Weiter“ statt „Workout starten“.** Weiter führt auf die neue Liste „Dein
+  Workout“. Einen zweiten Weg direkt ins Workout gibt es nicht.
+- **Die Liste zeigt die angehakten Übungen in der Reihenfolge des Plans.** Jede Übung hat eine
+  Karte, darin steht je Seite eine Zeile, bei Übungen ohne Seiten eine einzige. Im Kopf jeder Zeile
+  stehen Seite und Zielzeit. Darunter folgen:
+  - die Sprosse, wo es mehrere gibt,
+  - das Zusatzgewicht, wo die Sprosse eins trägt (die Wade mit Waage, Ohne Gewicht und Rucksack,
+    der Läufer mit Front Rack und Suitcase),
+  - die Sätze.
+
+  Oben steht die Dauer, sie ändert sich mit jeder Wahl. Unten stehen „Workout starten“ und
+  „Zurück“.
+- **Die Zeile ist dieselbe wie auf der Karte vor der Übung,** nur ohne Satzkurve. Beide rechnen über
+  dieselben Funktionen, also hat eine Sprosse in der Liste dieselbe Zielzeit wie auf der Karte.
+- **Die Karte vor jeder Übung bleibt.** Sie ist mit der Wahl aus der Liste vorbelegt, dort lässt
+  sich alles noch ändern.
+- **Die Wahl übersteht Änderungen auf Start.** Wer zurückgeht, eine Übung an- oder abhakt, eine Zone
+  antippt oder den Modus wechselt, findet bei den übrigen Übungen Sprosse, Sätze und Gewicht so vor,
+  wie er sie gesetzt hat. Das gilt bis Mitternacht.
+- **Mit der Kurzeinheit verfallen die gewählten Sätze.** Sprosse und Gewicht bleiben. Sonst würde
+  die Wahl das Kürzen auf 20 Minuten aushebeln.
+- **Die Leiste führt immer auf Start,** auch aus der Liste heraus. Während eines Workouts führt sie
+  wie bisher zurück ins Workout.
+
+**Der Preis.**
+
+- **Bis zum ersten Satz braucht es einen Tipp mehr.** Wer nichts ändern will, tippt jetzt erst Weiter
+  und dann Workout starten.
+- **Sprosse, Gewicht und Sätze stehen an zwei Stellen,** in der Liste und auf der Karte vor der
+  Übung. Was auf der Karte geändert wird, gilt für diesen Lauf. Gemerkt wird nur, was in der Liste
+  gewählt wurde.
+- **Mit Kurzeinheit kann die Dauer über 20 Minuten steigen,** wenn nach dem Einschalten in der Liste
+  mehr Sätze gewählt werden. Die Wahl des Nutzers geht vor, und die Dauer oben zeigt das an.
+- **Gewicht, das der Zone folgt, hält die Liste nicht fest.** Auf der obersten Sprosse ist das
+  Gewicht die Leiter. Nach einem Zonen-Tipp rechnet die App es dort neu, außer der Nutzer hat es
+  selbst eingestellt.
+- **In der Liste fehlt die Satzkurve.** Wie die Sätze abfallen, zeigt nur die Karte vor der Übung.
+
+**Für den Nachbau:**
+
+- Ein neuer Bildschirm zwischen Start und der ersten Übungskarte. Der Baker-Pfad hat dort eine eigene
+  Karte („Fersenbrücke fürs innere Knie“), wie vor der Übung auch.
+- Die Zeile ist `teilHTML(q, t, mitKurve)` mit `teilBinden(wurzel, teile, neu)`, beide seit dieser
+  Fassung auf oberster Ebene. `blockIntro` nutzt sie mit Kurve, `renderListe` ohne.
+- Das neue Feld `S.vorwahl` hat die Form `{tag, je: {"<übung>|<seite>": {level, saetze, kg: {level,
+  extra}}}}` und gilt nur für `tag`. `vorwahlAnwenden` läuft am Ende von `planWorkout`, nach dem
+  Kürzen der Kurzeinheit:
+  1. Die Sprosse wird über `stufeSetzen` gesetzt, rastet also auf ein vorhandenes Gerät.
+  2. Das Gewicht wird nur auf seiner eigenen Sprosse gesetzt, und nicht, wo es der Zone folgt.
+  3. Danach kommen die Sätze.
+- Datenformat und Export bleiben unverändert, das Schema bleibt 8.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-22 d — Start statt Heute, Liste „Dein Workout“
+
+**Befund (Luke).** Satzzahl und Sprosse sollen sich vor dem Workout wählen lassen, nicht erst auf
+der Karte vor jeder Übung. Außerdem soll „Heute“ „Start“ heißen (P89).
+
+**Gebaut.**
+
+- „Start“ steht in der Leiste und als Überschrift, auf dem Knopf steht „Weiter“ statt „Workout
+  starten“.
+- **Die Liste „Dein Workout“** hat eine Karte je angehakter Übung. Jede Seite hat eine Zeile mit
+  Zielzeit, Sprosse, Zusatzgewicht und Sätzen. Oben steht die Dauer.
+- **Die Wahl wird für heute gemerkt.** Sie übersteht Häkchen, Zonen-Tipp und Moduswechsel auf Start.
+  Die Kurzeinheit setzt nur die Sätze zurück.
+- **Die Zeile der Übungskarte ist herausgelöst** und steht jetzt an beiden Stellen. Die Karte vor
+  der Übung sieht aus wie vorher.
+- **Beim Prüfen gefunden und behoben:** Beim Ausfallschritt wechselte der Test in der Liste vom
+  Wandstand auf eine Kniestand-Sprosse und stellte 2,5 kg ein. Nach „Zurück“ und einem Häkchen
+  stand er auf 0 kg. Jetzt merkt sich die Liste das Gewicht zusammen mit seiner Sprosse.
+
+**Geprüft.** Bei 375 × 812, mit einem frei erfundenen Teststand.
+
+- **Erster Blick:** Leiste und Titel zeigen „Start“, der Knopf zeigt „Weiter“. Die Liste zeigt nur
+  die angehakten Übungen. Ausfallschritt und Seitstütz haben je eine Zeile für links und eine für
+  rechts.
+- **Wahl in der Liste:** Ausfallschritt links von Wandstand auf Kniestand gewechselt, dabei
+  erscheint das Gewichtsfeld. 2,5 kg eingestellt. Seitstütz links auf 4 Sätze, die Dauer springt
+  von 40 auf 41 Minuten.
+- **Nach „Zurück“:** Schrägzug ab- und wieder angehakt, dann Weiter. Kniestand, 2,5 kg und 4 Sätze
+  stehen noch da.
+- **Kurzeinheit an:** Alle Blöcke stehen auf 2 Sätzen, Sprosse und Gewicht bleiben, die Dauer ist
+  20 Minuten.
+- **Workout starten:** Die Karte „Übung 1 von 6“ zeigt Sprosse, Gewicht und Sätze aus der Liste,
+  mit Satzkurve. Eine Änderung auf der Karte wirkt. Der Satz läuft auf dieser Sprosse mit diesem
+  Gewicht und der gewählten Satzzahl.
+- **Wade und Läufer:** Bei der Wade wirken Waage, Ohne Gewicht und Rucksack, die Anzeige lautet
+  „Waage zeigt 77,5 kg“. Beim Läufer erscheinen nach + Front Rack und Suitcase, der Wechsel wirkt.
+  Ein Tipp auf + lässt die Zeile unter dem Finger stehen.
+- **Bestehende Wege:**
+  - Neuladen mitten im Satz zeigt „Workout läuft noch“, Weitermachen zeigt die Wahl.
+  - Am Pausentag führen „Trotzdem trainieren“ und dann Weiter auf die Liste.
+  - Bei „Nur Körpergewicht“ hat die Liste keine Gewichtsfelder.
+  - Die Leiste führt aus der Liste auf Start.
+- **Nicht mit echten Messdaten geprüft:** dass die Zielzeit beim Sprossenwechsel springt. Im
+  Teststand ohne Messungen steht jede Sprosse auf 120 s. Die Liste ruft dafür dieselbe Funktion wie
+  die Karte.
+- Keine Konsolenfehler. Die Testdaten sind danach gelöscht.
+
+### 2026-10-22 c — Zeitverzögerung der Stoppuhr
+
+**Befund (Luke).** Unter der Auswahl standen zwei Absätze. Er will nur einen Satz, und die
+Funktion soll „Zeitverzögerung der Stoppuhr“ heißen (P88).
+
+**Gebaut.**
+
+- **Neuer Name** unter Einstellungen → Messung und auf der Ergebniskarte nach einem Satz.
+- **Eine Notiz mit der gewählten Zahl** statt der zwei Absätze, leer bei „keine“.
+- **Auswahl** „keine“, „1 Sekunde“ bis „4 Sekunden“.
+
+**Geprüft.**
+
+- Bei 375 × 812: Überschrift „Zeitverzögerung der Stoppuhr“, die fünf Einträge wie oben. Die Notiz
+  zeigt bei 1, 2 und 3 die richtige Zahl in Einzahl oder Mehrzahl und ist bei „keine“ leer. Die
+  alten Sätze stehen nirgends mehr auf dem Bildschirm. Keine waagerechte Scrollleiste, keine
+  Konsolenfehler.
+- Testdaten danach gelöscht.
 
 ### 2026-10-22 b — Verlauf nicht mehr in der Leiste, zwei Spalten im Export
 
