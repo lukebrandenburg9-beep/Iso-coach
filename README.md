@@ -77,7 +77,16 @@ Rechenlogik:
   werden mit 3 % je neuerem Punkt abgewertet. **Sie rechnet mit den letzten 30 Punkten** je
   Kurve, ältere bleiben im Export. Im Profil wird ein älterer Punkt so blass, wie
   wenig er noch zählt. Ein Punkt mit Gewicht bekommt einen Pfeil von der Linie seiner Sprosse,
-  die kg-Zahl steht klein und grau daneben, wo Platz ist.
+  die kg-Zahl steht klein und grau daneben, wo Platz ist. Die Zeichnung beginnt links, wo die
+  Kurve oben aus dem Bild läuft. Eine senkrechte Linie steht an der Obergrenze der Kraftausdauer
+  (180 s). Stufen links davon sind zu leicht, sie fallen von der Achse und stehen in der Liste
+  darunter ausgegraut. Die aktuelle Stufe bleibt immer im Bild. Bei Übungen mit linker und
+  rechter Seite liegen beide Kurven in einer Zeichnung: links gestrichelt mit Quadraten, rechts
+  durchgezogen mit Kreisen, ein beidbeiniger Halt als Raute. Die 180-s-Linie steht an der
+  schwächeren Seite, die Tabelle hat je eine Spalte für links und rechts. Haltungen wie bei der
+  Hyperextension bleiben getrennt. Unter dem Feld „Kurve“ lassen sich beide Seiten an- und
+  abhaken. Sitzt das Gewicht links und rechts verschieden (Läufer), stehen zwei Zeichnungen
+  untereinander, jede mit ihren Gewichtsmarken.
 - **Gespreiztes Onboarding** über drei Stufen (leicht / mittel / schwer) statt einer. Der
   Einstieg hängt an der **Kurve**, nicht am Workout: Eine Übung, die später dazukommt, holt ihre
   fehlenden Zonen nach. Gezählt werden dabei leere Zonen, nicht Messungen — zwei gespreizte

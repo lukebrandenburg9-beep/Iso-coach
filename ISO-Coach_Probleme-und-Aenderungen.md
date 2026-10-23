@@ -4087,11 +4087,249 @@ Umzug über `PLANK_WAND_AT` = 33 mit `PLANK_WAND_UMZUG` {0:0, 1:1, 2:2, 3:2, 4:3
 Last aus `PLANK_WAND_ALT_LAST`, die Marke für die alten Indizes 0 bis 2. Export und Schema bleiben gleich (8),
 `stufe_nr` verschiebt sich wie in Teil 2 beschrieben.
 
+### P93 · Die Kraftkurve beginnt, wo sie oben aus dem Bild läuft
+
+Luke, 22.10., am Ausfallschritt: „da wo die kurve abreist können wir alle noch weiter an den
+linken bildrand schieben die sprossen die zu leicht werden können auf der x-achse rausfallen“. Und
+zur senkrechten Linie: „critical power soll bei der 150sekunden - barrier liegen“.
+
+Die Lastachse reichte links bis CP. CP ist im Modell die Last, bei der die Haltezeit unendlich
+wird, und liegt deshalb immer weit links der leichtesten Stufe. Die Sprossen 1 bis 3 standen
+gequetscht in der Mitte, links davon war nur leere Fläche mit einem flachen Strich am oberen Rand.
+
+**Gebaut in 2026-10-22 h.**
+
+- **Der linke Rand liegt dort, wo die Kurve oben aus dem Bild läuft.** Die Kurve kommt oben links
+  ins Bild, ohne flachen Strich davor.
+- **Die senkrechte Linie steht an der Obergrenze der Kraftausdauer** und heißt nach ihrer Zeit,
+  „180 s“. Luke nannte 150 s, das war die Obergrenze vor P91. Bei 150 s läge die Linie heute auf der
+  Zielzeit der Kraftausdauer. Die Linie folgt der Zonentabelle. „CP“ steht nicht mehr in der
+  Zeichnung, gerechnet wird damit weiter.
+- **Was links der Linie läge, ist zu leicht und fällt aus der Zeichnung:** Stufen samt Nummer,
+  Messpunkte und Gewichtsmarken. Die Kurve rechnet weiter mit den Punkten.
+- **Die Stufenliste darunter behält alle Stufen.** Die zu leichten stehen ausgegraut mit
+  „· zu leicht“, der Punkt für „schon gemessen“ bleibt.
+- **Die aktuelle Stufe und die jetzige Last bleiben immer im Bild**, auch wenn sie zu leicht sind,
+  und mit ihnen alles, was schwerer ist.
+- **Der Satz unter der Zeichnung** heißt jetzt: „Links der senkrechten Linie hieltest du länger als
+  180 s, dort ist jede Stufe zu leicht.“
+- **Zonen und Rasterlinien kommen aus der Zonentabelle.** Seit P91 stand die Zeichnung noch auf
+  90 und 150 s mit oberem Rand 170 s. Jetzt: Linien bei 20, 60, 120 und 180 s, oberer Rand 200 s.
+  Über der Kraftausdauer bleibt ein schmaler Streifen ohne Farbe.
+
+**Der Preis.**
+
+- **Die Achse wandert mit der Kurve.** Jede neue Messung kann eine Stufe von der Achse nehmen oder
+  zurückholen, weil die 180-s-Linie aus dem Fit kommt.
+- **Ein Punkt links der Linie ist nur noch in der Liste zu sehen**, als „schon gemessen“, nicht mehr
+  mit seiner Zeit. Ein Punkt mit Gewicht auf einer zu leichten Stufe bleibt, wenn er rechts der Linie
+  liegt, aber ohne Pfeil, weil die Linie seiner Stufe fehlt.
+- **Ist die aktuelle Stufe selbst zu leicht,** reicht die Achse weiter nach links, und die Kurve
+  beginnt erst rechts von ihr am oberen Rand. Dort bleibt eine Lücke.
+- **CP sieht niemand mehr.** Wer die Asymptote zeigen will, braucht dafür einen eigenen Ort.
+
+**Für den Nachbau:** `grenze = lastZuZeit(f, ZONES[2].hi)`, oberer Rand `y1 = ZONES[2].hi · 10/9`.
+`ab` = kleinster Wert aus `grenze`, der Last der aktuellen Sprosse und der jetzigen Last. Linker Rand
+`min(lastZuZeit(f, y1), ab · 0,97)`. Sprossen, Punkte und Gewichtsmarken mit Last unter `ab` fallen
+aus der Zeichnung, die aktuelle Sprosse nie. Die Kurve endet bei `t > y1`. Export und Schema bleiben
+gleich (8).
+
+### P94 · Links und rechts in einer Zeichnung
+
+Luke, 23.10.: „Kannst du bei unilateralen übungen fie linkenund die rechte curve in ein Diagramm
+legen? Die linke kurve z.b gestrivhel die rechte durchgehend. So wie in der gripganz app“. Und zur
+Hyperextension: „Diebhyperextension ist eine bilaterale übung“.
+
+Bisher bekam jede Seite ihre eigene Zeichnung. Wer links und rechts vergleichen wollte, wechselte im
+Feld „Kurve“ zwischen „Ausfallschritt · links“ und „Ausfallschritt · rechts“ und musste sich die erste
+Kurve merken.
+
+**Entschieden mit Luke.**
+
+- **Die Übung steht einmal im Feld „Kurve“**, beide Seiten liegen in einer Zeichnung in derselben
+  Farbe. Die Tabelle bekommt zwei Spalten, Links und Rechts, die Stufenliste zeigt die aktuelle
+  Stufe jeder Seite.
+- **Links ist die Kurve gestrichelt und die Punkte sind Quadrate, rechts ist sie durchgezogen mit
+  Kreisen.** Ein Schmerzabbruch bleibt hohl.
+- **Eine 180-s-Linie, an der schwächeren Seite.** Links von ihr hältst du auf beiden Seiten länger als
+  180 s. Eine Stufe fällt nur aus der Zeichnung, wenn sie für beide Seiten zu leicht ist.
+- **Nur Übungen mit linker und rechter Seite werden zusammengelegt.** Die Hyperextension gestreckt und
+  rund ist eine bilaterale Übung in zwei Haltungen und bleibt getrennt.
+
+**Gebaut in 2026-10-23 a.**
+
+- **Zeichnung:** zwei Kurven, jede mit ihrem Band, die Bänder blasser, damit sich beide lesen lassen.
+  Links ist auch die Verlängerung über den gemessenen Bereich hinaus anders gestrichelt, gepunktet
+  statt in kurzen Strichen. Die Stufennummern beider aktuellen Stufen stehen hervorgehoben.
+- **Beidbeinige Stufen** (die erste Stufe beim Wadenheben) zählen für beide Seiten. Ihr Punkt steht
+  einmal als Raute im Bild statt doppelt, und der Satz darunter erklärt die Raute nur, wenn eine zu
+  sehen ist.
+- **Zeile oben:** „Ausfallschritt · Messpunkte links 5, rechts 5“.
+- **Stufenliste:** ■ links und ● rechts markieren die Stufen, auf denen schon gemessen wurde, ◆ die
+  beidbeinigen. Hinter der aktuellen Stufe steht „· aktuell links“, „· aktuell rechts“ oder
+  „· aktuell beide Seiten“.
+- **Satz unter der Zeichnung:** „Links: Kurve gestrichelt, Punkte als Quadrate. Rechts: Kurve
+  durchgezogen, Punkte als Kreise.“ Dazu: jede Seite rechnet mit ihren letzten 30 Punkten, und bis
+  zur senkrechten Linie hältst du auf beiden Seiten länger als 180 s.
+- **Stand der Kurve** je Seite, etwa „Die linke Kurve steht auf …, die rechte Seite hat noch keine
+  Kurve.“
+- **Tabelle:** Spalten Links und Rechts. Die Zeit steht in der Zonenfarbe, ohne Zonennamen darunter,
+  sonst bricht „Kraftausdauer“ in der schmalen Spalte dreimal um. Hat eine Seite noch keine Kurve,
+  steht dort „keine Kurve“.
+- **Messbereich:** „Gemessen ist links zwischen … und …, rechts zwischen … und ….“
+- **Positionen mit nur einer Variante** (keine Kurve möglich) zeigen „Haltezeit über die Zeit“ je
+  Seite, den Erklärsatz nur unter der letzten Karte.
+- Übungen ohne Seitenpaar (Liegestütz, Rudern, Hyperextension) sehen aus wie in 2026-10-22 h.
+
+**Der Preis.**
+
+- **Der Läufer verliert die Gewichtsmarken an der Achse, wenn die Lage des Gewichts links und rechts
+  verschieden ist.** Dieselben Kilo bedeuten dann auf beiden Seiten eine andere Last. Die Pfeile an
+  den Punkten behalten ihr „+8 kg“. Seit 2026-10-23 b stehen in diesem Fall zwei Zeichnungen
+  untereinander (P95).
+- **Die Zeitspalten zeigen die Zone nur noch als Farbe.** Wer die Farben nicht kennt, muss sie aus den
+  Zonen in der Zeichnung ablesen.
+- **Im Baker-Pfad stehen nur die Beine in der Zeichnung, die angehakt sind** oder dort schon gehalten
+  haben. Ist es nur eins, steht eine Kurve allein, mit dem Stil ihrer Seite.
+- **Das Feld „Kurve“ bietet links und rechts nicht mehr einzeln an.** Wer nur eine Seite sehen will,
+  hat dafür keinen Weg mehr. Seit 2026-10-23 b gibt es dafür die Haken darunter (P95).
+- **Zwei Kurven decken sich gegenseitig zu**, wenn beide Seiten fast gleich stark sind. Dann liegt
+  die gestrichelte über der durchgezogenen, und die Quadrate über den Kreisen.
+
+**Für den Nachbau:** `paarUebung(ex)` = keine Haltungen und `sides` enthält „links“ und „rechts“.
+`seitenPaar(ex)` = `kurvenSeiten(ex, sides, true)` ohne `null`, nur im Profil und nur, wenn eine Seite
+gewählt ist. `curveSVG(f, pts, paar)` holt je Seite `curFit` und `kurvenPunkte`. `grenze` = kleinstes
+`lastZuZeit(f_Seite, ZONES[2].hi)`, `ab` = kleinster Wert aus `grenze` und den Lasten beider aktuellen
+Stufen. Eine Stufe bleibt im Bild, wenn sie rechts von `ab` liegt oder auf einer Seite aktuell ist.
+Gewichtsmarken nur, wenn `gewichtAchse` auf beiden Seiten gleich ist. `points()` trägt das neue Feld
+`beid` (Halt ohne Seite auf einer `beidStufe`). Gleiche beidbeinige Punkte, also gleiches Datum und
+gleiche Stufe, werden zu einem zusammengelegt, mit dem höheren Gewicht im Fit. Export und Schema
+bleiben gleich (8).
+
+### P95 · Seiten zum An- und Abhaken, Läufer untereinander
+
+Luke, 23.10., zum Preis von P94 beim Läufer: „dann leg hier die diagramme untereinander an erst links
+dann rechts mit bescjriftung teotzdem nur ein menüpunkt“. Gleich danach: „Mach beide seiten unter dem
+menü zum an und abhaken“.
+
+**Gebaut in 2026-10-23 b.**
+
+- **Haken unter dem Feld „Kurve“:** Links (■ gestrichelt) und Rechts (● durchgezogen). Ein gelöster
+  Haken nimmt die Seite aus dem ganzen Profil: Zeichnung, Zeile oben, Stufenliste, Stand, Tabelle und
+  Messbereich. Achse und 180-s-Linie richten sich dann nur nach der gezeigten Seite, und der Läufer hat
+  seine Gewichtsmarken wieder. Der letzte Haken lässt sich nicht lösen. Die Wahl gilt je Übung, solange
+  die App offen ist. Nach dem Neuladen sind beide Seiten wieder an.
+- **Zwei Zeichnungen untereinander, wenn das Gewicht links und rechts verschieden sitzt.** Erst links,
+  dann rechts, mit den Überschriften „Links · Front Rack“ und „Rechts · Suitcase“, jede mit ihren
+  eigenen Gewichtsmarken. Achse, Stufen und 180-s-Linie sind in beiden dieselben, damit eine Stufe
+  untereinander an derselben Stelle steht. Links bleibt gestrichelt mit Quadraten, rechts durchgezogen
+  mit Kreisen, wie in der Stufenliste. Im Feld „Kurve“ bleibt es ein Eintrag.
+- **Der Satz unter der Zeichnung und die Stufenliste nennen nur die gezeigten Seiten**, etwa
+  „● rechts markiert die Stufen, auf denen du schon gemessen hast“.
+
+**Der Preis.**
+
+- **Die Haken vergisst die App beim Neuladen.** Wer immer nur eine Seite sehen will, hakt jedes Mal neu
+  ab.
+- **Untereinander braucht der Läufer doppelt so viel Höhe.** Tabelle und Stufenliste rutschen auf dem
+  Handy fast eine Bildschirmhöhe tiefer.
+- **Die 180-s-Linie steht in beiden Zeichnungen an der schwächeren Seite.** In der Zeichnung der
+  stärkeren Seite können deshalb Stufen rechts der Linie stehen, die für diese Seite schon zu leicht
+  sind, wie in der gemeinsamen Zeichnung aus P94.
+
+**Für den Nachbau:** `seitenPaarAlle(ex)` liefert die Seiten, die einen Haken bekommen (bis 2026-10-23 a
+hieß das `seitenPaar`). `seitenPaar(ex)` liefert nur die angehakten, gemerkt in `seitenAus` je
+`ex|seite`, nicht in `S` und nicht im Export. Dazu `seitenHakenHTML` und `wireSeitenHaken`.
+`curveSVG(f, pts, paar, nur)`: Mit zwei Seiten und `!gleicheAchse(ex, paar)` ruft sie sich je Seite mit
+`nur` auf und setzt die Überschrift aus `lageOf(ex, seite).titel` darüber. Mit `nur` rechnet sie Achse,
+Stufen und `grenze` mit beiden Seiten. Sie zeichnet aber nur Kurve, Punkte und Gewichtsmarken dieser
+einen Seite (`gewichtAchse(ex, nur)`) und hebt nur deren aktuelle Stufe hervor. Export und Schema
+bleiben gleich (8).
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-23 b — Seiten zum An- und Abhaken, Läufer untereinander
+
+**Befund (Luke).** Beim Läufer mit verschiedener Lage fehlten in 2026-10-23 a die Gewichtsmarken. Dort
+sollen beide Zeichnungen untereinander stehen. Außerdem sollen sich beide Seiten unter dem Menü an- und
+abhaken lassen (P95).
+
+**Gebaut.** Unter dem Feld „Kurve“ stehen die Haken Links und Rechts. Ein gelöster Haken nimmt die Seite
+aus dem Profil, der letzte bleibt fest. Sitzt das Gewicht links und rechts verschieden, stehen zwei
+Zeichnungen mit Überschrift untereinander, auf derselben Achse und jede mit ihren Gewichtsmarken.
+
+**Geprüft.** Auf eigenem Port 8767 bei 375 × 812, mit denselben erfundenen Messungen wie in 2026-10-23 a.
+
+- Läufer mit Front Rack links und Suitcase rechts: zwei Zeichnungen, „Links · Front Rack“ und
+  „Rechts · Suitcase“. Gewichtsmarken in beiden, „+10“ liegt in der rechten weiter rechts als in der
+  linken. Stufe 1 und die Linie „180 s“ stehen in beiden an derselben Stelle. Die Legende sagt „Unter
+  jeder Zeichnung“.
+- Läufer, Haken rechts mit echtem Klick gelöst: eine Zeichnung mit Gewichtsmarken, Tabelle nur mit
+  „Links“, der Haken links gesperrt.
+- Ausfallschritt, links gelöst: nur Kreise, Zeile oben „Messpunkte rechts 5“, der Satz „die Kurve rechnet
+  mit deinen letzten 30“, die Liste „● rechts markiert“. Wieder angehakt: wie in 2026-10-23 a. Ein echter
+  Klick auf den gesperrten Haken ändert nichts, ein erzwungener per Skript auch nicht.
+- Wadenheben, rechts gelöst: nur Quadrate, die Liste „■ links markiert … ◆ die beidbeinigen“.
+- Liegestütz und Hyperextension: keine Haken.
+- Die Unterzeile der Haken bricht bei 375 px nicht um.
+- Keine Konsolenfehler, kein `NaN`. Die Testdaten sind danach gelöscht.
+- **Nicht geprüft:** Lukes echte Messungen auf dem Handy.
+
+### 2026-10-23 a — Links und rechts in einer Zeichnung
+
+**Befund (Luke).** Bei Übungen mit linker und rechter Seite stand jede Seite in einer eigenen
+Zeichnung. Beide sollen in eine, links gestrichelt, rechts durchgezogen (P94).
+
+**Gebaut.** Im Profil steht eine Übung mit linker und rechter Seite einmal im Feld „Kurve“. Die
+Zeichnung zeigt beide Kurven, links gestrichelt mit Quadraten, rechts durchgezogen mit Kreisen,
+beidbeinige Halte als Raute. Eine 180-s-Linie an der schwächeren Seite. Stufenliste, Stand, Tabelle
+und Messbereich nennen beide Seiten. Die Hyperextension bleibt getrennt.
+
+**Geprüft.** Auf eigenem Port 8767 bei 375 × 812, mit erfundenen Messungen.
+
+- Ausfallschritt mit fünf Punkten je Seite, aktuell links Stufe 2 und rechts Stufe 3, links ein
+  Schmerzabbruch auf Stufe 7: links gestrichelt mit Quadraten, rechts durchgezogen mit Kreisen, der
+  Schmerzabbruch hohl. Eine Linie „180 s“, Stufe 1 ist aus der Zeichnung und in der Liste ausgegraut.
+  Die Liste zeigt „· aktuell links“ und „· aktuell rechts“, die Tabelle hat zwei Spalten ohne
+  Umbruch.
+- Wadenheben mit zwei beidbeinigen Halten auf Stufe 1: Ist die Stufe für beide Seiten zu leicht,
+  fehlt die Raute in der Zeichnung und im Satz darunter. Ist sie links aktuell, stehen die Rauten
+  einmal im Bild statt doppelt, und der Satz erklärt sie.
+- Läufer mit Gewicht links im Front Rack und rechts als Suitcase: keine Gewichtsmarken an der Achse,
+  die Pfeile behalten „+8 kg“ und „+16 kg“.
+- Liegestütz, Rudern und Hyperextension gestreckt mit erfundener Kurve: Zeile oben und Profil sind
+  bis auf Leerzeichen zeichengleich mit 2026-10-22 h.
+- Seitstütz und Brücke ohne Messungen: kein Fehler, kein `NaN` in der Zeichnung.
+- Keine Konsolenfehler. Die Testdaten sind danach gelöscht.
+- **Nicht geprüft:** Lukes echte Messungen auf dem Handy.
+
+### 2026-10-22 h — Kraftkurve beginnt, wo sie oben aus dem Bild läuft
+
+**Befund (Luke).** Im Profil standen die Ausfallschritt-Sprossen gequetscht in der Mitte, links
+davon nur leere Fläche bis zur CP-Linie. Zu leichte Sprossen sollen von der Achse fallen, die
+senkrechte Linie soll an der Grenze der Kraftausdauer stehen (P93).
+
+**Gebaut.** Der linke Rand liegt, wo die Kurve oben aus dem Bild läuft. Die senkrechte Linie steht
+bei 180 s und heißt so. Stufen, Punkte und Gewichtsmarken links davon fallen aus der Zeichnung, die
+Liste darunter graut sie aus. Zonen und Rasterlinien folgen der Zonentabelle.
+
+**Geprüft.** Auf eigenem Port 8767 bei 375 × 812, mit einem erfundenen Ausfallschritt links: fünf
+Punkte auf den Stufen 1 (290 s), 3 (150 s), 4 (125 s), 6 mit +10 kg (60 s) und 7 (40 s), aktuelle
+Stufe 2.
+
+- Stufe 1 und ihr Punkt sind aus der Zeichnung, die Liste zeigt „Stehend an der Wand · 2 Fußlängen ●
+  · zu leicht“. Vier Punkte, der Pfeil mit „+10 kg“ steht.
+- Die Kurve kommt oben links ins Bild, die Linie „180 s“ steht knapp daneben, Stufe 2 direkt rechts
+  davon. Rasterlinien bei 20, 60, 120 und 180 s.
+- Aktuelle Stufe 1 statt 2: Stufe 1 bleibt im Bild, die Achse reicht weiter nach links.
+- Alle zehn Übungen mit erfundener Kurve, je mit der leichtesten und einer mittleren Stufe als
+  aktueller: kein Fehler, kein `NaN` in der Zeichnung.
+- Keine Konsolenfehler. Die Testdaten sind danach gelöscht.
+- **Nicht geprüft:** Lukes echte Messungen auf dem Handy.
 
 ### 2026-10-22 g — Seitstütz an der Wand statt Knie auf Möbeln
 

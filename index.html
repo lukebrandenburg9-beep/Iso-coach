@@ -1708,7 +1708,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-22 g";
+const BUILD = "2026-10-23 b";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -3546,6 +3546,58 @@ function kurvenSeiten(ex, seiten, mitVerlauf){
   return seiten.filter(sd => sd == null || sd === h
     || (mitVerlauf && S.sessions.some(x => x.exercise === ex && x.side === sd)));
 }
+/* ── Links und rechts in einer Zeichnung (Luke, 23.10.2026) ─────────────
+   "Kannst du bei unilateralen uebungen die linke und die rechte curve in ein
+   Diagramm legen? Die linke kurve z.b gestrichelt die rechte durchgehend."
+   Im Profil steht eine Uebung mit linker und rechter Seite deshalb nur noch
+   einmal in der Auswahl, beide Seiten gleich stark. Nur links/rechts: Die
+   Hyperextension mit gestreckt/rund ist bilateral, ihre Haltungen bleiben
+   getrennte Kurven. Altdaten ohne Seite bleiben ein eigener Eintrag. */
+function paarUebung(ex){
+  const sd = (S.ex[ex] || {}).sides || [];
+  return !haltungen(ex) && sd.includes("links") && sd.includes("rechts");
+}
+/* Die Seiten, die im Profil einen Haken bekommen, oder null fuer eine
+   einzelne Kurve. Beim Baker-Pfad nur die Beine, die kurvenSeiten zeigt. */
+function seitenPaarAlle(ex){
+  if(!paarUebung(ex) || !S.side) return null;
+  const sd = kurvenSeiten(ex, S.ex[ex].sides, true).filter(Boolean);
+  return sd.length ? sd : null;
+}
+/* Haken unter dem Feld "Kurve" (Luke, 23.10.2026: "Mach beide seiten unter
+   dem menue zum an und abhaken"). Je Uebung und Seite gemerkt, solange die
+   App offen ist; nach dem Neuladen stehen beide Seiten wieder da. Der
+   letzte Haken laesst sich nicht loesen. */
+const seitenAus = {};
+/* Die Seiten der Zeichnung im Profil: die angehakten. */
+function seitenPaar(ex){
+  const alle = seitenPaarAlle(ex);
+  if(!alle) return null;
+  const an = alle.filter(sd => !seitenAus[keyOf(ex, sd)]);
+  return an.length ? an : alle;
+}
+function seitenHakenHTML(ex){
+  const alle = seitenPaarAlle(ex);
+  if(!alle || alle.length < 2) return "";
+  const an = seitenPaar(ex);
+  return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px">${
+    alle.map(sd => {
+      const drin = an.includes(sd);
+      return `<label class="chk" style="margin:0"><input type="checkbox" data-kseite="${sd}"${
+        drin ? " checked" : ""}${drin && an.length === 1 ? " disabled" : ""}><span>${
+        sd[0].toUpperCase() + sd.slice(1)}<span class="tiny" style="display:block;font-size:12.5px;white-space:nowrap">${
+        sd === "links" ? "\u25a0 gestrichelt" : "\u25cf durchgezogen"}</span></span></label>`;
+    }).join("")}</div>`;
+}
+function wireSeitenHaken(){
+  document.querySelectorAll("#profBody [data-kseite]").forEach(c => c.onchange = () => {
+    const k = keyOf(S.exercise, c.dataset.kseite);
+    if(c.checked) delete seitenAus[k];
+    else if(seitenPaar(S.exercise).length > 1) seitenAus[k] = true;
+    renderProfile();
+  });
+}
+const seitenAdj = sd => sd === "links" ? "linke" : sd === "rechts" ? "rechte" : sd;
 /* Die zwei Knoepfe auf der Karte vor der Uebung, in der Bauform der knappen
    Ausfuehrungswahl: kein Etikett, keine Begruendung, die Vorauswahl steht
    schon gewaehlt da. Der Satz unter dem Knopf steht nur, bis die Uebung zum
@@ -3695,8 +3747,10 @@ function points(ex, side){
     if(!zaehltFuer(s, ex, side)) continue;
     if(!messpunktGueltig(s)) continue;
     const first = s.sets[0];
+    /* beid: der beidbeinige Halt steht in der linken UND der rechten Kurve.
+       Liegen beide in einer Zeichnung, wird er nur einmal gezeichnet. */
     out.push({load: s.load, time: first.time, pain: !!first.pain, date: s.date, level: s.level,
-              extra: +s.extra || 0});
+              extra: +s.extra || 0, beid: !s.side && beidStufe(ex, s.level)});
   }
   return out;
 }
@@ -7624,52 +7678,158 @@ function fehltText(l, i){
     ? "nur mit Wand" : "nicht bei Nur Körpergewicht";
   return `${geraetName(geraetId(l.geraet))} fehlt`;
 }
-function stufenLegende(pts){
-  const lv = curEx().levels;
+/* paar wie bei curveSVG: Dann markiert die Liste mit denselben Zeichen wie
+   die Zeichnung, auf welcher Seite gemessen wurde (Quadrat links, Kreis
+   rechts, Raute beidbeinig), und sagt bei der aktuellen Stufe, fuer welche
+   Seite sie gilt. */
+function stufenLegende(pts, paar){
+  const ex = S.exercise, lv = curEx().levels;
+  const seiten = (paar || [S.side]).map(sd => ({sd,
+    gem: new Set(points(ex, sd).map(p => p.level)), cur: standOf(keyOf(ex, sd))}));
   const gemessen = new Set(pts.map(p => p.level));
+  seiten.forEach(s => s.gem.forEach(i => gemessen.add(i)));
+  const zeichen = c => ` <span style="color:var(--acc)">${c}</span>`;
+  let beidDa = false;
   const zeilen = lv.map((l,i)=>{
-    const da  = stufeErlaubt(S.exercise, i);
-    const jetzt = (i === curLevel());
-    return `<div style="${da?"":"opacity:.45;"}${jetzt?"color:var(--acc);font-weight:600;":""}">
-      <span style="display:inline-block;min-width:1.5em">${i+1}</span>${l.name}${
-      gemessen.has(i) ? ` <span style="color:var(--acc)">\u25cf</span>` : ""}${
-      da ? "" : ` \u00b7 ${fehltText(l, i)}`}</div>`;
+    const da  = stufeErlaubt(ex, i);
+    const fuer = seiten.filter(s => s.cur === i).map(s => s.sd);
+    const jetzt = fuer.length > 0;
+    const leicht = zuLeichtZuletzt.has(i);
+    let marke = "";
+    if(!paar) marke = gemessen.has(i) ? zeichen("\u25cf") : "";
+    else if(beidStufe(ex, i)){ if(gemessen.has(i)){ marke = zeichen("\u25c6"); beidDa = true; } }
+    else marke = seiten.filter(s => s.gem.has(i))
+      .map(s => zeichen(s.sd === "links" ? "\u25a0" : "\u25cf")).join("");
+    const wo = !paar || !jetzt ? ""
+      : ` \u00b7 aktuell ${fuer.length > 1 ? "beide Seiten" : fuer[0]}`;
+    return `<div style="${da && !leicht?"":"opacity:.45;"}${jetzt?"color:var(--acc);font-weight:600;":""}">
+      <span style="display:inline-block;min-width:1.5em">${i+1}</span>${l.name}${marke}${wo}${
+      da ? "" : ` \u00b7 ${fehltText(l, i)}`}${leicht ? " \u00b7 zu leicht" : ""}</div>`;
   }).join("");
   const ga = achseZuletzt;
   return `<div class="tiny" style="margin-top:9px;line-height:1.6">${zeilen}
     <div style="margin-top:7px;opacity:.75">${ga && ga.marken
-      ? `Unter der Zeichnung stehen die Stufen und, mit Vorzeichen, das Gewicht auf Stufe ${
+      ? `Unter ${ga.doppelt ? "jeder" : "der"} Zeichnung stehen die Stufen und, mit Vorzeichen, das Gewicht auf Stufe ${
          ga.top + 1} in kg`
-      : `Die Zahlen stehen unter der Zeichnung an der Stufenachse`}${
-    gemessen.size ? `, der Punkt markiert die Stufen, auf denen du schon gemessen hast` : ""}.</div>
+      : `Die Zahlen stehen unter ${ga && ga.doppelt ? "jeder" : "der"} Zeichnung an der Stufenachse`}${
+    !gemessen.size ? "" : !paar
+      ? `, der Punkt markiert die Stufen, auf denen du schon gemessen hast`
+      : `, ${paar.map(sd => sd === "links" ? "\u25a0 links" : "\u25cf rechts").join(" und ")} ${
+         paar.length > 1 ? "markieren" : "markiert"} die Stufen, auf denen du schon gemessen hast${
+         beidDa ? `, \u25c6 die beidbeinigen` : ""}`}.</div>
   </div>`;
 }
 /* Was curveSVG zuletzt als Gewichtsachse gezeichnet hat — die Legende
    darunter beschreibt genau diese, nicht eine neu gerechnete. */
 let achseZuletzt = null;
-function curveSVG(f, pts){
+/* Ebenso: welche Stufen links der 180-s-Linie aus der Zeichnung gefallen sind,
+   und ob die Linie selbst drinsteht. */
+let zuLeichtZuletzt = new Set(), grenzeZuletzt = false;
+/* Und ob eine Raute (beidbeiniger Halt) im Bild steht — nur dann erklaert
+   der Satz darunter sie. */
+let rauteZuletzt = false;
+/* paar: die Seiten aus seitenPaar. Dann liegen links und rechts in einer
+   Zeichnung (Luke, 23.10.2026): links gestrichelt mit Quadraten, rechts
+   durchgezogen mit Kreisen, ein beidbeiniger Halt einmal als Raute. Ohne
+   paar zeichnet curveSVG die eine Kurve aus f und pts wie bisher.
+   nur: eine Seite aus paar. Dann rechnet die Zeichnung Achse, Stufen und
+   180-s-Linie mit beiden Seiten, zeigt aber nur Kurve, Punkte und
+   Gewichtsmarken dieser einen. */
+const gleicheAchse = (ex, seiten) => {
+  const g = seiten.map(sd => JSON.stringify(gewichtAchse(ex, sd)));
+  return g.every(x => x === g[0]);
+};
+function curveSVG(f, pts, paar, nur){
   const W=400, L=42, R=12, TP=12, PLOT=240;
   const exK = S.exercise;
   const lv = curEx().levels;
-  const ga = gewichtAchse(exK, S.side);
-  const kgJetzt = extraKlemm(exK, kgAufStufe(exK, curKey(), curLevel()), curLevel());
-  const lastJetzt = lastVon(exK, curLevel(), kgJetzt, S.side);
+  /* Sitzt das Gewicht links und rechts verschieden (Laeufer: Front Rack gegen
+     Suitcase), heisst dieselbe kg-Zahl auf jeder Seite eine andere Last, und
+     eine gemeinsame Zeichnung haette keine Gewichtsmarken. Dann stehen zwei
+     Zeichnungen untereinander, erst links, dann rechts, jede mit ihren Marken
+     und ihrer Ueberschrift (Luke, 23.10.2026: "dann leg hier die diagramme
+     untereinander an erst links dann rechts mit beschriftung trotzdem nur ein
+     menuepunkt"). Achse, Stufen und 180-s-Linie sind in beiden dieselben,
+     damit eine Stufe untereinander an derselben Stelle steht. */
+  if(paar && paar.length > 1 && !nur && !gleicheAchse(exK, paar)){
+    const teile = paar.map(sd => {
+      const svg = curveSVG(f, pts, paar, sd);
+      return {sd, svg, achse: achseZuletzt, raute: rauteZuletzt};
+    });
+    const mit = teile.find(t => t.achse && t.achse.marken) || teile[teile.length - 1];
+    achseZuletzt = mit.achse && Object.assign({}, mit.achse, {doppelt: true});
+    rauteZuletzt = teile.some(t => t.raute);
+    return teile.map((t, j) => {
+      const lg = lageOf(exK, t.sd);
+      return `<div style="font-weight:600;font-size:14px;margin:${j ? 16 : 0}px 0 4px">${
+        t.sd[0].toUpperCase() + t.sd.slice(1)}${lg ? `<span class="tiny" style="font-weight:400"> \u00b7 ${
+        lg.titel}</span>` : ""}</div>${t.svg}`;
+    }).join("");
+  }
+  const kurven = paar
+    ? paar.map(sd => ({side: sd, f: curFit(exK, sd), pts: kurvenPunkte(exK, sd), links: sd === "links"}))
+    : [{side: S.side, f, pts, links: false}];
+  kurven.forEach(k => {
+    const key = keyOf(exK, k.side);
+    k.cur = standOf(key);
+    k.lastJetzt = lastVon(exK, k.cur, extraKlemm(exK, kgAufStufe(exK, key, k.cur), k.cur), k.side);
+  });
+  const fits = kurven.filter(k => k.f);
+  /* Was diese Zeichnung zeigt: alle Seiten, oder mit nur die eine. */
+  const eigene = nur ? kurven.filter(k => k.side === nur) : kurven;
+  const zeichnen = eigene.filter(k => k.f);
+  /* Die Gewichtsmarken haengen beim Laeufer an der Position des Gewichts, und
+     die waehlt jede Seite selbst. Unterscheiden sich die Seiten, stuende jede
+     Zahl fuer nur eine von beiden — dann zeichnet jede Seite ihr eigenes Bild
+     (siehe oben). Ohne nur und mit verschiedenen Marken gibt es hier keine. */
+  const gaSeiten = kurven.map(k => gewichtAchse(exK, k.side));
+  const ga = nur ? gaSeiten[kurven.indexOf(eigene[0])]
+           : gaSeiten.every(x => JSON.stringify(x) === JSON.stringify(gaSeiten[0])) ? gaSeiten[0] : null;
   /* sprossenLast: Die Brust-Sprosse der Hyperextension steht mit ihrem
      Mindestgewicht in der Zeichnung, nicht mit 0,85 zwischen Huefte und T. */
   const loads = lv.map((l,i)=>sprossenLast(exK, i))
-    .concat(pts.map(p => p.load).filter(v => v > 0))
-    .concat(lastJetzt > 0 ? [lastJetzt] : [])
-    .concat(ga && ga.istLeiter ? [ga.lo, ga.hi] : []);
-  /* Die Asymptote (CP) gehoert ins Bild - sie ist der anschaulichste Teil der
-     Kurve. ABER nur, wenn es sie gibt: Klebt CP am unteren Rand des
-     Suchbereichs, zieht f.cp*0.96 die Lastachse bis fast auf null und quetscht
-     alle Stufen an den rechten Bildrand. */
-  const cpZeigen = !!f && !f.randUnten;
-  const x0 = cpZeigen ? Math.min(f.cp*0.96, Math.min(...loads)*0.93)
-                      : Math.min(...loads)*0.93;
+    .concat(...kurven.map(k => k.pts.map(p => p.load).filter(v => v > 0)))
+    .concat(kurven.map(k => k.lastJetzt).filter(v => v > 0))
+    .concat(...gaSeiten.map(x => x && x.istLeiter ? [x.lo, x.hi] : []));
+  const aktuell = new Set(kurven.map(k => k.cur));
+  /* Hervorgehoben ist die aktuelle Stufe der gezeigten Seiten. Gesetzt und
+     sichtbar bleiben die Nummern beider, damit zwei Bilder untereinander
+     dieselbe Achse haben. */
+  const hervor = new Set(eigene.map(k => k.cur));
+  /* ── Der linke Rand (Luke, 22.10.2026) ─────────────────────────────────
+     Bis Build 2026-10-22 g reichte die Lastachse links bis zur Asymptote CP.
+     Die liegt immer weit links der leichtesten Stufe, denn erst dort laeuft
+     die Kurve ins Unendliche. Beim Ausfallschritt standen die Sprossen 1 bis 3
+     gequetscht in der Mitte, links davon nur leere Flaeche: "da wo die kurve
+     abreist koennen wir alle noch weiter an den linken bildrand schieben die
+     sprossen die zu leicht werden koennen auf der x-achse rausfallen".
+     Jetzt beginnt die Zeichnung, wo die Kurve oben aus dem Bild laeuft. Die
+     senkrechte Linie steht an der Obergrenze der Kraftausdauer (180 s):
+     "critical power soll bei der 150sekunden - barrier liegen". 150 s war die
+     Obergrenze vor P91, die Linie folgt der Zonentabelle. Sie heisst nach
+     ihrer Zeit, nicht CP, denn CP ist im Modell die Last mit unendlicher
+     Haltezeit. Was links von ihr laege, ist zu leicht: Stufen, Punkte und
+     Gewichtsmarken fallen aus der Zeichnung, die Liste darunter behaelt die
+     Stufen ausgegraut. Die aktuelle Stufe und die jetzige Last bleiben immer,
+     auch wenn sie zu leicht sind, und mit ihnen alles, was schwerer ist.
+     Mit zwei Seiten (Luke, 23.10.2026) steht EINE Linie, an der Grenze der
+     schwaecheren Seite: Was links von ihr liegt, ist fuer beide Seiten zu
+     leicht. Was nur fuer die staerkere zu leicht ist, bleibt im Bild und steht
+     in ihrer Spalte der Tabelle als "zu leicht". Der linke Rand ist der
+     Austritt der Kurve, die als erste oben aus dem Bild laeuft. */
+  const grenzZeit = ZONES[2].hi;
+  const y1 = Math.round(grenzZeit * 10/9);
+  const grenze = fits.length ? Math.min(...fits.map(k => lastZuZeit(k.f, grenzZeit))) : -Infinity;
+  const ab = Math.min(grenze, ...kurven.flatMap(k => [sprossenLast(exK, k.cur), k.lastJetzt])
+                                       .filter(v => v > 0));
+  const zeigen = v => Number.isFinite(v) && v >= ab - 1e-9;
+  const x0 = fits.length ? Math.min(...fits.map(k => lastZuZeit(k.f, y1)), ab*0.97)
+                         : Math.min(...loads)*0.93;
   const x1 = Math.max(...loads)*1.06;
-  const y1 = 170;
   const X = v => L + (v-x0)/(x1-x0)*(W-L-R);
+  const sichtbar = lv.map((l,i) => zeigen(sprossenLast(exK, i)) || aktuell.has(i));
+  zuLeichtZuletzt = new Set(lv.map((l,i) => i).filter(i => !sichtbar[i]));
+  grenzeZuletzt = fits.length > 0 && grenze > x0 && grenze < x1;
   /* Jede Sprosse bekommt ihre Nummer (Luke, 16.10.2026: "nicht jede sprosse
      in der kraftkurve eingezeichnet"). Vorher stand bei mehr als fuenf
      Sprossen nur jede zweite da, und eine Nummer fast auf der aktuellen
@@ -7689,36 +7849,40 @@ function curveSVG(f, pts){
       if(da.every(o => Math.abs(o.x - x) >= (o.b + b)/2 + 3)){ da.push({x, b}); zeile[i] = z; return; }
     }
   };
-  const cur = curLevel();
-  if(lv[cur]) setzen(cur);
-  lv.map((l,i) => i).filter(i => i !== cur)
-    .sort((a,b) => sprossenLast(exK, a) - sprossenLast(exK, b)).forEach(setzen);
+  const nachLast = (a,b) => sprossenLast(exK, a) - sprossenLast(exK, b);
+  [...aktuell].filter(i => lv[i]).sort(nachLast).forEach(setzen);
+  lv.map((l,i) => i).filter(i => !aktuell.has(i) && sichtbar[i]).sort(nachLast).forEach(setzen);
   const ZH = 13;                        /* Hoehe einer Nummernzeile */
   const B = 38 + ZH * Math.max(0, inZeile.length - 1);
   const H = TP + PLOT + B;
   const Y = v => TP + (1 - Math.min(v,y1)/y1)*(H-TP-B);
   let g = "";
 
+  /* Zonen und Rasterlinien kommen aus der Zonentabelle (P91 hat sie auf
+     60–120 und 120–180 s verschoben, die Zeichnung stand noch auf 90 und
+     150). Ueber der Kraftausdauer bleibt ein schmaler Streifen ohne Farbe:
+     dort ist alles zu leicht. */
   ZONES.forEach((z,zi)=>{
-    const yt=Y(zi===2 ? y1 : Math.min(z.hi,y1)), yb=Y(zi===0 ? 0 : z.lo);
+    const yt=Y(Math.min(z.hi,y1)), yb=Y(zi===0 ? 0 : z.lo);
     g += `<rect x="${L}" y="${yt}" width="${W-L-R}" height="${Math.max(0,yb-yt)}"
            fill="var(--zone${z.id})" opacity=".09"/>
           <text x="${W-R-5}" y="${(yt+yb)/2+4}" text-anchor="end" font-size="11.5"
            fill="var(--zone${z.id})" font-weight="700">${z.name}</text>`;
   });
-  [20,60,90,150].forEach(v=>{
+  [ZONES[0].lo, ...ZONES.map(z => z.hi)].forEach(v=>{
     g += `<line x1="${L}" y1="${Y(v)}" x2="${W-R}" y2="${Y(v)}" stroke="var(--line)" stroke-width="1"/>
           <text x="${L-6}" y="${Y(v)+4}" text-anchor="end" font-size="11.5" fill="var(--tx3)">${v}s</text>`;
   });
   const belegt = [];                    /* x-Positionen beschrifteter Marken */
   lv.forEach((l,i)=>{
+    if(!sichtbar[i]) return;
     const xl = X(sprossenLast(exK, i));
     belegt.push(xl);
     g += `<line x1="${xl}" y1="${TP}" x2="${xl}" y2="${H-B}"
            stroke="var(--line)" stroke-dasharray="2 4" stroke-width="1"/>
           <text x="${xl}" y="${H-B+15+ZH*(zeile[i]||0)}" text-anchor="middle"
-           font-size="11.5" fill="${i===cur?"var(--acc)":"var(--tx3)"}"
-           font-weight="${i===cur?700:400}">${i+1}</text>`;
+           font-size="11.5" fill="${hervor.has(i)?"var(--acc)":"var(--tx3)"}"
+           font-weight="${hervor.has(i)?700:400}">${i+1}</text>`;
   });
   /* Gewichtsmarken auf der obersten Sprosse: nur die, die in der Zeichnung
      liegen, und keine, die einer Sprossennummer zu nahe kaeme. */
@@ -7726,8 +7890,8 @@ function curveSVG(f, pts){
   if(ga){
     for(let kg = Math.ceil(ga.loKg / ga.schritt) * ga.schritt; kg <= ga.hiKg + 1e-9; kg += ga.schritt){
       if(!kg) continue;
-      const P = lastVon(exK, ga.top, kg, S.side);
-      if(!(P > x0 && P < x1)) continue;
+      const P = lastVon(exK, ga.top, kg, eigene[0].side);
+      if(!(zeigen(P) && P > x0 && P < x1)) continue;
       const x = X(P);
       if(belegt.some(b => Math.abs(b - x) < 24)) continue;
       belegt.push(x); marken++;
@@ -7740,34 +7904,44 @@ function curveSVG(f, pts){
   g += `<text x="${W/2}" y="${H-5}" text-anchor="middle" font-size="11.5" fill="var(--tx3)">${
     marken ? "Stufe · Gewicht in kg · leicht → schwer" : "Stufe · leicht → schwer"}</text>`;
 
-  if(f){
+  for(const k of zeichnen){
+    const f = k.f;
     /* Die Kurve wird nur dort DURCHGEZOGEN, wo gemessen wurde. Ausserhalb
        laeuft sie gestrichelt weiter — sichtbar, aber erkennbar als
        Verlaengerung und nicht als Messung. Vorher war beides derselbe Strich,
-       und bei einer kurzen Leiter ist das Ausserhalb der groessere Teil. */
+       und bei einer kurzen Leiter ist das Ausserhalb der groessere Teil.
+       Die linke Seite ist auch im gemessenen Teil gestrichelt, in der Farbe
+       der Kurve und mit langen Strichen; ihre Verlaengerung ist grau und
+       gepunktet. Mit zwei Kurven ist jedes Band halb so kraeftig, wo beide
+       gemessen sind, addiert es sich. */
     const band = `<rect x="${X(Math.max(x0, f.lo))}" y="${TP}"
       width="${Math.max(0, X(Math.min(x1, f.hi)) - X(Math.max(x0, f.lo)))}"
-      height="${H-B-TP}" fill="var(--acc)" opacity=".06"/>`;
+      height="${H-B-TP}" fill="var(--acc)" opacity="${zeichnen.length > 1 ? ".035" : ".06"}"/>`;
     g = band + g;
     let d = "", dd = "", on = false, onAus = false;
     for(let i=0;i<=240;i++){
       const P = x0 + (x1-x0)*i/240;
       if(P <= f.cp*1.001){ on=false; onAus=false; continue; }
       const t = predictTime(f,P);
-      if(t > y1*1.6){ on=false; onAus=false; continue; }
+      /* Ueber dem oberen Rand endet die Kurve. Bis 2026-10-22 g lief sie dort
+         bis zur 1,6-fachen Zeit flach weiter, das war der Strich oben links,
+         wo sie abriss. Links vom Rand liegt jetzt nur noch etwas, wenn die
+         aktuelle Stufe selbst zu leicht ist. */
+      if(t > y1*1.001){ on=false; onAus=false; continue; }
       const xy = X(P).toFixed(1) + " " + Y(t).toFixed(1) + " ";
       if(imBereich(f, P)){ d += (on?"L":"M") + xy; on = true; onAus = false; }
       else { dd += (onAus?"L":"M") + xy; onAus = true; on = false; }
     }
     if(dd) g += `<path d="${dd}" fill="none" stroke="var(--tx3)" stroke-width="1.6"
-                  stroke-dasharray="3 4" stroke-linecap="round"/>`;
-    if(d) g += `<path d="${d}" fill="none" stroke="var(--acc)" stroke-width="2.5"
+                  stroke-dasharray="${k.links ? "0.1 4.5" : "3 4"}" stroke-linecap="round"/>`;
+    if(d) g += `<path d="${d}" fill="none" stroke="var(--acc)" stroke-width="2.5"${
+                 k.links ? ` stroke-dasharray="7 5"` : ""}
                  stroke-linecap="round" stroke-linejoin="round"/>`;
-    if(cpZeigen && f.cp > x0 && f.cp < x1){
-      g += `<line x1="${X(f.cp)}" y1="${TP}" x2="${X(f.cp)}" y2="${H-B}"
-             stroke="var(--tx2)" stroke-dasharray="4 3" stroke-width="1.4"/>
-            <text x="${X(f.cp)+4}" y="${TP+11}" font-size="11" fill="var(--tx2)">CP</text>`;
-    }
+  }
+  if(grenzeZuletzt){
+    g += `<line x1="${X(grenze)}" y1="${TP}" x2="${X(grenze)}" y2="${H-B}"
+           stroke="var(--tx2)" stroke-dasharray="4 3" stroke-width="1.4"/>
+          <text x="${X(grenze)+4}" y="${TP+11}" font-size="11" fill="var(--tx2)">${grenzZeit} s</text>`;
   }
   /* Pfeil und Ausgrauen (Luke, 16.10.2026, P82). Ein Punkt mit Gewicht
      bekommt einen waagerechten Pfeil von der Linie seiner Sprosse zum Punkt,
@@ -7778,32 +7952,55 @@ function curveSVG(f, pts){
      Deckkraft und Farbe folgen dem Gewicht im Fit, DECAY^(neuere Punkte).
      So blass ein Punkt ist, so wenig zaehlt er noch. pts sind die
      Kurvenpunkte, also hoechstens PUNKTE_GRENZE. */
+  /* Mit zwei Seiten kommen beide Punktreihen in eine Liste, nach Datum, damit
+     die Zahlen weiter vom neuesten Punkt aus vergeben werden. Das Gewicht
+     im Fit zaehlt jede Seite fuer sich; ein beidbeiniger Halt steht nur
+     einmal da, mit dem hoeheren der beiden Gewichte. */
+  const alle = [];
+  eigene.forEach(k => {
+    const m = k.pts.length;
+    k.pts.forEach((p, i) => {
+      const w = Math.pow(DECAY, m - 1 - i);
+      const doppelt = paar && p.beid
+        && alle.find(q => q.beid && q.date === p.date && q.level === p.level);
+      if(doppelt){ doppelt.w = Math.max(doppelt.w, w); return; }
+      alle.push(Object.assign({}, p, {w,
+        form: !paar ? "kreis" : p.beid ? "raute" : k.links ? "quadrat" : "kreis"}));
+    });
+  });
+  if(paar) alle.sort((a, b) => new Date(a.date) - new Date(b.date));
+  pts = alle;
   const n = pts.length;
-  const wichte = pts.map((_, i) => Math.pow(DECAY, n - 1 - i));
+  const wichte = pts.map(p => p.w);
   const farbe = (c, w) => `color-mix(in srgb, ${c} ${Math.round(100 * w)}%, var(--tx3))`;
   const deck = w => (0.25 + 0.75 * w).toFixed(2);
   const kgText = kg => (kg > 0 ? "+" : "\u2212") + String(Math.abs(kg)).replace(".", ",") + " kg";
+  /* Ein Punkt links der 180-s-Linie faellt mit seiner Stufe heraus, die
+     Kurve rechnet weiter mit ihm. Den Pfeil gibt es nur, wenn seine Stufe
+     noch auf der Achse steht. */
   const lage = pts.map(p => {
     const xa = X(sprossenLast(exK, p.level)), xb = X(p.load);
-    return {xa, xb, y: Y(Math.min(p.time, y1)),
-            pfeil: !!p.extra && Number.isFinite(xa) && Math.abs(xb - xa) >= 9};
+    const da = zeigen(p.load) && p.load > x0;
+    return {xa, xb, y: Y(Math.min(p.time, y1)), da,
+            pfeil: da && !!p.extra && !!sichtbar[p.level] && Number.isFinite(xa)
+                   && Math.abs(xb - xa) >= 9};
   });
   /* Platz fuer die Zahlen: neuester Punkt zuerst. Hindernisse sind alle
      Punkte, die fremden Pfeile, die schon gesetzten Zahlen, die Zonennamen
-     und das "CP"; ueber oder unter dem Pfeil, sonst entfaellt sie. Die Zahl
-     steht mittig ueber dem Pfeil, rueckt aber vor ihren Punkt, wenn der
+     und das "180 s"; ueber oder unter dem Pfeil, sonst entfaellt sie. Die
+     Zahl steht mittig ueber dem Pfeil, rueckt aber vor ihren Punkt, wenn der
      Pfeil kurz ist. */
-  const kisten = lage.map(o => ({l:o.xb-6, r:o.xb+6, t:o.y-6, b:o.y+6}));
+  const kisten = lage.filter(o => o.da).map(o => ({l:o.xb-6, r:o.xb+6, t:o.y-6, b:o.y+6}));
   const pfeile = lage.map(o => o.pfeil
     ? {l:Math.min(o.xa, o.xb), r:Math.max(o.xa, o.xb), t:o.y-4, b:o.y+4} : null);
   const stoesst = (a, b) => a.l < b.r && b.l < a.r && a.t < b.b && b.t < a.b;
   const zahl = new Array(n).fill(null);
   const gesetzt = ZONES.map((z, zi) => {
-    const yt = Y(zi===2 ? y1 : Math.min(z.hi,y1)), yb = Y(zi===0 ? 0 : z.lo), ym = (yt+yb)/2+4;
+    const yt = Y(Math.min(z.hi,y1)), yb = Y(zi===0 ? 0 : z.lo), ym = (yt+yb)/2+4;
     return {l: W-R-5 - 7.2*z.name.length, r: W-R-3, t: ym-11, b: ym+3};
   });
-  if(cpZeigen && f.cp > x0 && f.cp < x1)
-    gesetzt.push({l: X(f.cp)+3, r: X(f.cp)+20, t: TP, b: TP+14});
+  if(grenzeZuletzt)
+    gesetzt.push({l: X(grenze)+3, r: X(grenze)+5+6.2*`${grenzZeit} s`.length, t: TP, b: TP+14});
   for(let i = n - 1; i >= 0; i--){
     const o = lage[i], p = pts[i];
     if(!o.pfeil) continue;
@@ -7829,12 +8026,21 @@ function curveSVG(f, pts){
           <line x1="${o.xa}" y1="${o.y}" x2="${xe - s*3}" y2="${o.y}" stroke-width="1.6"/>
           <path d="M${xe} ${o.y} L${xe - s*5} ${o.y-3.2} L${xe - s*5} ${o.y+3.2} Z" stroke="none"/></g>`;
   });
+  /* Kreis rechts (und bei einer einzelnen Kurve), Quadrat links, Raute fuer
+     den beidbeinigen Halt. Offen heisst wie bisher Schmerzabbruch. */
+  const umriss = (p, x, y, r) => p.form === "quadrat"
+      ? `<rect x="${x-r*0.9}" y="${y-r*0.9}" width="${r*1.8}" height="${r*1.8}"`
+    : p.form === "raute"
+      ? `<path d="M${x} ${y-r*1.25} L${x+r*1.25} ${y} L${x} ${y+r*1.25} L${x-r*1.25} ${y} Z"`
+    : `<circle cx="${x}" cy="${y}" r="${r}"`;
+  rauteZuletzt = pts.some((p, i) => lage[i].da && p.form === "raute");
   pts.forEach((p, i)=>{
     const o = lage[i], w = wichte[i];
+    if(!o.da) return;
     g += `<g opacity="${deck(w)}">` + (p.pain
-      ? `<circle cx="${o.xb}" cy="${o.y}" r="5.5" fill="var(--bg)"
+      ? `${umriss(p, o.xb, o.y, 5.5)} fill="var(--bg)"
           style="stroke:${farbe("var(--bad)", w)}" stroke-width="2.6"/>`
-      : `<circle cx="${o.xb}" cy="${o.y}" r="5"
+      : `${umriss(p, o.xb, o.y, 5)}
           style="fill:${farbe("var(--acc)", w)}" stroke="var(--bg)" stroke-width="2"/>`) + `</g>`;
   });
   zahl.forEach((z, i)=>{
@@ -7844,7 +8050,7 @@ function curveSVG(f, pts){
            paint-order="stroke">${z.txt}</text>`;
   });
   return `<svg viewBox="0 0 ${W} ${H}" role="img"
-    aria-label="Force Curve: Haltezeit über Last">${g}</svg>`;
+    aria-label="Force Curve: Haltezeit über Last${nur ? ` \u00b7 ${nur}` : ""}">${g}</svg>`;
 }
 function historySVG(pts){
   if(pts.length<2) return "";
@@ -8523,10 +8729,23 @@ function profilRestKarte(){
 }
 
 /* Waehler ueber alle Kurven: Liegestuetz, Ausfallschritt links, Ausfallschritt rechts. */
-function curveSelectHTML(id){
-  return `<select id="${id}">${allKeys().map(k=>
-    `<option value="${k.key}" ${k.key===curKey()?"selected":""}>${labelOf(k.ex,k.side)}</option>`
-  ).join("")}</select>`;
+/* paare: Uebungen mit linker und rechter Seite stehen nur einmal da (Profil,
+   siehe seitenPaar). Der Wert behaelt die gewaehlte Seite, damit S.side
+   beim Wechsel zurueck nicht springt. */
+function curveSelectHTML(id, paare){
+  const schon = new Set();
+  return `<select id="${id}">${allKeys().filter(k => {
+      if(!paare || !k.side || !paarUebung(k.ex)) return true;
+      if(schon.has(k.ex)) return false;
+      schon.add(k.ex); return true;
+    }).map(k => {
+      const zus = paare && !!k.side && paarUebung(k.ex);
+      const hier = zus && k.ex === S.exercise && !!S.side;
+      const wert = hier ? curKey() : k.key;
+      const gew = zus ? hier : k.key === curKey();
+      return `<option value="${wert}" ${gew?"selected":""}>${
+        zus ? S.ex[k.ex].name : labelOf(k.ex,k.side)}</option>`;
+    }).join("")}</select>`;
 }
 function wireCurveSelect(id){
   el(id).onchange = e => {
@@ -8552,12 +8771,13 @@ function render2(){ show(aktiverScreen); }
 /* Haltezeit ueber die Wochen — das, was einer Kontrollposition bleibt, wenn
    keine Kurve moeglich ist. Bewusst schlicht: eine Zeile je Messung, mit dem
    Hinweis, welche Stoergroessen darin stecken. */
-function verlaufsKarte(pts){
-  if(!pts.length) return `<div class="card"><p class="tiny">Noch nichts gemessen.</p></div>`;
+function verlaufsKarte(pts, zusatz, ohneText){
+  if(!pts.length) return `<div class="card"><p class="tiny">Noch nichts gemessen${
+    zusatz ? ` (${zusatz.replace(" · ", "")})` : ""}.</p></div>`;
   const zeiten = pts.map(p => p.time);
   const max = Math.max(...zeiten);
   return `<div class="card">
-    <h3 style="margin-top:0">Haltezeit über die Zeit</h3>
+    <h3 style="margin-top:0">Haltezeit über die Zeit${zusatz || ""}</h3>
     <table><tbody>${pts.slice().reverse().map(p => {
       const breite = Math.round(p.time / max * 100);
       return `<tr><td style="white-space:nowrap" class="tiny">${
@@ -8566,11 +8786,11 @@ function verlaufsKarte(pts){
           width:${breite}%;min-width:3px"></div></td>
         <td class="n" style="white-space:nowrap">${fmt(p.time)}${
           p.pain?' <span class="tiny">Schmerz</span>':""}</td></tr>`;
-    }).join("")}</tbody></table>
+    }).join("")}</tbody></table>${ohneText ? "" : `
     <p class="tiny" style="margin-top:10px">Bei fester Last ist die Haltezeit ein brauchbares
     Maß für den Verlauf — aber ein empfindliches. Tagesform, wie viel vorher im Workout lag und
     die Technik bewegen sie mit. Vergleichbar wird sie nur, wenn die Position immer an derselben
-    Stelle der Sitzung steht.</p>
+    Stelle der Sitzung steht.</p>`}
   </div>`;
 }
 /* Mess-Status im Profil (Luke, 15.10.2026). Mit Kurve steht das Kuerzel in
@@ -8596,13 +8816,23 @@ function sprossenKarte(ex){
   </div>`;
 }
 function renderProfile(){
-  const pts = points(), kurve = kurvenPunkte(), f = curFit(), cov = zoneCoverage();
-  el("profSub").textContent = `${labelOf(S.exercise,S.side)} · ${pts.length} Messpunkt${pts.length===1?"":"e"}${
+  const pts = points(), kurve = kurvenPunkte();
+  /* Links und rechts in einer Zeichnung (siehe seitenPaar). Ohne Paar ist
+     seiten [S.side] und alles darunter rechnet wie bisher mit einer Kurve. */
+  const paar = seitenPaar(S.exercise), seiten = paar || [S.side];
+  const fits = seiten.map(sd => curFit(S.exercise, sd));
+  const f = paar ? (fits.find(x => x) || null) : fits[0];
+  el("profSub").textContent = paar
+    ? `${curEx().name} · Messpunkte ${paar.map(sd => {
+        const n = points(S.exercise, sd).length, k = kurvenPunkte(S.exercise, sd).length;
+        return `${sd} ${n}${n > k ? ` (${k} in der Kurve)` : ""}`; }).join(", ")}`
+    : `${labelOf(S.exercise,S.side)} · ${pts.length} Messpunkt${pts.length===1?"":"e"}${
     pts.length > kurve.length ? ` · die letzten ${kurve.length} in der Kurve` : ""}`;
 
   const waehler = `<div class="card flat" style="margin-top:0">
       <label class="tiny" for="profCurve" style="display:block;margin-bottom:4px">Kurve</label>
-      ${curveSelectHTML("profCurve")}
+      ${curveSelectHTML("profCurve", true)}
+      ${seitenHakenHTML(S.exercise)}
     </div>`;
 
   if(!f){
@@ -8623,32 +8853,81 @@ function renderProfile(){
             extraAbOf(S.exercise) < S.ex[S.exercise].levels.length
             ? ` Wenn du Zusatzgewicht nimmst, entsteht eine zweite Last — und damit doch eine
                 Kurve.` : ""}</p>
-        </div>` + verlaufsKarte(pts)
+        </div>` + (paar
+          ? paar.map((sd, j) => verlaufsKarte(points(S.exercise, sd), ` · ${sd}`, j < paar.length - 1)).join("")
+          : verlaufsKarte(pts))
       : `<div class="card"><p>Noch keine Kurve.</p>
           <p class="tiny">Dafür braucht die App mindestens zwei Messungen in
           <b>verschiedenen</b> Stufen oder mit verschiedenem Gewicht. Zwei Messungen unter
           derselben Last ergeben keine Kurve — das ist keine Ungenauigkeit, sondern rechnerisch
           nicht lösbar.</p></div>` + sprossenKarte(S.exercise))
       + profilRestKarte();
-    wireCurveSelect("profCurve");
+    wireCurveSelect("profCurve"); wireSeitenHaken();
     return;
   }
-  const ready = profileReady(), gem = gemesseneSprossen(S.exercise);
-  const kann = erreichbareZonen(S.exercise, S.side);
+  const gem = gemesseneSprossen(S.exercise);
+  /* Je Seite Fit, Punkte, Zonen und Stand. Ohne Paar ist das eine Seite, und
+     alle Zahlen sind dieselben wie vor dem Paar. Erreichbar ist eine Zone,
+     wenn eine der Seiten sie erreicht: Die Teilkurve ist eine Eigenschaft
+     der Leiter, nicht einer Seite. */
+  const sk = seiten.map((sd, j) => ({sd, f: fits[j], kurve: kurvenPunkte(S.exercise, sd),
+    cov: zoneCoverage(S.exercise, sd), kann: erreichbareZonen(S.exercise, sd),
+    ready: profileReady(S.exercise, sd), cur: standOf(keyOf(S.exercise, sd))}));
+  const kann = ZONES.map(z => z.id).filter(id => sk.some(x => x.kann.includes(id)));
+  const ready = sk.every(x => x.ready);
+  /* Erst nach curveSVG lesen: rauteZuletzt setzt die Zeichnung. */
+  const stilText = () => paar.map(sd => sd === "links"
+      ? "Links: Kurve gestrichelt, Punkte als Quadrate."
+      : "Rechts: Kurve durchgezogen, Punkte als Kreise.").join(" ")
+    + (rauteZuletzt ? " Eine Raute ist ein beidbeiniger Halt, er zählt für beide Seiten." : "");
+  /* Stand der Kurven, mit zwei Seiten je Seite in einem Satz. */
+  const zonenSatz = x => `${x.kurve.length} Punkt${x.kurve.length===1?"":"en"} und ${
+    x.kann.filter(id=>x.cov[id]>0).length} von ${anzahl(x.kann.length, "erreichbaren Zone", "erreichbaren Zonen")}`;
+  const standNote = () => {
+    if(!paar) return `<div class="note warn">Die Kurve steht auf
+      ${zonenSatz(sk[0])}. Sie zeigt schon eine
+      Richtung, ist aber noch keine belastbare Grundlage.</div>`;
+    const offen = sk.filter(x => !x.ready), mit = offen.filter(x => x.f), fertig = sk.filter(x => x.ready);
+    const saetze = offen.map((x, j) => `${j ? "die" : "Die"} ${seitenAdj(x.sd)} ${x.f
+      ? `Kurve steht auf ${zonenSatz(x)}` : "Seite hat noch keine Kurve"}`).join(", ") + ".";
+    const richtung = mit.length > 1
+      ? " Beide zeigen schon eine Richtung, sind aber noch keine belastbare Grundlage."
+      : mit.length ? ` ${offen.length > 1 ? `Die ${seitenAdj(mit[0].sd)}` : "Sie"} zeigt schon eine
+        Richtung, ist aber noch keine belastbare Grundlage.` : "";
+    return `<div class="note warn">${saetze}${richtung}${fertig.map(x =>
+      ` Die ${seitenAdj(x.sd)} Kurve ist belastbar.`).join("")}</div>`;
+  };
+  /* Eine Zelle "Vorhersage" mit Zone, je Seite. Mit zwei Seiten traegt die
+     Zeit selbst die Farbe ihrer Zone: Zwei Spalten mit Zonennamen brachen auf
+     dem Handy in "Kraft-ausdau-er" um, und die Namen stehen in der Zeichnung
+     darueber in denselben Farben. */
+  const vorhersage = (f, ll) => {
+    const drin = imBereich(f, ll), t = f ? predictTime(f, ll) : NaN;
+    const z = (drin && isFinite(t) && t<=400) ? zoneOf(t) : null;
+    return {z, zeit: !drin ? '<span class="tiny">nicht gemessen</span>'
+                        : !isFinite(t)?"sehr lang":t>400?"> 400s":fmt(t),
+            zone: z?`<span class="pill ${z.cls}">${z.name}</span>`
+                : !drin?'<span class="tiny">außerhalb</span>'
+                : isFinite(t)&&t<20?'<span class="tiny">zu schwer</span>'
+                :'<span class="tiny">zu leicht</span>'};
+  };
   el("profBody").innerHTML = waehler + `
     <div class="card">
-      ${curveSVG(f, kurve)}
-      <p class="tiny" style="margin-top:8px">Punkte sind deine Messungen, ein offener Ring bedeutet
-      Schmerzabbruch. Ein Pfeil führt von der Stufe zu einer Messung mit Gewicht. Ältere Punkte
-      werden blasser, die Kurve rechnet mit deinen letzten ${PUNKTE_GRENZE}.${f.randUnten ? "" : ` Die gestrichelte senkrechte Linie ist die Last,
-      unterhalb derer du rechnerisch sehr lange halten könntest.`}</p>
-      ${stufenLegende(pts)}
+      ${curveSVG(f, kurve, paar)}
+      <p class="tiny" style="margin-top:8px">${paar
+      ? `Punkte sind deine Messungen. ${stilText()} Offen heißt Schmerzabbruch.`
+      : `Punkte sind deine Messungen, ein offener Ring bedeutet
+      Schmerzabbruch.`} Ein Pfeil führt von der Stufe zu einer Messung mit Gewicht. Ältere Punkte
+      werden blasser, ${paar && paar.length > 1 ? "jede Seite rechnet mit ihren" : "die Kurve rechnet mit deinen"} letzten ${PUNKTE_GRENZE}.${
+      !grenzeZuletzt ? "" : paar
+      ? ` Bis zur senkrechten Linie hältst du${paar.length > 1 ? " auf beiden Seiten" : ""} länger als ${
+        ZONES[2].hi} s, dort ist jede Stufe zu leicht.`
+      : ` Links der senkrechten Linie hieltest du länger als ${ZONES[2].hi} s, dort ist jede Stufe
+      zu leicht.`}</p>
+      ${stufenLegende(pts, paar)}
     </div>
     ${formKarte(S.exercise)}
-    ${!ready ? `<div class="note warn">Die Kurve steht auf
-      ${kurve.length} Punkt${kurve.length===1?"":"en"} und ${kann.filter(id=>cov[id]>0).length}
-      von ${anzahl(kann.length, "erreichbaren Zone", "erreichbaren Zonen")}. Sie zeigt schon eine
-      Richtung, ist aber noch keine belastbare Grundlage.</div>`
+    ${!ready ? standNote()
       : `<div class="note">${kann.length===3 ? "Alle drei Zonen sind belegt"
         : `Alle ${anzahl(kann.length, "erreichbare Zone", "erreichbaren Zonen")} (${kann.map(zName).join(", ")})
            sind belegt`}. Die Vorhersagen sind jetzt belastbar.</div>`}
@@ -8658,36 +8937,42 @@ function renderProfile(){
       Reichweite. Die App fordert sie deshalb nicht mehr ein.</div>` : ""}
     <div class="card">
       <h3 style="margin-top:0">Was du auf jeder Stufe schaffst</h3>
-      <table><thead><tr><th>Stufe</th><th class="n">Last</th><th class="n">Vorhersage</th><th>Zone</th></tr></thead>
+      <table><thead><tr><th>Stufe</th><th class="n">Last</th>${paar
+        ? paar.map(sd => `<th class="n">${sd[0].toUpperCase() + sd.slice(1)}</th>`).join("")
+        : `<th class="n">Vorhersage</th><th>Zone</th>`}</tr></thead>
       <tbody>${curEx().levels.map((l,i)=>{
         /* Mit Mindestgewicht, wo es eins gibt (Brust-Sprosse der
            Hyperextension) — sonst dieselbe Zahl wie die Grundlast. */
         const ll = sprossenLast(S.exercise, i), mind = kgMindest(S.exercise, i);
-        const drin = imBereich(f, ll), da = stufeErlaubt(S.exercise, i);
-        const t = predictTime(f,ll);
-        const z = (drin && isFinite(t) && t<=400) ? zoneOf(t) : null;
-        return `<tr${i===curLevel()?' style="background:rgba(78,163,255,.07)"':""}${
+        const da = stufeErlaubt(S.exercise, i);
+        const fuer = sk.filter(x => x.cur === i).map(x => x.sd);
+        const v = sk.map(x => vorhersage(x.f, ll));
+        return `<tr${fuer.length?' style="background:rgba(78,163,255,.07)"':""}${
           !da?' style="opacity:.45"':""}>
           <td><span class="tiny" style="opacity:.6">${i+1}</span> ${
             mind > 0 ? stufenName(S.exercise, i, mind) : l.name}${
-            i===curLevel()?' <span class="tiny">· aktuell</span>':""}${
+            !fuer.length ? "" : ` <span class="tiny">· aktuell${!paar ? ""
+              : fuer.length > 1 ? " beide Seiten" : ` ${fuer[0]}`}</span>`}${
             gem.has(i)?"":`<span class="tiny vorl">${VORLAEUFIG_KURZ}</span>`}${
             !da?` <span class="tiny">· ${fehltText(l, i)}</span>`:""}</td>
-          <td class="n">${ll.toFixed(2)}</td>
-          <td class="n">${!drin ? '<span class="tiny">nicht gemessen</span>'
-                        : !isFinite(t)?"sehr lang":t>400?"> 400s":fmt(t)}</td>
-          <td>${z?`<span class="pill ${z.cls}">${z.name}</span>`
-                : !drin?'<span class="tiny">außerhalb</span>'
-                : isFinite(t)&&t<20?'<span class="tiny">zu schwer</span>'
-                :'<span class="tiny">zu leicht</span>'}</td></tr>`;
+          <td class="n">${ll.toFixed(2)}</td>${paar
+          ? sk.map((x, j) => `<td class="n">${!x.f ? '<span class="tiny">keine Kurve</span>'
+              : v[j].z ? `<span class="pill ${v[j].z.cls}" style="white-space:nowrap">${v[j].zeit}</span>`
+              : `${v[j].zeit}<br>${v[j].zone}`}</td>`).join("")
+          : `
+          <td class="n">${v[0].zeit}</td>
+          <td>${v[0].zone}</td>`}</tr>`;
       }).join("")}</tbody></table>
       ${vorlLegende(S.exercise, gem)}
-      <p class="tiny" style="margin-top:8px">Die Kurve ist zwischen <b>${komma(f.lo,2)}</b> und
-      <b>${komma(f.hi,2)}</b> gemessen. Was außerhalb liegt, bekommt keine Vorhersage — eine
+      <p class="tiny" style="margin-top:8px">${paar
+      ? `Gemessen ist ${sk.filter(x => x.f).map(x => `${x.sd} zwischen <b>${komma(x.f.lo,2)}</b>
+         und <b>${komma(x.f.hi,2)}</b>`).join(", ")}.`
+      : `Die Kurve ist zwischen <b>${komma(f.lo,2)}</b> und
+      <b>${komma(f.hi,2)}</b> gemessen.`} Was außerhalb liegt, bekommt keine Vorhersage — eine
       hochgerechnete Zahl sähe genauso aus wie eine gemessene, und das wäre der Fehler.</p>
     </div>
     ${profilRestKarte()}`;
-  wireCurveSelect("profCurve");
+  wireCurveSelect("profCurve"); wireSeitenHaken();
 }
 
 function renderHistory(){
