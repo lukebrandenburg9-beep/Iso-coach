@@ -4246,11 +4246,285 @@ Stufen und `grenze` mit beiden Seiten. Sie zeichnet aber nur Kurve, Punkte und G
 einen Seite (`gewichtAchse(ex, nur)`) und hebt nur deren aktuelle Stufe hervor. Export und Schema
 bleiben gleich (8).
 
+### P96 · Ausfallschritt: enger Kniestand unter jedem normalen, hinterer Fuß mit dem Spann auf der Bank
+
+Luke, 23.10.: Der enge Ausfallschritt soll als Variante mit in die Kraftkurve. Beim erhöhten hinteren
+Fuß liegt der Fuß mit dem Fußspann auf der Bank, „NICHT auf den Zehen auf der Bank und NICHT auf dem
+Stepper. Grund: Den meisten Leuten fehlt die Beweglichkeit in der großen Zehe.“ Zur Einordnung: „sortier
+die engen ausfalschritt leitern jeweils immer unter die leiter des normalen ausfallschritts, rechne
+erstmal die gleichen last coeffizienten bis die ersten messungen von mir und den beta testern
+reinkommen“
+
+**Gebaut in 2026-10-23 c.**
+
+**Die Leiter hat elf Sprossen:**
+
+| Nr. | Sprosse | Last |
+|---|---|---|
+| 1 | Stehend an der Wand · 2 Fußlängen | 0,41 |
+| 2 | Stehend an der Wand · 3 Fußlängen | 0,52 |
+| 3 | Kniestand · Knie bis Stepper, 3 Stufen (20 cm) | 0,55 |
+| 4 | Enger Kniestand · Knie bis Stepper, 3 Stufen (20 cm) | 0,55 |
+| 5 | Kniestand · Knie bis Stepper, 2 Stufen (15 cm) | 0,63 |
+| 6 | Enger Kniestand · Knie bis Stepper, 2 Stufen (15 cm) | 0,63 |
+| 7 | Kniestand · Knie bis Stepper, 1 Stufe (10 cm) | 0,72 |
+| 8 | Enger Kniestand · Knie bis Stepper, 1 Stufe (10 cm) | 0,72 |
+| 9 | Kniestand · Knie knapp über den Boden | 0,90 |
+| 10 | Enger Kniestand · Knie knapp über den Boden | 0,90 |
+| 11 | Hinterer Fuß mit dem Spann auf Bank oder Sofa · Knie knapp über den Boden | 1,06 bei 42 cm |
+
+- **Enger Kniestand.** Am tiefsten Punkt steht das hintere Knie genau in einer Linie mit den Zehen des
+  vorderen Fußes. Es gibt dieselben vier Tiefen wie beim normalen Kniestand. Jede enge Sprosse steht
+  direkt unter der normalen derselben Tiefe und trägt deren Last. Das ist vorläufig, bis Messungen von
+  Luke und den Beta-Testern da sind. In „Dein Workout“ stehen die engen Sprossen rot wie jede
+  ungemessene Sprosse.
+- **Das Kästchen schaltet die Stellung.** In „Dein Workout“ steht beim Ausfallschritt je Seite das
+  Kästchen „Es zieht am hinteren Bein in der Hüfte oder im Knie“.
+  - Mit Haken nimmt die App für diese Seite die Wand, die vier engen Sprossen und die Bank. Ohne Haken
+    nimmt sie die Wand, die vier normalen Sprossen und die Bank.
+  - Das gilt für die Auswahl, den Planer und jede Regel, die eine Sprosse vor oder zurück geht.
+  - Haken setzen oder lösen schiebt den Stand auf die Sprosse derselben Tiefe in der anderen Stellung.
+    Zielzeit und Gewicht bleiben, weil die Last gleich ist.
+  - Der Haken bleibt über Workouts hinweg gesetzt, bis man ihn löst.
+  - Auf der Karte vor der Übung steht das Kästchen nicht.
+- **Die Bank.** Der hintere Fuß liegt mit dem Spann auf einer Hantelbank oder einem Sofa, das Knie
+  knapp über dem Boden. Eine andere Tiefe gibt es auf der Bank nicht.
+  - Die Höhe trägt man an der Sprosse ein, im Feld „Höhe der Auflage“ (20 bis 80 cm). Vorbelegt ist
+    die letzte Eingabe dieser Seite, sonst die der anderen Seite, sonst 42.
+  - Die Last folgt aus der Höhe: **Last = 0,90 × (1 + 0,18 × Höhe / 42 cm).** 30 cm ergeben 1,02,
+    42 cm 1,06, 50 cm 1,09. Die Höhe wird am Satz gespeichert, die Kurve liest die Last des Satzes.
+  - Die Beugung vorn bleibt wie beim Kniestand knapp über dem Boden. Was sich ändert, ist das Gewicht
+    auf dem vorderen Bein, weil der hintere Fuß über den Spann kaum noch trägt.
+  - Die 0,18 kommen aus DeForest 2014: Bei gleicher Hantel drückte das vordere Bein mit erhöhtem
+    hinterem Fuß 1412 N, im normalen Split Squat 1199 N, also das 1,18-Fache. Helme 2022 misst mit
+    erhöhtem hinterem Fuß 84 % der Kraft vorn. Die Bankhöhe nennt keine der beiden Studien. Gesetzt ist
+    Kniehöhe, also 42 cm.
+  - Enger Kniestand am Boden und die Bank stehen auch im Modus ohne Geräte. Ein Sofa gibt es überall.
+- **Die alte Sprosse „Hinterer Fuß auf dem Stepper (20 cm) · Knie knapp über den Boden“ entfällt.**
+  Ihre Sätze, darunter Lukes 81,9 s vom 16.09., bleiben mit ihrer Last 1,25 und ihrem Namen in der
+  Kurve und tragen die Marke `entfalleneSprosse`. Ein Stand, die Vorwahl oder ein angefangenes Workout
+  auf ihr ziehen auf die Bank.
+- **Umzug:** Die Wand und „Kniestand · 3 Stufen (20 cm)“ bleiben auf 1 bis 3. „2 Stufen (15 cm)“ rückt
+  auf 5, „1 Stufe (10 cm)“ auf 7, „knapp über den Boden“ auf 9. Stand, Sitzungen, ein angefangenes
+  Workout und die Vorwahl von heute ziehen mit.
+- **Das Gewicht kommt weiter ab „Kniestand · Knie bis Stepper, 2 Stufen (15 cm)“**, das ist jetzt
+  Sprosse 5. Der enge Kniestand mit 20 cm bleibt wie der normale ohne Gewicht.
+- **Export Schema 9:** eine Spalte am Ende, `unterlage_cm`, die Höhe von Bank oder Sofa. Bei allen
+  anderen Sprossen ist sie leer. Die engen Sätze trennt man über `variante` („Enger Kniestand · …“) und
+  ihre eigene `stufe_nr` von den normalen.
+
+**Was das Modell für eng schätzt.** Das Kniewinkel-Modell der Wand-Sprossen schätzt den engen Kniestand
+auf 0,82 · 0,93 · 1,04 · 1,22 (20 cm, 15 cm, 10 cm, knapp über den Boden), also das 1,4- bis 1,5-Fache
+der normalen Sprosse. Das steht nur hier und im Quelltext, als Vergleich für die ersten Messungen. In der
+App rechnet die gleiche Last wie beim normalen Kniestand.
+
+**Der Preis.**
+
+- **Gleiche Last, obwohl eng vermutlich schwerer ist.** Wer den Haken setzt, bekommt eine Zielzeit, die
+  für den normalen Kniestand gilt, und hält eng wahrscheinlich kürzer. Seine Sätze sehen dann schwächer
+  aus, als sie sind. Die Kurve knickt beim Setzen des Hakens und an den Übergängen zur Wand und zur Bank.
+  Das bleibt so, bis Messungen die Lasten trennen.
+- **Ohne Haken kommt keine enge Sprosse.** Bei gleicher Last passt eine enge Sprosse nie besser als die
+  normale daneben. Eine Regel, die eine Sprosse zurückgeht, würde sonst zwischen den Stellungen springen,
+  statt leichter zu machen. Sobald gemessene Lasten die Paare trennen, kann die App ohne Haken wieder aus
+  allen wählen. Das ist dann ein neuer Build.
+- **Die Bank ist leichter als die alte Stepper-Sprosse:** 1,06 gegen 1,25, obwohl der Fuß höher liegt.
+  Die 1,25 waren eine Schätzung und nie gemessen. Lukes eigene Sätze sprachen schon dagegen: 82,0 s auf
+  0,55 und 81,9 s auf 1,25 (Teil 2, 2026-09-21 i, „Die Kniestand-Lastfaktoren trennen nicht“). Die alten
+  Sätze bleiben trotzdem bei 1,25.
+- **Kurze Unterschenkel:** Bei 42 cm hängt das hintere Schienbein fast senkrecht. Bei 1,80 m Körpergröße
+  bleibt das Knie etwa 2 cm über dem Boden, bei 1,60 m etwa 7 cm. „Knapp über den Boden“ heißt dann „so
+  tief es geht“.
+- **Ein Satz auf der Bank macht sie für jede Höhe zur gemessenen Sprosse.** Die App merkt sich
+  „gemessen“ je Sprosse, nicht je Höhe. Ab dem ersten gültigen Satz verschwindet das Rot, auch wenn
+  später jemand eine andere Höhe einträgt.
+- **Elf Sprossen statt sieben.** `stufe_nr` im Export wechselt für alle Ausfallschritt-Zeilen ab
+  „Kniestand · 2 Stufen (15 cm)“.
+
+**Für den Nachbau:**
+
+- `EX_VERSION` 34, `LUNGE_ENG_AT` = 34. `LUNGE_ENG_UMZUG` = `{0:0, 1:1, 2:2, 3:4, 4:6, 5:8, 6:10}`,
+  `LUNGE_ENG_ALT_LAST` mit den Lasten der sieben alten Sprossen, `LUNGE_ENG_ENTFALLEN` mit alt 6 und
+  ihrem Namen. `lungeEngObjekt` setzt `entfalleneSprosse` und, falls er fehlt, `levelName`.
+  `lungeEngUmziehen`, `lungeEngLauf` und `lungeEngVorwahl` nach dem Muster von Fassung 32. In
+  `normalize()` hängen sie an denselben Stellen und laufen als äußerste Stufe der Satz- und der
+  Laufkette.
+- Die Sprossen tragen `stellung:"normal"` oder `stellung:"eng"`, die Bank
+  `bank:{basis:0.90, anteil:0.18, cm:42}` und `load` 1,062, den Wert bei 42 cm. `lunge.extraAb` 4.
+- Gespeichert sind `S.lungeEng["lunge|links"]` (Haken) und `S.bankCm["lunge|links"]` sowie
+  `S.bankCm.lunge` (letzte Höhe der Übung), beide nicht im Export. Der Satz trägt `bankCm`.
+- Die Stellung: `stellungPasst(ex, i, side)`, ohne Seite (`undefined`) kein Filter. Der Partner
+  derselben Tiefe kommt über den Namen (`stellungPartner`, „Enger “ davor oder weg), `aufStellung`
+  schiebt eine Sprosse auf die eigene Stellung. `verfuegbareStufen(ex, side)` filtert damit, und alle
+  Regeln, die Sprossen zählen, gehen darüber.
+- `sprossenAbstand`, `sprosseUeber` und `sprosseUnter` zählen nur Sprossen der eigenen Stellung. Damit
+  zählt der größte Sprung des Planers (`MAX_SPRUNG`, drei Sprossen) beim Ausfallschritt wie vorher, und
+  der Rückschritt bei Schmerz ab 7 landet nicht auf der anderen Stellung derselben Tiefe. Für alle
+  anderen Übungen ändert sich nichts.
+- `lastVon(ex, level, kg, side, cm)`: Bei einer Bank-Sprosse kommt die Last aus `bankLast(L, cm)`, sonst
+  aus `L.load`. `stellungSetzen` und `bankSetzen` hängen an `teilBinden`.
+
+### P97 · Hyperextension beginnt am Gurt im Türrahmen
+
+Luke, 23.10.: „ich möchte hier noch die variante mit dem spanngut im türrahmen um die hüfte
+einbauen, so liegt der oberkörper im 45° winkel und es kann hier trainiert werden, sowohl mt rücken
+in verlängerung als auch rücken horizontal zum boden“.
+
+Auf die Rückfragen:
+
+| Frage | Lukes Antwort |
+|---|---|
+| Wo in der Leiter | „der gut ist wesentlich einfacher als die stepper varianten als einfachere sprossen einbauen, dannach mit stepper am boden als die schweren sprossen hier kannst du die sprossen reduzieren auf hände am Becken und Gewich vor der brust“ |
+| Aufbau | Gurt rechtwinklig zum Körper (Variante A aus der Testliste vom 16.10.) |
+
+**Gebaut in 2026-10-23 d.**
+
+- **Die Leiter hat vier statt sechs Sprossen:**
+
+| Nr. | Sprosse | Last | Herkunft |
+|---|---|---|---|
+| 1 | Gurt im Türrahmen · Oberkörper 45° in Verlängerung der Beine | 0,439 | geschätzt, Platzhalter |
+| 2 | Gurt im Türrahmen · Oberkörper waagerecht | 0,621 | geschätzt, Platzhalter |
+| 3 | Stepper · Hände in der Hüfte | 0,776 | gerechnet |
+| 4 | Stepper · Hände vor der Brust | 0,847 ohne Gewicht | gerechnet, Armhaltung angenommen |
+
+- **Woher 0,621 und 0,439 kommen:** Der Gurt liegt nach Lukes Erfahrung „wesentlich“ unter dem
+  Stepper. Gesetzt ist der kleinste erlaubte Abstand, eine Torstufe: 0,776 / 1,25 = 0,621. Das
+  Verhältnis zwischen den beiden Gurt-Sprossen ist gerechnet: derselbe Oberkörper um denselben
+  Drehpunkt, einmal waagerecht, einmal um 45° gekippt. Das Moment geht mit dem Sinus der Neigung,
+  also 0,621 · sin 45° = 0,439.
+- **Am Gurt liegen die Hände in der Hüfte.** Die Armhaltung dort hat Luke nicht festgelegt. Ich
+  habe die vom Stepper übernommen.
+- **Neues Gerät „Spanngurt mit Türanker“** unter Einstellungen → Geräte, voreingestellt aus. Ohne
+  Haken fehlen die zwei Gurt-Sprossen in der Auswahl, die Leiter beginnt am Stepper. Die Nummern
+  bleiben stehen.
+- **Hinweistext:** Er hat jetzt einen Teil für den Gurt. Türanker oben in die Zarge, Tür zu,
+  Rücken zur Tür, die Schlaufe vorn knapp unter den Hüftknochen, rechtwinklig zum Körper. Die
+  Füße etwa 65 cm vor der Tür bei 1,80 m, etwa 80 cm bei 1,60 m.
+- **Gewicht vor der Brust ohne Mindestgewicht.** Die Regel heißt: so schwer wie die Sprosse
+  darunter. Bis jetzt lag dort Y (1,000), jetzt „Hände in der Hüfte“ (0,776), und die Brust trägt
+  schon ohne Gewicht 0,847. Das Mindestgewicht ist deshalb 0 kg, die Regel bleibt stehen: Misst
+  Luke die Brust leichter als die Hüfte, greift sie wieder von selbst. Die Sprosse heißt jetzt
+  „Stepper · Hände vor der Brust“, mit Gewicht „Stepper · Hände vor der Brust + 7,5 kg“. Bisher hieß
+  sie „Gewicht vor der Brust“.
+- **Umzug beim ersten Laden** (Fassung der Übungsliste 35):
+  - Ein Stand auf einer gestrichenen Sprosse zieht auf die Sprosse mit der nächstliegenden Last:
+    Zeigefinger (0,557) auf den Gurt waagerecht (0,621), V (0,698) auf die Hüfte (0,776), T (0,875)
+    und Y (1,000) auf die Brust (0,847). Wer keinen Gurt angehakt hat, bekommt statt des Gurts die
+    nächste ausführbare Sprosse, die Hüfte.
+  - Hüfte und Brust ziehen nur mit der Nummer um, alt 3 bleibt 3, alt 6 wird 4.
+  - Sätze auf den gestrichenen Sprossen behalten ihre Last und ihren Namen und tragen die Marke
+    `entfalleneSprosse`. Sie bleiben in der Kurve, Messpunkte verwirft nur Luke.
+  - Ein offener Lauf und die Vorwahl von heute ziehen mit. Das Gewicht hängt nicht an der Nummer
+    und bleibt stehen.
+
+**Der Preis.**
+
+- **Das Modell sagt das Gegenteil.** Mit dem Segmentmodell von de Leva (1996), Hände in der Hüfte,
+  trägt der Gurt 0,76 bei 45° und 1,08 waagerecht, mit dem Drehpunkt 5 cm über der Hüftachse.
+  Liegt er auf der Hüftachse, sind es 0,89 und 1,25. Am Gurt hält der Rücken den ganzen Oberkörper
+  über der Hüfte, am Stepper nur den über dem Nabel. Nach dem Modell wäre der Gurt waagerecht die
+  schwerste Sprosse ohne Gewicht. Eingebaut ist Lukes Erfahrung. Welche Seite stimmt, zeigt seine
+  Messung, bis dahin stehen beide Gurt-Sprossen rot.
+- **Die Gurtlage verschiebt die Last um rund 18 %.** Rutscht die Schlaufe von knapp unter den
+  Hüftknochen auf die Hüftachse, wird der Hebel länger. Der Hinweistext nennt deshalb die Stelle.
+- **Ohne Gurt bleiben zwei Sprossen.** Hüfte und Brust liegen 1,09 auseinander, unter dem Tor von
+  1,25. Die Spanne kommt dann allein aus dem Gewicht: 0,776 bis 1,296 mit 20 kg bei 80 kg.
+  Vorher reichte die Leiter ohne Gerät von 0,557 bis 1,000.
+- **Mit Gurt:** Spanne 1,93, Sprünge 1,41, 1,25 und 1,09.
+- **Die Einstiegstests spreizen anders.** Mit Gurt beginnt, wer noch nie gemessen hat, am Gurt
+  waagerecht, danach zweimal mit den Händen in der Hüfte. Ohne Gurt: Hüfte, dann zweimal die Brust.
+  Vorher waren es V, T und Y.
+- **Die Übungsdatei für das Video** (`Uebungen/Hyperextension.md`) hat den neuen Nachschlag. Im
+  Teil darüber stehen noch Zeigefinger, V, T und Y. Den Teil schreibt Luke.
+
+**Für den Nachbau:**
+
+- `EX_VERSION` 35, `HYPER_GURT_AT` = 35. `HYPER_GURT_UMZUG` = `{0:1, 1:2, 2:2, 3:3, 4:3, 5:3}`,
+  `HYPER_GURT_ALT_LAST` mit den Lasten der sechs alten Sprossen, `HYPER_GURT_ENTFALLEN` mit alt 0, 1,
+  3 und 4 und ihren Namen. `hyperGurtObjekt` setzt `entfalleneSprosse` und, falls er fehlt,
+  `levelName`. `hyperGurtUmziehen`, `hyperGurtLauf` und `hyperGurtVorwahl` nach dem Muster von
+  Fassung 34, für beide Haltungen (`hyper|gestreckt`, `hyper|rund`). In `normalize()` hängen sie an
+  denselben Stellen und laufen als äußerste Stufe der Satz- und der Laufkette.
+- Vier Sprossen in `hyper.levels`, die zwei am Gurt mit `geraet:"gurt"` und `platzhalter:true`,
+  `hyper.extraAb` 3. Neues Gerät `gurt` am Ende von `GERAETE`, voreingestellt aus.
+- Export und Schema bleiben gleich. `stufe_nr` wechselt für alle Hyperextension-Zeilen wie oben
+  beschrieben.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-23 d — Hyperextension beginnt am Gurt im Türrahmen
+
+**Befund (Luke).** Die Hyperextension am Spanngurt im Türrahmen soll in die Leiter, mit dem Oberkörper
+45° in Verlängerung der Beine und waagerecht. Der Gurt ist „wesentlich einfacher“ als der Stepper und
+kommt deshalb unten hin, am Stepper bleiben nur Hände in der Hüfte und Gewicht vor der Brust (P97).
+
+**Gebaut.** Die Leiter hat vier Sprossen: zwei am Gurt, zwei am Stepper. Die Lasten am Gurt sind
+Platzhalter und stehen rot. Neues Gerät „Spanngurt mit Türanker“ unter Einstellungen → Geräte,
+voreingestellt aus. Ohne Haken beginnt die Leiter am Stepper. Zeigefinger, V, T und Y fallen weg, ihre
+Sätze bleiben mit Last und Namen in der Kurve. Das Mindestgewicht vor der Brust ist jetzt 0 kg. Export
+und Schema bleiben gleich.
+
+**Geprüft.** In der Vorschau der Desktop-App auf eigenem Port 8773 bei 375 × 812, mit erfundenen Daten.
+
+- Umzug aus einem erfundenen Stand der Fassung 34, beide Haltungen: Sätze auf Zeigefinger, V, Hüfte, T,
+  Y und Brust landen auf 2, 3, 3, 4, 4 und 4. Die vier gestrichenen tragen die Marke und ihren alten
+  Namen, ein Satz ohne Last bekommt die alte Last. Die Brust behält ihre 7,5 kg. Stand, Vorwahl samt
+  Gewichtsprosse und angefangenes Workout ziehen mit, der Ausfallschritt bleibt unberührt. Ein zweites
+  Laden ändert nichts.
+- Ohne Gurt-Haken: In „Dein Workout“ stehen nur die beiden Stepper-Sprossen zur Wahl, der Stand auf dem
+  Gurt waagerecht weicht auf den Stepper aus.
+- Mit Haken: alle vier Sprossen, die zwei am Gurt mit „vorläufig“. Am Gurt gibt es keine Gewichtszeile.
+  Auf der Brust steht 0 kg, der Minus-Knopf ist gesperrt.
+- Im Modus Nur Körpergewicht steht die Hyperextension als „nicht bei Nur Körpergewicht“ da.
+- Export: Schema 9, in der Sprossenliste `geraet` „gurt“ und `platzhalter` bei den zwei Gurt-Sprossen.
+  Die alten Zeilen tragen die neue `stufe_nr` und ihren alten Namen.
+- Profil: vier Sprossen in Liste und Zeichnung. Keine Konsolenfehler, kein `NaN`. Die Testdaten sind
+  danach gelöscht.
+- **Nicht geprüft:** die Haltungswahl vor der Übung im laufenden Workout (der Code dort ist unverändert),
+  Lukes echte Messungen auf dem Handy.
+
+### 2026-10-23 c — Enger Kniestand in der Leiter, hinterer Fuß mit dem Spann auf der Bank
+
+**Befund (Luke).** Der enge Ausfallschritt soll als Variante in die Kraftkurve, jede enge Sprosse unter
+der normalen derselben Tiefe und mit derselben Last, bis die ersten Messungen da sind. Der erhöhte hintere
+Fuß liegt mit dem Spann auf Bank oder Sofa, nicht auf den Zehen und nicht auf dem Stepper, weil den
+meisten die Beweglichkeit in der großen Zehe fehlt (P96).
+
+**Gebaut.** Die Leiter hat elf Sprossen: zwei an der Wand, vier Tiefen im Kniestand, jede mit dem engen
+Kniestand darunter, oben die Bank. In „Dein Workout“ steht beim Ausfallschritt je Seite das Kästchen „Es
+zieht am hinteren Bein in der Hüfte oder im Knie“. Mit Haken nimmt die App für diese Seite die engen
+Sprossen, ohne Haken die normalen. Auf der Bank trägt man die Höhe ein, die Last folgt aus ihr. Die alte
+Stepper-Sprosse entfällt, ihre Sätze bleiben mit 1,25 in der Kurve. Export Schema 9 mit `unterlage_cm`.
+
+**Geprüft.** Headless Chrome auf eigenem Port 9347 bei 375 × 812, mit erfundenen Daten.
+
+- Umzug aus einem erfundenen Stand der Fassung 33: Sätze auf 15 cm, 10 cm und knapp über den Boden
+  landen auf 5, 7 und 9. Ein Satz auf der Stepper-Sprosse ohne Last landet auf der Bank mit 1,25, der
+  Marke und dem alten Namen. Stand, Vorwahl samt Gewichtsprosse und angefangenes Workout ziehen mit, der
+  Liegestütz bleibt unberührt. Ein zweites Laden ändert nichts.
+- Haken links: links stehen Wand, die vier engen Sprossen und die Bank zur Wahl, rechts unverändert die
+  normalen. Der Stand links springt von „2 Stufen (15 cm)“ auf die enge Sprosse derselben Tiefe. Haken
+  gelöst: zurück auf die normale. Ohne Haken taucht keine enge Sprosse auf. Im Modus ohne Geräte bleiben
+  links enger Kniestand am Boden und Bank, rechts Kniestand am Boden und Bank.
+- Regeln gespiegelt, links mit Haken und rechts ohne, je zu schwer (8 s, 15 s) und zu leicht (400 s) von
+  jeder Tiefe aus: Links landet jedes Mal auf dem engen Partner dessen, wo rechts landet, oder auf
+  derselben Sprosse an Wand oder Bank.
+- Workout mit Schmerz 8 abgeschlossen: links von eng 15 cm auf eng 20 cm, rechts von 15 cm auf 20 cm.
+- Planer, links eng und rechts normal mit denselben Zeiten: in allen drei Zonen dieselbe Zielzeit und
+  dieselbe Tiefe, links eng, rechts normal, vom Anker wie von der Kurve aus. Vom Anker 20 cm aus kommen
+  beide drei Sprossen weit bis knapp über den Boden.
+- Bank: das Feld erscheint mit 42, Last 1,062. 30 cm eingetragen ergibt 1,016, nach dem Neuladen steht
+  30 vor, die andere Seite übernimmt 30. 200 wird auf 80 begrenzt, Unsinn wird verworfen.
+- Export: `unterlage_cm` mit 30 nur in der Bank-Zeile, Schema 9, in der Sprossenliste `eng` bei den acht
+  Kniestand-Sprossen und `last_aus_hoehe` bei der Bank.
+- Profil: elf Sprossen in der Liste und der Tabelle, der alte Stepper-Punkt steht bei 1,25 im
+  Messbereich. Keine Konsolenfehler, kein `NaN`. Die Testdaten sind danach gelöscht.
+- **Nicht geprüft:** Lukes echte Messungen auf dem Handy.
 
 ### 2026-10-23 b — Seiten zum An- und Abhaken, Läufer untereinander
 

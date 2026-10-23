@@ -236,6 +236,9 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .stp button{flex:0 0 42px;height:40px;padding:0;font-size:20px}
 .stp b{min-width:74px;text-align:center;font-family:var(--mono);font-weight:500;
   font-variant-numeric:tabular-nums}
+/* Hoehe der Bank beim Ausfallschritt (Build 2026-10-23 c) */
+.stp input[type=number]{flex:0 0 84px;width:84px;text-align:center;padding:9px 6px}
+.teil .chk{margin:9px 0 0}
 .scaleBtns{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
 .scaleBtns button{padding:12px 2px;font-size:15px;font-weight:600}
 .scaleBtns button.sel{background:var(--acc);border-color:var(--acc);color:var(--accInk)}
@@ -636,7 +639,7 @@ const DEFAULT_EX = {
        körper". extraK bleibt 1: Haengende Gewichte sitzen so nah am
        Koerperschwerpunkt wie der Rucksack. Weitere Haltungen
        (gegenueberliegende Hand, Rack) kommen spaeter, mit eigener Wahl. */
-    extraAb:3, extraK:1,
+    extraAb:4, extraK:1,
     extraHint:"Kurzhanteln oder Kettlebells, seitlich neben dem Körper gehalten.",
     hint:"»Links« heißt: der LINKE Fuß steht vorne. "
         +"Zwei Stellungen in einer Leiter — die Sprosse sagt, welche. STEHEND AN DER WAND: "
@@ -645,7 +648,11 @@ const DEFAULT_EX = {
         +"vorderen Beins die Wand fast berührt, hinteres Bein gestreckt, Ferse hoch. "
         +"KNIESTAND: aufgebrochener Kniestand, vorderes Knie rechtwinklig, Rumpf aufrecht, das "
         +"hintere Knie senkt sich bis knapp über die genannte Höhe und berührt sie nicht. "
-        +"Beides Mal: keine Handstütze; ein Fingerkontakt an der Wand fürs Gleichgewicht ist in "
+        +"ENGER KNIESTAND: wie der Kniestand, nur kürzer gestellt — am tiefsten Punkt steht das "
+        +"hintere Knie genau in einer Linie mit den Zehen des vorderen Fußes. "
+        +"BANK: der hintere Fuß liegt mit dem Fußspann auf der Hantelbank oder dem Sofa, nicht "
+        +"auf den Zehen. Miss die Höhe der Auflage und trag sie an der Sprosse ein. "
+        +"Jedes Mal: keine Handstütze; ein Fingerkontakt an der Wand fürs Gleichgewicht ist in "
         +"Ordnung. Zwischen zwei Sprossen stellst du am feinsten über Kurzhanteln oder "
         +"Kettlebells nach, seitlich neben dem Körper gehalten.",
     /* 21.09.2026: Leiter neu gebaut. Sie traegt jetzt ZWEI Stellungen, weil Lukes
@@ -684,15 +691,56 @@ const DEFAULT_EX = {
        fußlängen das ist zu umständlich". Im Stand bleiben 2 und 3
        Fusslaengen (64° und 82°), alle Lasten unveraendert. Sieben Sprossen,
        Gewicht weiter ab "Knie bis Stepper, 2 Stufen" (extraAb 3). Siehe
-       LUNGE_GANZ_AT. */
+       LUNGE_GANZ_AT.
+
+       23.10.2026 (Fassung 34, Build 2026-10-23 c): zwei Aenderungen, elf
+       Sprossen statt sieben.
+       1. ENGER KNIESTAND. Luke: "Der enge Ausfallschritt soll als Variante
+          mit in die Kraftkurve." Am tiefsten Punkt steht das hintere Knie
+          genau in einer Linie mit den Zehen des Standbeins, gedacht fuer
+          Leute, denen es am hinteren Bein in der Huefte oder im Knie zieht.
+          Dieselben vier Tiefen wie der Kniestand. Einordnung und Last nach
+          Luke: "sortier die engen ausfallschritt leitern jeweils immer unter
+          die leiter des normalen ausfallschritts, rechne erstmal die gleichen
+          last coeffizienten bis die ersten messungen von mir und den beta
+          testern reinkommen". Jede enge Sprosse steht direkt unter der
+          normalen derselben Tiefe und traegt deren Last (stellung:"eng").
+          Welche der beiden gilt, sagt das Kaestchen je Seite in "Dein
+          Workout" (S.lungeEng, siehe stellungPasst).
+          Zum Vergleich fuer die ersten Messungen, NICHT in der Rechnung: Das
+          Kniewinkel-Modell der Wand-Sprossen schaetzt eng auf 0,82 / 0,93 /
+          1,04 / 1,22 (20 / 15 / 10 cm / knapp ueber den Boden), also das 1,4-
+          bis 1,5-Fache der normalen Sprosse.
+       2. BANK STATT STEPPER. Luke: "Hinterer Fuss liegt mit dem Fussspann
+          auf der Bank. NICHT auf den Zehen auf der Bank und NICHT auf dem
+          Stepper. Grund: Den meisten Leuten fehlt die Beweglichkeit in der
+          grossen Zehe." Hantelbank (42 cm) oder Sofa, nur "Knie knapp ueber
+          den Boden". Die Hoehe wird an der Sprosse eingetragen (S.bankCm)
+          und die Last folgt aus ihr: 0,90 x (1 + 0,18 x Hoehe / 42 cm),
+          siehe bankLast. Die 0,18: DeForest 2014, vorderes Bein mit
+          erhoehtem hinterem Fuss 1412 N gegen 1199 N im Split Squat bei
+          gleicher Hantel. Die Bankhoehe nennt die Studie nicht, gesetzt ist
+          Kniehoehe. load hier ist der Wert bei 42 cm, damit alles, was
+          L.load direkt liest, eine sinnvolle Zahl hat.
+          Die alte Stepper-Sprosse (1,25, nie gemessen) ist raus; ihre Saetze
+          behalten ihre Last und tragen die Marke entfalleneSprosse.
+       Gewicht weiter ab "Kniestand · 2 Stufen (15 cm)" (extraAb 4), der enge
+       Kniestand mit 20 cm bleibt wie der normale ohne. Enger Kniestand am
+       Boden und die Bank gehen ohne Geraete (ein Sofa steht ueberall).
+       Siehe LUNGE_ENG_AT. */
     levels:[
       {name:"Stehend an der Wand · 2 Fußlängen",                 load:0.41, ort:"wand"},
       {name:"Stehend an der Wand · 3 Fußlängen",                 load:0.52, ort:"wand"},
-      {name:"Kniestand · Knie bis Stepper, 3 Stufen (20 cm)",    load:0.55},
-      {name:"Kniestand · Knie bis Stepper, 2 Stufen (15 cm)",    load:0.63},
-      {name:"Kniestand · Knie bis Stepper, 1 Stufe (10 cm)",     load:0.72},
-      {name:"Kniestand · Knie knapp über den Boden",             load:0.90, ort:"boden"},
-      {name:"Hinterer Fuß auf dem Stepper (20 cm) · Knie knapp über den Boden", load:1.25}
+      {name:"Kniestand · Knie bis Stepper, 3 Stufen (20 cm)",    load:0.55, stellung:"normal"},
+      {name:"Enger Kniestand · Knie bis Stepper, 3 Stufen (20 cm)", load:0.55, stellung:"eng"},
+      {name:"Kniestand · Knie bis Stepper, 2 Stufen (15 cm)",    load:0.63, stellung:"normal"},
+      {name:"Enger Kniestand · Knie bis Stepper, 2 Stufen (15 cm)", load:0.63, stellung:"eng"},
+      {name:"Kniestand · Knie bis Stepper, 1 Stufe (10 cm)",     load:0.72, stellung:"normal"},
+      {name:"Enger Kniestand · Knie bis Stepper, 1 Stufe (10 cm)", load:0.72, stellung:"eng"},
+      {name:"Kniestand · Knie knapp über den Boden",             load:0.90, ort:"boden", stellung:"normal"},
+      {name:"Enger Kniestand · Knie knapp über den Boden",       load:0.90, ort:"boden", stellung:"eng"},
+      {name:"Hinterer Fuß mit dem Spann auf Bank oder Sofa · Knie knapp über den Boden",
+       load:1.062, ort:"boden", bank:{basis:0.90, anteil:0.18, cm:42}}
     ]
   },
   /* Seitstuetz. Die Leiter ist gerechnet, nicht geschaetzt: Das Biegemoment an
@@ -1485,11 +1533,11 @@ const DEFAULT_EX = {
     ]
   },
 
-  /* Hyperextension (Build 2026-10-09 a). Luke, 08.10.2026: Stepper mit Kissen,
-     die Kante auf Hoehe des Bauchnabels, die Fuesse hinten an der Wand, "so
-     entsteht ein hebel auf den unteren ruecken weil der oberkoerper frei
-     gehalten wird". Gearbeitet wird gestreckt oder rund, "je nach
-     beschwerdelage der wirbelsaeule".
+  /* Hyperextension (Build 2026-10-09 a, umgebaut in 2026-10-23 d). Luke,
+     08.10.2026: Stepper mit Kissen, die Kante auf Hoehe des Bauchnabels, die
+     Fuesse hinten an der Wand, "so entsteht ein hebel auf den unteren ruecken
+     weil der oberkoerper frei gehalten wird". Gearbeitet wird gestreckt oder
+     rund, "je nach beschwerdelage der wirbelsaeule".
 
      EINE Uebung mit ZWEI Haltungen, jede mit eigener Kurve. Im Code sind die
      Haltungen Seiten (sides): Die Schluessel hyper|gestreckt und hyper|rund
@@ -1498,24 +1546,46 @@ const DEFAULT_EX = {
      (haltungOf). Gewaehlt wird auf der Karte vor der Uebung, gestreckt steht
      vorgewaehlt da (Luke: "Vorauswahl so oder so auf gestreckt").
 
-     Die Stufe machen die Arme: Je weiter sie vom Nabel weg nach vorn reichen,
-     desto laenger der Hebel. Gerechnet mit den Segmentdaten von de Leva 1996
-     (maennlich), Rumpf waagerecht, Drehpunkt am Nabel, Last als Moment
-     relativ zu Y:
-        Zeigefinger abgestuetzt     0,557   GESCHAETZT: frei gedrueckt, nur so
-                                            viel wie noetig, ohne Kraftmessung
-        Arme in V, Haende neben     0,698   GERECHNET
-          der Huefte
-        Haende in der Huefte        0,776   GERECHNET
-        Arme in T                   0,875   GERECHNET
-        Arme in Y, etwa 45 Grad     1,000   GERECHNET
-        Gewicht vor der Brust       0,847   GERECHNET, ohne Gewicht. Die
-                                            Armhaltung (Ellbogen am Rumpf, Haende
-                                            vor dem Brustbein) ist ANGENOMMEN,
-                                            je nach Griff 0,838 bis 0,855.
-     Spanne Fingerstuetz bis Y 1,79. Huefte, T und Y liegen enger als 1,25 —
-     Luke wollte V und Huefte als eigene Sprossen. Das I (Arme ueber Kopf) ist
-     nicht drin, ebenfalls seine Entscheidung.
+     Seit Build 2026-10-23 d (Fassung 35) beginnt die Leiter am Gurt im
+     Tuerrahmen. Luke, 23.10.2026: "ich moechte hier noch die variante mit dem
+     spanngut im tuerrahmen um die huefte einbauen, so liegt der oberkoerper
+     im 45 grad winkel", und weiter: "der gut ist wesentlich einfacher als die
+     stepper varianten als einfachere sprossen einbauen, dannach mit stepper
+     am boden als die schweren sprossen hier kannst du die sprossen
+     reduzieren auf haende am Becken und Gewicht vor der brust". Der Aufbau
+     ist Variante A aus der Testliste vom 16.10.: Tueranker oben in der
+     Zarge, die Schlaufe vorn knapp unter den Hueftknochen, der Gurt
+     rechtwinklig zum Koerper. Bei 1,80 m stehen die Fuesse dann etwa 65 cm
+     vor der Tuer, bei 1,60 m etwa 80 cm. Am Gurt liegen die Haende in der
+     Huefte (ANGENOMMEN, Luke hat die Arme dort nicht festgelegt).
+     Gestrichen sind Zeigefinger, V, T und Y am Stepper (Umzug alter Staende:
+     HYPER_GURT_AT).
+
+     Last als Moment relativ zu "Arme in Y" am Stepper = 1,000, wie bisher:
+        Gurt, Oberkoerper 45 Grad    0,439   GESCHAETZT: waagerecht geteilt
+          in Verlaengerung                   durch Wurzel 2. Derselbe Rumpf
+                                             um denselben Drehpunkt, nur um
+                                             45 Grad gekippt: Das Moment geht
+                                             mit dem Sinus der Neigung, das
+                                             Verhaeltnis ist GERECHNET.
+        Gurt, Oberkoerper waagerecht 0,621   GESCHAETZT: eine Torstufe (1,25)
+                                             unter Haende in der Huefte am
+                                             Stepper, nach Lukes Erfahrung
+                                             "wesentlich einfacher".
+        Stepper, Haende in der Huefte 0,776  GERECHNET
+        Stepper, vor der Brust       0,847   GERECHNET, ohne Gewicht. Die
+                                             Armhaltung (Ellbogen am Rumpf,
+                                             Haende vor dem Brustbein) ist
+                                             ANGENOMMEN, je nach Griff 0,838
+                                             bis 0,855.
+     Das Segmentmodell (de Leva 1996, maennlich) rechnet den Gurt NICHT
+     leichter: Haende in der Huefte gaebe dort 0,76 bei 45 Grad und 1,08
+     waagerecht, mit dem Drehpunkt 5 cm ueber der Hueftachse. Liegt er auf
+     der Hueftachse, sind es 0,89 und 1,25. Am Gurt haelt der Ruecken den
+     ganzen Oberkoerper ueber der Huefte, am Stepper nur den ueber dem Nabel.
+     Eingebaut ist Lukes Erfahrung; was davon stimmt, zeigt seine Messung.
+     Spanne 1,93. Spruenge 1,41, 1,25 und 1,09: Haende in der Huefte und
+     Brust liegen enger als 1,25, Lukes Auswahl.
 
      Gewicht gibt es nur auf der obersten Sprosse und nur vor der Brust. Luke,
      08.10.2026: "Nimm nur Gewicht vor brust. Die Y Variante ermuedet
@@ -1523,16 +1593,19 @@ const DEFAULT_EX = {
      Brustbein, 30 cm vor dem Nabel (Nabel bis Schwertfortsatz 21,6 cm plus
      halbes Brustbein 8,5 cm). Daraus extraK = 2,12, bezogen auf diese
      Sprosse; bei 27 bis 33 cm Hebel laege er zwischen 1,91 und 2,34.
-     Ohne Gewicht waere die Brust-Sprosse LEICHTER als Y. Sie zaehlt deshalb
-     erst ab dem Mindestgewicht (gewichtMindestens, siehe kgMindest): dem
-     kleinsten Gewicht im 2,5-kg-Raster, mit dem sie mindestens so schwer ist
-     wie Y. Bei 60, 70 und 80 kg Koerpergewicht sind das 7,5 kg, bei 90 und
-     100 kg 10 kg. Bei 80 kg traegt sie damit 1,015, jede weiteren 2,5 kg
-     bringen etwa 0,056.
+     Mindestgewicht (gewichtMindestens, siehe kgMindest): das kleinste
+     Gewicht, mit dem die Brust-Sprosse mindestens so schwer ist wie die
+     darunter. Bis Fassung 34 lag Y darunter, und es waren 7,5 kg bei 80 kg.
+     Haende in der Huefte ist leichter als die Brust ohne Gewicht, das
+     Mindestgewicht ist deshalb 0 kg. Die Regel bleibt stehen: Misst Luke die
+     Brust leichter, greift sie wieder von selbst. Die Sprosse heisst "Haende
+     vor der Brust", mit Gewicht "Haende vor der Brust + 7,5 kg" (stufenName).
+     Kein nameMitGewicht: Den liest nur der Kopf einer Uebung mit einer
+     einzigen Sprosse (sprossenName), und am Stepper sind es immer zwei.
 
      Die Haltung aendert die Last im Modell nicht: Beide halten den Rumpf
-     waagerecht. Rund verkuerzt den Hebel etwas, das fangen die getrennten
-     Kurven ab. Gerechnet wird nur innerhalb einer Haltung.
+     gleich geneigt. Rund verkuerzt den Hebel etwas, das fangen die
+     getrennten Kurven ab. Gerechnet wird nur innerhalb einer Haltung.
 
      Ischias. Luke, 08.10.2026, erinnerte sich, die ausgewerteten Studien
      haetten Extension als die schlimmere Richtung gezeigt. Fuer die meisten
@@ -1546,8 +1619,8 @@ const DEFAULT_EX = {
      zur Mehrheit; die beiden Saetze unter den Haltungsknoepfen (haltungUnter)
      sagen, woran man die andere Gruppe erkennt.
 
-     VORLAEUFIG, bis Luke misst: alle sechs Lasten, extraK und damit das
-     Mindestgewicht. */
+     VORLAEUFIG, bis Luke misst: alle vier Lasten, extraK und damit das
+     Mindestgewicht. Die beiden am Gurt sind Platzhalter. */
   hyper: {
     name:"Hyperextension", region:"Unterer Rücken", group:"spine",
     /* Die erste Haltung ist die Vorauswahl, siehe haltungOf. */
@@ -1561,22 +1634,27 @@ const DEFAULT_EX = {
     /* Kein extraGeraet: Ein Rucksack mit Buechern geht immer, wie bei der
        Fersenbruecke. Kein extraMax und kein extraReal: Es gelten der Deckel
        von einem halben Koerpergewicht und die 20 kg fuer zuhause. */
-    extraAb:5, extraK:2.12, gewichtMindestens:true,
+    extraAb:3, extraK:2.12, gewichtMindestens:true,
     extraLabel:"Gewicht",
     extraHint:"Rucksack, Hantelscheibe oder Kurzhantel mit beiden Armen eng vor der Brust halten, "
              +"mittig auf dem Brustbein.",
-    hint:"Stepper mit Kissen, die Kante liegt auf Höhe des Bauchnabels, die Füße stehen hinten an "
-        +"der Wand. Der Oberkörper hängt frei über die Kante und wird waagerecht gehalten: gestreckt "
-        +"mit langem Rücken, rund mit eingerolltem Rücken. Die Arme geben die Stufe vor.",
-    /* Alle ohne ort: Stepper und Kissen sind Moebel, im Modus ohne Geraete
-       faellt die Uebung deshalb ganz weg (siehe ohneGeraete). */
+    hint:"Am Gurt: Türanker oben in die Zarge klemmen, Tür zu. Rücken zur Tür, die Schlaufe liegt "
+        +"vorn knapp unter den Hüftknochen und läuft rechtwinklig zum Körper. Die Füße stehen bei "
+        +"1,80 m Größe etwa 65 cm vor der Tür, bei 1,60 m etwa 80 cm. Gestreckt in den Gurt lehnen, "
+        +"bis der Körper 45° geneigt ist, die Hände in der Hüfte. Am Stepper: Stepper mit Kissen, die "
+        +"Kante liegt auf Höhe des Bauchnabels, die Füße stehen hinten an der Wand, der Oberkörper "
+        +"hängt frei über die Kante und wird waagerecht gehalten. In beiden Aufbauten: gestreckt mit "
+        +"langem Rücken, rund mit eingerolltem Rücken.",
+    /* Am Gurt mit geraet:"gurt", der Stepper ohne ort: Stepper und Kissen
+       sind Moebel, im Modus ohne Geraete faellt die Uebung deshalb ganz weg
+       (siehe ohneGeraete). Ohne Gurt beginnt die Leiter am Stepper. */
     levels:[
-      {name:"Mit den Zeigefingern abstützen · nur so viel drücken wie nötig", load:0.557},
-      {name:"Arme in V · Hände neben der Hüfte",     load:0.698},
-      {name:"Hände in der Hüfte",                    load:0.776},
-      {name:"Arme in T · seitlich auf Schulterhöhe", load:0.875},
-      {name:"Arme in Y · etwa 45° neben dem Kopf",   load:1.000},
-      {name:"Gewicht vor der Brust",                 load:0.847}
+      {name:"Gurt im Türrahmen · Oberkörper 45° in Verlängerung der Beine", load:0.439,
+       platzhalter:true, geraet:"gurt"},
+      {name:"Gurt im Türrahmen · Oberkörper waagerecht", load:0.621,
+       platzhalter:true, geraet:"gurt"},
+      {name:"Stepper · Hände in der Hüfte",              load:0.776},
+      {name:"Stepper · Hände vor der Brust",             load:0.847}
     ]
   }
 };
@@ -1688,7 +1766,16 @@ const GERAETE = [
    +"Anzeige IST die Stufe. Sie muss analog sein — eine Digitalwaage schaltet bei stehender "
    +"Last nach Sekunden ab oder friert die Anzeige ein, und ein Halt dauert 35 bis 150 s.",
    fuer:"Isometrisches Wadenheben: einbeinig mit Entlastung, sobald beidbeinig mehr als "
-       +"30 kg Rucksack bräuchte. Beim endgradigen Wadenheben dasselbe ab 40 kg."}
+       +"30 kg Rucksack bräuchte. Beim endgradigen Wadenheben dasselbe ab 40 kg."},
+  /* Seit Build 2026-10-23 d: die zwei leichten Sprossen der Hyperextension.
+     Laenge aus der Testliste vom 16.10.: bei 1,80 m etwa 1,88 m Gurt, bei
+     1,60 m etwa 1,99 m, dazu die Schlaufe. */
+  {id:"gurt", name:"Spanngurt mit Türanker", was:"Ein Gurt mit einem Türanker am einen Ende: "
+   +"ein Stopper, den du oben in den Türspalt klemmst und mit der geschlossenen Tür hältst. Am "
+   +"anderen Ende eine Schlaufe um die Hüfte. Verstellbar und 2,5 bis 3 m lang, dann passt er "
+   +"für jede Körpergröße.",
+   fuer:"Hyperextension: die zwei leichten Stufen im Türrahmen. Ohne Gurt beginnt die Leiter am "
+       +"Stepper."}
 ];
 
 const RED_FLAGS = [
@@ -1708,7 +1795,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-23 b";
+const BUILD = "2026-10-23 d";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -1746,7 +1833,13 @@ const AW_V = 1;
    1,5 und 2,5, sieben Sprossen statt neun. Siehe LUNGE_GANZ_AT. */
 /* 33 (22.10.2026, Build g): Seitstuetz ohne die drei Knie-Sprossen auf
    Moebeln, zwei Wand-Sprossen davor. Siehe PLANK_WAND_AT. */
-const EX_VERSION = 33;
+/* 34 (23.10.2026, Build c): Ausfallschritt mit engem Kniestand unter jeder
+   Kniestand-Sprosse und der Bank (Fussspann) statt des Steppers unter dem
+   hinteren Fuss, elf Sprossen statt sieben. Siehe LUNGE_ENG_AT. */
+/* 35 (23.10.2026, Build d): Hyperextension beginnt am Gurt im Tuerrahmen,
+   am Stepper nur noch Haende in der Huefte und vor der Brust, vier Sprossen
+   statt sechs. Siehe HYPER_GURT_AT. */
+const EX_VERSION = 35;
 /* Der Sprung auf 26 setzt die Pausen je Zone NICHT mehr zurueck: Sie sind
    Lukes Einstellung, keine mitgelieferte Uebungsdefinition. Zurueckgesetzt
    wird nur, wer von vor 25 kommt — so wie bisher bei jedem Sprung. */
@@ -2673,6 +2766,134 @@ function plankWandVorwahl(vw){
   }
   return Object.assign({}, vw, {je});
 }
+/* ── Fassung 34 (23.10.2026): enger Kniestand, Bank statt Stepper ─────────
+   Alt (0-6): 0 Wand 2 FL · 1 Wand 3 FL · 2-4 Kniestand Stepper 20/15/10 cm ·
+        5 Knie knapp ueber den Boden · 6 hinterer Fuss auf dem Stepper (1,25)
+   Neu (0-10): 0 Wand 2 FL · 1 Wand 3 FL · 2/4/6 Kniestand Stepper
+        20/15/10 cm, darunter je der enge (3/5/7) · 8 Knie knapp ueber den
+        Boden, 9 eng · 10 hinterer Fuss mit dem Spann auf Bank oder Sofa
+   Jede alte Sprosse zieht auf die normale derselben Tiefe, die Stepper-
+   Sprosse auf die Bank als ihre Nachfolgerin. Saetze dort tragen die Marke
+   entfalleneSprosse, behalten ihre 1,25 und ihren alten Namen — Messpunkte
+   verwirft nur Luke, und im Export soll nicht die Bank stehen, wo der
+   Stepper war. Ein offener Block zieht nur mit der Nummer um, wie bei
+   lungeGanzObjekt. Die Vorwahl von heute zieht mit.
+   In normalize laeuft der Umzug NACH LUNGE_GANZ_AT (in den Ketten ganz aussen):
+   Ein Stand von vor Fassung 32 kommt erst dort auf die sieben Sprossen. */
+const LUNGE_ENG_AT        = 34;
+const LUNGE_ENG_UMZUG     = {0:0, 1:1, 2:2, 3:4, 4:6, 5:8, 6:10};
+const LUNGE_ENG_ALT_LAST  = {0:0.41, 1:0.52, 2:0.55, 3:0.63, 4:0.72, 5:0.90, 6:1.25};
+const LUNGE_ENG_ENTFALLEN = new Map([[6, "Hinterer Fuß auf dem Stepper (20 cm) · Knie knapp über den Boden"]]);
+function lungeEngUmziehen(lv){
+  const L = Object.assign({}, lv || {});
+  for(const k of Object.keys(L))
+    if(lungeKey(k) && LUNGE_ENG_UMZUG[L[k]] != null) L[k] = LUNGE_ENG_UMZUG[L[k]];
+  return L;
+}
+function lungeEngObjekt(o, offen){
+  if(!o || o.exercise !== "lunge" || LUNGE_ENG_UMZUG[o.level] == null) return o;
+  const um = v => (LUNGE_ENG_UMZUG[v] != null ? LUNGE_ENG_UMZUG[v] : v);
+  const neu = {level: um(o.level)};
+  if(o.levelVorschlag != null) neu.levelVorschlag = um(o.levelVorschlag);
+  if(o.rohStufe != null) neu.rohStufe = um(o.rohStufe);
+  if(o.anker && o.anker.level != null) neu.anker = Object.assign({}, o.anker, {level: um(o.anker.level)});
+  if(offen) return Object.assign({}, o, neu);
+  if(!(o.load > 0)) neu.load = LUNGE_ENG_ALT_LAST[o.level];
+  if(LUNGE_ENG_ENTFALLEN.has(o.level)){
+    neu.entfalleneSprosse = true;
+    if(!o.levelName) neu.levelName = LUNGE_ENG_ENTFALLEN.get(o.level);
+  }
+  return Object.assign({}, o, neu);
+}
+function lungeEngLauf(lauf){
+  if(!lauf || !lauf.plan) return lauf;
+  return Object.assign({}, lauf, {
+    plan: Object.assign({}, lauf.plan, {blocks: (lauf.plan.blocks || []).map(b => lungeEngObjekt(b, true))}),
+    fertig: (lauf.fertig || []).map(o => lungeEngObjekt(o))});
+}
+function lungeEngVorwahl(vw){
+  if(!vw || !vw.je) return vw;
+  const je = {};
+  for(const k of Object.keys(vw.je)){
+    const v = vw.je[k];
+    if(!lungeKey(k) || !v){ je[k] = v; continue; }
+    const n = Object.assign({}, v);
+    if(LUNGE_ENG_UMZUG[v.level] != null) n.level = LUNGE_ENG_UMZUG[v.level];
+    if(v.kg && LUNGE_ENG_UMZUG[v.kg.level] != null)
+      n.kg = Object.assign({}, v.kg, {level: LUNGE_ENG_UMZUG[v.kg.level]});
+    je[k] = n;
+  }
+  return Object.assign({}, vw, {je});
+}
+/* ── Fassung 35 (23.10.2026): Hyperextension am Gurt im Tuerrahmen ───────
+   Alt (0-5): 0 Zeigefinger (0,557) · 1 Arme in V (0,698) · 2 Haende in der
+        Huefte (0,776) · 3 Arme in T (0,875) · 4 Arme in Y (1,000) ·
+        5 Gewicht vor der Brust (0,847 ohne Gewicht)
+   Neu (0-3): 0 Gurt, Oberkoerper 45 Grad (0,439) · 1 Gurt, Oberkoerper
+        waagerecht (0,621) · 2 Stepper, Haende in der Huefte · 3 Stepper,
+        vor der Brust
+   Ein Stand auf einer gestrichenen Sprosse zieht auf die Sprosse, deren Last
+   der alten am naechsten liegt, wie beim Seitstuetz (PLANK_WAND_AT): 0,557
+   auf 0,621, 0,698 auf 0,776, 0,875 und 1,000 auf 0,847. Ohne Haken beim
+   Gurt nimmt die Auswahl von 0,621 aus die naechste erlaubte Sprosse
+   (naechsteErlaubte), die Huefte. Saetze dort tragen die Marke
+   entfalleneSprosse, behalten Last und alten Namen — Messpunkte verwirft
+   nur Luke. Huefte und Brust ziehen nur mit der Nummer um. Ein offener
+   Block zieht nur mit der Nummer um, wie bei lungeEngObjekt. Die Vorwahl
+   von heute zieht mit. Das Gewicht haengt nicht an der Nummer (kein
+   kgJeSprosse) und bleibt; unter der Brust stand ohnehin keins (siehe
+   extraBereich). Nur hyper wird angefasst, die Reihenfolge zu den anderen
+   Umzuegen ist deshalb gleich; er steht in den Ketten ganz aussen. */
+const HYPER_GURT_AT        = 35;
+const HYPER_GURT_UMZUG     = {0:1, 1:2, 2:2, 3:3, 4:3, 5:3};
+const HYPER_GURT_ALT_LAST  = {0:0.557, 1:0.698, 2:0.776, 3:0.875, 4:1.000, 5:0.847};
+const HYPER_GURT_ENTFALLEN = new Map([
+  [0, "Mit den Zeigefingern abstützen · nur so viel drücken wie nötig"],
+  [1, "Arme in V · Hände neben der Hüfte"],
+  [3, "Arme in T · seitlich auf Schulterhöhe"],
+  [4, "Arme in Y · etwa 45° neben dem Kopf"]]);
+const hyperKey = k => (k === "hyper" || String(k).indexOf("hyper|") === 0);
+function hyperGurtUmziehen(lv){
+  const L = Object.assign({}, lv || {});
+  for(const k of Object.keys(L))
+    if(hyperKey(k) && HYPER_GURT_UMZUG[L[k]] != null) L[k] = HYPER_GURT_UMZUG[L[k]];
+  return L;
+}
+function hyperGurtObjekt(o, offen){
+  if(!o || o.exercise !== "hyper" || HYPER_GURT_UMZUG[o.level] == null) return o;
+  const um = v => (HYPER_GURT_UMZUG[v] != null ? HYPER_GURT_UMZUG[v] : v);
+  const neu = {level: um(o.level)};
+  if(o.levelVorschlag != null) neu.levelVorschlag = um(o.levelVorschlag);
+  if(o.rohStufe != null) neu.rohStufe = um(o.rohStufe);
+  if(o.anker && o.anker.level != null) neu.anker = Object.assign({}, o.anker, {level: um(o.anker.level)});
+  if(offen) return Object.assign({}, o, neu);
+  if(!(o.load > 0)) neu.load = HYPER_GURT_ALT_LAST[o.level];
+  if(HYPER_GURT_ENTFALLEN.has(o.level)){
+    neu.entfalleneSprosse = true;
+    if(!o.levelName) neu.levelName = HYPER_GURT_ENTFALLEN.get(o.level);
+  }
+  return Object.assign({}, o, neu);
+}
+function hyperGurtLauf(lauf){
+  if(!lauf || !lauf.plan) return lauf;
+  return Object.assign({}, lauf, {
+    plan: Object.assign({}, lauf.plan, {blocks: (lauf.plan.blocks || []).map(b => hyperGurtObjekt(b, true))}),
+    fertig: (lauf.fertig || []).map(o => hyperGurtObjekt(o))});
+}
+function hyperGurtVorwahl(vw){
+  if(!vw || !vw.je) return vw;
+  const je = {};
+  for(const k of Object.keys(vw.je)){
+    const v = vw.je[k];
+    if(!hyperKey(k) || !v){ je[k] = v; continue; }
+    const n = Object.assign({}, v);
+    if(HYPER_GURT_UMZUG[v.level] != null) n.level = HYPER_GURT_UMZUG[v.level];
+    if(v.kg && HYPER_GURT_UMZUG[v.kg.level] != null)
+      n.kg = Object.assign({}, v.kg, {level: HYPER_GURT_UMZUG[v.kg.level]});
+    je[k] = n;
+  }
+  return Object.assign({}, vw, {je});
+}
 /* Training ohne Geraete (Build 2026-10-01 b). Steht vor load(), weil
    normalize() den gespeicherten Modus damit prueft. Seit 2026-10-01 c heisst
    der Schalter "Volles Equipment" / "Nur Koerpergewicht", die Wand ist ein
@@ -2748,6 +2969,11 @@ function fresh(){
     /* Fersenbruecke: Probleme inneres Knie / Baker-Zyste, je Bein. Ein Haken
        schickt dieses Bein auf die eigene Leiter bridgeKnie (Luke, 15.10.2026). */
     knieInnen:{links:false, rechts:false},
+    /* Ausfallschritt (Build 2026-10-23 c): Haken "Es zieht am hinteren Bein"
+       je Seite, {"lunge|links": true}, und die Hoehe der Bank je Seite in cm,
+       unter "lunge" die letzte Eingabe. Siehe stellungPasst, bankCmOf. */
+    lungeEng:{},
+    bankCm:{},
     /* Ohne Pause, je Gruppe (Luke, 16.10.2026) — siehe ohnePause(). */
     ohnePause:{},
     sessions:[], plan:null, redflag:false,
@@ -2778,6 +3004,8 @@ function normalize(d){
   const knieFerse     = !leitersturz && (d.exVersion || 1) < BRIDGE_KNIE_AT;
   const lungeGanz     = !leitersturz && (d.exVersion || 1) < LUNGE_GANZ_AT;
   const plankWand     = !leitersturz && (d.exVersion || 1) < PLANK_WAND_AT;
+  const lungeEng      = !leitersturz && (d.exVersion || 1) < LUNGE_ENG_AT;
+  const hyperGurt     = !leitersturz && (d.exVersion || 1) < HYPER_GURT_AT;
   /* Seitstuetz an der Wand: Die Vorwahl zieht nur hier um, Sitzungen und
      Lauf in den Ketten unten (innerste Zeile, der Umzug fasst nur plank an). */
   if(plankWand && d.vorwahl) d = Object.assign({}, d, {vorwahl: plankWandVorwahl(d.vorwahl)});
@@ -2785,6 +3013,10 @@ function normalize(d){
      Sitzungen und Lauf des Ausfallschritts dagegen in den Ketten unten,
      nach LUNGE_OHNE9_AT. */
   if(lungeGanz && d.vorwahl) d = Object.assign({}, d, {vorwahl: lungeGanzVorwahl(d.vorwahl)});
+  /* Enger Kniestand und Bank: nach lungeGanz, aus demselben Grund. */
+  if(lungeEng && d.vorwahl) d = Object.assign({}, d, {vorwahl: lungeEngVorwahl(d.vorwahl)});
+  /* Hyperextension am Gurt: Sitzungen und Lauf in den Ketten unten, ganz aussen. */
+  if(hyperGurt && d.vorwahl) d = Object.assign({}, d, {vorwahl: hyperGurtVorwahl(d.vorwahl)});
   const ex = stale ? structuredClone(DEFAULT_EX)
                    : Object.assign(structuredClone(DEFAULT_EX), d.ex || {});
   /* Name und Sicherheitsfrage kommen immer aus dem Build: Beide lassen sich
@@ -2831,6 +3063,8 @@ function normalize(d){
   if(knieFerse) roh.levels = bridgeKnieUmziehen(roh.levels);
   if(lungeGanz) roh.levels = lungeGanzUmziehen(roh.levels);
   if(plankWand) roh.levels = plankWandUmziehen(roh.levels);
+  if(lungeEng) roh.levels = lungeEngUmziehen(roh.levels);
+  if(hyperGurt) roh.levels = hyperGurtUmziehen(roh.levels);
   const umzug  = beidUmzug(ex, roh.levels, roh.extra,
                            leitersturz ? {} : (d.streak || {}));
   /* Nach beidUmzug: Erst dann stehen alle Wadenschluessel je Seite. */
@@ -2894,7 +3128,9 @@ function normalize(d){
                                        einen Wand-Sitzung richtigstellen
                                        (LUNGE_WAND_MESS_AT) — sie laeuft auf
                                        der schon umgezogenen Nummer. */
-                                    sessions: (ses => lungeGanz ? ses.map(o => lungeGanzObjekt(o)) : ses)(
+                                    sessions: (ses => hyperGurt ? ses.map(o => hyperGurtObjekt(o)) : ses)(
+                                              (ses => lungeEng ? ses.map(o => lungeEngObjekt(o)) : ses)(
+                                              (ses => lungeGanz ? ses.map(o => lungeGanzObjekt(o)) : ses)(
                                               (ses => knieFerse ? ses.map(o => bridgeKnieObjekt(o)) : ses)(
                                               (ses => lungeOhne9 ? ses.map(o => lungeOhne9Objekt(o)) : ses)(
                                               (ses => bridgeWinkel ? ses.map(bridgeWinkelObjekt) : ses)(
@@ -2907,7 +3143,7 @@ function normalize(d){
                                                 (ses => lungeUmzug ? lungeSessions(ses) : ses)(
                                                   (ses => plankWand ? ses.map(o => plankWandObjekt(o)) : ses)(
                                                   rowSkala ? rowSkalaVerwerfen(d.sessions)
-                                                           : (d.sessions || []))))))))))))),
+                                                           : (d.sessions || []))))))))))))))),
                                     sync: d.sync || {},
                                     /* Zugpunkt ist voreingestellt an — eine stabile
                                        Tischkante reicht und hat praktisch jeder. Rolle und
@@ -2928,7 +3164,9 @@ function normalize(d){
                                     gefragt: d.gefragt || {},
                                     /* Ein angefangener Lauf ueberlebt das Neuladen. */
                                     lauf: (d.lauf && d.lauf.plan)
-                                          ? (l => lungeGanz ? lungeGanzLauf(l) : l)(
+                                          ? (l => hyperGurt ? hyperGurtLauf(l) : l)(
+                                            (l => lungeEng ? lungeEngLauf(l) : l)(
+                                            (l => lungeGanz ? lungeGanzLauf(l) : l)(
                                             (l => knieFerse ? bridgeKnieLauf(l) : l)(
                                             (l => lungeOhne9 ? lungeOhne9Lauf(l) : l)(
                                             (l => bridgeWinkel ? bridgeWinkelLauf(l) : l)(
@@ -2940,13 +3178,17 @@ function normalize(d){
                                             (l => waageUmzug ? wadeWaageLauf(l, bwAlt, ex.wade) : l)(
                                               (l => rucksackUmzug ? wadeRucksackLauf(l, waageLo) : l)(
                                               (l => plankWand ? plankWandLauf(l) : l)(
-                                              wadeUmzug ? wadeLauf(d.lauf, bwAlt) : d.lauf))))))))))))
+                                              wadeUmzug ? wadeLauf(d.lauf, bwAlt) : d.lauf))))))))))))))
                                           : null,
                                     lage: knie ? knie.lage : (d.lage || {}),
                                     haltung: (d.haltung && typeof d.haltung === "object")
                                              ? d.haltung : {},
                                     knieInnen: {links: !!(d.knieInnen && d.knieInnen.links),
                                                 rechts: !!(d.knieInnen && d.knieInnen.rechts)},
+                                    lungeEng: (d.lungeEng && typeof d.lungeEng === "object")
+                                              ? d.lungeEng : {},
+                                    bankCm: (d.bankCm && typeof d.bankCm === "object")
+                                            ? d.bankCm : {},
                                     extra: umzug.extra,
                                     bw: (d.bw > 0 ? d.bw : BW_DEFAULT),
                                     levels: umzug.levels,
@@ -3113,14 +3355,15 @@ function keyOf(ex, side){ return ex + (side ? "|" + side : ""); }
    Regel nach der Messung stufte von beidbeinig aus. */
 function standOf(key){
   const v = S.levels && S.levels[key];
-  if(Number.isFinite(v)) return v;
-  const e = S.ex[String(key).split("|")[0]];
-  const ex = String(key).split("|")[0];
+  const ex = String(key).split("|")[0], side = String(key).split("|")[1];
+  /* Ein Stand in der anderen Stellung gilt als seine Partner-Sprosse. */
+  if(Number.isFinite(v)) return aufStellung(ex, v, side);
+  const e = S.ex[ex];
   const s0 = e && e.startStufe;
   if(s0 != null && e.levels[s0] && stufeErlaubt(ex, s0)) return s0;
   /* Erst die erste erlaubte Sprosse, nicht blind 0: Im Modus ohne Geraete
      braucht Sprosse 0 oft Moebel. */
-  const erste = e ? verfuegbareStufen(ex)[0] : null;
+  const erste = e ? verfuegbareStufen(ex, side)[0] : null;
   return erste ? erste.i : 0;
 }
 function curKey(){ return keyOf(S.exercise, S.side); }
@@ -4147,6 +4390,81 @@ function stufeErlaubt(ex, i){
   const o = stufeOrt(ex, i);
   return o === "boden" || (o === "wand" && S.modus === "wand");
 }
+/* ── Stellung: enger oder normaler Kniestand (Build 2026-10-23 c) ─────────
+   Beim Ausfallschritt steht jede enge Sprosse direkt unter der normalen
+   derselben Tiefe und traegt vorerst deren Last (Luke, 23.10.2026). Welche
+   von beiden gilt, sagt das Kaestchen "Es zieht am hinteren Bein in der
+   Huefte oder im Knie" je Seite: mit Haken die engen, ohne die normalen.
+   Sprossen ohne stellung (Wand, Bank) gelten fuer beide.
+   Warum die App nicht frei aus beiden waehlt: Bei gleicher Last entschiede
+   jeder Rechenweg zufaellig zwischen den Paaren, und ein Schritt zurueck
+   waere ein Stellungswechsel statt einer Erleichterung. Trennen gemessene
+   Lasten die Paare, kann das ein neuer Build aendern.
+   Ohne Seite (side === undefined) filtert nichts: Wer nur fragt, ob eine
+   Uebung ausfuehrbar ist oder wie weit ihre Leiter reicht, bekommt alle
+   Sprossen. Fuer jede Uebung ohne stellung geben die Helfer dasselbe zurueck
+   wie die Rechnung davor. */
+function engGewaehlt(ex, side){ return !!(S.lungeEng && S.lungeEng[keyOf(ex, side)]); }
+function stellungPasst(ex, i, side){
+  const L = S.ex[ex] && S.ex[ex].levels[i];
+  if(!L || !L.stellung || side === undefined) return true;
+  return L.stellung === (engGewaehlt(ex, side) ? "eng" : "normal");
+}
+/* Die Sprosse derselben Tiefe in der anderen Stellung. */
+function stellungPartner(ex, i){
+  const lv = (S.ex[ex] && S.ex[ex].levels) || [];
+  const L = lv[i];
+  if(!L || !L.stellung) return i;
+  const name = (L.stellung === "eng") ? L.name.replace(/^Enger /, "") : "Enger " + L.name;
+  const j = lv.findIndex(x => x.name === name);
+  return j >= 0 ? j : i;
+}
+/* Steht i in der falschen Stellung, die Partner-Sprosse, sonst i. */
+function aufStellung(ex, i, side){
+  return stellungPasst(ex, i, side) ? i : stellungPartner(ex, i);
+}
+/* Abstand in Sprossen der eigenen Stellung — fuer den Schrittdeckel
+   MAX_SPRUNG. Sonst kaeme der Ausfallschritt je Workout nur halb so weit wie
+   vor den engen Sprossen. Ohne stellung: die Differenz der Nummern. */
+function sprossenAbstand(ex, a, b, side){
+  a = aufStellung(ex, a, side); b = aufStellung(ex, b, side);
+  let n = 0;
+  for(let j = Math.min(a, b) + 1; j <= Math.max(a, b); j++) if(stellungPasst(ex, j, side)) n++;
+  return n;
+}
+/* n Sprossen der eigenen Stellung ueber i, hoechstens die oberste. */
+function sprosseUeber(ex, i, n, side){
+  const lv = (S.ex[ex] && S.ex[ex].levels) || [];
+  let j = aufStellung(ex, i, side);
+  while(n > 0 && j < lv.length - 1){ j++; if(stellungPasst(ex, j, side)) n--; }
+  return j;
+}
+/* Die naechste Sprosse der eigenen Stellung darunter. Ohne stellung: i - 1. */
+function sprosseUnter(ex, i, side){
+  let j = aufStellung(ex, i, side) - 1;
+  while(j > 0 && !stellungPasst(ex, j, side)) j--;
+  return j;
+}
+/* ── Bank-Sprosse: die Last folgt aus der eingetragenen Hoehe ─────────────
+   Luke, 23.10.2026: Hoehe messen und an der Sprosse eintragen, die Last
+   folgt daraus, die Hoehe geht in den Export. Gemerkt je Seite
+   (S.bankCm["lunge|links"]), die Uebung allein haelt die letzte Eingabe
+   ueberhaupt — die zweite Seite startet mit dem, was an der ersten stand. */
+const BANK_MIN = 20, BANK_MAX = 80;
+function bankVon(ex, i){
+  const L = S.ex[ex] && S.ex[ex].levels[i];
+  return (L && L.bank) || null;
+}
+function bankCmOf(ex, side){
+  const b = S.bankCm || {}, v = b[keyOf(ex, side)];
+  if(v > 0) return v;
+  if(b[ex] > 0) return b[ex];
+  const B = (S.ex[ex] && S.ex[ex].levels || []).find(L => L.bank);
+  return B ? B.bank.cm : 42;
+}
+function bankLast(L, cm){
+  return L.bank.basis * (1 + L.bank.anteil * cm / L.bank.cm);
+}
 /* Rechnet fn, als waere der Modus aus: fuer alles, was mit den Werten von
    zuhause rechnen muss (Handeintrag im Verlauf, Angaben im Export). */
 function mitGeraeten(fn){
@@ -4159,8 +4477,9 @@ function mitGeraeten(fn){
    Nummer: Ausfallschritt zuhause auf dem Stepper (Sprosse 6) liegt naeher an
    der Wand mit 3 Fusslaengen als am Kniestand am Boden. Gleich nah: die
    leichtere. */
-function naechsteErlaubte(ex, i){
-  const st = verfuegbareStufen(ex);
+function naechsteErlaubte(ex, i, side){
+  i = aufStellung(ex, i, side);
+  const st = verfuegbareStufen(ex, side);
   const L = S.ex[ex] && S.ex[ex].levels[i];
   if(!st.length || !L) return i;
   if(st.some(x => x.i === i)) return i;
@@ -4193,7 +4512,7 @@ function modusSetzen(neu){
     const quelle = Object.assign({}, park.levels || {}, vorher);
     for(const k of Object.keys(quelle)){
       const ex = String(k).split("|")[0];
-      lv[k] = S.ex[ex] ? naechsteErlaubte(ex, quelle[k]) : quelle[k];
+      lv[k] = S.ex[ex] ? naechsteErlaubte(ex, quelle[k], String(k).split("|")[1]) : quelle[k];
     }
     S.levels = lv;
     S.extra = {};
@@ -4222,9 +4541,11 @@ function fehlendeZwischen(ex, von, bis){
   return z;
 }
 function geraetName(id){ const g = GERAETE.find(x => x.id === id); return g ? g.name : id; }
-function verfuegbareStufen(ex){
+/* Mit Seite nur die Sprossen ihrer Stellung (stellungPasst). */
+function verfuegbareStufen(ex, side){
   const lv = (S.ex[ex] && S.ex[ex].levels) || [];
-  return lv.map((L, i) => Object.assign({i}, L)).filter(L => stufeErlaubt(ex, L.i));
+  return lv.map((L, i) => Object.assign({i}, L))
+           .filter(L => stufeErlaubt(ex, L.i) && stellungPasst(ex, L.i, side));
 }
 /* Lastverhaeltnis zwischen oberster und unterster verfuegbarer Sprosse.
    Zusatzgewicht taucht hier nicht auf: es skaliert ALLE Sprossen gleich und
@@ -4929,12 +5250,15 @@ function extraFaktor(ex, kg, side){
   return Math.max(0.05, 1 + extraKOf(ex, kg, side) * kg / bw);
 }
 /* side nur fuer die Position des Gewichts (lageOf); ohne Seite gilt die Wahl
-   der Uebung. */
-function lastVon(ex, level, kg, side){
+   der Uebung. Auf der Bank-Sprosse sagt die Seite auch die Hoehe (bankCmOf),
+   cm setzt sie fest. */
+function lastVon(ex, level, kg, side, cm){
   const L = S.ex[ex] && S.ex[ex].levels[level];
+  if(!L) return 0;
+  const basis = L.bank ? bankLast(L, cm > 0 ? cm : bankCmOf(ex, side)) : L.load;
   /* kgWirksam: Y rechnet ohne gemerktes Brust-Gewicht, die Brust nie unter
      ihrem Mindestgewicht. Fuer alle anderen Uebungen kg unveraendert. */
-  return L ? Math.round(L.load * extraFaktor(ex, kgWirksam(ex, level, kg), side) * 1000) / 1000 : 0;
+  return Math.round(basis * extraFaktor(ex, kgWirksam(ex, level, kg), side) * 1000) / 1000;
 }
 /* Name der Sprosse mit Blick auf das Gewicht: Die einzige Sprosse des
    Laeufers heisst "Ohne Zusatzlast" — mit Kettlebell waere das falsch. Ein
@@ -4988,7 +5312,8 @@ function extraBereich(ex, level){
     else if(level == null || level > w.bi) lo = Math.min(lo, w.lo);
   }
   /* Gewicht vor der Brust (Hyperextension): Unter extraAb gibt es keins, auch
-     kein gemerktes — sonst hiesse Y nach dem Abstieg "Arme in Y + 7,5 kg",
+     kein gemerktes — sonst hiesse die Huefte nach dem Abstieg "Stepper ·
+     Haende in der Huefte + 7,5 kg" (bis Fassung 34 stand dort Y),
      und "leichter" senkte nur dieses wirkungslose Gewicht, statt eine Sprosse
      zurueckzugehen. Auf der Brust-Sprosse beginnt die Spanne beim
      Mindestgewicht; damit klemmen Regeln, Stepper und Ziel von selbst. */
@@ -4999,11 +5324,14 @@ function extraBereich(ex, level){
   return {lo, hi, schritt};
 }
 /* ── Mindestgewicht (Build 2026-10-09 a) ──────────────────────────────
-   Die Brust-Sprosse der Hyperextension ist ohne Gewicht LEICHTER als Y
-   darunter: Die Arme ruecken vom Kopf an die Brust, der Hebel wird kuerzer.
-   Sie zaehlt deshalb erst ab dem kleinsten Gewicht im Raster, mit dem sie
-   mindestens so schwer ist wie Y. Bei 80 kg Koerpergewicht: 7,5 kg, Last
-   1,015. Gilt nur fuer Uebungen mit gewichtMindestens (gelesen aus
+   Bis Fassung 34 war die Brust-Sprosse der Hyperextension ohne Gewicht
+   LEICHTER als Y darunter: Die Arme ruecken vom Kopf an die Brust, der Hebel
+   wird kuerzer. Sie zaehlte deshalb erst ab dem kleinsten Gewicht im Raster,
+   mit dem sie mindestens so schwer ist wie Y, bei 80 kg Koerpergewicht
+   7,5 kg. Seit Build 2026-10-23 d liegt "Haende in der Huefte" darunter,
+   leichter als die Brust ohne Gewicht: Das Mindestgewicht ist 0 kg, die
+   Regel bleibt stehen und greift wieder, sobald eine Messung die Brust
+   leichter zeigt. Gilt nur fuer Uebungen mit gewichtMindestens (gelesen aus
    DEFAULT_EX wie ohneZusatz), Lasten und extraK kommen aus S.ex.
    Seit Build 2026-10-16 a auch fuer eine Sprosse mitten in der Leiter, die
    dieselbe Stellung hat wie die darunter und erst durch das Gewicht eine
@@ -5114,8 +5442,9 @@ function ankerpunkt(ex){
    das fuer diese Kurve eingestellt ist. */
 /* Faellt ein gerechneter Index auf eine Sprosse, die mangels Geraet nicht
    ausfuehrbar ist, wird die naechstgelegene verfuegbare genommen. */
-function naechsteVerfuegbare(ex, i){
-  const stufen = verfuegbareStufen(ex);
+function naechsteVerfuegbare(ex, i, side){
+  i = aufStellung(ex, i, side);
+  const stufen = verfuegbareStufen(ex, side);
   if(!stufen.length) return i;
   return stufen.reduce((a, b) => Math.abs(b.i - i) < Math.abs(a.i - i) ? b : a).i;
 }
@@ -5182,7 +5511,7 @@ function kgUmrechnen(ex, von, kg, nach, side){
   return (k2 == null) ? kg : k2;
 }
 function stufeZuLast(ex, ziel, kg, side){
-  const stufen = verfuegbareStufen(ex);
+  const stufen = verfuegbareStufen(ex, side);
   let best = Infinity, k = stufen.length ? stufen[0].i : 0;
   stufen.forEach(st => { const d = Math.abs(Math.log(lastVon(ex, st.i, kg, side)/ziel));
                          if(d < best){ best = d; k = st.i; } });
@@ -5206,7 +5535,7 @@ function stufeZuLast(ex, ziel, kg, side){
    Planer und Karte vor der Uebung lesen beide HIER. Vorher stand der Filter
    zweimal da, einmal mit und einmal ohne Blick auf S.ex[ex].sides. */
 function stufenFuerSeite(ex, side){
-  const alle = verfuegbareStufen(ex);
+  const alle = verfuegbareStufen(ex, side);
   if(!hatBeidStufe(ex)) return alle;
   const nurBeid  = !side && !!S.ex[ex].sides;
   const ohneBeid = !!side;
@@ -5307,8 +5636,10 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
   const f   = curFit(ex, side);
   const lv  = S.ex[ex].levels;
   const stufen = stufenFuerSeite(ex, side);
-  const nahe = i => stufen.length
-    ? stufen.reduce((a, b) => Math.abs(b.i - i) < Math.abs(a.i - i) ? b : a).i : i;
+  /* Erst auf die Stellung dieser Seite: Vom normalen Kniestand 20 cm (2)
+     waeren 1 und 3 gleich weit, die enge Partnerin ist 3. */
+  const nahe = i => { i = aufStellung(ex, i, side); return stufen.length
+    ? stufen.reduce((a, b) => Math.abs(b.i - i) < Math.abs(a.i - i) ? b : a).i : i; };
   /* Der beidbeinige Halt hat keinen eigenen Leiterstand mehr — er liest den
      der weiter fortgeschrittenen Seite. */
   const key = leiterKey(ex, side);
@@ -5369,7 +5700,7 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
       if(fenster && (tBest < fenster.lo || tBest > fenster.hi)){
         const vorher = level;
         stufen.forEach(st => {
-          if(Math.abs(st.i - vorher) > MAX_SPRUNG) return;
+          if(sprossenAbstand(ex, st.i, vorher, side) > MAX_SPRUNG) return;
           const t = predictTime(f, lastVon(ex, st.i, kgFuer(st.i), side));
           if(!isFinite(t)) return;
           const d = Math.abs(Math.log(t/target));
@@ -5394,7 +5725,7 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
   if(herkunft !== "kurve" && (anker = ankerpunkt(ex))){
     const ziel = anker.load * (ANNAHME_CP + (1-ANNAHME_CP) * anker.time / target);
     roh   = stufeZuLast(ex, ziel, extraOf(key), side);
-    level = Math.min(roh, anker.level + MAX_SPRUNG, lv.length-1);
+    level = Math.min(roh, sprosseUeber(ex, anker.level, MAX_SPRUNG, side));
     level = nahe(level);
     herkunft = "anker";
   } else if(herkunft !== "kurve"){
@@ -5915,6 +6246,10 @@ function applyRules(session, etikett){
   if(rampe && session.side && !beidErlaubt(session.exercise)
      && beidStufe(session.exercise, standOf(key)) && einStufe(session.exercise) != null)
     S.levels[key] = einStufe(session.exercise);
+  /* Steht die Seite in der anderen Stellung (Haken seit der Planung
+     gesetzt oder geloest), rechnen die Regeln von der Partner-Sprosse. */
+  if(Number.isFinite(S.levels[key]))
+    S.levels[key] = aufStellung(session.exercise, S.levels[key], session.side);
   const lvNow = () => standOf(key);
   /* Quer zur Leiter: beidbeinig gehalten, waehrend die Seite einbeinig steht,
      oder umgekehrt — etwa weil Luke die beidbeinigen Sprossen gezielt misst.
@@ -5965,12 +6300,12 @@ function applyRules(session, etikett){
       return "gewicht";
     }
     const boden = stufenBoden(session.exercise);
-    const tiefer = verfuegbareStufen(session.exercise).filter(st => st.i < lvNow() && st.i >= boden);
+    const tiefer = verfuegbareStufen(session.exercise, session.side).filter(st => st.i < lvNow() && st.i >= boden);
     if(tiefer.length){ stufeWechseln(tiefer[tiefer.length - 1].i); return "stufe"; }
     return null;
   };
   const erschweren = () => {
-    const stufen = verfuegbareStufen(session.exercise);
+    const stufen = verfuegbareStufen(session.exercise, session.side);
     const hoeher = stufen.filter(st => st.i > lvNow());
     const b = extraBereich(session.exercise, lvNow());
     /* Hat die jetzige Sprosse ihr eigenes Gewicht (kgJeSprosse), wird erst
@@ -6090,7 +6425,7 @@ function applyRules(session, etikett){
         /* Am Deckel ist nur Schluss, wenn darueber keine Sprosse mehr liegt —
            beidbeinig mit vollem Rucksack geht es einbeinig weiter. */
         amDeckel = rnd(roh) > deckel
-                && !verfuegbareStufen(session.exercise).some(st => st.i > lvNow());
+                && !verfuegbareStufen(session.exercise, session.side).some(st => st.i > lvNow());
         /* Die Untergrenze ist das Gewicht VOR diesem Schritt auf dieser
            Sprosse, nicht das vor der ganzen Regel: Nach einem Sprossenwechsel
            gehoert jenes zu einer anderen Sprosse. */
@@ -6542,7 +6877,7 @@ function stufeSetzen(bl, k){
   const lv = S.ex[bl.exercise].levels;
   /* Auf eine Sprosse, die mangels Geraet nicht ausfuehrbar ist, darf der
      Waehler nicht rasten — sonst stuende dort ein Name ohne Gegenstand. */
-  bl.level = naechsteVerfuegbare(bl.exercise, Math.max(0, Math.min(lv.length-1, k)));
+  bl.level = naechsteVerfuegbare(bl.exercise, Math.max(0, Math.min(lv.length-1, k)), bl.side);
   if(bl.level < extraAbOf(bl.exercise)){     /* Feld verschwindet — Last auch */
     bl.extra = 0; S.extra[keyOf(bl.exercise, bl.side)] = 0;
   } else if(kgJeSprosse(bl.exercise)){
@@ -6945,6 +7280,9 @@ function teilHTML(q, t, mitKurve){
         class="zeit">${fmt(q.target)}</b></span>
     </div>
     ${mitKurve ? satzKurveSVG(satzZeiten(q.target, q.saetze, q.satzModell), zE.id) : ""}
+    ${(!mitKurve && q.side && hatStellung(q.exercise)) ? `<label class="chk"><input type="checkbox"
+      data-t="${t}" data-eng${engGewaehlt(q.exercise, q.side) ? " checked" : ""}><span>${
+      STELLUNG_ENG_TEXT}</span></label>` : ""}
     ${stufen.length < 2 ? "" : `<select data-t="${t}" data-a="stufe" aria-label="Variante">${
       stufen.map(st => `<option value="${st.i}"${st.i === q.level ? " selected" : ""}>${
         st.name}${sprosseVorlaeufig(q.exercise, st.i) ? VORLAEUFIG_KURZ : ""}</option>`).join("")}</select>`}
@@ -6959,6 +7297,10 @@ function teilHTML(q, t, mitKurve){
       class="${l.id === lg.id ? "sel" : "ghost"}" data-t="${t}" data-lage="${l.id}">${
       l.titel}<span>${lageUnter(q.exercise, l, q.side)}</span></button>`).join("")}</div>` : ""}
     <div class="stps">
+      ${bankVon(q.exercise, q.level) ? `<div class="stp"><span class="tiny">Höhe der Auflage</span>
+        <input type="number" inputmode="numeric" min="${BANK_MIN}" max="${BANK_MAX}" step="1"
+          data-t="${t}" data-bank value="${bankCmOf(q.exercise, q.side)}"
+          aria-label="Höhe der Auflage in cm"><span class="tiny" style="flex:0">cm</span></div>` : ""}
       ${(mitKg && !(zwei && !q.extra)) ? `<div class="stp"><span class="tiny">${
         waage ? "Waage zeigt"
               : (((q.extra || 0) > 0 && !lg && lageOf(q.exercise, q.side))
@@ -7020,6 +7362,52 @@ function teilBinden(wurzel, teile, neu){
       lageSetzen(q.exercise, b.getAttribute("data-lage"), teile, q.side); neu(q, "kg");
     };
   });
+  document.querySelectorAll(`#${wurzel} [data-eng]`).forEach(b => {
+    b.onchange = () => {
+      const q = teile[+b.getAttribute("data-t")];
+      stellungSetzen(q, b.checked); neu(q, "stellung");
+    };
+  });
+  /* onchange, nicht oninput: Beim Tippen zeichnet nichts neu, das Feld
+     behaelt den Fokus. */
+  document.querySelectorAll(`#${wurzel} [data-bank]`).forEach(b => {
+    b.onchange = () => {
+      const q = teile[+b.getAttribute("data-t")];
+      bankSetzen(q, b.value, teile); neu(q, "bank");
+    };
+  });
+}
+/* ── Kaestchen und Hoehe beim Ausfallschritt (Build 2026-10-23 c) ────────
+   Luke, 23.10.2026: je Seite "Es zieht am hinteren Bein in der Huefte oder
+   im Knie". Der Haken bleibt ueber Workouts hinweg, bis man ihn loest, und
+   steht nur im Speicher, nicht im Export (dort sagt es der Sprossenname).
+   Setzen oder Loesen schiebt Stand, Vorwahl von heute und den Block dieser
+   Seite auf die Partner-Sprosse derselben Tiefe — gleiche Last, also bleiben
+   Zielzeit und Gewicht, wie sie sind. */
+const STELLUNG_ENG_TEXT = "Es zieht am hinteren Bein in der Hüfte oder im Knie";
+function hatStellung(ex){ return ((S.ex[ex] && S.ex[ex].levels) || []).some(L => L.stellung); }
+function stellungSetzen(q, an){
+  const ex = q.exercise, sd = q.side, key = keyOf(ex, sd);
+  if(!S.lungeEng) S.lungeEng = {};
+  if(an) S.lungeEng[key] = true; else delete S.lungeEng[key];
+  if(Number.isFinite(S.levels[key])) S.levels[key] = aufStellung(ex, S.levels[key], sd);
+  const v = S.vorwahl && S.vorwahl.tag === today() && S.vorwahl.je[`${ex}|${sd || ""}`];
+  if(v && v.level != null) v.level = aufStellung(ex, v.level, sd);
+  if(v && v.kg && v.kg.level != null) v.kg = Object.assign({}, v.kg, {level: aufStellung(ex, v.kg.level, sd)});
+  if(q.levelVorschlag != null) q.levelVorschlag = aufStellung(ex, q.levelVorschlag, sd);
+  stufeSetzen(q, aufStellung(ex, q.level, sd));
+}
+/* Die eingetragene Hoehe gilt fuer diese Seite und als letzte Eingabe der
+   Uebung. Die andere Seite rechnet mit ihr, solange sie keine eigene hat. */
+function bankSetzen(q, wert, teile){
+  const cm = Math.round(+String(wert).replace(",", "."));
+  if(!Number.isFinite(cm) || cm <= 0) return;
+  const v = Math.max(BANK_MIN, Math.min(BANK_MAX, cm));
+  if(!S.bankCm) S.bankCm = {};
+  S.bankCm[keyOf(q.exercise, q.side)] = v;
+  S.bankCm[q.exercise] = v;
+  for(const b of (teile || [q]))
+    if(b.exercise === q.exercise && bankVon(b.exercise, b.level)) zielNeu(b);
 }
 let kurzIv = null;   /* Uhr der Kurzeinheit zwischen zwei Bloecken */
 function blockIntro(i){
@@ -7430,6 +7818,8 @@ function blockSichern(){
     levelName: stufenName(bl.exercise, bl.level, bl.extra, bl.side),
     /* Ein Plan von vor 2026-10-06 a kann am Seitstuetz noch Gewicht tragen. */
     load: lastVon(bl.exercise, bl.level, bl.extra, bl.side),
+    /* Auf der Bank-Sprosse die eingetragene Hoehe, aus der die Last kommt. */
+    bankCm: bankVon(bl.exercise, bl.level) ? bankCmOf(bl.exercise, bl.side) : undefined,
     /* kgWirksam: Name, Last und Gewicht sagen dasselbe — auf der Brust-Sprosse
        nie weniger als das Mindestgewicht. */
     extra: ohneZusatz(bl.exercise) ? 0 : kgWirksam(bl.exercise, bl.level, bl.extra || 0), bw: S.bw || null,
@@ -7573,9 +7963,12 @@ function finishWorkout(){
          auf die beidbeinige Rampe zurueck (stufenBoden). */
       const boden = stufenBoden(ses.exercise);
       for(const k of regelKeys(ses)) if(standOf(k) > boden){
+        const sk = String(k).split("|")[1];
         const tiefer = ohneGeraete()
-          ? verfuegbareStufen(ses.exercise).filter(x => x.i < standOf(k) && x.i >= boden).pop() : null;
-        if(!ohneGeraete()) S.levels[k] = standOf(k) - 1;
+          ? verfuegbareStufen(ses.exercise, sk).filter(x => x.i < standOf(k) && x.i >= boden).pop() : null;
+        /* sprosseUnter statt "- 1": Beim Ausfallschritt laege eine Nummer
+           darunter die andere Stellung derselben Tiefe. */
+        if(!ohneGeraete()) S.levels[k] = sprosseUnter(ses.exercise, standOf(k), sk);
         else if(tiefer) S.levels[k] = tiefer.i;
         if(S.streak[k]) S.streak[k].gut = 0;
       }
@@ -7583,7 +7976,8 @@ function finishWorkout(){
          Koerpersignal, kein Modus-Signal. */
       const heim = ses.modus && S.standMitGeraeten && S.standMitGeraeten.levels;
       if(heim) for(const k of regelKeys(ses))
-        if(Number.isFinite(heim[k]) && heim[k] > 0) heim[k] -= 1;
+        if(Number.isFinite(heim[k]) && heim[k] > 0)
+          heim[k] = sprosseUnter(ses.exercise, heim[k], String(k).split("|")[1]);
     }
     S.plan = null; S.planDay = null; ignoreRest = false; RUN = null; S.lauf = null; save();
     showWorkoutResult(gespeichert, sel);
@@ -7785,8 +8179,8 @@ function curveSVG(f, pts, paar, nur){
   const gaSeiten = kurven.map(k => gewichtAchse(exK, k.side));
   const ga = nur ? gaSeiten[kurven.indexOf(eigene[0])]
            : gaSeiten.every(x => JSON.stringify(x) === JSON.stringify(gaSeiten[0])) ? gaSeiten[0] : null;
-  /* sprossenLast: Die Brust-Sprosse der Hyperextension steht mit ihrem
-     Mindestgewicht in der Zeichnung, nicht mit 0,85 zwischen Huefte und T. */
+  /* sprossenLast: Eine Sprosse mit Mindestgewicht steht mit ihm in der
+     Zeichnung (Hip Hinge stehend mit Gewicht), nicht mit der Grundlast. */
   const loads = lv.map((l,i)=>sprossenLast(exK, i))
     .concat(...kurven.map(k => k.pts.map(p => p.load).filter(v => v > 0)))
     .concat(kurven.map(k => k.lastJetzt).filter(v => v > 0))
@@ -7834,8 +8228,8 @@ function curveSVG(f, pts, paar, nur){
      in der kraftkurve eingezeichnet"). Vorher stand bei mehr als fuenf
      Sprossen nur jede zweite da, und eine Nummer fast auf der aktuellen
      entfiel ganz. Jetzt: Wo zwei Nummern sich beruehren wuerden, rutscht die
-     spaetere eine Zeile tiefer — Hyperextension Y und Brust mit
-     Mindestgewicht trennen bei 80 kg nur ein paar Pixel. Die aktuelle Sprosse
+     spaetere eine Zeile tiefer — bis Fassung 34 trennten Hyperextension Y
+     und Brust mit Mindestgewicht bei 80 kg nur ein paar Pixel. Die aktuelle Sprosse
      steht immer in der ersten Zeile. Das Bild waechst um jede Zeile nach
      unten, die Kurve selbst behaelt ihre Hoehe. */
   const breite = i => 6.8 * String(i+1).length;
@@ -8102,13 +8496,19 @@ function historySVG(pts){
    nicht mehr erreichbar (Luke: "ja" zur Frage, ob es in den Export kommt).
    schmerz_ende haengt am Workout und steht in jeder seiner Zeilen, wie datum
    und kurzeinheit auch. */
-const EXPORT_SCHEMA = 8;
+/* 9 (23.10.2026, Build c): Eine Spalte am Ende, unterlage_cm — die Hoehe von
+   Bank oder Sofa beim Ausfallschritt mit dem Fussspann darauf, leer bei
+   allen anderen Sprossen. Die Last dieser Sprosse kommt aus der Hoehe. Der
+   Ausfallschritt hat elf Sprossen statt sieben: stufe_nr wechselt ab
+   "Kniestand · 2 Stufen (15 cm)". Die engen Sprossen tragen in stufen[]
+   eng=true. */
+const EXPORT_SCHEMA = 9;
 const EXPORT_SPALTEN = [
   "datum","workout","uebung","uebung_name","seite","variante","stufe_nr",
   "zusatz_kg","zusatz_seite","zusatz_position","koerpergewicht_kg","last","satz","saetze_geplant","sekunden","ziel_sekunden",
   "schmerz","frisch","in_kurve","zone_geplant","zone_erreicht",
   "selbst_gewaehlt","nachgetragen","fassung","zone_gezaehlt","modus","kurzeinheit",
-  "schmerz_ende","aus_kurve_grund"
+  "schmerz_ende","aus_kurve_grund","unterlage_cm"
 ];
 function messreihen(){
   const zeilen = [];
@@ -8164,6 +8564,9 @@ function messreihen(){
            "Stellung gestrichen"). Leer heisst: kein solcher Grund — in_kurve
            kann trotzdem 0 sein (vorermuedet, ausserhalb des Messfensters). */
         aus_kurve_grund: ses.ausKurve || "",
+        /* Hoehe der Auflage unter dem hinteren Fuss (Bank oder Sofa), aus der
+           die Last dieser Sprosse kommt. Leer bei allen anderen. */
+        unterlage_cm: ses.bankCm > 0 ? ses.bankCm : "",
         /* Nur im JSON: Die Sprosse dieser Messung gibt es nicht mehr (die
            Ringe der Fersenbruecke, Build 2026-10-15 a). stufe_nr zeigt dann
            die Sprosse, auf die sie umgezogen ist; Name und Last stimmen. */
@@ -8204,7 +8607,8 @@ function messreihenJSON(){
            + "jeder Zeile dieses Workouts; je Workout zaehlen, nicht je Zeile. Leer bei "
            + "nachgetragenen Punkten. aus_kurve_grund nennt, warum eine Messung bewusst "
            + "aus der Kurve genommen ist (alte Skala, Stellung gestrichen); leer heisst "
-           + "kein solcher Grund.",
+           + "kein solcher Grund. unterlage_cm ist die Hoehe von Bank oder Sofa unter dem "
+           + "hinteren Fuss, nur auf der Sprosse, deren Last aus dieser Hoehe kommt.",
     rechnung: "last = grundlast_der_stufe * (1 + extra_k * zusatz_kg / koerpergewicht_kg). "
             + "extra_k steht je Uebung dabei — ohne den Faktor laesst sich die Spalte last "
             + "nicht nachrechnen. Ist zusatz_kg NEGATIV (zusatz_seite=innen), gilt "
@@ -8215,8 +8619,10 @@ function messreihenJSON(){
             + "Positionen mit ruht=true sind nicht mehr waehlbar und stehen nur fuer alte "
             + "Zeilen da. Seit Build 2026-09-29 b gibt es keine negativen Gewichte mehr. "
             + "Hat eine Stufe mindestgewicht_kg, ist zusatz_kg dort nie kleiner "
-            + "(Hyperextension, Gewicht vor der Brust: ohne Gewicht waere die Stufe "
-            + "leichter als die darunter).",
+            + "(Hip Hinge, stehend mit Gewicht: ohne Gewicht haette die Stufe dieselbe "
+            + "Stellung wie die darunter). Traegt eine Stufe last_aus_hoehe, ist ihre "
+            + "Grundlast basis * (1 + anteil * unterlage_cm / bezug_cm); last in "
+            + "stufen[] gilt dann bei bezug_cm.",
     mess_status: "stufen[].vorlaeufig=true: Fuer diese Sprosse gibt es noch keinen "
                + "gueltigen Halt, weder in der Liste des Builds noch auf diesem Geraet "
                + "(gueltig = frisch, nicht ausKurve, im Messfenster). platzhalter=true: Die "
@@ -8253,7 +8659,11 @@ function messreihenJSON(){
       stufen: v.levels.map((L,i)=>Object.assign({nr:i+1, name:L.name, last:L.load,
         geraet: geraetId(L.geraet) || null, verfuegbar: geraetDa(L.geraet),
         beidbeinig: !!L.beid, vorlaeufig: sprosseVorlaeufig(k, i), platzhalter: !!L.platzhalter},
-        kgMindest(k, i) > 0 ? {mindestgewicht_kg: kgMindest(k, i)} : {}))
+        kgMindest(k, i) > 0 ? {mindestgewicht_kg: kgMindest(k, i)} : {},
+        /* Enger Kniestand: vorerst mit der Last der normalen Sprosse darueber. */
+        L.stellung ? {eng: L.stellung === "eng"} : {},
+        L.bank ? {last_aus_hoehe: {basis: L.bank.basis, anteil: L.bank.anteil,
+                                   bezug_cm: L.bank.cm}} : {}))
     }, (DEFAULT_EX[k] || {}).teilVon ? {teil_von: DEFAULT_EX[k].teilVon} : {})),
     messungen: messreihen()
   }, null, 2);
@@ -9336,6 +9746,9 @@ function renderSetup(){
         <p class="tiny"><code>variante</code> ist der Stufenname zum Messzeitpunkt, nicht die
         heutige Bezeichnung. <code>stufe_nr</code> steht nur zur Orientierung daneben — die
         Leitern haben sich geändert, ein alter Index zeigt heute woandershin.</p>
+        <p class="tiny"><code>unterlage_cm</code> ist die Höhe von Bank oder Sofa unter dem
+        hinteren Fuß beim Ausfallschritt. Die Last dieser Sprosse kommt aus der Höhe; bei allen
+        anderen Sprossen bleibt die Spalte leer.</p>
       </details>
     </div>
     <div class="card">
@@ -9492,6 +9905,7 @@ function renderSetup(){
          still aus der Last. */
       level: lvl, levelName: mitGeraeten(() => stufenName(ex, lvl, kg, sd)),
       load: mitGeraeten(() => lastVon(ex, lvl, kg, sd)), extra: kg, bw: S.bw || null,
+      bankCm: bankVon(ex, lvl) ? bankCmOf(ex, sd) : undefined,
       lage: (kg > 0 && mitGeraeten(() => lageOf(ex, sd))) ? mitGeraeten(() => lageOf(ex, sd)).id : undefined,
       target: zeiten[0], workoutZone: zoneOf(zeiten[0]).id, zone: zoneOf(zeiten[0]).id,
       fresh: !pre, userPicked: true, manuell: true,

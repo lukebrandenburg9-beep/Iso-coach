@@ -180,7 +180,7 @@ P3 in [ISO-Coach_Probleme-und-Aenderungen.md](ISO-Coach_Probleme-und-Aenderungen
 ## Was du an Gerät brauchst
 
 Unter **Einstellungen → Geräte** hakst du an, was du hast. Die meisten Übungen kommen mit Möbeln
-aus — Arbeitsplatte, Tisch, Stuhl, Hocker, Stepper, Kiste, Kissen. Gerät braucht es hierfür:
+aus — Arbeitsplatte, Tisch, Stuhl, Hocker, Stepper, Kiste, Kissen, Sofa. Gerät braucht es hierfür:
 
 | Gerät | wofür | voreingestellt |
 |---|---|---|
@@ -188,6 +188,7 @@ aus — Arbeitsplatte, Tisch, Stuhl, Hocker, Stepper, Kiste, Kissen. Gerät brau
 | Faszienrolle | Fersenbrücke, die zwei obersten Stufen beidbeinig und einbeinig (Knie 90° und 135°), dazu der ganze Pfad fürs innere Knie. Beim endgradigen Wadenheben liegt sie zwischen Knie und Wand, ohne Haken bleibt die Übung trotzdem im Plan | aus |
 | Kettlebell oder Kurzhantel | Aufrechter Läufer, Zusatzgewicht | aus |
 | Personenwaage mit Zeiger (analog) | Isometrisches und endgradiges Wadenheben, einbeinig mit Entlastung | aus |
+| Spanngurt mit Türanker | Hyperextension, die zwei leichten Stufen im Türrahmen. Ohne Gurt beginnt die Leiter am Stepper | aus |
 
 Stufen, die ein fehlendes Gerät brauchen, erscheinen nicht in der Auswahl — aber die
 **Nummerierung bleibt stehen**. Sonst verschöbe sich die gespeicherte Stufe deiner alten
@@ -216,6 +217,15 @@ prüfe unter **Profil → „Was du auf jeder Stufe schaffst"**, ob noch alle dr
 
 Der Ausfallschritt ist mein Vorschlag und nicht abgestimmt — Tiefe und Unterstützungsgrad als
 Progression. Der Liegestütz folgt der Stufenfolge aus dem Handoff, nur feiner unterteilt.
+
+**Der Ausfallschritt hat seit Build `2026-10-23 c` zwei Stellungen in einer Leiter** (Papier P96).
+Unter jeder Tiefe des Kniestands steht der enge Kniestand derselben Tiefe, bei dem das hintere Knie
+am tiefsten Punkt in einer Linie mit den Zehen des vorderen Fußes steht. Er trägt vorerst dieselbe
+Last, bis die ersten Messungen da sind. Welche Stellung gilt, sagt das Kästchen „Es zieht am hinteren
+Bein in der Hüfte oder im Knie“ in „Dein Workout“, je Seite. Die oberste Sprosse ist der hintere Fuß
+mit dem Spann auf Hantelbank oder Sofa. Ihre Höhe trägst du an der Sprosse ein, die Last folgt aus
+ihr: 0,90 × (1 + 0,18 × Höhe / 42 cm), also 1,06 bei 42 cm. Die alte Sprosse mit dem Fuß auf dem
+Stepper ist raus, ihre Messungen bleiben mit 1,25 in der Kurve.
 
 Die Seitstütz-Leiter ist **gerechnet**, nicht geschätzt: Das Biegemoment an der Taille
 (Segmentmodell, Schnitt L4/L5) fällt in jeder Schräglage mit cos(Neigungswinkel). Zwei Folgen,
@@ -285,22 +295,29 @@ Trainingsblock. Ohne Faszienrolle wird das angehakte Bein nicht trainiert. Der K
 90°) ist noch offen und steht in der App rot. Der Yogablock steht dort hochkant, mit derselben
 Berührungsregel.
 
-Bei der **Hyperextension** liegt die Kante eines Steppers mit Kissen auf Höhe des Bauchnabels,
-die Füße stehen hinten an der Wand, und der Oberkörper wird frei und waagerecht gehalten. Die
-Stufe gibt die **Armhaltung** vor: Je weiter die Arme vom Nabel weg zeigen, desto länger wird der
-Hebel auf den unteren Rücken. Gerechnet ist das mit dem Segmentmodell von de Leva (1996), Rumpf
-waagerecht, Drehpunkt am Nabel:
+Bei der **Hyperextension** beginnt die Leiter seit Build `2026-10-23 d` am **Gurt im Türrahmen**
+(Papier P97). Der Türanker klemmt oben in der Zarge, die Schlaufe liegt vorn knapp unter den
+Hüftknochen und läuft rechtwinklig zum Körper. Man lehnt sich gestreckt hinein, bis der Körper 45°
+geneigt ist. Am Gurt gibt es zwei Sprossen: den Oberkörper in Verlängerung der Beine und den
+Oberkörper waagerecht. Danach kommt der **Stepper** mit Kissen: Die Kante liegt auf Höhe des
+Bauchnabels, die Füße stehen hinten an der Wand, und der Oberkörper wird frei und waagerecht
+gehalten. Am Stepper bleiben zwei Armhaltungen. Die Last ist das Moment des Oberkörpers um den
+Drehpunkt, bezogen auf die frühere Sprosse „Arme in Y“ am Stepper = 1,00:
 
 | Sprosse | Last | Herkunft |
 |---|---|---|
-| Mit den Zeigefingern abstützen | 0,56 | geschätzt — wie fest die Finger drücken, misst niemand |
-| Arme in V, Hände neben der Hüfte | 0,70 | gerechnet |
-| Hände in der Hüfte | 0,78 | gerechnet |
-| Arme in T, seitlich auf Schulterhöhe | 0,88 | gerechnet |
-| Arme in Y, etwa 45° neben dem Kopf | 1,00 | gerechnet |
-| Gewicht vor der Brust | ab 1,00, mit Mindestgewicht | gerechnet, Armhaltung angenommen |
+| Gurt · Oberkörper 45° in Verlängerung der Beine | 0,44 | Platzhalter, der waagerechte Gurt mal sin 45° |
+| Gurt · Oberkörper waagerecht | 0,62 | Platzhalter, eine Torstufe (1,25) unter dem Stepper |
+| Stepper · Hände in der Hüfte | 0,78 | gerechnet, Segmentmodell von de Leva (1996) |
+| Stepper · Hände vor der Brust | 0,85, mit Gewicht mehr | gerechnet, Armhaltung angenommen |
 
-Gewicht in der Y-Haltung fällt weg: Es ermüdet Schultern und Beinrückseite zu stark. Die Übung hat **zwei Haltungen** mit je eigener Kurve, **gestreckt** mit langem Rücken
+Der Gurt ist nach Lukes Erfahrung wesentlich leichter als der Stepper. Das Segmentmodell sagt das
+Gegenteil: Am Gurt hält der Rücken den ganzen Oberkörper über der Hüfte, am Stepper nur den über
+dem Nabel. Was stimmt, zeigt die Messung, bis dahin stehen beide Gurt-Sprossen rot. Ohne Spanngurt
+beginnt die Leiter am Stepper. Zeigefinger, Arme in V, T und Y sind raus, ihre Messungen bleiben
+mit Last und Namen in der Kurve.
+
+Die Übung hat **zwei Haltungen** mit je eigener Kurve, **gestreckt** mit langem Rücken
 und **rund** mit eingerolltem Rücken. Pro Workout läuft nur eine; auf der Karte vor der Übung
 lässt sie sich wechseln. Vorgewählt ist gestreckt, und das passt zur Mehrheit: Rund 90 % der
 Ischialgien gehen von der Bandscheibe aus (Koes 2007), und dann ziehen Sitzen und Vorbeugen ins
@@ -349,12 +366,14 @@ und Ausfallschritt wächst die Last mit `X/BW`. Beim Schrägzug sind es `1,3·X/
 Schulterblättern; rutscht er aufs Becken, wirkt dasselbe Gewicht nur zu drei Vierteln), bei der
 Fersenbrücke `1,4·X/BW` (Gewicht auf dem Becken, dicht am Hüftgelenk). Bei der Hyperextension
 kommt Gewicht nur auf der obersten Sprosse dazu, mit beiden Armen eng vor der Brust: `2,12·X/BW`,
-bezogen auf diese Sprosse (30 cm Hebel vom Nabel bis zur Mitte des Brustbeins). Ohne Gewicht wäre
-sie leichter als die Y-Haltung, denn die Arme liegen dann am Rumpf. Die App beginnt deshalb mit
-dem kleinsten Gewicht im 2,5-kg-Raster, mit dem die Sprosse mindestens so schwer ist wie Y: 7,5 kg
-bei 59 bis 88 kg Körpergewicht, 10 kg bis 117 kg. Dafür braucht die App das Körpergewicht: *Einstellungen → Messung*.
+bezogen auf diese Sprosse (30 cm Hebel vom Nabel bis zur Mitte des Brustbeins). Bis Build
+`2026-10-23 d` lag Y darunter, und ohne Gewicht war die Sprosse leichter als Y. Die App begann
+deshalb mit einem Mindestgewicht, 7,5 kg bei 80 kg Körpergewicht. Jetzt liegt „Hände in der Hüfte“
+darunter, und die ist leichter als die Brust ohne Gewicht: Das Mindestgewicht ist 0 kg. Die Regel
+bleibt stehen und greift wieder, sobald eine Messung die Brust leichter zeigt. Für die Last mit
+Gewicht braucht die App das Körpergewicht: *Einstellungen → Messung*.
 Beim Hip Hinge hängt das Gewicht in den Händen senkrecht unter den Schultern: `2,12·X/BW` (52 cm
-von der Hüfte zur Schulter). Auch dort gibt es ein Mindestgewicht, denn „Stehend, Gewicht in beiden
+von der Hüfte zur Schulter). Dort gibt es ein Mindestgewicht, denn „Stehend, Gewicht in beiden
 Händen" ist ohne Gewicht dieselbe Stellung wie „Stehend, Körpergewicht": das kleinste Gewicht, mit
 dem die Sprosse mindestens ×1,25 schwerer ist, 10 kg bei 80 kg Körpergewicht. Camporini und
 B-Stance haben je ein eigenes Gewicht, getragen in der Hand der Seite, deren Fuß hinten steht.
