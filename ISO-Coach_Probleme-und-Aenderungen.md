@@ -4393,8 +4393,8 @@ Auf die Rückfragen:
   Verhältnis zwischen den beiden Gurt-Sprossen ist gerechnet: derselbe Oberkörper um denselben
   Drehpunkt, einmal waagerecht, einmal um 45° gekippt. Das Moment geht mit dem Sinus der Neigung,
   also 0,621 · sin 45° = 0,439.
-- **Am Gurt liegen die Hände in der Hüfte.** Die Armhaltung dort hat Luke nicht festgelegt. Ich
-  habe die vom Stepper übernommen.
+- **Am Gurt liegen die Hände in der Hüfte**, wie am Stepper. Zuerst angenommen, von Luke am 23.10.
+  bestätigt: „passt so“.
 - **Neues Gerät „Spanngurt mit Türanker“** unter Einstellungen → Geräte, voreingestellt aus. Ohne
   Haken fehlen die zwei Gurt-Sprossen in der Auswahl, die Leiter beginnt am Stepper. Die Nummern
   bleiben stehen.
