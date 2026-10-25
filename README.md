@@ -147,6 +147,11 @@ Rechenlogik:
   jeder Übung ist damit vorbelegt und lässt sich weiter ändern. Die Wahl gilt bis Mitternacht und
   bleibt stehen, wenn du auf *Start* etwas an- oder abhakst. Mit der Kurzeinheit verfallen nur die
   gewählten Sätze.
+- **Gewicht mit Schieber und Tasten.** Zusatzgewicht und Körpergewicht wählst du überall gleich, in
+  *Dein Workout*, im Nachtrag, im Onboarding und unter *Einstellungen → Messung*: oben der Wert,
+  darunter ein Schieber mit − und + an der Seite. Der Schieber rastet auf vollen Fünfern, für
+  schnelle Sprünge um 5 und 10 kg, die Tasten gehen 0,5 kg. Planer und Regeln schlagen weiter im
+  Raster der Übung vor, meist 2,5 kg.
 - **Progressionsregeln 1–4** über zwei Bahnen: Leiter und Zusatzgewicht. Am oberen Ende der
   Leiter kommt Gewicht dazu statt gar nichts, am unteren geht erst Gewicht weg, bevor die Stufe
   fällt. Zweimal Schmerzabbruch stuft zurück — und wenn nichts Leichteres mehr da ist, sagt die
@@ -166,6 +171,8 @@ Rechenlogik:
 - **Schmerz** als Häkchen pro Satz plus ein Ampelwert am Sessionende.
 - **Sicherheitsregel:** dreimal in Folge Ampelwert 6 oder höher → Hinweis auf ärztliche Abklärung.
 - Red-Flag-Abfrage im Onboarding, Timer mit Tonsignalen, 20-Sekunden-Pausen, Export/Import.
+- **Selbsttest zur Kniebeugung im Onboarding**, freiwillig. Die Antwort sagt, ab welcher Sprosse der
+  Ausfallschritt Gewicht bekommt (siehe unten).
 - **Sicherheitsfrage, wenn eine Übung eine neue Körperregion öffnet.** Der Fragebogen läuft sonst
   nur im Onboarding — vor der ersten Fersenbrücke wird die Frage zur proximalen Hamstring-Sehne
   nachgeholt, vor dem ersten Hip Hinge die nach Ausstrahlen ins Bein, Taubheit und plötzlichem
@@ -185,7 +192,7 @@ aus — Arbeitsplatte, Tisch, Stuhl, Hocker, Stepper, Kiste, Kissen, Sofa. Gerä
 | Gerät | wofür | voreingestellt |
 |---|---|---|
 | Etwas zum Daranziehen | Schrägzug, **die ganze Übung** | an — eine stabile Tischkante zählt mit |
-| Faszienrolle | Fersenbrücke, die zwei obersten Stufen beidbeinig und einbeinig (Knie 90° und 135°), dazu der ganze Pfad fürs innere Knie. Beim endgradigen Wadenheben liegt sie zwischen Knie und Wand, ohne Haken bleibt die Übung trotzdem im Plan | aus |
+| Faszienrolle | Fersenbrücke, die zwei obersten Stufen beidbeinig und einbeinig (Knie 90° und langer Hebel 170°), dazu der ganze Pfad fürs innere Knie | aus |
 | Kettlebell oder Kurzhantel | Aufrechter Läufer, Zusatzgewicht | aus |
 | Personenwaage mit Zeiger (analog) | Isometrisches und endgradiges Wadenheben, einbeinig mit Entlastung | aus |
 | Spanngurt mit Türanker | Hyperextension, die zwei leichten Stufen im Türrahmen. Ohne Gurt beginnt die Leiter am Stepper | aus |
@@ -227,6 +234,25 @@ mit dem Spann auf Hantelbank oder Sofa. Ihre Höhe trägst du an der Sprosse ein
 ihr: 0,90 × (1 + 0,18 × Höhe / 42 cm), also 1,06 bei 42 cm. Die alte Sprosse mit dem Fuß auf dem
 Stepper ist raus, ihre Messungen bleiben mit 1,25 in der Kurve.
 
+**Beim Ausfallschritt kommt Gewicht erst nach der Tiefe**, seit Build `2026-10-25 a` (Papier P98).
+Gesteuert wird das über den Selbsttest im Onboarding: „Geh in einen Ausfallschritt und senk das
+hintere Knie langsam ab. Kommst du so tief, dass das Knie knapp über dem Boden schwebt, ohne dass es
+dabei mehr als leicht zieht?“ Bleibt er offen, fragt die Karte vor dem ersten Ausfallschritt einmal
+nach. Ändern lässt sich die Antwort unter *Einstellungen → Ausfallschritt*, ohne Antwort gilt der
+Normalfall.
+
+- **„Ja, ohne Probleme“:** Gewicht gibt es nur auf den drei obersten Sprossen, „Knie knapp über den
+  Boden“ normal und eng und auf der Bank.
+- **„Nur mit Schmerzen oder Ziehen“ oder „Nein, ich komme nicht so tief“:** Gewicht gibt es schon auf
+  allen Stepperhöhen. Die App plant je Seite nur bis zu einer Tiefengrenze, anfangs 1 Stufe (10 cm),
+  und legt dort Gewicht auf, statt tiefer zu gehen. Wählst du in der Liste eine tiefere Sprosse, wird
+  sie die Grenze. Geht eine Seite wegen Schmerz auf eine Kniestand-Sprosse zurück, wird diese die
+  Grenze. Eine neue Antwort im Selbsttest löscht die Grenzen.
+
+Standard sind Kurzhanteln, in jeder Hand eine, seitlich neben dem Körper. Genauso gut gehen Front
+Rack mit einer oder zwei Kettlebells, Suitcase mit einem Gewicht in der Hand gegenüber dem vorderen
+Bein oder eine Gewichtsweste. Eingetragen wird das Gesamtgewicht.
+
 Die Seitstütz-Leiter ist **gerechnet**, nicht geschätzt: Das Biegemoment an der Taille
 (Segmentmodell, Schnitt L4/L5) fällt in jeder Schräglage mit cos(Neigungswinkel). Zwei Folgen,
 die dem üblichen Rat widersprechen:
@@ -257,19 +283,23 @@ Der **einarmige** Schrägzug ist keine Stufe davon, sondern eine andere Übung: 
 Körpergewichte pro Arm plus ein Drehmoment um die Längsachse, das der Rumpf gegenhält.
 
 Die **Fersenbrücke** skaliert über zwei Dinge: die Höhe der Unterlage unter der Ferse (Stuhlsitz,
-Hocker, Kiste, Boden, Faszienrolle) und den Kniewinkel. Seit dem 16.10. gibt es nur noch zwei
-Winkel, **90° und 135°**, und jede Unterlage in beiden: erst 90°, dann 135°. Das fast gestreckte
-Bein ist raus. 135° ist etwas schwerer als 90° auf derselben Unterlage, aber oft leichter als 90°
-auf der nächsten. Stuhl 90°, Hocker 90° und Boden 135° tragen ihre alten, gerechneten Werte, alle
-übrigen Sprossen sind **Platzhalter** und stehen in der App rot als vorläufig, bis gemessene
-Haltezeiten da sind. Ein Segmentmodell sagt, dass die Höhe bei gleichem Winkel kaum etwas ändert
-und der Winkel fast alles. Die Messungen entscheiden, ob die Leiter so bleibt.
+Hocker, Kiste, Boden, Faszienrolle) und den Kniewinkel. Es gibt zwei Stellungen, **Knie 90° und
+langer Hebel 170°**, und jede Unterlage in beiden: erst 90°, dann 170°. Langer Hebel 170° heißt: Das
+Bein ist fast gestreckt, das Knie bleibt leicht gebeugt und wird nicht durchgedrückt. Seit Build
+`2026-10-25 a` steht er an der Stelle von Knie 135° (Papier P98). Er ist etwas schwerer als 90° auf
+derselben Unterlage und leichter als 90° auf der nächsten: 90° auf dieser Unterlage × (90° auf der
+nächsten / 90° auf dieser) hoch 0,75. Stuhl 90° und Hocker 90° tragen ihre alten, gerechneten Werte,
+alle übrigen Sprossen sind **Platzhalter** und stehen in der App rot als vorläufig, bis gemessene
+Haltezeiten da sind. Messungen auf den alten 135°-Sprossen bleiben mit Last und Namen in der
+Kurve. Ein Segmentmodell sagt, dass die Höhe bei gleichem Winkel kaum etwas ändert und der Winkel
+fast alles. Die Messungen entscheiden, ob die Leiter so bleibt.
 
 Unter den Sitzbeinen steht ein **Yogablock** (22,5 × 12 × 7,5 cm), damit das Becken nicht
 unbemerkt absinkt. Abgesunken wird die Oberschenkelrückseite länger und stärker, und derselbe Halt
-auf derselben Sprosse würde etwas anderes messen. Die Karte sagt je Sprosse, wie der Block steht:
-Stuhl aufrecht, Hocker hochkant auf einem 5 cm dicken Buch, Kiste hochkant, Boden flach, Rolle
-hochkant. Leichte Berührung wird korrigiert, Druck auf dem Block beendet den Halt.
+auf derselben Sprosse würde etwas anderes messen. Die Karte sagt je Sprosse, wie der Block steht.
+Bei 90°: Stuhl aufrecht, Hocker hochkant auf einem 5 cm dicken Buch, Kiste hochkant, Boden flach,
+Rolle hochkant. Beim langen Hebel liegt das Becken tiefer: Stuhl hochkant, Hocker flach, auf Kiste,
+Boden und Rolle steht keiner. Leichte Berührung wird korrigiert, Druck auf dem Block beendet den Halt.
 
 **Die Faszienrolle ist geschätzt:** Ob die Rolle die Last wirklich hebt oder nur den
 Stabilisierungsaufwand, ist offen. Bei gleicher Fersenhöhe ist das Hüftmoment dasselbe. Das ist
@@ -277,7 +307,7 @@ genau das Muster, an dem beim Seitstütz die Fußerhöhung als Scheinstufe aufge
 Ringe sind seit dem 15.10. raus, sie waren zu viel Gerät.
 
 Vor den zehn einbeinigen Sprossen steht eine **beidbeinige Rampe** auf denselben Unterlagen und
-Winkeln, von beidbeinig Stuhl 90° bis beidbeinig Rolle 135°. Wer neu anfängt, klettert sie ganz
+Winkeln, von beidbeinig Stuhl 90° bis beidbeinig Rolle 170°. Wer neu anfängt, klettert sie ganz
 hinauf und steigt erst dann auf einbeinig Stuhl um. Alle beidbeinigen Sprossen liegen unter
 einbeinig Stuhl, ihre Lasten sind **Platzhalter**: Einbeinig belastet ein Bein mehr als doppelt so
 stark wie beidbeinig, die reine Gewichtsrechnung (halbe Last) unterschätzt das. Die echten Werte
@@ -337,6 +367,10 @@ arbeitendem Bein, stehend beidbeinig ist 0,50:
 | Stehend, Körpergewicht | 0,50 | gerechnet |
 | Stehend, Gewicht in beiden Händen | ab 0,63, mit Mindestgewicht | gerechnet |
 | Camporini, Bein hinten, ganze Sohle auf dem Keil | 0,65 | Gewichtsanteil hinten, einmal gemessen |
+| Camporini, beide Füße flach, Gewicht in der Hand gegenüber | 0,65 | wie Camporini, nur Premium |
+| Camporini, beide Füße flach, Gewicht in derselben Hand | 0,65 | wie Camporini, nur Premium |
+| Camporini, ganze Sohle auf dem Keil, Gewicht in der Hand gegenüber | 0,65 | wie Camporini, nur Premium |
+| Camporini, Zehen auf dem Keil, Ferse unten, Gewicht in der Hand gegenüber | 0,65 | wie Camporini, nur Premium |
 | B-Stance, Bein vorn, hinterer Fuß nur auf den Zehen | 0,75 | angenommen |
 
 Im Sitzen ist das Hüftmoment bei gleicher Neigung dasselbe wie im Stehen. Leichter ist es, weil
@@ -347,7 +381,16 @@ die Ferse höher als der Vorfuß, und das hintere Bein trägt den größeren Tei
 — beim Camporini steht es hinten, beim B-Stance vorn. Ein Keil ist kein Gerät, ein Buch tut es
 auch.
 
-Zwei Dinge sind offen und stehen deshalb alle sechs Sprossen rot. **Erstens** liegen zwei
+**Die Camporini-Varianten** nach Bill Hartman stehen seit Build `2026-10-25 a` in der Leiter (Papier
+P98). Das arbeitende Bein steht etwa einen halben Fuß zurückversetzt. „Gegenüber“ heißt: in der Hand
+der Seite, deren Fuß vorn steht. Alle fünf Camporini-Sprossen tragen etwa dieselbe Hüftlast, die
+Leiter ist an dieser Stelle flach. Sie sind deshalb eine Stufe: Je Seite gilt die, die du in *Dein
+Workout* gewählt hast, Planer und Regeln wechseln nicht zwischen ihnen, und das Gewicht teilen sich
+die fünf. Die vier Varianten gehören zu Premium. Ohne Premium stehen sie sichtbar, aber gesperrt in
+der Auswahl, mit dem Zusatz „· im Medical Fitness System freigeschaltet“, und der Planer nimmt sie
+nicht.
+
+Zwei Dinge sind offen und stehen deshalb alle zehn Sprossen rot. **Erstens** liegen zwei
 Abstände nach Rechnung unter dem Mindestabstand ×1,25: stehend mit Gewicht zum Camporini und
 Camporini zum B-Stance. **Zweitens** misst die Waage Gewicht, nicht Hebel. Das Hüftmoment eines
 Beins ist seine Bodenkraft mal dem Abstand vom Fuß zur Hüfte, und beim Hinge liegt der hintere
@@ -358,9 +401,9 @@ schreibt deshalb den Fußabstand mit. Die Haltetiefe muss in allen Sprossen glei
 Zahl Fußlängen davor, das Gesäß knapp vor der Wand.
 
 **Zusatzgewicht ist eine eigene Achse, keine Leitersprosse.** Die Leiter bleibt reines
-Körpergewicht; Kilogramm kommen ab einer Stufe je Übung dazu (Liegestütz ab „Boden",
-Ausfallschritt ab „Kniestand · Knie bis Stepper, 2 Stufen (15 cm)", mit Kurzhanteln oder
-Kettlebells seitlich neben dem Körper). Der Seitstütz bleibt reines Körpergewicht,
+Körpergewicht; Kilogramm kommen ab einer Stufe je Übung dazu (Liegestütz ab „Boden", Ausfallschritt
+je nach Selbsttest, siehe oben, Fersenbrücke nur auf der obersten Sprosse „Langer Hebel 170° ·
+Faszienrolle“). Der Seitstütz bleibt reines Körpergewicht,
 seine Leiter endet bei „Standard". Wie stark ein Kilo wirkt, ist übungsabhängig: Bei Liegestütz
 und Ausfallschritt wächst die Last mit `X/BW`. Beim Schrägzug sind es `1,3·X/BW` (Rucksack hoch auf den
 Schulterblättern; rutscht er aufs Becken, wirkt dasselbe Gewicht nur zu drei Vierteln), bei der
@@ -375,8 +418,9 @@ Gewicht braucht die App das Körpergewicht: *Einstellungen → Messung*.
 Beim Hip Hinge hängt das Gewicht in den Händen senkrecht unter den Schultern: `2,12·X/BW` (52 cm
 von der Hüfte zur Schulter). Dort gibt es ein Mindestgewicht, denn „Stehend, Gewicht in beiden
 Händen" ist ohne Gewicht dieselbe Stellung wie „Stehend, Körpergewicht": das kleinste Gewicht, mit
-dem die Sprosse mindestens ×1,25 schwerer ist, 10 kg bei 80 kg Körpergewicht. Camporini und
-B-Stance haben je ein eigenes Gewicht, getragen in der Hand der Seite, deren Fuß hinten steht.
+dem die Sprosse mindestens ×1,25 schwerer ist, 10 kg bei 80 kg Körpergewicht. Die fünf
+Camporini-Sprossen teilen sich ein Gewicht, der B-Stance hat ein eigenes. Getragen wird es in der Hand
+der Seite, deren Fuß hinten steht, bei den Varianten mit „gegenüber“ in der anderen.
 Beim aufrechten Läufer trägt das Gewicht die ganze Leiter: Die einzige Sprosse heißt bei 0 kg
 „Ohne Zusatzlast" und mit Kettlebell „Mit Zusatzgewicht". Wo die Kettlebell sitzt — Front Rack
 `2,33·X/BW` oder Suitcase `3,22·X/BW` —, wählst du je Seite, denn links und rechts brauchen oft

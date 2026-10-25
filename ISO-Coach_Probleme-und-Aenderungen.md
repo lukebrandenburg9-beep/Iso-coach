@@ -4451,11 +4451,246 @@ Auf die Rückfragen:
 - Export und Schema bleiben gleich. `stufe_nr` wechselt für alle Hyperextension-Zeilen wie oben
   beschrieben.
 
+### P98 · Übungs-Update vom 25.10.: Kniebeugung, Gewicht erst nach der Tiefe, Camporini-Varianten, langer Hebel 170°
+
+Luke, 25.10., aus seiner handschriftlichen Notiz, als Übergabe „Übungs-Update 25.10.2026 v4“. Der
+Grundsatz zum Ausfallschritt: „Zuerst wird über die Position und Tiefe gesteigert, erst dann über
+Gewicht. Einfache Sprossen bekommen kein Zusatzgewicht.“
+
+Auf die Rückfragen:
+
+| Frage | Lukes Antwort |
+|---|---|
+| Fersenbrücke, Last der neuen Sprossen | „Jede 135°-Sprosse heißt „langer Hebel 170°“ und bekommt neue vorläufige Lasten (schwerer). Alte Sätze behalten ihre Last. Gewicht gibt es nur auf „langer Hebel 170° · Faszienrolle“.“ |
+| Hip Hinge, welche Camporini-Varianten | „Beide Füße flach mit Gewicht gegenüber, beide flach mit Gewicht auf derselben Seite, Ferse auf dem Keil mit Gewicht gegenüber, Zehen auf dem Keil mit Gewicht gegenüber. Alle vier tragen etwa dieselbe Hüftlast, die Leiter wird an dieser Stelle also flach.“ |
+| Text an der gesperrten Sprosse | Ausgeschrieben, ohne Kürzel. |
+
+**Gebaut in 2026-10-25 a.**
+
+**Der Selbsttest zur Kniebeugung.**
+
+- Er steht im Onboarding, freiwillig wie das Körpergewicht: „Geh in einen Ausfallschritt und senk das
+  hintere Knie langsam ab. Kommst du so tief, dass das Knie knapp über dem Boden schwebt, ohne dass es
+  dabei mehr als leicht zieht?“
+- „Ja, ohne Probleme“ ist der Normalfall. „Nur mit Schmerzen oder Ziehen“ und „Nein, ich komme nicht so
+  tief“ heißen eingeschränkte Kniebeugung.
+- Bleibt die Frage im Onboarding offen, kommt sie einmal auf der Karte vor dem ersten Ausfallschritt
+  („Bevor du den Ausfallschritt machst“). Ändern lässt sich die Antwort unter Einstellungen →
+  Ausfallschritt. Ohne Antwort gilt der Normalfall.
+- Eine neue Antwort löscht die gelernten Tiefengrenzen und rechnet den Plan von heute neu.
+
+**Ausfallschritt: Gewicht erst nach der Tiefe.** Leiter und Lasten bleiben, wie sie sind.
+
+- **Normalfall:** Gewicht nur auf Sprosse 9 „Kniestand · Knie knapp über den Boden“, Sprosse 10 „Enger
+  Kniestand · Knie knapp über den Boden“ und Sprosse 11, der Bank. Bisher ab Sprosse 5.
+- **Eingeschränkt:** Gewicht schon ab Sprosse 3, also auf allen Stepperhöhen. Dazu plant die App je
+  Seite nur bis zu einer Tiefengrenze. Sie beginnt bei Sprosse 7 „Kniestand · Knie bis Stepper, 1 Stufe
+  (10 cm)“ und ihrer engen Partnerin. Auf der Grenze ist die Leiter für Planer und Regeln zu Ende:
+  Erschweren legt dort Gewicht auf, statt tiefer zu gehen, und das Gewicht folgt der Zone wie auf der
+  obersten Sprosse.
+- **Die Grenze lernt auf zwei Wegen.** Geht eine Seite wegen Schmerz ab 7 auf eine Kniestand-Sprosse
+  zurück, wird diese die neue Grenze, denn das ist die tiefste, die die Person schafft. Wählt man in der
+  Liste eine tiefere Sprosse, wird sie die Grenze. So steigert die Person „über Gewicht und, wo möglich,
+  weiter über die Tiefe“ und bleibt nicht stehen.
+- **Gewichtsposition.** Hinweistext und Text zum Zusatzgewicht nennen Kurzhanteln als Standard, in jeder
+  Hand eine, seitlich neben dem Körper. Genauso gut gehen Front Rack mit einer oder zwei Kettlebells,
+  Suitcase mit einem Gewicht in der Hand gegenüber dem vorderen Bein oder eine Gewichtsweste. Eine
+  eigene Wahl gibt es in der App nicht. Alle sitzen nah am Körperschwerpunkt, der Faktor bleibt 1,
+  eingetragen wird das Gesamtgewicht. Die Fehlerliste in der Übungsdatei sagt jetzt dasselbe, der
+  Widerspruch zu „Rucksack oder Weste körpernah“ ist weg.
+
+**Hip Hinge: vier Camporini-Varianten, nur Premium.** Die Leiter hat zehn Sprossen:
+
+| Nr. | Sprosse | Last |
+|---|---|---|
+| 1 | Sitzend · auf der Stuhlkante aus der Hüfte nach vorn gekippt | 0,32 |
+| 2 | Sitzend · Gesäß knapp über der Sitzfläche (Lift-Off) | 0,40 |
+| 3 | Stehend · Körpergewicht | 0,50 |
+| 4 | Stehend · Gewicht in beiden Händen | 0,50 |
+| 5 | Camporini · Bein hinten, ganze Sohle auf dem Keil | 0,65 |
+| 6 | Camporini · Bein hinten, beide Füße flach · Gewicht in der Hand gegenüber | 0,65, nur Premium |
+| 7 | Camporini · Bein hinten, beide Füße flach · Gewicht in derselben Hand | 0,65, nur Premium |
+| 8 | Camporini · Bein hinten, ganze Sohle auf dem Keil · Gewicht in der Hand gegenüber | 0,65, nur Premium |
+| 9 | Camporini · Bein hinten, Zehen auf dem Keil, Ferse unten · Gewicht in der Hand gegenüber | 0,65, nur Premium |
+| 10 | B-Stance · Bein vorn, hinterer Fuß nur auf den Zehen | 0,75 |
+
+- **„Gegenüber“** heißt: in der Hand der Seite, deren Fuß vorn steht. Der Hinweistext sagt jetzt, dass
+  das arbeitende Bein beim Camporini etwa einen halben Fuß zurückversetzt steht.
+- **Die fünf Camporini-Sprossen sind eine Stufe der Leiter.** Je Seite gilt eine davon: die gewählte,
+  solange sie ausführbar ist, sonst die erste freie, also Sprosse 5. Planer, Regeln und der größte
+  Sprung sehen nur die gewählte. Bei gleicher Last wäre ein Schritt zwischen ihnen ein Wechsel der
+  Ausführung, keine Steigerung. Gewählt wird in der Auswahlliste in „Dein Workout“. Das Gewicht teilen
+  sich die fünf.
+- **Ohne Premium** stehen die vier neuen Sprossen in der Auswahlliste, im Nachtrag und in der
+  Sprossenliste im Profil, aber gesperrt, mit dem Zusatz „· im Medical Fitness System freigeschaltet“.
+  Planer und Regeln nehmen sie nicht.
+- **Umzug beim ersten Laden** (Fassung der Übungsliste 36): Der B-Stance rückt von 6 auf 10. Stände,
+  Sätze, ein offener Lauf und die Vorwahl ziehen mit. Sein Gewicht bleibt, weil der Schlüssel der
+  obersten Sprosse keine Nummer trägt.
+
+**Fersenbrücke: langer Hebel 170°.** Die Nummern bleiben. Jede zweite Sprosse, bisher Knie 135°, heißt
+jetzt „Langer Hebel 170°“ und trägt eine schwerere, vorläufige Last:
+
+| Nr. | Bisher | Last | Jetzt | Last | Yogablock |
+|---|---|---|---|---|---|
+| 2 | Beidbeinig · Knie 135° · Stuhlsitz | 0,159 | Beidbeinig · Langer Hebel 170° · Stuhlsitz | 0,164 | hochkant statt aufrecht |
+| 4 | Beidbeinig · Knie 135° · Hocker | 0,182 | Beidbeinig · Langer Hebel 170° · Hocker | 0,189 | flach statt auf dem Buch |
+| 6 | Beidbeinig · Knie 135° · Kiste | 0,209 | Beidbeinig · Langer Hebel 170° · Kiste | 0,217 | keiner statt hochkant |
+| 8 | Beidbeinig · Knie 135° · Boden | 0,240 | Beidbeinig · Langer Hebel 170° · Boden | 0,249 | keiner statt flach |
+| 10 | Beidbeinig · Knie 135° · Faszienrolle | 0,276 | Beidbeinig · Langer Hebel 170° · Faszienrolle | 0,286 | keiner statt hochkant |
+| 12 | Knie 135° · Stuhlsitz | 0,350 | Langer Hebel 170° · Stuhlsitz | 0,381 | hochkant statt aufrecht |
+| 14 | Knie 135° · Hocker | 0,454 | Langer Hebel 170° · Hocker | 0,474 | flach statt auf dem Buch |
+| 16 | Knie 135° · Kiste | 0,542 | Langer Hebel 170° · Kiste | 0,567 | keiner statt hochkant |
+| 18 | Knie 135° · Boden | 0,648 | Langer Hebel 170° · Boden | 0,677 | keiner statt flach |
+| 20 | Knie 135° · Faszienrolle | 0,774 | Langer Hebel 170° · Faszienrolle | 0,809 | keiner statt hochkant |
+
+- **Wie die Last gerechnet ist.** Wie bei 135°, nur bei drei Vierteln statt in der Mitte: 170° auf einer
+  Unterlage = 90° auf dieser Unterlage × (90° auf der nächsten / 90° auf dieser) hoch 0,75. Die Rolle
+  hat keine nächste Unterlage, dort ist der Schritt vom Boden zur Rolle fortgeschrieben. Die Reihenfolge
+  bleibt streng steigend, das brauchen Erleichtern und Erschweren.
+- **Der Block** kommt aus dem Segmentmodell, Becken knapp über dem Block. Bei 170° liegt das Becken
+  tiefer als bei 135°, über dem Boden auf dem Stuhl 13,4 cm, auf dem Hocker 8,2 cm, auf der Kiste
+  4,7 cm und auf der Rolle 3,0 cm. Unter die letzten beiden passt kein Block mehr.
+- **Gewicht nur auf Sprosse 20**, „Langer Hebel 170° · Faszienrolle“, Faktor 1,40. Bisher ab
+  Sprosse 18. Alle anderen Sprossen laufen mit Körpergewicht.
+- **Hinweistext:** „Langer Hebel 170° heißt: Das Bein ist fast gestreckt, das Knie bleibt leicht
+  gebeugt und wird nicht durchgedrückt.“ Den Block nennt er nur noch, wo die Sprosse einen nennt.
+- **Umzug beim ersten Laden** (Fassung 36): Sätze auf den 135°-Nummern bekommen, wo sie fehlen, die
+  alte Last und den alten Namen und tragen die Marke `entfalleneSprosse`. Sie bleiben in der Kurve,
+  nehmen der neuen Sprosse aber nicht das Rot. Stände, Vorwahl, Gewicht und ein offener Block bleiben,
+  wo sie sind. Wer auf 135° stand, steht danach auf 170° derselben Unterlage, also eine Spur schwerer.
+
+**Wadenheben, beide Varianten.**
+
+- **Isometrisches Wadenheben:** Unter der Ferse steht ein Yogablock, so hoch wie die Erhöhung. Er ist
+  die Fühlmarke: Berührt die Ferse ihn, steht die Sohle waagerecht. Dort bleibt man, die Ferse berührt
+  den Block nur leicht. Liegt sie mit Gewicht auf dem Block, ist der Halt zu Ende. Mit Waage kommt
+  unter den Block etwas in der Höhe der Waage, ein Buch etwa.
+- **Bei beiden bleibt das Knie dauerhaft leicht gebeugt**, ohne weiteres Hilfsmittel. Lukes
+  Begründung steht im Hinweistext: Durchgestreckt hält man es ohnehin nicht über den ganzen Satz, und
+  mehr Material für den Kniewinkel macht die Übung nur umständlich. In den Übungsdateien steht es auch
+  in der Fehlerliste.
+- **Beim endgradigen Wadenheben fällt die Faszienrolle zwischen Knie und Wand weg**, im Hinweistext,
+  in der Bildunterschrift und in der Gerätebeschreibung der Faszienrolle.
+- **Umbenennung:** Die Übung heißt „Endgradiges Wadenheben mit Handtuchrolle“, in der App, in der
+  Sicherheitsabfrage, als Übungsdatei, im Drive und in der Übersicht der Übungsvideos. Der interne
+  Schlüssel bleibt `handtuch`.
+- Ob das Knie für die Wade gestreckt sein muss, klärt die Recherche (`Recherche_Wade-Kniewinkel.md`).
+
+**Die Gewichtswahl.** In „Dein Workout“, im Nachtrag und beim Körpergewicht im Onboarding und in den
+Einstellungen steht oben der Wert, darunter ein Schieber mit − und + an der Seite.
+
+- Der Schieber rastet auf vollen Fünfern, für schnelle Sprünge um 5 und 10 kg. Die Tasten gehen einen
+  halben Kilo. Andere Knöpfe gibt es nicht.
+- Gesetzt wird beim Loslassen. Während des Schiebens läuft nur die Zahl mit, sonst zeichnete jede Rast
+  die Liste neu und risse dem Finger den Schieber weg.
+- Das Körpergewicht gilt jetzt auf 0,5 kg genau, vorher auf ganze Kilo. Im Onboarding ersetzt es die
+  80 kg nur, wenn man den Regler bewegt hat.
+
+**Export Schema 10.** Die Spalten bleiben. Im JSON steht `kniebeugung`, die Antwort auf den Selbsttest
+(`normal`, `schmerz`, `tiefe`, leer = offen). Die Sprossenliste trägt `premium` und
+`gleichlast_gruppe`. `stufe_nr` des B-Stance wechselt von 6 auf 10, Messungen der alten 135°-Sprossen
+tragen `entfallen` = 1.
+
+**Der Preis.**
+
+- **Die Fersenbrücke ist nur eine Spur schwerer.** Die Regel mit drei Vierteln gibt +4,5 % über 135°, auf
+  dem Stuhl +9 %. Das Segmentmodell sagt +5 bis 10 %.
+- **Am Boden kommt das Becken bei 170° rechnerisch nicht hoch.** Mit voller Hüftstreckung fehlen bei
+  1,80 m 2,3 cm. Gehalten wird dort mit etwas Hüftbeugung, der Hinweistext sagt das nicht.
+- **Lukes Sätze auf „Knie 135° · Boden“ sind entfallen.** Die Sprosse war gemessen, „Langer Hebel 170° ·
+  Boden“ steht jetzt rot, bis Luke dort misst.
+- **Die Hip-Hinge-Leiter ist auf 0,65 flach.** Fünf Sprossen tragen dieselbe Last. Steigern lässt sich
+  zwischen ihnen nur über Gewicht.
+- **Sprosse 5 und Sprosse 8 stehen gleich.** Beide sind „ganze Sohle auf dem Keil“, die freie Sprosse 5
+  mit dem Gewicht in derselben Hand, die Premium-Sprosse 8 gegenüber. Luke nennt diese Variante „Ferse
+  auf dem Keil“. Die App behält den bisherigen Namen.
+- **„Medical Fitness System“ steht öffentlich in der App.** Bisher stand im öffentlichen Repo nur
+  „Premium“. Luke hat das so gewählt.
+- **Die Tiefengrenze ist ein neuer Mechanismus.** Sie beginnt bei 10 cm, lernt aus Schmerz und aus einer
+  tieferen Wahl und sinkt durch Schmerz nur. Wer eingeschränkt angibt und nie tiefer wählt, bleibt auf
+  10 cm und steigert dort über Gewicht.
+- **Im Normalfall fällt Gewicht auf den Sprossen 5 bis 8 weg.** Wer dort mit Gewicht trainiert hat,
+  trainiert dort jetzt mit Körpergewicht.
+- **Eingeschränkt legt der Planer Gewicht nur auf der Grenze auf.** Darunter steigert er über die Tiefe,
+  wie bisher.
+- **Das Haltende beim isometrischen Wadenheben**, „liegt die Ferse mit Gewicht auf dem Block“, ist meine
+  Formulierung, nach dem Muster der Fersenbrücke.
+- **Die Hand ist feiner als der Planer.** Von Hand geht es auf 0,5 kg genau, Planer und Regeln schlagen
+  weiter im Raster der Übung vor, meist 2,5 kg.
+
+**Für den Nachbau:**
+
+- `EX_VERSION` 36. `BRIDGE_170_AT` = 36, `BRIDGE_170_ALT` mit Namen und Last der zehn alten Sprossen,
+  `bridge170Objekt` und `bridge170Lauf`. `HINGE_CAMPORINI_AT` = 36, `HINGE_CAMPORINI_UMZUG` = `{5: 9}`,
+  `hingeCamporiniUmziehen`, `hingeCamporiniObjekt`, `hingeCamporiniLauf` und `hingeCamporiniVorwahl`.
+  In `normalize()` an denselben Stellen wie Fassung 35, als äußerste Stufe der Satz- und der Laufkette.
+- Sprossen mit `gruppe:"camporini"` und `premium:true`. `stufeErlaubt(ex, i, mitPremium)` sperrt
+  Premium-Sprossen ohne Premium. `gruppeGewaehlt` und `S.variante` je Seite, `stellungPasst` lässt je
+  Gruppe nur die gewählte durch. Das Gewicht der Gruppe hängt am Feld ihrer ersten Sprosse (`kgKey`).
+  `PREMIUM_GESPERRT` = „ · im Medical Fitness System freigeschaltet“.
+- `KNIEBEUGUNG_FRAGE`, `KNIEBEUGUNG_ANTWORTEN`, `S.kniebeugung`, `kniebeugungSetzen`,
+  `kniebeugungEingeschraenkt`. Beim Ausfallschritt `extraAb` 8, `extraAbEingeschraenkt` 2,
+  `kniebeugungBis` 6. `S.lungeTiefe` je Seite, `lungeTiefeOf`, `tiefeLernen`, `wahlMerken`.
+- Fersenbrücke `extraAb` 19, Feld `block` an der Sprosse fehlt bei Kiste, Boden und Rolle mit 170°.
+- `KG_FEIN` 0,5, `KG_GROB` 5, `kgReglerHTML` und `kgReglerBinden`. `bwLesen` rundet auf 0,5 kg.
+- `EXPORT_SCHEMA` 10.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-25 a — Kniebeugung im Onboarding, Camporini-Varianten, langer Hebel 170°, Gewichtsregler
+
+**Befund (Luke).** Übungs-Update vom 25.10. aus seiner handschriftlichen Notiz (P98). Beim
+Ausfallschritt wird zuerst über Stellung und Tiefe gesteigert, dann über Gewicht, gesteuert über einen
+Selbsttest zur Kniebeugung. Die Camporini-Varianten von Bill Hartman kommen als Premium-Sprossen in den
+Hip Hinge. Bei der Fersenbrücke heißt jede 135°-Sprosse „Langer Hebel 170°“, Gewicht gibt es nur noch
+oben. Beim Wadenheben bleibt das Knie leicht gebeugt. Gewicht und Körpergewicht wählt man über
+Schieber und Tasten.
+
+**Gebaut.**
+
+- Im Onboarding steht der Selbsttest zur Kniebeugung, freiwillig. Offen gelassen, kommt er einmal vor
+  dem ersten Ausfallschritt, ändern lässt er sich unter Einstellungen → Ausfallschritt.
+- Ausfallschritt: Im Normalfall trägt Gewicht nur „Knie knapp über den Boden“, normal und eng, und die
+  Bank. Eingeschränkt schon die Stepperhöhen, dazu eine Tiefengrenze je Seite, die aus Schmerz und Wahl
+  lernt. Hinweistext und Text zum Zusatzgewicht nennen Kurzhanteln als Standard, Front Rack, Suitcase
+  gegenüber und Weste als gleichwertig.
+- Hip Hinge mit zehn Sprossen: vier Camporini-Varianten mit derselben Last wie der Camporini. Die fünf
+  sind eine Stufe, je Seite gilt die gewählte. Ohne Premium sind die vier neuen sichtbar und gesperrt,
+  „· im Medical Fitness System freigeschaltet“. Der B-Stance rückt von 6 auf 10.
+- Fersenbrücke: „Langer Hebel 170°“ mit neuen vorläufigen Lasten und neuen Blöcken, Gewicht nur auf
+  Sprosse 20. Alte 135°-Sätze behalten Last und Namen und tragen die Marke.
+- Wadenheben: Yogablock als Fühlmarke beim isometrischen, Knie leicht gebeugt bei beiden, keine
+  Faszienrolle mehr am Knie. Die Übung mit der Handtuchrolle heißt „Endgradiges Wadenheben mit
+  Handtuchrolle“.
+- Gewichtswahl in „Dein Workout“, im Nachtrag, beim Körpergewicht im Onboarding und in den
+  Einstellungen: Schieber in Fünferschritten, − und + um 0,5 kg.
+- Fassung der Übungsliste 36, Export Schema 10 mit `kniebeugung`, `premium` und `gleichlast_gruppe`.
+
+**Geprüft.** Headless Chrome auf eigenem Port 9347 bei 375 × 812, mit erfundenen Daten.
+
+- Umzug aus einem erfundenen Stand der Fassung 35: Satz, Stand, Vorwahl samt Gewicht und offener Lauf
+  auf dem B-Stance landen auf 10, das Gewicht bleibt. Sätze auf den 135°-Sprossen der Fersenbrücke
+  tragen die Marke und den alten Namen, ein Satz ohne Last bekommt die alte. Ein zweites Laden ändert
+  nichts.
+- Premium an: Die Auswahl zeigt alle fünf Camporini-Sprossen, der Planer nur die gewählte. Eine
+  Variante links zu wählen ändert rechts nichts, das Gewicht teilen sich die fünf. Premium aus: Die vier
+  neuen stehen gesperrt mit dem Sperrtext da, auch im Nachtrag und im Profil, und der Planer nimmt sie
+  nicht.
+- Ausfallschritt ohne Antwort und im Normalfall Gewicht ab Sprosse 9. Eingeschränkt Gewicht ab
+  Sprosse 3 und Planer bis Sprosse 7 und ihrer engen Partnerin. Eine tiefere Wahl links schiebt nur die
+  Grenze links. Ein Rückschritt wegen Schmerz setzt die Grenze darauf. Eine neue Antwort löscht die
+  Grenzen. Zu leicht auf der Grenze legt Gewicht auf, statt tiefer zu gehen.
+- Onboarding, Karte vor dem Ausfallschritt, Einstellungen, Nachtrag: Schieber und Tasten setzen die
+  Werte, der Schieber rastet auf Fünfern, die Tasten gehen 0,5 kg.
+- Export: Schema 10, `kniebeugung`, `premium` an den vier Varianten, `gleichlast_gruppe` an allen
+  fünf. Profil ohne Konsolenfehler, ohne `NaN`. Die Testdaten sind danach gelöscht, die Bilder hat Luke.
+- **Nicht geprüft:** Lukes echte Messungen auf dem Handy und das Schieben mit dem Finger auf einem
+  echten Touchscreen.
 
 ### 2026-10-23 d — Hyperextension beginnt am Gurt im Türrahmen
 
@@ -7850,6 +8085,9 @@ als Teil des Ansatz-Pfads? Das ist eine Produktentscheidung, keine technische.
     **Entschieden (Luke, 25.09.), gebaut in Build 2026-09-25 d:**
     - *Premium* ist entschieden; was es ist, steht im Marketing-Kanon. Die Übungen selbst
       bleiben ohne Schranke; hinter Premium liegt nur die Empfehlung aus dem Trend.
+    - *Seit 2026-10-25 a (P98)* liegen auch die vier Camporini-Varianten im Hip Hinge hinter
+      Premium. Ohne Premium sind sie sichtbar und gesperrt, mit dem Zusatz „· im Medical Fitness
+      System freigeschaltet“.
     - *Ohne Premium* bleibt die Zonenruhe (Luke: „ja wie du sagst").
 
 29. **Die Hebel für Suitcase und Front Rack beim aufrechten Läufer (P60).** Gebaut mit
@@ -7872,6 +8110,10 @@ als Teil des Ansatz-Pfads? Das ist eine Produktentscheidung, keine technische.
     mit 90° und 135° in der Leiter, das fast gestreckte Bein ist raus. Der Stepper ersetzt Hocker
     und Kiste noch nicht. Was die Messungen der nächsten Wochen zeigen, entscheidet über die Leiter
     (#34).
+
+    **Seit 2026-10-25 a (P98):** Jede 135°-Sprosse heißt „Langer Hebel 170°“, das Bein ist fast
+    gestreckt, das Knie leicht gebeugt. Die Lasten sind neu und vorläufig, die alten Sätze behalten
+    ihre.
 31. **Kniewinkel im Pfad fürs innere Knie (P76, P83).** Entschieden (Luke, 16.10.): nur die Ferse
     auf der Rolle, ohne Fußstellung, zwei Sprossen (P83). Offen bleibt der Kniewinkel, 90° gegen
     135°. Gebaut ist 90°.
@@ -7899,16 +8141,28 @@ als Teil des Ansatz-Pfads? Das ist eine Produktentscheidung, keine technische.
     hochkant, Boden flach, Rolle hochkant. Leichte Berührung wird korrigiert, Druck auf dem Block
     beendet den Halt. Zur Ferse sagt die App nichts. Die alten Punkte bleiben, wie sie sind. Offen
     bleibt, ob der Block bei 135° und breitem Becken schon in voller Streckung anliegt.
+
+    **Seit 2026-10-25 a (P98)** gelten diese Blöcke nur noch für 90°. Bei 170° steht auf dem Stuhl
+    der Block hochkant, auf dem Hocker flach, auf Kiste, Boden und Rolle passt keiner mehr darunter.
+    Am Boden kommt das Becken bei 170° und voller Hüftstreckung rechnerisch nicht hoch.
 34. **Ändert die Höhe der Unterlage bei gleichem Kniewinkel die Last? (P80)** Die Leiter steht auf
     Lukes Regel: 135° etwas schwerer als 90° auf derselben Unterlage, oft leichter als 90° auf der
     nächsten. Das Segmentmodell sagt, die Höhe ändert kaum etwas und der Winkel fast alles. Dann
     lägen 90° auf dem Hocker und 135° auf dem Stuhl nicht hintereinander, sondern umgekehrt, und
     viele Sprossen fast gleichauf. Lukes Messungen der nächsten Wochen entscheiden, ob die Leiter so
     bleibt, ob Unterlagen zusammenfallen und ob der Stepper Hocker und Kiste ersetzt.
+    Seit 2026-10-25 a (P98) steht statt 135° der lange Hebel 170°, gerechnet bei drei Vierteln
+    statt in der Mitte zwischen 90° auf dieser und auf der nächsten Unterlage.
 35. **Weitere Gewichtshaltungen beim Ausfallschritt (P81).** Seit 2026-10-16 e hängen Kurzhanteln
     oder Kettlebells seitlich neben dem Körper. Luke, 16.10.: „später mit empfehlungen nach bill
     hartman z.B gegenüberliegende hand oder rackposition etc... das machen wir aber später“. Offen:
     welche Haltungen, ob sie die Last anders zählen und ob die Wahl je Übung oder je Satz gilt.
+
+    **Entschieden (Luke, 25.10.), gebaut in 2026-10-25 a (P98):** „Standard sind Hanteln. Front
+    Rack (auch bilateral), Suitcase in der Hand gegenüber dem vorderen Bein, beidseitig oder
+    Gewichtsweste sind alle okay.“ Eine eigene Wahl gibt es nicht, alle zählen mit Faktor 1, es
+    zählt das Gesamtgewicht. Offen bleibt, in welcher Hand Bill Hartman das Gewicht beim Narrow und
+    Wide ISA hält (#40).
 36. **Nach wie vielen neueren Punkten verschwindet ein Punkt aus Kraftkurve und Fit? (P82)**
     **Entschieden (Luke, 16.10.), gebaut in Build `2026-10-16 e`:** „Grenze 30 Punkte. Bau es in die
     App ein.“ Die 30 gelten für jede Kurve. Das Ausgrauen läuft über das Fit-Gewicht, der älteste
@@ -7924,12 +8178,25 @@ als Teil des Ansatz-Pfads? Das ist eine Produktentscheidung, keine technische.
     der Block um ihre Höhe höher, das ist ergänzt, nicht vorgegeben. Mit dem Gesicht zur Wand
     braucht die Entlastung eine waagerechte Auflage neben dem Körper. Offen ist auch, ob die
     Faszienrolle Pflicht wird. Dann fiele die Übung für alle ohne Rolle weg.
+
+    **Entschieden (Luke, 25.10.), gebaut in 2026-10-25 a (P98):** Die Faszienrolle am Knie ist
+    weg. Bei beiden Wadenheben bleibt das Knie dauerhaft leicht gebeugt, ohne weiteres Hilfsmittel
+    für den Kniewinkel. Damit fällt auch die Frage nach dem Abstand der Füße zur Wand. Die Übung
+    heißt „Endgradiges Wadenheben mit Handtuchrolle“.
 39. **Seitstütz: Wand-Sprossen messen und die Leiter schließen (P92).** 0,13 und 0,31 sind gerechnet.
     Luke misst im Trainingsraum. Offen ist dreierlei. Der Sprung von 3 Fußlängen auf den Kniestand
     am Boden ist das 1,84-Fache, über der Grenze von 1,82. Von 2 auf 3 Fußlängen ist er das
     2,38-Fache, 2,5 Fußlängen gäben 0,22. Und die gestreckten Sprossen auf Arbeitsplatte und Tisch
     sind ohne Oberarm gerechnet: Mit derselben Geometrie wie an der Wand trügen sie 0,60 und 0,68
     statt 0,70 und 0,77 (bei 1,80 m Körpergröße).
+40. **In welcher Hand hält Bill Hartman das Gewicht beim Narrow und Wide ISA? (P98)** Das steht im
+    Mitgliederbereich von „Unified Health and Performance“. Die Recherche braucht Lukes Login und
+    wird gemeinsam mit ihm gemacht. Danach entscheidet sich, ob der Ausfallschritt eine Empfehlung
+    zur Hand bekommt.
+41. **Muss das Knie beim Wadentraining gestreckt sein? (P98)** Entschieden ist „leicht gebeugt“.
+    Offen sind die leichte Beugung in der Endposition, in der der Gastrocnemius schon verkürzt ist,
+    die Rolle des Großzehenbeugers, die Last auf der Achillessehne je Kniewinkel und was das für
+    die Leiterwerte beider Wadenheben heißt. Die Recherche steht in `Recherche_Wade-Kniewinkel.md`.
 
 ---
 

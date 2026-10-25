@@ -238,6 +238,11 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
   font-variant-numeric:tabular-nums}
 /* Hoehe der Bank beim Ausfallschritt (Build 2026-10-23 c) */
 .stp input[type=number]{flex:0 0 84px;width:84px;text-align:center;padding:9px 6px}
+/* Gewichtswahl (Build 2026-10-25 a): Wert oben, darunter Schieber mit Tasten */
+.stp.kg{flex:1 1 100%;flex-wrap:wrap}
+.kgr{display:flex;align-items:center;gap:8px;flex:1 1 100%}
+.kgr button{flex:0 0 42px;height:40px;padding:0;font-size:20px}
+.kgr input[type=range]{flex:1;min-width:0;margin:0;accent-color:var(--acc)}
 .teil .chk{margin:9px 0 0}
 .scaleBtns{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
 .scaleBtns button{padding:12px 2px;font-size:15px;font-weight:600}
@@ -283,14 +288,18 @@ code{background:var(--panel2);padding:1.5px 5px;border-radius:5px;font-size:12.5
       zwei Blöcke. Wie viele davon in eine Sitzung passen, stellst du später unter
       <b>Einstellungen → Länge einer Sitzung</b> ein.</p>
     <div id="exPick" class="stack"></div>
+    <!-- Luke, 25.10.2026: Selbsttest zur Kniebeugung. Steuert, wo der
+         Ausfallschritt Gewicht traegt (kniebeugungEingeschraenkt). Freiwillig
+         wie das Koerpergewicht; ohne Antwort fragt die Karte vor dem ersten
+         Ausfallschritt. -->
+    <p class="tiny" style="margin:16px 0 6px">Kniebeugung <span class="muted">— freiwillig</span></p>
+    <p style="margin:0 0 8px" id="obKbFrage"></p>
+    <div id="obKb" class="stack"></div>
     <!-- Luke, 25.09.2026: "frag das körpergewicht ab, aber nur optional nicht
          zwingend notwendig". Leer bleibt BW_DEFAULT; der Start wartet nicht. -->
-    <label class="tiny" for="obBw" style="display:block;margin:16px 0 4px">Körpergewicht
-      in kg <span class="muted">— freiwillig</span></label>
-    <input type="number" id="obBw" min="30" max="200" step="1" inputmode="decimal"
-      placeholder="80" style="width:110px">
+    <div class="stps" style="margin-top:16px"><div class="stp kg" id="obBwZeile"></div></div>
     <p class="tiny" style="margin:6px 0 0">Damit rechnet die App Rucksack und Gewichtsweste
-      genauer. Leer lassen geht, dann gelten 80 kg. Ändern kannst du es unter
+      genauer. Schiebst du nichts, gelten 80 kg. Ändern kannst du es unter
       <b>Einstellungen → Messung</b>.</p>
     <div class="note" style="margin-top:16px">
       <b>So geht es weiter.</b> Drei Einstiegs-Workouts in drei verschiedenen Stufen — ein
@@ -638,9 +647,21 @@ const DEFAULT_EX = {
        normal kurzhanteln oder kettlebells ... erstmal seitlich neben dem
        körper". extraK bleibt 1: Haengende Gewichte sitzen so nah am
        Koerperschwerpunkt wie der Rucksack. Weitere Haltungen
-       (gegenueberliegende Hand, Rack) kommen spaeter, mit eigener Wahl. */
-    extraAb:4, extraK:1,
-    extraHint:"Kurzhanteln oder Kettlebells, seitlich neben dem Körper gehalten.",
+       (gegenueberliegende Hand, Rack) kommen spaeter, mit eigener Wahl.
+       25.10.2026 (Build a): Luke, "Standard sind Hanteln. Front Rack (auch
+       bilateral), Suitcase in der Hand gegenüber dem vorderen Bein,
+       beidseitig oder Gewichtsweste sind alle okay." Keine eigene Wahl in der
+       App: Alle sitzen nah am Koerperschwerpunkt, extraK bleibt 1, es zaehlt
+       das Gesamtgewicht.
+       Wo Gewicht dazukommt, entscheidet seit Build 2026-10-25 a die
+       Kniebeugung aus dem Onboarding: im Normalfall erst ab "Knie knapp ueber
+       den Boden" (extraAb 8), eingeschraenkt schon ab den Stepperhoehen
+       (extraAbEingeschraenkt 2), dort mit Tiefengrenze ab kniebeugungBis.
+       Siehe kniebeugungEingeschraenkt. */
+    extraAb:8, extraK:1, extraAbEingeschraenkt:2, kniebeugungBis:6,
+    extraHint:"Standard sind Kurzhanteln, in jeder Hand eine, seitlich neben dem Körper. Genauso "
+             +"gut: Front Rack mit einer oder zwei Kettlebells, Suitcase mit einem Gewicht in der "
+             +"Hand gegenüber dem vorderen Bein oder eine Gewichtsweste. Trag das Gesamtgewicht ein.",
     hint:"»Links« heißt: der LINKE Fuß steht vorne. "
         +"Zwei Stellungen in einer Leiter — die Sprosse sagt, welche. STEHEND AN DER WAND: "
         +"vorderer Fuß mit den Zehen an die Wand, hinterer Fuß im angegebenen Abstand dahinter, "
@@ -653,8 +674,9 @@ const DEFAULT_EX = {
         +"BANK: der hintere Fuß liegt mit dem Fußspann auf der Hantelbank oder dem Sofa, nicht "
         +"auf den Zehen. Miss die Höhe der Auflage und trag sie an der Sprosse ein. "
         +"Jedes Mal: keine Handstütze; ein Fingerkontakt an der Wand fürs Gleichgewicht ist in "
-        +"Ordnung. Zwischen zwei Sprossen stellst du am feinsten über Kurzhanteln oder "
-        +"Kettlebells nach, seitlich neben dem Körper gehalten.",
+        +"Ordnung. Gesteigert wird zuerst über Stellung und Tiefe, erst dann über Gewicht. "
+        +"Standard sind Kurzhanteln seitlich neben dem Körper; Front Rack, Suitcase in der Hand "
+        +"gegenüber dem vorderen Bein oder eine Gewichtsweste gehen genauso.",
     /* 21.09.2026: Leiter neu gebaut. Sie traegt jetzt ZWEI Stellungen, weil Lukes
        Messpunkte in der einen liegen und seine neue Sprosse in der anderen.
        Frueher stufte die Tiefe ueber eine Ablage unter dem hinteren Knie; Luke hat
@@ -727,7 +749,17 @@ const DEFAULT_EX = {
        Gewicht weiter ab "Kniestand · 2 Stufen (15 cm)" (extraAb 4), der enge
        Kniestand mit 20 cm bleibt wie der normale ohne. Enger Kniestand am
        Boden und die Bank gehen ohne Geraete (ein Sofa steht ueberall).
-       Siehe LUNGE_ENG_AT. */
+       Siehe LUNGE_ENG_AT.
+
+       25.10.2026 (Build 2026-10-25 a): Gewicht nur noch auf drei Sprossen.
+       Luke: "Zuerst wird über die Position und Tiefe gesteigert, erst dann
+       über Gewicht. Einfache Sprossen bekommen kein Zusatzgewicht." Im
+       Normalfall tragen "Kniestand · Knie knapp ueber den Boden", die enge
+       Partnerin und die Bank Gewicht (extraAb 8, bisher 4). Wer im Onboarding
+       eine eingeschraenkte Kniebeugung angibt, bekommt Gewicht schon auf den
+       Stepperhoehen, und die App plant bis zu einer Tiefengrenze, die sie aus
+       Schmerz und Wahl lernt. Siehe kniebeugungEingeschraenkt. Leiter und
+       Lasten unveraendert. */
     levels:[
       {name:"Stehend an der Wand · 2 Fußlängen",                 load:0.41, ort:"wand"},
       {name:"Stehend an der Wand · 3 Fußlängen",                 load:0.52, ort:"wand"},
@@ -966,10 +998,32 @@ const DEFAULT_EX = {
      5-cm-Buch, Kiste hochkant). Eine Stellung je Unterlage, bei 135 Grad
      knapp unter dem Becken, bei 90 Grad bleibt mehr Luft. Leichte Beruehrung
      wird korrigiert, Druck auf dem Block beendet den Halt.
+
+     Seit Build 2026-10-25 a (EX_VERSION 36) heisst jede 135-Grad-Sprosse
+     "Langer Hebel 170°" (Luke, 25.10.2026: "Bein fast gestreckt / langer
+     Hebel heisst ueberall langer Hebel 170°", Knie leicht gebeugt, nicht
+     durchgestreckt, "eine gewisse Unschaerfe ist okay"). Seine Antwort zur
+     Last: neue vorlaeufige Lasten, schwerer als 135 Grad; alte Saetze
+     behalten ihre. Gerechnet wie die 135-Grad-Sprossen, nur bei drei
+     Vierteln statt der Mitte: 170 = 90 auf dieser Unterlage mal
+     (90 auf der naechsten / 90 auf dieser)^0,75. Die Rolle hat keine
+     naechste Unterlage, dort ist der Schritt Boden -> Rolle fortgeschrieben.
+     Beidbeinig 0,148 * 2^((2j+1,5)/10). Die Reihenfolge bleibt streng
+     steigend, das brauchen Erleichtern und Erschweren, die nach der Nummer
+     gehen. Das Segmentmodell (bruecke2.py) sagt +5 bis 10 % ueber 135 Grad,
+     die Regel gibt +4,5 % (Stuhl +9 %).
+     Zusatzgewicht nur noch auf der obersten Sprosse, Rolle 170 (extraAb 19).
+     Bloecke bei 170 Grad aus demselben Modell, Becken knapp ueber dem Block:
+     Stuhl hochkant (Becken 13,4 cm), Hocker flach (8,2 cm). Bei Kiste
+     (4,7 cm) und Rolle (3,0 cm) passt kein Block mehr darunter. Am Boden
+     kommt das Becken bei 170 Grad und voller Hueftstreckung rechnerisch gar
+     nicht vom Boden (-2,3 cm bei 1,80 m): Gehalten wird dort mit etwas
+     Hueftbeugung. Saetze von vor Fassung 36 auf den 135-Grad-Nummern tragen
+     die Marke entfalleneSprosse, siehe BRIDGE_170_AT.
    */
   bridge: {
     name:"Fersenbrücke", region:"Oberschenkelrückseite", group:"bridge",
-    sides:["links","rechts"], extraAb:17, extraK:1.4,
+    sides:["links","rechts"], extraAb:19, extraK:1.4,
     /* Neue Nutzer beginnen beidbeinig auf dem Stuhl. */
     startStufe:0,
     seitenRuf:{links:"LINKES BEIN TRÄGT", rechts:"RECHTES BEIN TRÄGT"},
@@ -979,11 +1033,12 @@ const DEFAULT_EX = {
         +"Unterlage, Zehen zeigen nach oben, Becken hoch drücken, bis Schulter, Hüfte und "
         +"Knie eine Linie bilden. Das freie Bein bleibt angewinkelt in der Luft — nicht "
         +"abstützen. Gearbeitet wird in der Ferse, nicht im Fußballen. Wenn es vorne im "
-        +"Oberschenkel krampft, ist das Becken zu tief. Knie 90° heißt rechtwinklig, 135° "
-        +"liegt halb zwischen rechtwinklig und gestreckt. Unter den Sitzbeinen steht ein "
-        +"Yogablock, so wie bei der Sprosse angegeben. Berührst du ihn leicht, drück das "
-        +"Becken wieder hoch. Liegt das Becken mit Druck auf dem Block, ist der Halt zu "
-        +"Ende. Kein Block da? Ein Stapel Bücher in derselben Höhe geht genauso.",
+        +"Oberschenkel krampft, ist das Becken zu tief. Knie 90° heißt rechtwinklig. Langer "
+        +"Hebel 170° heißt: Das Bein ist fast gestreckt, das Knie bleibt leicht gebeugt und "
+        +"wird nicht durchgedrückt. Wo die Sprosse einen Yogablock nennt, steht er unter den "
+        +"Sitzbeinen. Berührst du ihn leicht, drück das Becken wieder hoch. Liegt das Becken "
+        +"mit Druck auf dem Block, ist der Halt zu Ende. Kein Block da? Ein Stapel Bücher in "
+        +"derselben Höhe geht genauso.",
     seitenHinweis:"Dieses Bein hat eben noch das Becken gehalten, während die andere Seite "
                  +"gearbeitet hat — beide Oberschenkelrückseiten stabilisieren mit.",
     /* Der Red-Flag-Fragebogen laeuft nur im Onboarding. Eine Uebung, die
@@ -1009,25 +1064,25 @@ const DEFAULT_EX = {
        mehr rot da (siehe sprosseVorlaeufig). Nachgezogen mit jedem Build. */
     levels:[
       {name:"Beidbeinig · Knie 90° · Stuhlsitz (~45 cm)", load:0.148, beid:true, platzhalter:true, block:"aufrecht"},
-      {name:"Beidbeinig · Knie 135° · Stuhlsitz (~45 cm)", load:0.159, beid:true, platzhalter:true, block:"aufrecht"},
+      {name:"Beidbeinig · Langer Hebel 170° · Stuhlsitz (~45 cm)", load:0.164, beid:true, platzhalter:true, block:"hochkant"},
       {name:"Beidbeinig · Knie 90° · Hocker (~30 cm)", load:0.170, beid:true, platzhalter:true, block:"hocker"},
-      {name:"Beidbeinig · Knie 135° · Hocker (~30 cm)", load:0.182, beid:true, platzhalter:true, block:"hocker"},
+      {name:"Beidbeinig · Langer Hebel 170° · Hocker (~30 cm)", load:0.189, beid:true, platzhalter:true, block:"flach"},
       {name:"Beidbeinig · Knie 90° · Kiste (~20 cm)", load:0.195, beid:true, platzhalter:true, block:"hochkant"},
-      {name:"Beidbeinig · Knie 135° · Kiste (~20 cm)", load:0.209, beid:true, platzhalter:true, block:"hochkant"},
+      {name:"Beidbeinig · Langer Hebel 170° · Kiste (~20 cm)", load:0.217, beid:true, platzhalter:true},
       {name:"Beidbeinig · Knie 90° · Boden", load:0.224, beid:true, platzhalter:true, block:"flach", ort:"boden"},
-      {name:"Beidbeinig · Knie 135° · Boden", load:0.240, beid:true, platzhalter:true, block:"flach", ort:"boden"},
+      {name:"Beidbeinig · Langer Hebel 170° · Boden", load:0.249, beid:true, platzhalter:true, ort:"boden"},
       {name:"Beidbeinig · Knie 90° · Faszienrolle", load:0.258, beid:true, platzhalter:true, block:"hochkant", geraet:"rolle"},
-      {name:"Beidbeinig · Knie 135° · Faszienrolle", load:0.276, beid:true, platzhalter:true, block:"hochkant", geraet:"rolle"},
+      {name:"Beidbeinig · Langer Hebel 170° · Faszienrolle", load:0.286, beid:true, platzhalter:true, geraet:"rolle"},
       {name:"Knie 90° · Stuhlsitz (~45 cm)", load:0.296, block:"aufrecht"},
-      {name:"Knie 135° · Stuhlsitz (~45 cm)", load:0.350, platzhalter:true, block:"aufrecht"},
+      {name:"Langer Hebel 170° · Stuhlsitz (~45 cm)", load:0.381, platzhalter:true, block:"hochkant"},
       {name:"Knie 90° · Hocker (~30 cm)", load:0.415, block:"hocker"},
-      {name:"Knie 135° · Hocker (~30 cm)", load:0.454, platzhalter:true, block:"hocker"},
+      {name:"Langer Hebel 170° · Hocker (~30 cm)", load:0.474, platzhalter:true, block:"flach"},
       {name:"Knie 90° · Kiste (~20 cm)", load:0.496, platzhalter:true, block:"hochkant"},
-      {name:"Knie 135° · Kiste (~20 cm)", load:0.542, platzhalter:true, block:"hochkant"},
+      {name:"Langer Hebel 170° · Kiste (~20 cm)", load:0.567, platzhalter:true},
       {name:"Knie 90° · Boden", load:0.593, platzhalter:true, block:"flach", ort:"boden"},
-      {name:"Knie 135° · Boden", load:0.648, block:"flach", ort:"boden"},
+      {name:"Langer Hebel 170° · Boden", load:0.677, platzhalter:true, ort:"boden"},
       {name:"Knie 90° · Faszienrolle", load:0.708, platzhalter:true, block:"hochkant", geraet:"rolle"},
-      {name:"Knie 135° · Faszienrolle", load:0.774, platzhalter:true, block:"hochkant", geraet:"rolle"}
+      {name:"Langer Hebel 170° · Faszienrolle", load:0.809, platzhalter:true, geraet:"rolle"}
     ]
   },
 
@@ -1087,6 +1142,24 @@ const DEFAULT_EX = {
      hinten steht. Die anderen Camporini-Fassungen stehen nur in der
      Recherche, nicht hier — eine Sprosse (Luke, 15.10.2026).
 
+     CAMPORINI-VARIANTEN (Build 2026-10-25 a). Luke, 25.10.2026: Bill
+     Hartmans Camporini-Varianten kommen als zusaetzliche Sprossen in die
+     Leiter, nur Premium, fuer alle anderen sichtbar und gesperrt. Seine Wahl
+     aus der Recherche (Abschnitt 4): "Beide Fuesse flach mit Gewicht
+     gegenueber, beide flach mit Gewicht auf derselben Seite, Ferse auf dem
+     Keil mit Gewicht gegenueber, Zehen auf dem Keil mit Gewicht gegenueber.
+     Alle vier tragen etwa dieselbe Hueftlast, die Leiter wird an dieser
+     Stelle also flach." Sie stehen als 5 bis 8 hinter dem bisherigen
+     Camporini, der B-Stance rueckt auf 9 (Umzug: HINGE_CAMPORINI_AT).
+     "Gegenueber" heisst: in der Hand der Seite, deren Fuss vorn steht.
+     Die fuenf Camporini-Sprossen sind EINE Stufe der Leiter (gruppe): Je
+     Seite gilt eine davon, die gewaehlte (S.variante), sonst die erste freie,
+     also der bisherige Camporini. Planer, Regeln und Schrittdeckel sehen nur
+     die gewaehlte (stellungPasst) — bei gleicher Last waere jeder Schritt
+     zwischen ihnen ein Wechsel der Ausfuehrung, keine Steigerung. Gewaehlt
+     wird in der Auswahlliste; dort stehen alle fuenf, ohne Premium die vier
+     neuen gesperrt. Das Gewicht teilen sie sich (kgKey).
+
      Lasten: Hueftmoment je arbeitendem Bein, stehend beidbeinig = 0,500
      (scratchpad/hinge.mjs).
         sitzend                 0,320  PLATZHALTER. Bei gleicher Neigung ist
@@ -1101,6 +1174,7 @@ const DEFAULT_EX = {
                                        kgMindest): 10 kg bei 80 kg
         Camporini               0,650  Gewichtsanteil hinten 65 % aus Lukes
                                        Coaching (Woche 4), als Hueftlast gelesen
+        Camporini-Varianten     0,650  dieselbe, Luke 25.10.2026
         B-Stance                0,750  ANNAHME 75 % vorn
      Das Gewicht in haengenden Armen wirkt 0,52 m vor der Huefte: extraK 2,12.
      Tor 1 x2,34 bestanden. Tor 2 faellt zweimal: 4 -> 5 nur x1,03, wenn
@@ -1128,9 +1202,10 @@ const DEFAULT_EX = {
     seitenRuf:{links:"LINKES BEIN TRÄGT", rechts:"RECHTES BEIN TRÄGT"},
     extraHint:"Kurzhantel, Kettlebell oder Rucksack an den Griffen, die Arme hängen senkrecht "
              +"unter den Schultern. Beidbeinig in beiden Händen — trag das Gesamtgewicht ein. "
-             +"Camporini und B-Stance: in der Hand der Seite, deren Fuß hinten steht.",
-    hint:"»Links« heißt: Das LINKE Bein arbeitet — beim Camporini steht es hinten mit der "
-        +"ganzen Sohle auf dem Keil, beim B-Stance vorn. Rücken neutral, die Bewegung kommt aus "
+             +"Camporini und B-Stance: in der Hand der Seite, deren Fuß hinten steht. Nennt die "
+             +"Sprosse »gegenüber«, in der anderen Hand, der Seite, deren Fuß vorn steht.",
+    hint:"»Links« heißt: Das LINKE Bein arbeitet — beim Camporini steht es hinten, etwa einen "
+        +"halben Fuß zurückversetzt, beim B-Stance vorn. Rücken neutral, die Bewegung kommt aus "
         +"der Hüfte: Gesäß nach hinten, Oberkörper nach vorn. Im Stehen sind die Knie leicht "
         +"gebeugt und bleiben in diesem Winkel. Halte jedes Mal dieselbe Tiefe, zum Beispiel "
         +"mit dem Rücken zur Wand, die Fersen eine feste Zahl Fußlängen davor und das Gesäß "
@@ -1159,8 +1234,16 @@ const DEFAULT_EX = {
       {name:"Sitzend · Gesäß knapp über der Sitzfläche (Lift-Off)",       load:0.400, beid:true, platzhalter:true},
       {name:"Stehend · Körpergewicht",                                     load:0.500, beid:true, platzhalter:true, ort:"boden"},
       {name:"Stehend · Gewicht in beiden Händen",                          load:0.500, beid:true, platzhalter:true, mindSprung:1.25},
-      {name:"Camporini · Bein hinten, ganze Sohle auf dem Keil",           load:0.650, platzhalter:true,
+      {name:"Camporini · Bein hinten, ganze Sohle auf dem Keil",           load:0.650, platzhalter:true, gruppe:"camporini",
        nameMitGewicht:"Camporini · Bein hinten, ganze Sohle auf dem Keil · Gewicht in derselben Hand"},
+      {name:"Camporini · Bein hinten, beide Füße flach · Gewicht in der Hand gegenüber",
+       load:0.650, platzhalter:true, gruppe:"camporini", premium:true},
+      {name:"Camporini · Bein hinten, beide Füße flach · Gewicht in derselben Hand",
+       load:0.650, platzhalter:true, gruppe:"camporini", premium:true},
+      {name:"Camporini · Bein hinten, ganze Sohle auf dem Keil · Gewicht in der Hand gegenüber",
+       load:0.650, platzhalter:true, gruppe:"camporini", premium:true},
+      {name:"Camporini · Bein hinten, Zehen auf dem Keil, Ferse unten · Gewicht in der Hand gegenüber",
+       load:0.650, platzhalter:true, gruppe:"camporini", premium:true},
       {name:"B-Stance · Bein vorn, hinterer Fuß nur auf den Zehen",        load:0.750, platzhalter:true, ort:"boden",
        nameMitGewicht:"B-Stance · Bein vorn, hinterer Fuß nur auf den Zehen · Gewicht in der Hand der hinteren Seite"}
     ]
@@ -1389,18 +1472,24 @@ const DEFAULT_EX = {
              +"das Becken dorthin, dann begrenzt der Gluteus den Halt und nicht die Wade. "
              +"Beidbeinig teilen sich beide Waden das Gewicht, einbeinig trägt eine alles. "
              +"Mit Waage endet beidbeinig bei 30 kg — schwerer geht es einbeinig weiter.",
-    hint:"Der Vorfuß steht auf einer Erhöhung, die Ferse hängt frei. Heb die Ferse genau so "
-        +"weit, dass die Fußsohle waagerecht steht — Ferse und Vorfuß auf einer Höhe — und "
-        +"BLEIB dort. Nicht tiefer absinken lassen und nicht höher drücken: diese mittlere "
+    hint:"Der Vorfuß steht auf einer Erhöhung, die Ferse hängt frei. Unter der Ferse steht ein "
+        +"Yogablock, so hoch wie die Erhöhung. Er ist deine Fühlmarke: Berührt die Ferse ihn, "
+        +"steht die Fußsohle waagerecht — Ferse und Vorfuß auf einer Höhe. Genau dort BLEIBST "
+        +"du, die Ferse berührt den Block nur leicht. Nicht höher drücken, und liegt die Ferse "
+        +"mit Gewicht auf dem Block, ist der Halt zu Ende. Diese mittlere "
         +"Stellung IST die Übung, und sie ist der Unterschied zum endgradigen Wadenheben, "
-        +"das ganz oben gehalten wird. Keine Wiederholungen. Einbeinig ist die Grundform: Der "
+        +"das ganz oben gehalten wird. Das Knie bleibt die ganze Zeit leicht gebeugt. "
+        +"Durchgestreckt hältst du es ohnehin nicht über den ganzen Satz, und mehr Material "
+        +"für den Kniewinkel macht die Übung nur umständlich. "
+        +"Keine Wiederholungen. Einbeinig ist die Grundform: Der "
         +"genannte Fuß trägt allein, und beide Seiten kommen nacheinander dran — eine Wade "
         +"ermüdet die andere nicht, beide Sätze werden gemessen. Schwerer wird es mit einem "
         +"Rucksack voller Gewichte, vorne an die Brust geschnallt. Leichter ist beidbeinig: "
         +"Du stehst auf beiden Vorfüßen — das ist EIN Halt, links und rechts gibt es dort "
         +"nicht —, und auch hier kommt der Rucksack dazu. Hast du eine Waage, endet beidbeinig "
         +"bei 30 kg, und es geht einbeinig weiter: Die Waage liegt unter dem Vorfuß des "
-        +"Standbeins, das andere Bein ist in der Luft, und du nimmst dir über die Hände auf "
+        +"Standbeins, unter den Block kommt etwas in der Höhe der Waage, ein Buch etwa, damit er "
+        +"weiter die waagerechte Sohle anzeigt. Das andere Bein ist in der Luft, und du nimmst dir über die Hände auf "
         +"einer Auflage so viel Gewicht ab, bis die Anzeige die Zahl zeigt, die auf der Karte steht. "
         +"Einbeinig hält die äußere Hüfte des Standbeins das Becken, wie beim aufrechten Läufer — "
         +"die App legt die beiden nach Möglichkeit nicht auf denselben Tag.",
@@ -1466,9 +1555,19 @@ const DEFAULT_EX = {
      Vorfuss dasselbe, ob er auf dem Boden oder auf einer Erhoehung steht.
      Block und Rolle sind Ausfuehrungsvorschrift, keine Sprosse und kein Geraet
      an der Sprosse — ohne Rolle faellt die Uebung nicht weg. Der Schluessel
-     bleibt handtuch; der Name kommt beim Laden aus DEFAULT_EX (normalize). */
+     bleibt handtuch; der Name kommt beim Laden aus DEFAULT_EX (normalize).
+
+     Seit Build 2026-10-25 a heisst sie "Endgradiges Wadenheben mit
+     Handtuchrolle" — in App, Sicherheitsabfrage, Drive-Datei und Uebersicht
+     gleich (Luke, 25.10.2026). Die Faszienrolle zwischen Knie und Wand ist
+     weg: Bei beiden Wadenheben bleibt das Knie dauerhaft leicht gebeugt, ohne
+     weiteres Hilfsmittel fuer den Kniewinkel. Lukes Begruendung: Die
+     Streckung laesst sich schlecht vorgeben, durchgestreckt zu halten ist zu
+     anstrengend, man beugt ohnehin nach, und mehr Material wuerde die Uebung
+     zu umstaendlich machen. Ob das Knie fuer die Wade gestreckt sein muss,
+     klaert eine eigene Recherche (Recherche_Wade-Kniewinkel.md). */
   handtuch: {
-    name:"Endgradiges Wadenheben mit Faszienrolle", region:"Fußsohle", group:"arch",
+    name:"Endgradiges Wadenheben mit Handtuchrolle", region:"Fußsohle", group:"arch",
     sides:["links","rechts"], seitenParallel:true, nichtMit:["wade"],
     seitenRuf:{links:"LINKES BEIN STEHT", rechts:"RECHTES BEIN STEHT"},
     /* Einbeinig wie beim Wadenheben, beidbeinig nicht — siehe huefteHeute. */
@@ -1492,10 +1591,11 @@ const DEFAULT_EX = {
         +"zusammengerolltes Handtuch, sodass die Zehen nach oben gedrückt bleiben. Nur die "
         +"Ballen tragen, die Zehen liegen auf der Rolle. Diese Zehenstellung ist der ganze Zweck "
         +"der Übung — rutschen die Zehen von der Rolle, trainierst du wieder die Wade statt die "
-        +"Fußsohle. Zwischen Knie und Wand liegt eine Faszienrolle waagerecht, unter den Fersen "
-        +"ein Yogablock flach (etwa 7,5 cm). Gehalten wird OBEN: Du drückst die Ferse so weit "
-        +"hoch, wie das Sprunggelenk hergibt, und die Zehen stehen dabei fast maximal "
-        +"aufgestellt. Die Knie liegen an der Rolle an, ohne dass du dich hineinlehnst. Berührt "
+        +"Fußsohle. Unter den Fersen liegt ein Yogablock flach (etwa 7,5 cm). Gehalten wird "
+        +"OBEN: Du drückst die Ferse so weit hoch, wie das Sprunggelenk hergibt, und die Zehen "
+        +"stehen dabei fast maximal aufgestellt. Das Knie bleibt die ganze Zeit leicht gebeugt. "
+        +"Durchgestreckt hältst du es ohnehin nicht über den ganzen Satz, und mehr Material für "
+        +"den Kniewinkel macht die Übung nur umständlich. Berührt "
         +"die Ferse den Block leicht, drück sie wieder hoch. Liegt sie mit Druck auf dem Block, "
         +"ist der Halt zu Ende. Kein Block da? Ein Stapel Bücher in derselben Höhe geht genauso. "
         +"Das isometrische Wadenheben wird waagerecht gehalten — zusammen decken die beiden zwei "
@@ -1514,7 +1614,7 @@ const DEFAULT_EX = {
     /* Kein seitenHinweis mehr — dieselbe Bewegung wie beim Wadenheben ohne
        Handtuch, also dieselbe Begruendung: siehe seitenParallel. */
     warnung:{
-      titel:"Bevor du das endgradige Wadenheben zum ersten Mal machst",
+      titel:"Bevor du das endgradige Wadenheben mit Handtuchrolle zum ersten Mal machst",
       frage:"Trifft eines davon auf dich zu?",
       punkte:[
         "Der Fersenschmerz ist auch in Ruhe da oder weckt dich nachts",
@@ -1726,7 +1826,7 @@ const UEBUNGSBILDER = {
     alt:"Vier Fotos: Vorfuss auf einer Erhoehung, Handtuchrolle unter den Zehen, Hand an der Stuhllehne; beidbeinig und einbeinig, Ferse unten und oben.",
     unterschriften:[
       ["",    "Handtuchrolle unter die Zehen, nur die Ballen tragen"],
-      ["bad", "Im Original steht der Vorfuß auf einer Erhöhung, und es sind Wiederholungen. Du stehst auf dem Boden, Yogablock unter der Ferse, Faszienrolle zwischen Knie und Wand — einmal hoch und oben bleiben."]
+      ["bad", "Im Original steht der Vorfuß auf einer Erhöhung, und es sind Wiederholungen. Du stehst auf dem Boden, Yogablock unter der Ferse, das Knie leicht gebeugt — einmal hoch und oben bleiben."]
     ],
     quelle:"Originalabbildung aus Rathleff u. a. 2015 — vorläufig, private Nutzung"
   }
@@ -1740,8 +1840,7 @@ const GERAETE = [
    +"feinsten ein, weil die Gurte dir folgen, wenn du dich zurücklehnst.",
    fuer:"Schrägzug — ohne das entfällt die Übung ganz"},
   {id:"rolle", name:"Faszienrolle", was:"Die übliche Schaumstoffrolle.",
-   fuer:"Fersenbrücke, obere Stufen — und die Fersenbrücke fürs innere Knie. Beim "
-       +"endgradigen Wadenheben liegt sie zwischen Knie und Wand."},
+   fuer:"Fersenbrücke, obere Stufen — und die Fersenbrücke fürs innere Knie."},
   /* ruht seit Build 2026-10-15 a: Die Ringe-Sprosse der Fersenbruecke ist raus
      (Luke, 15.10.2026: "zu viel Equipment"), sonst braucht sie niemand. Der
      Haken bleibt gespeichert wie beim Band. */
@@ -1795,7 +1894,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-23 d";
+const BUILD = "2026-10-25 a";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -1839,7 +1938,13 @@ const AW_V = 1;
 /* 35 (23.10.2026, Build d): Hyperextension beginnt am Gurt im Tuerrahmen,
    am Stepper nur noch Haende in der Huefte und vor der Brust, vier Sprossen
    statt sechs. Siehe HYPER_GURT_AT. */
-const EX_VERSION = 35;
+/* 36 (25.10.2026, Build a): Fersenbruecke "Langer Hebel 170°" statt 135 Grad,
+   Gewicht nur noch auf Rolle 170; Hip Hinge mit vier Camporini-Varianten
+   (Premium), der B-Stance rueckt von 5 auf 9; Ausfallschritt mit Gewicht ab
+   "Kniestand · Knie knapp über den Boden" oder, bei eingeschraenkter
+   Kniebeugung, ab dem Stepper; Wadenheben ohne Faszienrolle am Knie.
+   Siehe BRIDGE_170_AT und HINGE_CAMPORINI_AT. */
+const EX_VERSION = 36;
 /* Der Sprung auf 26 setzt die Pausen je Zone NICHT mehr zurueck: Sie sind
    Lukes Einstellung, keine mitgelieferte Uebungsdefinition. Zurueckgesetzt
    wird nur, wer von vor 25 kommt — so wie bisher bei jedem Sprung. */
@@ -1852,7 +1957,8 @@ const BW_DEFAULT = 80;
    ausserhalb 30..200 kg heisst: nicht angegeben — dann bleibt, was da ist. */
 function bwLesen(v){
   const bw = parseFloat(String(v == null ? "" : v).replace(",", "."));
-  return (bw >= 30 && bw <= 200) ? Math.round(bw) : null;
+  /* Auf 0,5 kg genau seit Build 2026-10-25 a, vorher auf ganze Kilo. */
+  return (bw >= 30 && bw <= 200) ? Math.round(bw * 2) / 2 : null;
 }
 /* Fassung, in der sich zuletzt STUFEN einer bestehenden Uebung geaendert haben.
    Nur dann muessen gespeicherte Levels weg — sie zeigen sonst auf eine Leiter,
@@ -2894,6 +3000,86 @@ function hyperGurtVorwahl(vw){
   }
   return Object.assign({}, vw, {je});
 }
+/* ── Fassung 36 (25.10.2026): Fersenbruecke "Langer Hebel 170°" ──────────
+   Die Nummern bleiben. Die ungeraden, bisher Knie 135 Grad, heissen jetzt
+   "Langer Hebel 170°" und tragen eine schwerere Last (siehe bridge in
+   DEFAULT_EX). Luke, 25.10.2026: alte Saetze behalten ihre Last. Saetze auf
+   diesen Nummern bekommen deshalb, wo sie fehlen, die alte Last und den
+   alten Namen und tragen die Marke entfalleneSprosse: Sie bleiben in der
+   Kurve, loeschen aber das Rot der neuen Sprosse nicht. Staende, Vorwahl,
+   Gewicht und ein offener Block bleiben, wo sie sind — wer auf 135 Grad
+   stand, steht danach auf 170 Grad derselben Unterlage, der naechsten
+   schwereren Sprosse. */
+const BRIDGE_170_AT  = 36;
+const BRIDGE_170_ALT = new Map([
+  [1,  ["Beidbeinig · Knie 135° · Stuhlsitz (~45 cm)", 0.159]],
+  [3,  ["Beidbeinig · Knie 135° · Hocker (~30 cm)",    0.182]],
+  [5,  ["Beidbeinig · Knie 135° · Kiste (~20 cm)",     0.209]],
+  [7,  ["Beidbeinig · Knie 135° · Boden",              0.240]],
+  [9,  ["Beidbeinig · Knie 135° · Faszienrolle",       0.276]],
+  [11, ["Knie 135° · Stuhlsitz (~45 cm)",              0.350]],
+  [13, ["Knie 135° · Hocker (~30 cm)",                 0.454]],
+  [15, ["Knie 135° · Kiste (~20 cm)",                  0.542]],
+  [17, ["Knie 135° · Boden",                           0.648]],
+  [19, ["Knie 135° · Faszienrolle",                    0.774]]]);
+function bridge170Objekt(o){
+  if(!o || o.exercise !== "bridge" || !BRIDGE_170_ALT.has(o.level)) return o;
+  const [name, last] = BRIDGE_170_ALT.get(o.level);
+  const neu = {entfalleneSprosse: true};
+  if(!(o.load > 0)) neu.load = last;
+  if(!o.levelName) neu.levelName = name;
+  return Object.assign({}, o, neu);
+}
+function bridge170Lauf(lauf){
+  if(!lauf || !lauf.plan) return lauf;
+  return Object.assign({}, lauf, {fertig: (lauf.fertig || []).map(bridge170Objekt)});
+}
+/* ── Fassung 36 (25.10.2026): Camporini-Varianten im Hip Hinge ───────────
+   Luke, 25.10.2026: Bill Hartmans Camporini-Varianten als zusaetzliche
+   Sprossen, nur Premium. Hinter dem bisherigen Camporini (4) stehen vier
+   weitere mit derselben Last, der B-Stance rueckt von 5 auf 9. Staende,
+   Saetze, offener Lauf und Vorwahl ziehen mit der Nummer um. Das Gewicht
+   haengt beim Hip Hinge an der Nummer (kgJeSprosse), aber nur unterhalb der
+   obersten Sprosse; der B-Stance war oben und bleibt oben, sein Schluessel
+   ohne Nummer bleibt also derselbe. */
+const HINGE_CAMPORINI_AT    = 36;
+const HINGE_CAMPORINI_UMZUG = {5: 9};
+const hingeKey = k => (k === "hinge" || String(k).indexOf("hinge|") === 0);
+function hingeCamporiniUmziehen(lv){
+  const L = Object.assign({}, lv || {});
+  for(const k of Object.keys(L))
+    if(hingeKey(k) && HINGE_CAMPORINI_UMZUG[L[k]] != null) L[k] = HINGE_CAMPORINI_UMZUG[L[k]];
+  return L;
+}
+function hingeCamporiniObjekt(o){
+  if(!o || o.exercise !== "hinge") return o;
+  const um = v => (HINGE_CAMPORINI_UMZUG[v] != null ? HINGE_CAMPORINI_UMZUG[v] : v);
+  const neu = {level: um(o.level)};
+  if(o.levelVorschlag != null) neu.levelVorschlag = um(o.levelVorschlag);
+  if(o.rohStufe != null) neu.rohStufe = um(o.rohStufe);
+  if(o.anker && o.anker.level != null) neu.anker = Object.assign({}, o.anker, {level: um(o.anker.level)});
+  return Object.assign({}, o, neu);
+}
+function hingeCamporiniLauf(lauf){
+  if(!lauf || !lauf.plan) return lauf;
+  return Object.assign({}, lauf, {
+    plan: Object.assign({}, lauf.plan, {blocks: (lauf.plan.blocks || []).map(hingeCamporiniObjekt)}),
+    fertig: (lauf.fertig || []).map(hingeCamporiniObjekt)});
+}
+function hingeCamporiniVorwahl(vw){
+  if(!vw || !vw.je) return vw;
+  const je = {};
+  for(const k of Object.keys(vw.je)){
+    const v = vw.je[k];
+    if(!hingeKey(k) || !v){ je[k] = v; continue; }
+    const n = Object.assign({}, v);
+    if(HINGE_CAMPORINI_UMZUG[v.level] != null) n.level = HINGE_CAMPORINI_UMZUG[v.level];
+    if(v.kg && HINGE_CAMPORINI_UMZUG[v.kg.level] != null)
+      n.kg = Object.assign({}, v.kg, {level: HINGE_CAMPORINI_UMZUG[v.kg.level]});
+    je[k] = n;
+  }
+  return Object.assign({}, vw, {je});
+}
 /* Training ohne Geraete (Build 2026-10-01 b). Steht vor load(), weil
    normalize() den gespeicherten Modus damit prueft. Seit 2026-10-01 c heisst
    der Schalter "Volles Equipment" / "Nur Koerpergewicht", die Wand ist ein
@@ -2974,6 +3160,16 @@ function fresh(){
        unter "lunge" die letzte Eingabe. Siehe stellungPasst, bankCmOf. */
     lungeEng:{},
     bankCm:{},
+    /* Hip Hinge (Build 2026-10-25 a): die gewaehlte Camporini-Variante je
+       Seite, {"hinge|links": 7}. Siehe gruppeGewaehlt. */
+    variante:{},
+    /* Kniebeugung aus dem Onboarding (Build 2026-10-25 a): null (nicht
+       beantwortet, gilt wie "normal"), "normal", "schmerz" oder "tiefe" —
+       die beiden letzten heissen eingeschraenkt (KNIEBEUGUNG_ANTWORTEN). Dazu
+       je Seite die tiefste Sprosse, bis zu der die App den Ausfallschritt
+       plant, {"lunge|links": 4}. Siehe tiefePasst. */
+    kniebeugung:null,
+    lungeTiefe:{},
     /* Ohne Pause, je Gruppe (Luke, 16.10.2026) — siehe ohnePause(). */
     ohnePause:{},
     sessions:[], plan:null, redflag:false,
@@ -3006,6 +3202,8 @@ function normalize(d){
   const plankWand     = !leitersturz && (d.exVersion || 1) < PLANK_WAND_AT;
   const lungeEng      = !leitersturz && (d.exVersion || 1) < LUNGE_ENG_AT;
   const hyperGurt     = !leitersturz && (d.exVersion || 1) < HYPER_GURT_AT;
+  const bridge170     = !leitersturz && (d.exVersion || 1) < BRIDGE_170_AT;
+  const hingeCampo    = !leitersturz && (d.exVersion || 1) < HINGE_CAMPORINI_AT;
   /* Seitstuetz an der Wand: Die Vorwahl zieht nur hier um, Sitzungen und
      Lauf in den Ketten unten (innerste Zeile, der Umzug fasst nur plank an). */
   if(plankWand && d.vorwahl) d = Object.assign({}, d, {vorwahl: plankWandVorwahl(d.vorwahl)});
@@ -3017,13 +3215,16 @@ function normalize(d){
   if(lungeEng && d.vorwahl) d = Object.assign({}, d, {vorwahl: lungeEngVorwahl(d.vorwahl)});
   /* Hyperextension am Gurt: Sitzungen und Lauf in den Ketten unten, ganz aussen. */
   if(hyperGurt && d.vorwahl) d = Object.assign({}, d, {vorwahl: hyperGurtVorwahl(d.vorwahl)});
+  /* Hip Hinge mit Camporini-Varianten: ebenso, ganz aussen. */
+  if(hingeCampo && d.vorwahl) d = Object.assign({}, d, {vorwahl: hingeCamporiniVorwahl(d.vorwahl)});
   const ex = stale ? structuredClone(DEFAULT_EX)
                    : Object.assign(structuredClone(DEFAULT_EX), d.ex || {});
   /* Name und Sicherheitsfrage kommen immer aus dem Build: Beide lassen sich
      in der App nicht bearbeiten, und ohne das truege eine gespeicherte Uebung
      nach einer Umbenennung den alten Namen weiter (Wadenheben mit
      Handtuchrolle -> Endgradiges Wadenheben mit Faszienrolle, Build
-     2026-10-22 a). So braucht eine Umbenennung keinen Sprung von EX_VERSION,
+     2026-10-22 a -> Endgradiges Wadenheben mit Handtuchrolle, Build
+     2026-10-25 a). So braucht eine Umbenennung keinen Sprung von EX_VERSION,
      der die selbst benannten Stufen loeschen wuerde. */
   for(const k of Object.keys(DEFAULT_EX)) if(ex[k]){
     ex[k].name = DEFAULT_EX[k].name;
@@ -3065,6 +3266,7 @@ function normalize(d){
   if(plankWand) roh.levels = plankWandUmziehen(roh.levels);
   if(lungeEng) roh.levels = lungeEngUmziehen(roh.levels);
   if(hyperGurt) roh.levels = hyperGurtUmziehen(roh.levels);
+  if(hingeCampo) roh.levels = hingeCamporiniUmziehen(roh.levels);
   const umzug  = beidUmzug(ex, roh.levels, roh.extra,
                            leitersturz ? {} : (d.streak || {}));
   /* Nach beidUmzug: Erst dann stehen alle Wadenschluessel je Seite. */
@@ -3128,7 +3330,9 @@ function normalize(d){
                                        einen Wand-Sitzung richtigstellen
                                        (LUNGE_WAND_MESS_AT) — sie laeuft auf
                                        der schon umgezogenen Nummer. */
-                                    sessions: (ses => hyperGurt ? ses.map(o => hyperGurtObjekt(o)) : ses)(
+                                    sessions: (ses => hingeCampo ? ses.map(hingeCamporiniObjekt) : ses)(
+                                              (ses => bridge170 ? ses.map(bridge170Objekt) : ses)(
+                                              (ses => hyperGurt ? ses.map(o => hyperGurtObjekt(o)) : ses)(
                                               (ses => lungeEng ? ses.map(o => lungeEngObjekt(o)) : ses)(
                                               (ses => lungeGanz ? ses.map(o => lungeGanzObjekt(o)) : ses)(
                                               (ses => knieFerse ? ses.map(o => bridgeKnieObjekt(o)) : ses)(
@@ -3143,7 +3347,7 @@ function normalize(d){
                                                 (ses => lungeUmzug ? lungeSessions(ses) : ses)(
                                                   (ses => plankWand ? ses.map(o => plankWandObjekt(o)) : ses)(
                                                   rowSkala ? rowSkalaVerwerfen(d.sessions)
-                                                           : (d.sessions || []))))))))))))))),
+                                                           : (d.sessions || []))))))))))))))))),
                                     sync: d.sync || {},
                                     /* Zugpunkt ist voreingestellt an — eine stabile
                                        Tischkante reicht und hat praktisch jeder. Rolle und
@@ -3164,7 +3368,9 @@ function normalize(d){
                                     gefragt: d.gefragt || {},
                                     /* Ein angefangener Lauf ueberlebt das Neuladen. */
                                     lauf: (d.lauf && d.lauf.plan)
-                                          ? (l => hyperGurt ? hyperGurtLauf(l) : l)(
+                                          ? (l => hingeCampo ? hingeCamporiniLauf(l) : l)(
+                                            (l => bridge170 ? bridge170Lauf(l) : l)(
+                                            (l => hyperGurt ? hyperGurtLauf(l) : l)(
                                             (l => lungeEng ? lungeEngLauf(l) : l)(
                                             (l => lungeGanz ? lungeGanzLauf(l) : l)(
                                             (l => knieFerse ? bridgeKnieLauf(l) : l)(
@@ -3178,7 +3384,7 @@ function normalize(d){
                                             (l => waageUmzug ? wadeWaageLauf(l, bwAlt, ex.wade) : l)(
                                               (l => rucksackUmzug ? wadeRucksackLauf(l, waageLo) : l)(
                                               (l => plankWand ? plankWandLauf(l) : l)(
-                                              wadeUmzug ? wadeLauf(d.lauf, bwAlt) : d.lauf))))))))))))))
+                                              wadeUmzug ? wadeLauf(d.lauf, bwAlt) : d.lauf))))))))))))))))
                                           : null,
                                     lage: knie ? knie.lage : (d.lage || {}),
                                     haltung: (d.haltung && typeof d.haltung === "object")
@@ -3189,6 +3395,12 @@ function normalize(d){
                                               ? d.lungeEng : {},
                                     bankCm: (d.bankCm && typeof d.bankCm === "object")
                                             ? d.bankCm : {},
+                                    variante: (d.variante && typeof d.variante === "object")
+                                              ? d.variante : {},
+                                    kniebeugung: KNIEBEUGUNG_ANTWORTEN.some(a => a.id === d.kniebeugung)
+                                                 ? d.kniebeugung : null,
+                                    lungeTiefe: (d.lungeTiefe && typeof d.lungeTiefe === "object")
+                                                ? d.lungeTiefe : {},
                                     extra: umzug.extra,
                                     bw: (d.bw > 0 ? d.bw : BW_DEFAULT),
                                     levels: umzug.levels,
@@ -4012,6 +4224,9 @@ function points(ex, side){
    damit von selbst auf der Kurve und prueft den neuen Wert nicht. */
 const VORLAEUFIG_SATZ = "Sprossenwert noch vorläufig, muss noch gemessen werden";
 const VORLAEUFIG_KURZ = " · vorläufig";
+/* Gesperrte Premium-Sprosse in der Auswahlliste (Build 2026-10-25 a). Luke,
+   25.10.2026: ausgeschrieben, ohne Kuerzel. */
+const PREMIUM_GESPERRT = " · im Medical Fitness System freigeschaltet";
 /* Yogablock unter den Sitzbeinen, Fersenbruecke (Luke, 16.10.2026). Die
    Sprosse traegt nur die Stellung, der Satz steht hier: Block 22,5 x 12 x
    7,5 cm. Wie VORLAEUFIG_SATZ aus DEFAULT_EX, nie aus dem gespeicherten
@@ -4382,9 +4597,13 @@ function stufeOrt(ex, i){
 }
 /* Die eine Pruefung, ob eine Sprosse heute ausfuehrbar ist. Ohne Modus wie
    bisher: das Geraet ist angehakt. */
-function stufeErlaubt(ex, i){
+function stufeErlaubt(ex, i, mitPremium){
   const L = S.ex[ex] && S.ex[ex].levels[i];
   if(!L) return false;
+  /* Premium-Sprossen (Camporini-Varianten, Build 2026-10-25 a): ohne Premium
+     nicht ausfuehrbar, in der Auswahlliste gesperrt sichtbar (mitPremium:
+     waere sie es mit Premium?). */
+  if(L.premium && !premiumAn() && !mitPremium) return false;
   if(!ohneGeraete()) return geraetDa(L.geraet);
   if(L.geraet) return false;
   const o = stufeOrt(ex, i);
@@ -4405,9 +4624,22 @@ function stufeErlaubt(ex, i){
    Sprossen. Fuer jede Uebung ohne stellung geben die Helfer dasselbe zurueck
    wie die Rechnung davor. */
 function engGewaehlt(ex, side){ return !!(S.lungeEng && S.lungeEng[keyOf(ex, side)]); }
+/* Gruppe gleicher Last (Camporini-Varianten im Hip Hinge, Build 2026-10-25 a):
+   Je Seite gilt EINE Sprosse der Gruppe — die gewaehlte (S.variante), solange
+   sie ausfuehrbar ist, sonst die erste ausfuehrbare. -1: keine. Damit sehen
+   Planer, Regeln und Schrittdeckel die Gruppe als eine Stufe. */
+function gruppeGewaehlt(ex, side, gruppe){
+  const lv = (S.ex[ex] && S.ex[ex].levels) || [];
+  const frei = i => !!lv[i] && lv[i].gruppe === gruppe && stufeErlaubt(ex, i);
+  const v = S.variante && S.variante[keyOf(ex, side)];
+  if(Number.isInteger(v) && frei(v)) return v;
+  return lv.findIndex((L, i) => frei(i));
+}
 function stellungPasst(ex, i, side){
   const L = S.ex[ex] && S.ex[ex].levels[i];
-  if(!L || !L.stellung || side === undefined) return true;
+  if(!L || side === undefined) return true;
+  if(L.gruppe) return i === gruppeGewaehlt(ex, side, L.gruppe);
+  if(!L.stellung) return true;
   return L.stellung === (engGewaehlt(ex, side) ? "eng" : "normal");
 }
 /* Die Sprosse derselben Tiefe in der anderen Stellung. */
@@ -4419,9 +4651,13 @@ function stellungPartner(ex, i){
   const j = lv.findIndex(x => x.name === name);
   return j >= 0 ? j : i;
 }
-/* Steht i in der falschen Stellung, die Partner-Sprosse, sonst i. */
+/* Steht i in der falschen Stellung, die Partner-Sprosse, sonst i. In einer
+   Gruppe die gewaehlte Sprosse der Gruppe. */
 function aufStellung(ex, i, side){
-  return stellungPasst(ex, i, side) ? i : stellungPartner(ex, i);
+  if(stellungPasst(ex, i, side)) return i;
+  const L = S.ex[ex] && S.ex[ex].levels[i];
+  if(L && L.gruppe){ const g = gruppeGewaehlt(ex, side, L.gruppe); return g >= 0 ? g : i; }
+  return stellungPartner(ex, i);
 }
 /* Abstand in Sprossen der eigenen Stellung — fuer den Schrittdeckel
    MAX_SPRUNG. Sonst kaeme der Ausfallschritt je Workout nur halb so weit wie
@@ -4444,6 +4680,66 @@ function sprosseUnter(ex, i, side){
   let j = aufStellung(ex, i, side) - 1;
   while(j > 0 && !stellungPasst(ex, j, side)) j--;
   return j;
+}
+/* ── Kniebeugung (Build 2026-10-25 a) ──────────────────────────────────────
+   Luke, 25.10.2026, ein Selbsttest im Onboarding (KNIEBEUGUNG_FRAGE). Das
+   Ergebnis steuert, wo der Ausfallschritt Gewicht traegt. Grundsatz: "Zuerst
+   wird über die Position und Tiefe gesteigert, erst dann über Gewicht."
+   - Normalfall, und ohne Antwort: Gewicht nur auf "Knie knapp ueber den
+     Boden", normal und eng, und auf der Bank (extraAb 8).
+   - Eingeschraenkt ("Nur mit Schmerzen oder Ziehen", "Nein, ich komme nicht
+     so tief"): "Gewicht ist schon auf der tiefsten Stepperhöhe freigegeben,
+     die die Person schafft. Sie steigert über Gewicht und, wo möglich,
+     weiter über die Tiefe. Sie bleibt also nicht stehen." Gewicht ab den
+     Stepperhoehen (extraAbEingeschraenkt 2), und die App plant je Seite nur
+     bis zu einer Tiefengrenze (S.lungeTiefe), zu Beginn bis zur tiefsten
+     Stepperhoehe, 1 Stufe (kniebeugungBis 6). Auf der Grenze ist die Leiter
+     fuer Planer und Regeln zu Ende: Dort traegt das Gewicht die Zone
+     (gewichtFolgt), und Erschweren legt Gewicht auf, statt tiefer zu gehen.
+   Die Grenze bewegt sich auf zwei Wegen. Geht die Seite wegen Schmerz eine
+   Stufe zurueck (Regel 1, Schmerzwert ab 7), wird die neue Sprosse die
+   Grenze (tiefeLernen) — dann ist das die tiefste, die die Person schafft.
+   Waehlt der Nutzer in der Liste eine tiefere Sprosse, wird sie die Grenze
+   (wahlMerken) — das ist "wo möglich, weiter über die Tiefe". */
+const KNIEBEUGUNG_FRAGE = "Geh in einen Ausfallschritt und senk das hintere Knie langsam ab. "
+  + "Kommst du so tief, dass das Knie knapp über dem Boden schwebt, ohne dass es dabei mehr "
+  + "als leicht zieht?";
+const KNIEBEUGUNG_ANTWORTEN = [
+  {id:"normal",  text:"Ja, ohne Probleme"},
+  {id:"schmerz", text:"Nur mit Schmerzen oder Ziehen", eingeschraenkt:true},
+  {id:"tiefe",   text:"Nein, ich komme nicht so tief", eingeschraenkt:true}];
+function kniebeugungEingeschraenkt(){
+  const a = KNIEBEUGUNG_ANTWORTEN.find(x => x.id === S.kniebeugung);
+  return !!(a && a.eingeschraenkt);
+}
+/* Die tiefste Sprosse, bis zu der die App diese Seite plant, samt ihrer
+   Partnerin in der anderen Stellung. Infinity: keine Grenze. */
+function lungeTiefeOf(ex, side){
+  const bis = (DEFAULT_EX[ex] || {}).kniebeugungBis;
+  if(bis == null || side == null || !kniebeugungEingeschraenkt()) return Infinity;
+  const v = S.lungeTiefe && S.lungeTiefe[keyOf(ex, side)];
+  const i = Number.isInteger(v) ? v : bis;
+  return Math.max(i, stellungPartner(ex, i));
+}
+function tiefePasst(ex, i, side){ return i <= lungeTiefeOf(ex, side); }
+/* Schmerz hat die Seite auf Sprosse i zurueckgesetzt: Liegt i in einer
+   Stellung (Kniestand, nicht Wand), wird sie die neue Grenze. Die Grenze
+   sinkt nur. */
+function tiefeLernen(ex, side, i){
+  const g = lungeTiefeOf(ex, side);
+  const L = S.ex[ex] && S.ex[ex].levels[i];
+  if(g === Infinity || !L || !L.stellung || i >= g) return;
+  if(!S.lungeTiefe) S.lungeTiefe = {};
+  S.lungeTiefe[keyOf(ex, side)] = i;
+}
+/* Neue Antwort: Die gelernten Grenzen gelten nicht mehr, der Plan von heute
+   wird neu gerechnet. */
+function kniebeugungSetzen(id){
+  if(!KNIEBEUGUNG_ANTWORTEN.some(a => a.id === id) || S.kniebeugung === id) return;
+  S.kniebeugung = id;
+  S.lungeTiefe = {};
+  S.plan = null; S.planDay = null;
+  save();
 }
 /* ── Bank-Sprosse: die Last folgt aus der eingetragenen Hoehe ─────────────
    Luke, 23.10.2026: Hoehe messen und an der Sprosse eintragen, die Last
@@ -4545,7 +4841,43 @@ function geraetName(id){ const g = GERAETE.find(x => x.id === id); return g ? g.
 function verfuegbareStufen(ex, side){
   const lv = (S.ex[ex] && S.ex[ex].levels) || [];
   return lv.map((L, i) => Object.assign({i}, L))
-           .filter(L => stufeErlaubt(ex, L.i) && stellungPasst(ex, L.i, side));
+           .filter(L => stufeErlaubt(ex, L.i) && stellungPasst(ex, L.i, side) && tiefePasst(ex, L.i, side));
+}
+/* Die Auswahlliste einer Seite: die Sprossen, die der Planer nimmt, dazu
+   beim Ausfallschritt mit eingeschraenkter Kniebeugung die tieferen (wer eine
+   davon waehlt, verschiebt die Grenze, siehe wahlMerken) und in einer Gruppe
+   alle ihre Sprossen — ohne Premium die Premium-Sprossen gesperrt. */
+function stufenZurWahl(ex, side){
+  const lv = (S.ex[ex] && S.ex[ex].levels) || [];
+  const liste = stufenFuerSeite(ex, side).slice();
+  const grenze = lungeTiefeOf(ex, side);
+  if(grenze < Infinity) lv.forEach((L, i) => {
+    if(i > grenze && stufeErlaubt(ex, i) && stellungPasst(ex, i, side)) liste.push(Object.assign({i}, L));
+  });
+  const aus = [];
+  for(const x of liste){
+    if(!x.gruppe){ aus.push(x); continue; }
+    lv.forEach((L, j) => {
+      if(L.gruppe === x.gruppe && stufeErlaubt(ex, j, true))
+        aus.push(Object.assign({i: j, gesperrt: !stufeErlaubt(ex, j)}, L));
+    });
+  }
+  return aus.sort((a, b) => a.i - b.i);
+}
+/* Merkt, was eine Wahl in der Liste ueber die Seite sagt: die Variante einer
+   Gruppe und beim Ausfallschritt die neue Tiefengrenze. Danach stufeSetzen. */
+function wahlMerken(q, k){
+  const L = S.ex[q.exercise] && S.ex[q.exercise].levels[k];
+  if(!L || q.side == null) return;
+  const key = keyOf(q.exercise, q.side);
+  if(L.gruppe && stufeErlaubt(q.exercise, k)){
+    if(!S.variante) S.variante = {};
+    S.variante[key] = k;
+  }
+  if(k > lungeTiefeOf(q.exercise, q.side)){
+    if(!S.lungeTiefe) S.lungeTiefe = {};
+    S.lungeTiefe[key] = k;
+  }
 }
 /* Lastverhaeltnis zwischen oberster und unterster verfuegbarer Sprosse.
    Zusatzgewicht taucht hier nicht auf: es skaliert ALLE Sprossen gleich und
@@ -5280,6 +5612,10 @@ function ohneZusatz(ex){
 function extraAbOf(ex){
   const e = S.ex[ex];
   if(ohneZusatz(ex)) return e.levels.length;
+  /* Ausfallschritt bei eingeschraenkter Kniebeugung: Gewicht schon ab den
+     Stepperhoehen (Build 2026-10-25 a, siehe kniebeugungEingeschraenkt). */
+  const d = DEFAULT_EX[ex] || {};
+  if(d.extraAbEingeschraenkt != null && kniebeugungEingeschraenkt()) return d.extraAbEingeschraenkt;
   return (e && e.extraAb != null) ? e.extraAb : e.levels.length - 1;
 }
 /* Spanne, Schrittweite und Richtung des Zusatzgewichts — je Uebung. Der
@@ -5491,8 +5827,11 @@ function kgJeSprosse(ex){
 }
 function kgKey(ex, key, level){
   const e = S.ex[ex];
-  return (e && e.kgJeSprosse && level >= extraAbOf(ex) && level < e.levels.length - 1)
-    ? `${key}#${level}` : key;
+  if(!(e && e.kgJeSprosse && level >= extraAbOf(ex) && level < e.levels.length - 1)) return key;
+  /* Eine Gruppe gleicher Last teilt sich ein Feld, das ihrer ersten Sprosse:
+     Wer die Camporini-Variante wechselt, haelt dieselbe Hantel. */
+  const g = (e.levels[level] || {}).gruppe;
+  return `${key}#${g ? e.levels.findIndex(x => x.gruppe === g) : level}`;
 }
 /* Das Gewicht, das auf dieser Sprosse gemerkt ist — unter extraAb keins. */
 function kgAufStufe(ex, key, level){
@@ -6341,6 +6680,7 @@ function applyRules(session, etikett){
     msgs.push({t:"warn", x:`${etikett}: Satz bei Schmerz beendet. Neue Vorgabe ist ${fmt(first.time)} — nicht mehr.`});
     if(st.pain >= PAIN_BACK){
       const wie = erleichtern(); st.pain = 0;
+      if(wie === "stufe") tiefeLernen(session.exercise, session.side, lvNow());
       msgs.push({t:"bad", x: wie === "gewicht"
         ? `Zweimal hintereinander Schmerzabbruch → ${komma(schrittNow(),1)} kg weniger, jetzt „${wieJetzt()}".`
         : wie === "stufe"
@@ -6908,8 +7248,9 @@ function stufeSetzen(bl, k){
 }
 function gewichtSetzen(bl, v){
   const b = extraBereich(bl.exercise, bl.level);
-  const kg = Math.max(b.lo, Math.min(b.hi,
-    Math.round(Math.round((+v || 0) / b.schritt) * b.schritt * 10) / 10));
+  /* Von Hand auf 0,5 kg genau (Luke, 25.10.2026), bis Build 2026-10-23 d aufs
+     Raster der Uebung. */
+  const kg = Math.max(b.lo, Math.min(b.hi, Math.round(kgRunden(+v || 0) * 10) / 10));
   /* Der beidbeinige Halt gehoert beiden Seiten — und bis Build c trug er kein
      Gewicht, deshalb stand hier nur EIN Schluessel, und zwar "wade" ohne
      Seite, den beim Planen niemand liest. */
@@ -7084,6 +7425,32 @@ function warnKarte(i, bl, ex){
     blockIntro(Math.min(i, RUN.plan.blocks.length - 1));
   };
 }
+/* Die Frage aus dem Onboarding, falls sie dort offen blieb (Build
+   2026-10-25 a). Wie warnKarte: blockIntro ruft sie, sie ruft blockIntro
+   zurueck. Die Bloecke des Ausfallschritts ruecken danach auf das, was die
+   Antwort erlaubt (Tiefengrenze, Gewicht ab welcher Sprosse). */
+function kniebeugungKarte(i, bl){
+  show("home");
+  el("homeTitle").textContent = "Bevor du den Ausfallschritt machst";
+  el("homeSub").textContent = labelOf(bl.exercise, bl.side, bl.level);
+  el("homeBody").innerHTML = `
+    <div class="card">
+      <p style="margin-top:0"><b>${KNIEBEUGUNG_FRAGE}</b></p>
+      ${KNIEBEUGUNG_ANTWORTEN.map(a => `<button style="width:100%;margin-top:8px;padding:14px;
+        text-align:left" data-kb="${a.id}">${a.text}</button>`).join("")}
+    </div>`;
+  document.querySelectorAll("#homeBody [data-kb]").forEach(b => {
+    b.onclick = () => {
+      kniebeugungSetzen(b.getAttribute("data-kb"));
+      for(const q of RUN.plan.blocks.slice(i)) if(q.exercise === bl.exercise){
+        const neu = naechsteVerfuegbare(q.exercise, q.level, q.side);
+        if(!q.userPicked) q.levelVorschlag = neu;
+        stufeSetzen(q, neu);
+      }
+      laufSichern(); blockIntro(i);
+    };
+  });
+}
 /* Alle Bloecke einer Uebung aus einem laufenden Plan nehmen. */
 function bloeckeOhne(blocks, ex){ return blocks.filter(b => b.exercise !== ex); }
 
@@ -7237,12 +7604,59 @@ function satzKurveSVG(zeiten, zone){
    dieselben Funktionen (stufeSetzen, gewichtSetzen, lageSetzen, zielNeu).
    mitKurve: die Satzkurve, nur auf der Karte. In der Liste machte sie jede
    Zeile doppelt so hoch, und die Zielzeit steht ohnehin im Kopf. */
+/* ── Gewichtswahl (Build 2026-10-25 a) ──────────────────────────────────
+   Luke, 25.10.2026: "Bedienung nur über Slider plus Plus-/Minus-Tasten an
+   der Seite. Der Slider ist für schnelle Sprünge in 5er- und 10er-Schritten,
+   die Tasten für die Feineinstellung auf 0,5 kg genau. Keine zusätzlichen
+   Buttons, das Menü nicht überladen. Gilt auch für die Eingabe des
+   Körpergewichts." Der Schieber rastet auf vollen Fuenfern, die Tasten gehen
+   einen halben Kilo. Planer und Regeln schlagen weiter im Raster der Uebung
+   vor (ZUSATZ_SCHRITT), nur die Hand ist feiner.
+   Der Regler traegt Wert und Grenzen selbst (data-wert, data-lo, data-hi);
+   kgReglerBinden ruft setzen(v) mit dem neuen Wert in Anzeige-Kilo. Waehrend
+   des Schiebens wird nur die Zahl daneben ([data-kgw]) nachgefuehrt, gesetzt
+   wird beim Loslassen — sonst zeichnete jede Rast die Liste neu und risse
+   dem Finger den Schieber weg. */
+const KG_FEIN = 0.5, KG_GROB = 5;
+function kgRunden(v){ return Math.round(v / KG_FEIN) * KG_FEIN; }
+function kgText(v){ return String(Math.round(v * 10) / 10).replace(".", ",") + " kg"; }
+function kgReglerHTML(wert, lo, hi, attrs, aria){
+  const sLo = Math.floor(lo / KG_GROB) * KG_GROB, sHi = Math.ceil(hi / KG_GROB) * KG_GROB;
+  return `<div class="kgr" ${attrs || ""} data-wert="${wert}" data-lo="${lo}" data-hi="${hi}">
+    <button class="ghost" type="button" data-kgr="-" aria-label="${aria}: 0,5 kg weniger"${
+      wert <= lo ? " disabled" : ""}>−</button>
+    <input type="range" min="${sLo}" max="${sHi}" step="${KG_GROB}" value="${wert}"
+      aria-label="${aria}">
+    <button class="ghost" type="button" data-kgr="+" aria-label="${aria}: 0,5 kg mehr"${
+      wert >= hi ? " disabled" : ""}>+</button>
+  </div>`;
+}
+function kgReglerBinden(kgr, setzen){
+  const lo = +kgr.dataset.lo, hi = +kgr.dataset.hi;
+  const r = kgr.querySelector("input[type=range]");
+  const minus = kgr.querySelector('[data-kgr="-"]'), plus = kgr.querySelector('[data-kgr="+"]');
+  const anzeige = kgr.parentNode && kgr.parentNode.querySelector("[data-kgw]");
+  const klemm = v => Math.max(lo, Math.min(hi, kgRunden(+v || 0)));
+  const zeigen = v => {
+    if(anzeige) anzeige.textContent = kgText(v);
+    minus.disabled = v <= lo; plus.disabled = v >= hi;
+  };
+  const neu = v => {
+    v = klemm(v);
+    kgr.dataset.wert = v; r.value = v; zeigen(v);
+    setzen(v);
+  };
+  minus.onclick = () => neu(+kgr.dataset.wert - KG_FEIN);
+  plus.onclick  = () => neu(+kgr.dataset.wert + KG_FEIN);
+  r.oninput  = () => zeigen(klemm(r.value));
+  r.onchange = () => neu(r.value);
+}
 function teilHTML(q, t, mitKurve){
   const ex = S.ex[q.exercise];
   const zE     = ZONES.find(z => z.id === (q.zoneErwartet || q.zone)) || ZONES[0];
   /* Die beidbeinige Sprosse gehoert auf einen Block OHNE Seite und dort
      allein — sonst stuende "beidbeinig" unter "links". */
-  const stufen = stufenFuerSeite(q.exercise, q.side);
+  const stufen = stufenZurWahl(q.exercise, q.side);
   const eb     = extraBereich(q.exercise, q.level);
   const mitKg  = q.level >= extraAbOf(q.exercise) && eb.hi > eb.lo;
   /* Zwei Richtungen: die Seite kommt in die drei Knoepfe, der Stepper traegt
@@ -7284,8 +7698,9 @@ function teilHTML(q, t, mitKurve){
       data-t="${t}" data-eng${engGewaehlt(q.exercise, q.side) ? " checked" : ""}><span>${
       STELLUNG_ENG_TEXT}</span></label>` : ""}
     ${stufen.length < 2 ? "" : `<select data-t="${t}" data-a="stufe" aria-label="Variante">${
-      stufen.map(st => `<option value="${st.i}"${st.i === q.level ? " selected" : ""}>${
-        st.name}${sprosseVorlaeufig(q.exercise, st.i) ? VORLAEUFIG_KURZ : ""}</option>`).join("")}</select>`}
+      stufen.map(st => `<option value="${st.i}"${st.i === q.level ? " selected" : ""}${
+        st.gesperrt ? " disabled" : ""}>${st.name}${st.gesperrt ? PREMIUM_GESPERRT
+        : (sprosseVorlaeufig(q.exercise, st.i) ? VORLAEUFIG_KURZ : "")}</option>`).join("")}</select>`}
     ${sprosseVorlaeufig(q.exercise, q.level)
       ? `<p class="tiny vorl" style="margin:5px 0 0">${VORLAEUFIG_SATZ}</p>` : ""}
     ${blockSatz(q.exercise, q.level)
@@ -7301,13 +7716,12 @@ function teilHTML(q, t, mitKurve){
         <input type="number" inputmode="numeric" min="${BANK_MIN}" max="${BANK_MAX}" step="1"
           data-t="${t}" data-bank value="${bankCmOf(q.exercise, q.side)}"
           aria-label="Höhe der Auflage in cm"><span class="tiny" style="flex:0">cm</span></div>` : ""}
-      ${(mitKg && !(zwei && !q.extra)) ? `<div class="stp"><span class="tiny">${
+      ${(mitKg && !(zwei && !q.extra)) ? `<div class="stp kg"><span class="tiny">${
         waage ? "Waage zeigt"
               : (((q.extra || 0) > 0 && !lg && lageOf(q.exercise, q.side))
                   ? lageOf(q.exercise, q.side).label : extraLabelVon(q.exercise))}</span>
-        ${knopf("kg-", "−", kgNow <= kgLo, "weniger Gewicht")}
-        <b>${String(kgNow).replace(".", ",")} kg</b>
-        ${knopf("kg+", "+", kgNow >= kgHi, "mehr Gewicht")}</div>` : ""}
+        <b data-kgw>${kgText(kgNow)}</b>
+        ${kgReglerHTML(kgNow, kgLo, kgHi, `data-t="${t}"`, "Gewicht")}</div>` : ""}
       <div class="stp"><span class="tiny">Sätze</span>
         ${knopf("s-", "−", q.saetze <= SETS_MIN, "weniger Sätze")}
         <b>${q.saetze}</b>
@@ -7322,25 +7736,28 @@ function teilHTML(q, t, mitKurve){
 function teilBinden(wurzel, teile, neu){
   document.querySelectorAll(`#${wurzel} [data-a]`).forEach(b => {
     const q = teile[+b.getAttribute("data-t")], a = b.getAttribute("data-a");
-    if(a === "stufe"){ b.onchange = e => { stufeSetzen(q, +e.target.value); neu(q, "stufe"); }; return; }
+    if(a === "stufe"){ b.onchange = e => { wahlMerken(q, +e.target.value); stufeSetzen(q, +e.target.value);
+                                           neu(q, "stufe"); }; return; }
     b.onclick = () => {
-      if(a === "s-" || a === "s+"){
-        q.saetze = Math.max(SETS_MIN, Math.min(SETS_MAX, q.saetze + (a === "s+" ? 1 : -1)));
-      } else {
-        const ex   = S.ex[q.exercise];
-        const eb   = extraBereich(q.exercise, q.level);
-        const zwei = !!(ex.extraSeiten && eb.lo < 0 && eb.hi > 0);
-        const vz   = (q.extra || 0) < 0 ? -1 : 1;
-        /* Die Waage-Anzeige zaehlt vorzeichenrichtig: plus heisst mehr auf
-           der Waage, also weniger Entlastung. */
-        const waage = zwei && !!ex.extraSeiten.waage && vz < 0;
-        const betrag = (zwei && !waage ? Math.abs(q.extra || 0) : (q.extra || 0))
-                     + (a === "kg+" ? eb.schritt : -eb.schritt);
-        gewichtSetzen(q, waage ? Math.min(0, betrag)
-                               : (zwei ? vz * Math.max(0, betrag) : betrag));
-      }
-      neu(q, (a === "s-" || a === "s+") ? "saetze" : "kg");
+      q.saetze = Math.max(SETS_MIN, Math.min(SETS_MAX, q.saetze + (a === "s+" ? 1 : -1)));
+      neu(q, "saetze");
     };
+  });
+  /* Der Regler liefert, was die Anzeige zeigt. Zurueck in bl.extra: */
+  document.querySelectorAll(`#${wurzel} .kgr[data-t]`).forEach(k => {
+    const q = teile[+k.getAttribute("data-t")];
+    kgReglerBinden(k, v => {
+      const ex   = S.ex[q.exercise];
+      const eb   = extraBereich(q.exercise, q.level);
+      const zwei = !!(ex.extraSeiten && eb.lo < 0 && eb.hi > 0);
+      const vz   = (q.extra || 0) < 0 ? -1 : 1;
+      /* Die Waage-Anzeige zaehlt vorzeichenrichtig: mehr auf der Waage heisst
+         weniger Entlastung. Sie zeigt Koerpergewicht plus bl.extra. */
+      const waage = zwei && !!ex.extraSeiten.waage && vz < 0;
+      const bwK   = (S.bw > 0 ? S.bw : BW_DEFAULT);
+      gewichtSetzen(q, waage ? Math.min(0, v - bwK) : (zwei ? vz * Math.max(0, v) : v));
+      neu(q, "kg");
+    });
   });
   /* Die drei Knoepfe setzen nur die Seite. Der Betrag bleibt, was er war —
      wer von "freie Seite" auf "Standbeinseite" wechselt, haengt dieselbe
@@ -7418,6 +7835,10 @@ function blockIntro(i){
   /* Der Baker-Pfad ist ein Teil der Fersenbruecke: Ihre Frage gilt fuer ihn mit. */
   const einheit = einheitVon(bl.exercise), wEx = S.ex[einheit] || ex;
   if(wEx.warnung && !S.gefragt[einheit]){ warnKarte(i, bl, wEx); return; }
+  /* Kniebeugung im Onboarding offen gelassen: einmal vor dem Ausfallschritt. */
+  if((DEFAULT_EX[bl.exercise] || {}).kniebeugungBis != null && S.kniebeugung == null){
+    kniebeugungKarte(i, bl); return;
+  }
   /* Kurzeinheit: die Minute vor diesem Block, oben auf der Karte. Sie laeuft
      nur ab und sperrt nichts — gestartet wird per Tipp, auch vorher. Bei 0
      ein Ton. Nach einer langen Unterbrechung ist sie laengst um und fehlt.
@@ -7970,6 +8391,7 @@ function finishWorkout(){
            darunter die andere Stellung derselben Tiefe. */
         if(!ohneGeraete()) S.levels[k] = sprosseUnter(ses.exercise, standOf(k), sk);
         else if(tiefer) S.levels[k] = tiefer.i;
+        tiefeLernen(ses.exercise, sk, S.levels[k]);
         if(S.streak[k]) S.streak[k].gut = 0;
       }
       /* Im Modus ohne Geraete auch die geparkte Heimsprosse: Schmerz ist ein
@@ -8068,6 +8490,7 @@ function gewichtAchse(ex, side){
 /* Warum eine Sprosse ausgegraut ist. Vorher stand dort die rohe Kennung
    ("zug fehlt"). */
 function fehltText(l, i){
+  if(l.premium && !premiumAn()) return PREMIUM_GESPERRT.replace(" · ", "");
   if(ohneGeraete()) return (!l.geraet && stufeOrt(S.exercise, i) === "wand")
     ? "nur mit Wand" : "nicht bei Nur Körpergewicht";
   return `${geraetName(geraetId(l.geraet))} fehlt`;
@@ -8502,7 +8925,16 @@ function historySVG(pts){
    Ausfallschritt hat elf Sprossen statt sieben: stufe_nr wechselt ab
    "Kniestand · 2 Stufen (15 cm)". Die engen Sprossen tragen in stufen[]
    eng=true. */
-const EXPORT_SCHEMA = 9;
+/* 10 (25.10.2026, Build a): Spalten unveraendert. Im JSON kniebeugung, die
+   Antwort auf den Selbsttest (normal, schmerz, tiefe; null = offen) — sie
+   setzt zusatzgewicht_ab_stufe beim Ausfallschritt. stufen[] bekommt
+   premium=true (nur im Medical Fitness System waehlbar) und gleichlast_gruppe
+   (Varianten derselben Last, von denen die App eine fuehrt: die Camporini-
+   Varianten im Hip Hinge). Der Hip Hinge hat zehn Sprossen statt sechs,
+   stufe_nr des B-Stance wechselt von 6 auf 10. Die Fersenbruecke heisst auf
+   jeder zweiten Sprosse "Langer Hebel 170°" statt "Knie 135°"; Messungen
+   der alten Sprossen tragen entfallen=1 und behalten ihre Last. */
+const EXPORT_SCHEMA = 10;
 const EXPORT_SPALTEN = [
   "datum","workout","uebung","uebung_name","seite","variante","stufe_nr",
   "zusatz_kg","zusatz_seite","zusatz_position","koerpergewicht_kg","last","satz","saetze_geplant","sekunden","ziel_sekunden",
@@ -8600,6 +9032,7 @@ function messreihenJSON(){
     schema: EXPORT_SCHEMA,
     erzeugt: new Date().toISOString(),
     fassung: BUILD,
+    kniebeugung: S.kniebeugung || null,
     hinweis: "Eine Zeile je gehaltenem Satz. in_kurve=1 markiert die Punkte, aus denen "
            + "sich CP und W' fitten lassen (Satz 1 einer nicht vorermuedeten Messung). "
            + "last ist ein Lastverhaeltnis INNERHALB einer Uebung, nicht zwischen Uebungen. "
@@ -8608,7 +9041,10 @@ function messreihenJSON(){
            + "nachgetragenen Punkten. aus_kurve_grund nennt, warum eine Messung bewusst "
            + "aus der Kurve genommen ist (alte Skala, Stellung gestrichen); leer heisst "
            + "kein solcher Grund. unterlage_cm ist die Hoehe von Bank oder Sofa unter dem "
-           + "hinteren Fuss, nur auf der Sprosse, deren Last aus dieser Hoehe kommt.",
+           + "hinteren Fuss, nur auf der Sprosse, deren Last aus dieser Hoehe kommt. "
+           + "kniebeugung ist die Antwort auf den Selbsttest (normal, schmerz, tiefe; null = "
+           + "nicht beantwortet); schmerz und tiefe geben dem Ausfallschritt Gewicht schon "
+           + "ab dem Stepper.",
     rechnung: "last = grundlast_der_stufe * (1 + extra_k * zusatz_kg / koerpergewicht_kg). "
             + "extra_k steht je Uebung dabei — ohne den Faktor laesst sich die Spalte last "
             + "nicht nachrechnen. Ist zusatz_kg NEGATIV (zusatz_seite=innen), gilt "
@@ -8628,7 +9064,9 @@ function messreihenJSON(){
                + "(gueltig = frisch, nicht ausKurve, im Messfenster). platzhalter=true: Die "
                + "Last der Sprosse ist ein Platzhalter und noch nicht aus Messungen "
                + "abgeleitet. entfallen=1 an einer Messung: Ihre Sprosse gibt es nicht "
-               + "mehr; stufe_nr ist die Sprosse, auf die sie umgezogen ist.",
+               + "mehr; stufe_nr ist die Sprosse, auf die sie umgezogen ist. premium=true: "
+               + "Sprosse nur im Medical Fitness System waehlbar. gleichlast_gruppe: Sprossen "
+               + "derselben Last, von denen die App je Seite eine fuehrt.",
     spalten: EXPORT_SPALTEN,
     zonen: ZONES.map(z=>({id:z.id, name:z.name, von_s:z.lo, bis_s:z.hi})),
     /* Satzkurve (Build 2026-10-06 h): Rohstoff fuer den spaeteren Abgleich
@@ -8662,6 +9100,8 @@ function messreihenJSON(){
         kgMindest(k, i) > 0 ? {mindestgewicht_kg: kgMindest(k, i)} : {},
         /* Enger Kniestand: vorerst mit der Last der normalen Sprosse darueber. */
         L.stellung ? {eng: L.stellung === "eng"} : {},
+        L.premium ? {premium: true} : {},
+        L.gruppe ? {gleichlast_gruppe: L.gruppe} : {},
         L.bank ? {last_aus_hoehe: {basis: L.bank.basis, anteil: L.bank.anteil,
                                    bezug_cm: L.bank.cm}} : {}))
     }, (DEFAULT_EX[k] || {}).teilVon ? {teil_von: DEFAULT_EX[k].teilVon} : {})),
@@ -9220,7 +9660,8 @@ function sprossenKarte(ex){
     <table><tbody>${L.map((l, i) => `<tr${!stufeErlaubt(ex, i)?' style="opacity:.45"':""}>
       <td><span class="tiny" style="opacity:.6">${i+1}</span> ${l.name}${
         i===curLevel()?' <span class="tiny">· aktuell</span>':""}${
-        gem.has(i)?"":`<span class="tiny vorl">${VORLAEUFIG_KURZ}</span>`}</td></tr>`).join("")}
+        gem.has(i)?"":`<span class="tiny vorl">${VORLAEUFIG_KURZ}</span>`}${
+        l.premium && !premiumAn() ? `<span class="tiny">${PREMIUM_GESPERRT}</span>` : ""}</td></tr>`).join("")}
     </tbody></table>
     ${vorlLegende(ex, gem)}
   </div>`;
@@ -9643,10 +10084,9 @@ function renderSetup(){
          siehe normalize. -->
     <div class="card">
       <h3 style="margin-top:0">Messung</h3>
-      <label class="tiny" for="bwInp" style="display:block;margin-bottom:4px">Körpergewicht
-        (kg) — Bezugsgröße für Zusatzgewicht</label>
-      <input type="number" id="bwInp" value="${S.bw || BW_DEFAULT}" min="30" max="200" step="1"
-        inputmode="decimal" style="width:110px">
+      <div class="stps" style="margin-top:0"><div class="stp kg"><span class="tiny">Körpergewicht
+        — Bezugsgröße für Zusatzgewicht</span><b data-kgw>${kgText(S.bw || BW_DEFAULT)}</b>
+        ${kgReglerHTML(S.bw || BW_DEFAULT, 30, 200, 'id="bwInp"', "Körpergewicht")}</div></div>
       <p class="tiny" style="margin:6px 0 14px">Die Stufen selbst brauchen kein Gewicht. Nötig
       wird es erst, wenn du Zusatzgewicht auflegst: 10 kg wiegen bei
       60 kg Körpergewicht deutlich schwerer als bei 95 kg.</p>
@@ -9675,6 +10115,16 @@ function renderSetup(){
       <p class="tiny">Die Nummerierung der Stufen bleibt dabei stehen: Eine ausgeblendete Stufe
       verschwindet aus der Auswahl, behält aber ihre Nummer. Sonst bekämen deine alten Messungen
       im Export rückwirkend eine andere Stufennummer.</p>
+    </div>
+    <!-- Luke, 25.10.2026: Selbsttest aus dem Onboarding, hier nachzuholen oder
+         zu aendern. Steuert, ab welcher Sprosse der Ausfallschritt Gewicht hat. -->
+    <div class="card">
+      <h3 style="margin-top:0">Ausfallschritt</h3>
+      <label class="tiny" for="kbSel" style="display:block;margin-bottom:6px">${KNIEBEUGUNG_FRAGE}</label>
+      <select id="kbSel" style="width:100%">${S.kniebeugung == null
+        ? `<option value="" selected disabled>nicht beantwortet</option>` : ""}${
+        KNIEBEUGUNG_ANTWORTEN.map(a => `<option value="${a.id}"${S.kniebeugung === a.id
+          ? " selected" : ""}>${a.text}</option>`).join("")}</select>
     </div>
     ${kniePfad("bridge") ? `<div class="card">
       <h3 style="margin-top:0">Fersenbrücke</h3>
@@ -9715,7 +10165,8 @@ function renderSetup(){
       <label class="chk" for="premChk" style="margin-bottom:0">
         <input type="checkbox" id="premChk" ${premiumAn() ? "checked" : ""}>
         <span><b>Premium freigeschaltet</b><br><span class="tiny">Empfehlung aus dem Formtrend.
-        Läuft der Trend, ersetzt er die Zonenruhe.</span></span>
+        Läuft der Trend, ersetzt er die Zonenruhe. Dazu die Camporini-Varianten im Hip
+        Hinge.</span></span>
       </label>
     </div>
     <div class="card">
@@ -9778,15 +10229,10 @@ function renderSetup(){
       </div>
       <label class="tiny" for="nLvl" style="display:block;margin:9px 0 4px">Stufe</label>
       <select id="nLvl" style="width:100%"></select>
-      <div class="row" style="gap:7px;margin-top:9px">
-        <div style="flex:1">
-          <label class="tiny" for="nKg" style="display:block;margin-bottom:4px">Zusatzgewicht (kg)</label>
-          <input type="number" id="nKg" value="0" min="0" max="60" step="2.5"
-            inputmode="decimal" style="width:100%"></div>
-        <div style="flex:1">
-          <label class="tiny" for="nDate" style="display:block;margin-bottom:4px">Datum</label>
-          <input type="date" id="nDate" style="width:100%"></div>
-      </div>
+      <div class="stps" id="nKgZeile"><div class="stp kg"><span class="tiny">Zusatzgewicht</span>
+        <b data-kgw>${kgText(0)}</b>${kgReglerHTML(0, 0, 60, 'id="nKg"', "Zusatzgewicht")}</div></div>
+      <label class="tiny" for="nDate" style="display:block;margin:9px 0 4px">Datum</label>
+      <input type="date" id="nDate" style="width:100%">
       <label class="tiny" style="display:block;margin:9px 0 4px">Haltezeiten in Sekunden —
         Satz 1 genügt</label>
       <div class="row" style="gap:7px">
@@ -9856,15 +10302,20 @@ function renderSetup(){
   };
   const nFill = ()=>{
     const ex = el("nEx").value, e = S.ex[ex];
-    el("nLvl").innerHTML = e.levels.map((L,i)=>
-      `<option value="${i}">${i+1}. ${L.name}</option>`).join("");
+    /* Premium-Sprossen auch hier gesperrt sichtbar wie in "Dein Workout"
+       (Build 2026-10-25 a), sonst liessen sie sich ohne Premium nachtragen. */
+    el("nLvl").innerHTML = e.levels.map((L,i)=>{
+      const zu = L.premium && !premiumAn();
+      return `<option value="${i}"${zu ? " disabled" : ""}>${i+1}. ${L.name}${zu ? PREMIUM_GESPERRT : ""}</option>`;
+    }).join("");
     nSeite();
     /* Bei der Hyperextension heisst die zweite Wahl Haltung, nicht Seite. */
     el("nExLbl").textContent = haltungen(ex) ? "Übung und Haltung" : "Übung und Seite";
-    /* Seitstuetz: reines Koerpergewicht, auch im Nachtrag. */
-    el("nKg").disabled = ohneZusatz(ex);
-    if(ohneZusatz(ex)) el("nKg").value = 0;
+    /* Seitstuetz: reines Koerpergewicht, auch im Nachtrag — der Regler
+       verschwindet, gespeichert wird 0 (nSave). */
+    el("nKgZeile").style.display = ohneZusatz(ex) ? "none" : "";
   };
+  kgReglerBinden(el("nKg"), () => {});
   el("nEx").onchange = nFill;
   el("nLvl").onchange = nSeite;
   nFill();
@@ -9874,7 +10325,7 @@ function renderSetup(){
     const hint = el("nHint");
     const ex = el("nEx").value, e = S.ex[ex];
     const lvl = +el("nLvl").value;
-    let kg  = ohneZusatz(ex) ? 0 : Math.max(0, +el("nKg").value || 0);
+    let kg  = ohneZusatz(ex) ? 0 : Math.max(0, +el("nKg").dataset.wert || 0);
     /* Gewicht vor der Brust: Unter der Brust-Sprosse gibt es keins, und auf ihr
        zaehlt es erst ab dem Mindestgewicht. Ein Eintrag mit 5 kg wuerde sonst
        still als 7,5 kg gespeichert — Name und Last klemmen ohnehin. */
@@ -9954,14 +10405,13 @@ function renderSetup(){
 
   el("reactSel").onchange = e => { S.reaction = +e.target.value; save();
     el("reactNote").textContent = verzoegerungNotiz(S.reaction); };
-  el("bwInp").onchange = e => {
-    const v = +e.target.value;
-    S.bw = (v >= 30 && v <= 200) ? v : BW_DEFAULT;
-    e.target.value = S.bw;
+  kgReglerBinden(el("bwInp"), v => {
+    S.bw = bwLesen(v) || BW_DEFAULT;
     S.plan = null; S.planDay = null;   /* wirksame Lasten aendern sich */
     save();
-  };
+  });
 
+  el("kbSel").onchange = e => { kniebeugungSetzen(e.target.value); renderAmOrt("kbSel"); };
   if(el("premChk")) el("premChk").onchange = e => {
     S.premium = e.target.checked;
     /* Die Zonenruhe haengt daran — ein geplantes Workout kann sich aendern. */
@@ -10135,10 +10585,30 @@ function renderOnboard(){
     if(k===S.exercise) b.classList.add("primary");
     pick.appendChild(b);
   });
+  el("obKbFrage").textContent = KNIEBEUGUNG_FRAGE;
+  const kb = el("obKb");
+  kb.innerHTML = "";
+  KNIEBEUGUNG_ANTWORTEN.forEach(a => {
+    const b = document.createElement("button");
+    b.style.cssText = "width:100%;text-align:left";
+    b.textContent = a.text;
+    if(S.kniebeugung === a.id) b.classList.add("primary");
+    b.onclick = () => {
+      kniebeugungSetzen(a.id);
+      kb.querySelectorAll("button").forEach(x => x.classList.remove("primary"));
+      b.classList.add("primary");
+    };
+    kb.appendChild(b);
+  });
+  /* Freiwillig: Nur wer den Regler anfasst, ersetzt die 80 kg — der Start
+     haengt nie an diesem Feld. */
+  const bwStart = S.bw > 0 ? S.bw : BW_DEFAULT;
+  let bwGesetzt = null;
+  el("obBwZeile").innerHTML = `<span class="tiny">Körpergewicht <span class="muted">— freiwillig</span></span>
+    <b data-kgw>${kgText(bwStart)}</b>${kgReglerHTML(bwStart, 30, 200, 'id="obBw"', "Körpergewicht")}`;
+  kgReglerBinden(el("obBw"), v => { bwGesetzt = v; });
   el("obStart").onclick = ()=>{
-    /* Freiwillig: Nur ein plausibler Wert ersetzt die 80 kg, alles andere
-       laesst sie stehen — der Start haengt nie an diesem Feld. */
-    const bw = bwLesen(el("obBw").value);
+    const bw = bwLesen(bwGesetzt);
     if(bw) S.bw = bw;
     S.onboarded = true; S.plan = null; save();
     show("home");
