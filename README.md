@@ -49,6 +49,11 @@ Browser, gebunden an die Adresse. Solange die Adresse gleich bleibt, bleiben die
 erhalten; geänderte Übungsstufen werden über `EX_VERSION` sauber nachgezogen. Vor größeren
 Umbauten trotzdem einmal über **Einstellungen → Sichern (Datei)** sichern.
 
+**Ausnahme Build `2026-10-25 a`:** Er konnte gespeicherte Daten nicht laden
+und zeigte eine leere App mit Onboarding (Papier P100). Gelöscht wurde dabei nichts, solange man
+nicht weitergemacht hat. Build `2026-10-27 a` lädt sie wieder. Schlägt das Laden künftig fehl,
+legt die App den Stand vorher unter `isocoach.v1.gerettet` ab; „Alles löschen“ entfernt auch ihn.
+
 **Das Repository ist öffentlich**, weil GitHub Pages ohne bezahltes Konto nur so funktioniert.
 Unbedenklich: In den Dateien stehen keine persönlichen Daten — die Messwerte entstehen erst
 beim Benutzen und bleiben im Browser des jeweiligen Nutzers. Das Handoff mit den Zugängen liegt

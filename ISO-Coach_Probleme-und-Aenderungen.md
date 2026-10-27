@@ -4688,11 +4688,78 @@ liegt. Offen als Punkt 42.
 **Für den Nachbau:** `DEFAULT_EX.lunge.hint` und `DEFAULT_EX.lunge.extraHint`. `EX_VERSION` bleibt 36:
 `hintVon()` liest den Hinweistext immer aus `DEFAULT_EX`, und `extraHint` liest niemand.
 
+### P100 · Build 2026-10-25 a lädt gespeicherte Daten nicht: leere App für alle Bestandsnutzer
+
+Luke, 27.10.: „alle meine messpunkte in der app auf meinem handy sind gelöscht“
+
+**Ursache.** In Build `2026-10-25 a` prüft `normalize()` die gespeicherte Antwort zur Kniebeugung gegen
+`KNIEBEUGUNG_ANTWORTEN`. Die Konstante stand rund 1.300 Zeilen hinter `let S = load()`. Beim Laden war sie
+noch nicht belegt, der Zugriff warf `ReferenceError: Cannot access 'KNIEBEUGUNG_ANTWORTEN' before
+initialization`. `load()` fängt jeden Fehler ab und gibt einen leeren Zustand zurück. Die App zeigte
+danach das Onboarding und keine Messpunkte.
+
+- **Betroffen ist jeder mit gespeicherten Daten**, ganz gleich aus welcher Fassung, also auch die
+  Beta-Tester. Wer die App zum ersten Mal öffnet, merkt nichts.
+- **Das Laden selbst löscht nichts.** Die alten Daten bleiben im Speicher des Browsers, bis die App zum
+  ersten Mal speichert. Das tut sie, sobald man das Onboarding durchläuft oder trainiert. Erst dann ist
+  der alte Stand überschrieben.
+- **Gleiches Muster wie zweimal zuvor.** Die Kommentare an `laeuferKnieseite` und `geraetDa` beschreiben
+  dieselbe Falle: Was `normalize()` beim Start braucht, muss vor `let S = load()` stehen.
+
+**Nachgestellt.** Der Export vom 16.10. (69 Sitzungen, 187 Sätze) als Stand der Fassung 27, dann
+nacheinander durch die ausgelieferten Fassungen vom 16.10. bis 23.10. geladen: 69 Sitzungen. In
+`2026-10-25 a` 0 Sitzungen und das Onboarding, im Speicher weiter 69.
+
+**Gebaut in 2026-10-27 a.**
+
+- `KNIEBEUGUNG_ANTWORTEN` steht jetzt vor `let S = load()`, mit dem Grund im Kommentar.
+- `load()` legt bei einem Ladefehler den gespeicherten Stand unter `isocoach.v1.gerettet` ab, bevor es
+  leer startet. Eine schon vorhandene, längere Kopie bleibt. Ein späterer Build kann sie zurückholen.
+  Sichtbar ist davon nichts. „Alles löschen“ entfernt die Kopie mit.
+
+**Der Preis.**
+
+- **Wer das Onboarding schon neu durchlaufen hat, bekommt seine Daten nicht automatisch zurück.** Für ihn
+  bleibt nur der Import einer eigenen Sicherung. Die Kopie unter `isocoach.v1.gerettet` gibt es erst ab
+  diesem Build.
+- **Die Kopie hat keinen Weg zurück in die App.** Holen lässt sie sich nur über die Entwicklerwerkzeuge
+  des Browsers, bis ein Build sie liest.
+- **Ein Ladefehler bleibt still.** Die App sagt nicht, dass sie die Daten nicht lesen konnte, und zeigt
+  weiter das Onboarding.
+
+**Für den Nachbau:** `load()`, `KEY_GERETTET`, `KNIEBEUGUNG_ANTWORTEN`. `EX_VERSION` bleibt 36: Ein
+gespeicherter Stand der Fassung 35 zieht beim ersten Laden normal um.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-27 a — Gespeicherte Daten laden wieder
+
+**Befund (Luke).** „alle meine messpunkte in der app auf meinem handy sind gelöscht“ (P100)
+
+**Gebaut.**
+
+- `KNIEBEUGUNG_ANTWORTEN` steht vor `let S = load()`. In `2026-10-25 a` warf `normalize()` beim Start,
+  und jeder Bestandsnutzer sah eine leere App.
+- Bei einem Ladefehler legt `load()` den gespeicherten Stand unter `isocoach.v1.gerettet` ab. „Alles
+  löschen“ entfernt die Kopie mit.
+- Fassung der Übungsliste bleibt 36, Export Schema 10.
+
+**Geprüft.** Headless Chrome auf eigenem Port 9348 bei 375 × 812, mit den Sätzen aus Lukes Export vom
+16.10.
+
+- Kette wie auf dem Handy, `2026-10-23 d`, dann `2026-10-25 a`, dann `2026-10-27 a`: 69, 0, 69 Sitzungen.
+- Direkt aus Fassung 27 und aus Fassung 10: 69 Sitzungen, kein Ladefehler.
+- Voller Stand mit Modus „Nur Körpergewicht“, geparkten Heimwerten, offenem Lauf, Waage und Antwort zur
+  Kniebeugung: 69 Sitzungen, kein Ladefehler.
+- Beschädigter Speicher: leerer Start, die Kopie unter `isocoach.v1.gerettet` steht und überlebt das
+  nächste Speichern.
+- „Alles löschen“ entfernt die Kopie.
+- Keine Konsolenfehler. Die Testdaten sind danach gelöscht.
+- **Nicht geprüft:** auf dem Handy.
 
 ### 2026-10-26 a — Suitcase als Standard beim Ausfallschritt
 

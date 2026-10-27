@@ -1904,8 +1904,9 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-26 a";
+const BUILD = "2026-10-27 a";
 const KEY = "isocoach.v1";
+const KEY_GERETTET = "isocoach.v1.gerettet";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
    steht die Zone der Rotation selbst vorgewaehlt — eine alte gespeicherte Wahl
@@ -3101,6 +3102,17 @@ const MODUS_NAME = {wand:"Nur Körpergewicht + Wand", boden:"Nur Körpergewicht"
 /* Das Wand-Haekchen klappt nur in dem Moment auf, in dem man auf "Nur
    Koerpergewicht" wechselt, nicht bei jedem Neuzeichnen von Heute. */
 let modusAufklappen = false;
+/* Die Antworten der Kniebeugungsfrage (KNIEBEUGUNG_FRAGE, weiter unten).
+   Steht vor load(), weil normalize() die gespeicherte Antwort damit prueft.
+   In Build 2026-10-25 a stand sie weiter unten: Beim Laden war die Konstante
+   noch nicht belegt, der Zugriff warf, und load() fing das mit einem LEEREN
+   Zustand ab. Jeder mit gespeicherten Daten sah eine leere App und das
+   Onboarding (Luke, 27.10.2026: "alle meine messpunkte in der app auf meinem
+   handy sind gelöscht"). */
+const KNIEBEUGUNG_ANTWORTEN = [
+  {id:"normal",  text:"Ja, ohne Probleme"},
+  {id:"schmerz", text:"Nur mit Schmerzen oder Ziehen", eingeschraenkt:true},
+  {id:"tiefe",   text:"Nein, ich komme nicht so tief", eingeschraenkt:true}];
 let S = load();
 /* Muss nach load() laufen: sidesOf() braucht S.sessions. */
 (function(){ const sd = S.ex[S.exercise] ? sidesOf(S.exercise) : [null];
@@ -3422,10 +3434,22 @@ function normalize(d){
                                     plan:null, planDay:null});
 }
 function load(){
+  let raw = null;
   try{
-    const raw = localStorage.getItem(KEY);
+    raw = localStorage.getItem(KEY);
     return raw ? normalize(JSON.parse(raw)) : fresh();
-  }catch(e){ return fresh(); }
+  }catch(e){
+    /* Wirft das Laden, startet die App leer, und das naechste save()
+       ueberschreibt die gespeicherten Daten. Darum vorher eine Kopie unter
+       KEY_GERETTET, die ein spaeterer Build zurueckholen kann. Eine schon
+       vorhandene, laengere Kopie bleibt (Build 2026-10-27 a, nach dem
+       Ladefehler von 2026-10-25 a). */
+    try{
+      const alt = localStorage.getItem(KEY_GERETTET);
+      if(raw && (!alt || raw.length > alt.length)) localStorage.setItem(KEY_GERETTET, raw);
+    }catch(_){ /* Speicher voll oder gesperrt */ }
+    return fresh();
+  }
 }
 function save(){
   try{ localStorage.setItem(KEY, JSON.stringify(S)); }
@@ -4717,10 +4741,7 @@ function sprosseUnter(ex, i, side){
 const KNIEBEUGUNG_FRAGE = "Geh in einen Ausfallschritt und senk das hintere Knie langsam ab. "
   + "Kommst du so tief, dass das Knie knapp über dem Boden schwebt, ohne dass es dabei mehr "
   + "als leicht zieht?";
-const KNIEBEUGUNG_ANTWORTEN = [
-  {id:"normal",  text:"Ja, ohne Probleme"},
-  {id:"schmerz", text:"Nur mit Schmerzen oder Ziehen", eingeschraenkt:true},
-  {id:"tiefe",   text:"Nein, ich komme nicht so tief", eingeschraenkt:true}];
+/* KNIEBEUGUNG_ANTWORTEN steht vor load(), siehe dort. */
 function kniebeugungEingeschraenkt(){
   const a = KNIEBEUGUNG_ANTWORTEN.find(x => x.id === S.kniebeugung);
   return !!(a && a.eingeschraenkt);
@@ -10551,6 +10572,8 @@ function renderSetup(){
   };
   el("resetBtn").onclick = ()=>{
     if(confirm("Alle Sessions und Einstellungen löschen? Das lässt sich nicht rückgängig machen.")){
+      /* Auch die Kopie aus einem Ladefehler (KEY_GERETTET): Alles heisst alles. */
+      try{ localStorage.removeItem(KEY_GERETTET); }catch(e){}
       S = fresh(); save(); render();
     }
   };
