@@ -4636,11 +4636,84 @@ tragen `entfallen` = 1.
 - `KG_FEIN` 0,5, `KG_GROB` 5, `kgReglerHTML` und `kgReglerBinden`. `bwLesen` rundet auf 0,5 kg.
 - `EXPORT_SCHEMA` 10.
 
+### P99 · Ausfallschritt: Suitcase mit der Hand gegenüber dem vorderen Bein als Standard
+
+Luke, 26.10.: „Mach Suitcase mit der Hand gegenüber dem vorderen Bein zum Standard beim Ausfallschritt.“
+
+**Anlass.** Offener Punkt 40: In welcher Hand hält Bill Hartman das Gewicht beim Narrow und Wide ISA? Die
+Recherche im Mitgliederbereich von „Unified Health and Performance“ steht in
+`Recherche_Hartman-ISA-Gewichtshand.md` (25.10.).
+
+- Bill macht die Lasthand im Split Squat und im Ausfallschritt nicht vom Grundtyp Narrow oder Wide
+  abhängig. Er wählt sie danach, was das vordere Bein braucht.
+- Die Hand gegenüber dem vorderen Bein hilft dem vorderen Bein beim Absenken in die frühe Innenrotation
+  und hält es dort. Unten, wo die App hält, liegt die Innenrotation (abgeleitet aus Bill, 02.11.2025).
+- Die Hand auf der Seite des vorderen Beins schiebt beim Hochkommen in die späte Außenrotation. Zum
+  Halten unten passt sie nicht.
+- Nur eine einseitige Last wirkt bei ihm zur Seite, also Suitcase und einseitiges Rack. Kurzhanteln in
+  beiden Händen und die Weste heben das auf.
+- Ausdrücklich gesagt hat Bill das nirgends. Durchsucht sind 1.511 Beiträge, rund 6.000 Kommentare und
+  121 Mitschriften. Bei 359 Beiträgen fehlten Kommentare, die Plattform hat den Abruf gebremst.
+
+**Gebaut in 2026-10-26 a.**
+
+- Der Hinweistext des Ausfallschritts endet jetzt mit: „Standard ist Suitcase, ein Gewicht in der Hand
+  gegenüber dem vorderen Bein; Kurzhanteln in beiden Händen, Front Rack oder eine Gewichtsweste gehen
+  auch.“
+- Der Text zum Zusatzgewicht sagt dasselbe, dazu: Kurzhantel oder Kettlebell, der Arm hängt seitlich
+  neben dem Körper, steht der linke Fuß vorn, hält man rechts.
+- „Genauso gut“ ist raus. Die anderen Haltungen bleiben erlaubt, nach Bill sind sie aber nicht
+  gleichwertig.
+- Eine eigene Wahl gibt es weiter nicht. Der Faktor bleibt 1, eingetragen wird das Gesamtgewicht.
+  Leiter, Lasten, Sätze und Export bleiben, wie sie sind.
+
+**Der Preis.**
+
+- **Eine Hand trägt das ganze Gewicht.** Die Griffkraft einer Hand begrenzt das Gewicht früher als zwei
+  Kurzhanteln. Wer mehr braucht, als eine Hand hält, weicht auf eine der anderen Haltungen aus.
+- **Die App zählt die Haltungen gleich.** 10 kg in einer Hand und zweimal 5 kg sind für die Kurve
+  dieselbe Last. Wer die Haltung wechselt, verschiebt seine Kurve, ohne dass die App davon weiß.
+- **Gespeicherte Gewichte bleiben stehen.** Wer bisher zweimal 10 kg als 20 kg eingetragen hat, bekommt
+  weiter 20 kg vorgeschlagen. Mit Suitcase liegen die dann in einer Hand.
+- **Zwischen den Seiten wechselt die Hand.** In der Pause von 20 Sekunden wandert das Gewicht in die
+  andere Hand.
+
+**Nebenbefund: Den Text zum Zusatzgewicht zeigt die App nicht.** `extraHint` steht an jeder Übung mit
+Zusatzgewicht, gelesen wird er seit Build `2026-09-24 a` nirgends mehr. Damals fiel die Stelle auf der
+Stufenkarte weg. Das gilt auch für die Texte vom 25.10. (P98) beim Ausfallschritt und beim Hip Hinge.
+Sichtbar ist die Haltung nur am Ende des Hinweistexts, und den zeigt die App nur in der Übungswahl im
+Onboarding. In „Dein Workout“ und auf der Karte vor dem Halt steht nicht, in welcher Hand das Gewicht
+liegt. Offen als Punkt 42.
+
+**Für den Nachbau:** `DEFAULT_EX.lunge.hint` und `DEFAULT_EX.lunge.extraHint`. `EX_VERSION` bleibt 36:
+`hintVon()` liest den Hinweistext immer aus `DEFAULT_EX`, und `extraHint` liest niemand.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-26 a — Suitcase als Standard beim Ausfallschritt
+
+**Befund (Luke).** Nach der Recherche zu Punkt 40: „Mach Suitcase mit der Hand gegenüber dem vorderen
+Bein zum Standard beim Ausfallschritt.“ (P99)
+
+**Gebaut.**
+
+- Hinweistext und Text zum Zusatzgewicht des Ausfallschritts: Standard ist Suitcase, ein Gewicht in der
+  Hand gegenüber dem vorderen Bein. Kurzhanteln in beiden Händen, Front Rack und Weste gehen auch, nicht
+  mehr „genauso gut“.
+- Fassung der Übungsliste bleibt 36, Export Schema 10.
+
+**Geprüft.** Headless Chrome auf eigenem Port 9347 bei 375 × 812, mit erfundenen Daten.
+
+- Frischer Stand: Die Übungswahl im Onboarding zeigt beim Ausfallschritt den neuen Satz, die Fassung
+  heißt `2026-10-26 a`.
+- Gespeicherter Stand der Fassung 36 mit altem Hinweistext: Die Übungswahl zeigt den neuen Text, der
+  alte ist weg.
+- Keine Konsolenfehler. Die Testdaten sind danach gelöscht.
+- **Nicht geprüft:** auf dem Handy.
 
 ### 2026-10-25 a — Kniebeugung im Onboarding, Camporini-Varianten, langer Hebel 170°, Gewichtsregler
 
@@ -8163,6 +8236,10 @@ als Teil des Ansatz-Pfads? Das ist eine Produktentscheidung, keine technische.
     Gewichtsweste sind alle okay.“ Eine eigene Wahl gibt es nicht, alle zählen mit Faktor 1, es
     zählt das Gesamtgewicht. Offen bleibt, in welcher Hand Bill Hartman das Gewicht beim Narrow und
     Wide ISA hält (#40).
+
+    **Geändert (Luke, 26.10.), gebaut in 2026-10-26 a (P99):** Standard ist jetzt Suitcase mit der
+    Hand gegenüber dem vorderen Bein. Kurzhanteln in beiden Händen, Front Rack und Weste bleiben
+    erlaubt.
 36. **Nach wie vielen neueren Punkten verschwindet ein Punkt aus Kraftkurve und Fit? (P82)**
     **Entschieden (Luke, 16.10.), gebaut in Build `2026-10-16 e`:** „Grenze 30 Punkte. Bau es in die
     App ein.“ Die 30 gelten für jede Kurve. Das Ausgrauen läuft über das Fit-Gewicht, der älteste
@@ -8193,10 +8270,19 @@ als Teil des Ansatz-Pfads? Das ist eine Produktentscheidung, keine technische.
     Mitgliederbereich von „Unified Health and Performance“. Die Recherche braucht Lukes Login und
     wird gemeinsam mit ihm gemacht. Danach entscheidet sich, ob der Ausfallschritt eine Empfehlung
     zur Hand bekommt.
+
+    **Entschieden (Luke, 26.10.), gebaut in 2026-10-26 a (P99):** Bill trennt beim Ausfallschritt
+    nicht nach Grundtyp. Standard ist Suitcase mit der Hand gegenüber dem vorderen Bein, sie hält beim
+    Absenken die frühe Innenrotation des vorderen Beins. Die Recherche steht in
+    `Recherche_Hartman-ISA-Gewichtshand.md`.
 41. **Muss das Knie beim Wadentraining gestreckt sein? (P98)** Entschieden ist „leicht gebeugt“.
     Offen sind die leichte Beugung in der Endposition, in der der Gastrocnemius schon verkürzt ist,
     die Rolle des Großzehenbeugers, die Last auf der Achillessehne je Kniewinkel und was das für
     die Leiterwerte beider Wadenheben heißt. Die Recherche steht in `Recherche_Wade-Kniewinkel.md`.
+42. **Wo sieht man beim Training, wie das Gewicht gehalten wird? (P99)** Den Text zum Zusatzgewicht
+    zeigt die App seit Build `2026-09-24 a` nicht mehr an. Die Haltung steht nur am Ende des
+    Hinweistexts, in der Übungswahl im Onboarding. Offen ist, ob sie in „Dein Workout“ neben dem
+    Gewicht oder auf der Karte vor dem Halt stehen soll, für alle Übungen mit Zusatzgewicht.
 
 ---
 

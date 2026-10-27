@@ -653,15 +653,25 @@ const DEFAULT_EX = {
        beidseitig oder Gewichtsweste sind alle okay." Keine eigene Wahl in der
        App: Alle sitzen nah am Koerperschwerpunkt, extraK bleibt 1, es zaehlt
        das Gesamtgewicht.
+       26.10.2026 (Build a): Luke, "Mach Suitcase mit der Hand gegenüber dem
+       vorderen Bein zum Standard beim Ausfallschritt." Grundlage: Bill Hartman
+       trennt die Lasthand im Ausfallschritt nicht nach Narrow oder Wide. Die
+       Hand gegenueber dem vorderen Bein haelt dessen fruehe Innenrotation
+       beim Absenken, also in der Haltestellung unten. Nur eine einseitige
+       Last wirkt bei ihm zur Seite, Kurzhanteln in beiden Haenden und Weste
+       heben das auf (Recherche_Hartman-ISA-Gewichtshand.md, Punkt 40 im
+       Papier). Die anderen Haltungen bleiben erlaubt, aber nicht mehr
+       "genauso gut". extraK bleibt 1, es zaehlt weiter das Gesamtgewicht.
        Wo Gewicht dazukommt, entscheidet seit Build 2026-10-25 a die
        Kniebeugung aus dem Onboarding: im Normalfall erst ab "Knie knapp ueber
        den Boden" (extraAb 8), eingeschraenkt schon ab den Stepperhoehen
        (extraAbEingeschraenkt 2), dort mit Tiefengrenze ab kniebeugungBis.
        Siehe kniebeugungEingeschraenkt. */
     extraAb:8, extraK:1, extraAbEingeschraenkt:2, kniebeugungBis:6,
-    extraHint:"Standard sind Kurzhanteln, in jeder Hand eine, seitlich neben dem Körper. Genauso "
-             +"gut: Front Rack mit einer oder zwei Kettlebells, Suitcase mit einem Gewicht in der "
-             +"Hand gegenüber dem vorderen Bein oder eine Gewichtsweste. Trag das Gesamtgewicht ein.",
+    extraHint:"Standard ist Suitcase: ein Gewicht, Kurzhantel oder Kettlebell, in der Hand gegenüber "
+             +"dem vorderen Bein, der Arm hängt seitlich neben dem Körper. Steht der linke Fuß vorn, "
+             +"hältst du es rechts, und umgekehrt. Es gehen auch Kurzhanteln in beiden Händen, Front "
+             +"Rack mit einer oder zwei Kettlebells oder eine Gewichtsweste. Trag das Gesamtgewicht ein.",
     hint:"»Links« heißt: der LINKE Fuß steht vorne. "
         +"Zwei Stellungen in einer Leiter — die Sprosse sagt, welche. STEHEND AN DER WAND: "
         +"vorderer Fuß mit den Zehen an die Wand, hinterer Fuß im angegebenen Abstand dahinter, "
@@ -675,8 +685,8 @@ const DEFAULT_EX = {
         +"auf den Zehen. Miss die Höhe der Auflage und trag sie an der Sprosse ein. "
         +"Jedes Mal: keine Handstütze; ein Fingerkontakt an der Wand fürs Gleichgewicht ist in "
         +"Ordnung. Gesteigert wird zuerst über Stellung und Tiefe, erst dann über Gewicht. "
-        +"Standard sind Kurzhanteln seitlich neben dem Körper; Front Rack, Suitcase in der Hand "
-        +"gegenüber dem vorderen Bein oder eine Gewichtsweste gehen genauso.",
+        +"Standard ist Suitcase, ein Gewicht in der Hand gegenüber dem vorderen Bein; Kurzhanteln "
+        +"in beiden Händen, Front Rack oder eine Gewichtsweste gehen auch.",
     /* 21.09.2026: Leiter neu gebaut. Sie traegt jetzt ZWEI Stellungen, weil Lukes
        Messpunkte in der einen liegen und seine neue Sprosse in der anderen.
        Frueher stufte die Tiefe ueber eine Ablage unter dem hinteren Knie; Luke hat
@@ -1894,7 +1904,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-25 a";
+const BUILD = "2026-10-26 a";
 const KEY = "isocoach.v1";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
@@ -1944,6 +1954,9 @@ const AW_V = 1;
    "Kniestand · Knie knapp über den Boden" oder, bei eingeschraenkter
    Kniebeugung, ab dem Stepper; Wadenheben ohne Faszienrolle am Knie.
    Siehe BRIDGE_170_AT und HINGE_CAMPORINI_AT. */
+/* Kein Sprung fuer Build 2026-10-26 a (Suitcase als Standard beim
+   Ausfallschritt): Den Hinweistext liest hintVon() immer aus DEFAULT_EX, und
+   extraHint zeigt die App seit Build 2026-09-24 a nirgends mehr an. */
 const EX_VERSION = 36;
 /* Der Sprung auf 26 setzt die Pausen je Zone NICHT mehr zurueck: Sie sind
    Lukes Einstellung, keine mitgelieferte Uebungsdefinition. Zurueckgesetzt

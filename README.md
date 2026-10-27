@@ -249,9 +249,10 @@ Normalfall.
   sie die Grenze. Geht eine Seite wegen Schmerz auf eine Kniestand-Sprosse zurück, wird diese die
   Grenze. Eine neue Antwort im Selbsttest löscht die Grenzen.
 
-Standard sind Kurzhanteln, in jeder Hand eine, seitlich neben dem Körper. Genauso gut gehen Front
-Rack mit einer oder zwei Kettlebells, Suitcase mit einem Gewicht in der Hand gegenüber dem vorderen
-Bein oder eine Gewichtsweste. Eingetragen wird das Gesamtgewicht.
+Standard ist Suitcase, seit Build `2026-10-26 a` (Papier P99): ein Gewicht, Kurzhantel oder
+Kettlebell, in der Hand gegenüber dem vorderen Bein. Steht der linke Fuß vorn, hältst du es rechts.
+Nach Bill Hartman hilft diese Hand dem vorderen Bein beim Absenken in die Innenrotation. Kurzhanteln in
+beiden Händen, Front Rack oder eine Gewichtsweste gehen auch. Eingetragen wird das Gesamtgewicht.
 
 Die Seitstütz-Leiter ist **gerechnet**, nicht geschätzt: Das Biegemoment an der Taille
 (Segmentmodell, Schnitt L4/L5) fällt in jeder Schräglage mit cos(Neigungswinkel). Zwei Folgen,
