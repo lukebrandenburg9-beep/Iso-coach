@@ -280,6 +280,7 @@ code{background:var(--panel2);padding:1.5px 5px;border-radius:5px;font-size:12.5
     <div class="row" style="margin-top:14px">
       <button class="primary grow" id="obNext">Weiter</button>
     </div>
+    <p class="tiny muted" id="obFassung" style="margin-top:18px"></p>
   </div>
 
   <div id="ob2" style="display:none">
@@ -1904,7 +1905,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-27 a";
+const BUILD = "2026-10-27 b";
 const KEY = "isocoach.v1";
 const KEY_GERETTET = "isocoach.v1.gerettet";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
@@ -3113,6 +3114,10 @@ const KNIEBEUGUNG_ANTWORTEN = [
   {id:"normal",  text:"Ja, ohne Probleme"},
   {id:"schmerz", text:"Nur mit Schmerzen oder Ziehen", eingeschraenkt:true},
   {id:"tiefe",   text:"Nein, ich komme nicht so tief", eingeschraenkt:true}];
+/* Fehlertext, wenn load() die gespeicherten Daten nicht lesen konnte. Dann
+   zeigt render() die Rettungskarte statt des Onboardings (renderLadefehler).
+   Steht vor load(), weil load() es setzt. */
+let LADEFEHLER = null;
 let S = load();
 /* Muss nach load() laufen: sidesOf() braucht S.sessions. */
 (function(){ const sd = S.ex[S.exercise] ? sidesOf(S.exercise) : [null];
@@ -3439,6 +3444,7 @@ function load(){
     raw = localStorage.getItem(KEY);
     return raw ? normalize(JSON.parse(raw)) : fresh();
   }catch(e){
+    if(raw) LADEFEHLER = String((e && e.message) || e);
     /* Wirft das Laden, startet die App leer, und das naechste save()
        ueberschreibt die gespeicherten Daten. Darum vorher eine Kopie unter
        KEY_GERETTET, die ein spaeterer Build zurueckholen kann. Eine schon
@@ -3484,7 +3490,7 @@ async function initDB(){
       try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
       dbState = "vom Server geladen";
       render();
-    } else {
+    } else if(!LADEFEHLER){            // nach einem Ladefehler ist S leer
       await pushDB(true);
     }
   }catch(e){ dbState = "Server nicht erreichbar"; }
@@ -10580,6 +10586,9 @@ function renderSetup(){
 }
 
 function renderOnboard(){
+  /* Die Fassung steht sonst nur in den Einstellungen, und die erreicht man
+     vom Onboarding aus nicht. So sieht man, ob ein Update schon da ist. */
+  el("obFassung").textContent = "Fassung " + BUILD;
   const host = el("redflags");
   host.innerHTML = "";
   RED_FLAGS.forEach((t,i)=>{
@@ -10710,8 +10719,44 @@ function amOrt(ankerId, zeichne){
 }
 function renderAmOrt(ankerId){ amOrt(ankerId, render2); }
 function render(){
-  if(!S.onboarded){ el("s-onboard").classList.add("on"); renderOnboard(); }
+  if(!S.onboarded && LADEFEHLER){ el("s-onboard").classList.add("on"); renderLadefehler(); }
+  else if(!S.onboarded){ el("s-onboard").classList.add("on"); renderOnboard(); }
   else show("home");
+}
+/* Die gespeicherten Daten waren da, aber load() konnte sie nicht lesen
+   (Build 2026-10-27 b, nach P100). Statt des Onboardings, das beim ersten
+   Speichern alles ueberschreiben wuerde, steht diese Karte: Daten als Datei
+   sichern, neu laden oder bewusst neu beginnen. Die Fassung und der Fehler
+   stehen klein darunter, damit ein Bildschirmfoto reicht. */
+function renderLadefehler(){
+  el("ob1").style.display = "none";
+  let box = el("obFehler");
+  if(!box){
+    box = document.createElement("div"); box.id = "obFehler";
+    el("s-onboard").insertBefore(box, el("ob1"));
+  }
+  box.innerHTML = `
+    <h1>ISO Coach</h1>
+    <div class="note bad"><b>Deine Daten konnten nicht geladen werden.</b>
+      Gelöscht ist nichts. Sichere sie als Datei, bevor du weitermachst.</div>
+    <button class="primary" style="width:100%;margin-top:14px" id="lfSichern">Daten als Datei sichern</button>
+    <button class="ghost" style="width:100%;margin-top:8px" id="lfNeuLaden">Neu laden</button>
+    <button class="ghost" style="width:100%;margin-top:8px" id="lfNeuBeginnen">Ohne Daten neu beginnen</button>
+    <p class="tiny muted" style="margin-top:18px;font-family:var(--mono);word-break:break-word">
+      Fassung ${BUILD} · <span id="lfText"></span></p>`;
+  el("lfText").textContent = LADEFEHLER;
+  el("lfSichern").onclick = ()=>{
+    let roh = null;
+    try{ roh = localStorage.getItem(KEY) || localStorage.getItem(KEY_GERETTET); }catch(e){}
+    if(!roh) return;
+    dateiTeilen(`iso-coach-gerettet-${new Date().toISOString().slice(0,10)}.json`,
+                roh, "application/json", el("lfSichern"));
+  };
+  el("lfNeuLaden").onclick = ()=> location.replace(location.pathname + "?frisch=" + Date.now());
+  el("lfNeuBeginnen").onclick = ()=>{
+    if(!confirm("Ohne deine Daten neu beginnen? Sie werden beim ersten Speichern überschrieben.")) return;
+    LADEFEHLER = null; box.remove(); el("ob1").style.display = ""; render();
+  };
 }
 /* Waehrend eines Laufs fuehrt "Start" zurueck INS Workout, nicht auf den
    Planungsbildschirm. Vorher sah ein Tipp auf die Leiste aus, als waere das

@@ -4724,17 +4724,70 @@ nacheinander durch die ausgelieferten Fassungen vom 16.10. bis 23.10. geladen: 6
   diesem Build.
 - **Die Kopie hat keinen Weg zurück in die App.** Holen lässt sie sich nur über die Entwicklerwerkzeuge
   des Browsers, bis ein Build sie liest.
-- **Ein Ladefehler bleibt still.** Die App sagt nicht, dass sie die Daten nicht lesen konnte, und zeigt
-  weiter das Onboarding.
+- ~~**Ein Ladefehler bleibt still.**~~ Seit `2026-10-27 b` steht statt des Onboardings eine Rettungskarte,
+  siehe unten.
 
-**Für den Nachbau:** `load()`, `KEY_GERETTET`, `KNIEBEUGUNG_ANTWORTEN`. `EX_VERSION` bleibt 36: Ein
-gespeicherter Stand der Fassung 35 zieht beim ersten Laden normal um.
+**Gebaut in 2026-10-27 b: Rettungskarte.** Luke sah nach dem Push von `2026-10-27 a` weiter das
+Onboarding. Ob sein Handy noch die alte Fassung zeigte oder die neue an seinen echten Daten scheiterte, ließ
+sich vom Onboarding aus nicht sagen.
+
+- Kann `load()` vorhandene Daten nicht lesen, steht statt des Onboardings eine Karte: „Deine Daten konnten
+  nicht geladen werden. Gelöscht ist nichts. Sichere sie als Datei, bevor du weitermachst.“ Dazu drei
+  Knöpfe: **Daten als Datei sichern** (der Rohstand über das Teilen-Menü, sonst als Download, Name
+  `iso-coach-gerettet-JJJJ-MM-TT.json`), **Neu laden** (mit `?frisch=`, am Zwischenspeicher vorbei) und
+  **Ohne Daten neu beginnen** (mit Rückfrage, danach das normale Onboarding).
+- Klein darunter stehen Fassung und Fehlertext, damit ein Bildschirmfoto für die Diagnose reicht.
+- Das Onboarding zeigt unten die Fassung. Sonst steht sie nur in den Einstellungen.
+- Nach einem Ladefehler schiebt die veröffentlichte Fassung mit Serverspeicher den leeren Stand nicht auf
+  den Server.
+
+**Ausweg auf dem Handy, schon in `2026-10-25 a`:** Die Leiste unten ist auch im Onboarding da.
+Einstellungen → Karte „Fassung“ → „Neu laden und Fassung holen“ holt die neue Fassung am Zwischenspeicher
+vorbei. Nachgestellt: Öffnen der Einstellungen und der Knopf schreiben nichts in den Speicher.
+
+**Der Preis der Rettungskarte.**
+
+- **Die gesicherte Datei ist der Rohstand.** Lesen kann sie erst ein Build, der den Fehler behebt. Der Import
+  in derselben Fassung scheitert am selben Fehler.
+- **Wer „Ohne Daten neu beginnen“ tippt, überschreibt den Stand beim ersten Speichern.** Die Kopie unter
+  `isocoach.v1.gerettet` bleibt.
+- **Die Leiste bleibt sichtbar.** Wer von der Karte aus in die Einstellungen geht und dort etwas ändert,
+  speichert den leeren Stand. Auch dann bleibt die Kopie.
+
+**Für den Nachbau:** `load()`, `LADEFEHLER`, `KEY_GERETTET`, `KNIEBEUGUNG_ANTWORTEN`, `renderLadefehler()`,
+`render()`. `EX_VERSION` bleibt 36: Ein gespeicherter Stand der Fassung 35 zieht beim ersten Laden normal um.
 
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-10-27 b — Rettungskarte statt Onboarding bei einem Ladefehler
+
+**Befund (Luke).** Nach dem Push von `2026-10-27 a`: „leider immer noch leer“, er sieht „das Onboarding mit
+den Fragen, wie beim ersten Start.“ (P100)
+
+**Gebaut.**
+
+- Kann `load()` vorhandene Daten nicht lesen, zeigt die App statt des Onboardings eine Karte mit
+  „Daten als Datei sichern“, „Neu laden“ und „Ohne Daten neu beginnen“, darunter Fassung und Fehlertext.
+- Das Onboarding zeigt unten die Fassung.
+- Nach einem Ladefehler geht kein leerer Stand auf den Server.
+- Fassung der Übungsliste bleibt 36, Export Schema 10.
+
+**Geprüft.** Headless Chrome auf eigenem Port 9348 bei 375 × 812.
+
+- Lukes Weg mit seinem Export vom 16.10.: `2026-10-23 d` 69 Sitzungen, `2026-10-25 a` 0, `2026-10-27 b` 69,
+  keine Karte, Startseite.
+- Unlesbarer Speicher: Karte statt Onboarding, Fassung und Fehlertext darunter, die Kopie unter
+  `isocoach.v1.gerettet` steht. „Daten als Datei sichern“ legt die Datei ab und lässt den Speicher
+  unberührt. „Ohne Daten neu beginnen“ führt nach der Rückfrage ins Onboarding mit der Fassung unten.
+- Neues Handy ohne Daten: Onboarding wie bisher, unten „Fassung 2026-10-27 b“, keine Karte.
+- In `2026-10-25 a` mit Lukes Daten: Einstellungen über die Leiste öffnen zeigt die Fassung und den Knopf
+  „Neu laden und Fassung holen“, der Speicher bleibt bei 69 Sitzungen.
+- Keine Konsolenfehler. Die Testdaten sind danach gelöscht.
+- **Nicht geprüft:** auf dem Handy, das Teilen-Menü des iPhones.
 
 ### 2026-10-27 a — Gespeicherte Daten laden wieder
 

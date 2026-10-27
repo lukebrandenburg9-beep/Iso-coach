@@ -53,6 +53,9 @@ Umbauten trotzdem einmal über **Einstellungen → Sichern (Datei)** sichern.
 und zeigte eine leere App mit Onboarding (Papier P100). Gelöscht wurde dabei nichts, solange man
 nicht weitergemacht hat. Build `2026-10-27 a` lädt sie wieder. Schlägt das Laden künftig fehl,
 legt die App den Stand vorher unter `isocoach.v1.gerettet` ab; „Alles löschen“ entfernt auch ihn.
+Seit Build `2026-10-27 b` steht dann statt des Onboardings eine Karte, über die du die Daten als
+Datei sichern kannst. Welche Fassung läuft, steht im Onboarding unten und unter **Einstellungen →
+Fassung**. Dort holt **Neu laden und Fassung holen** die neue, auch aus dem Onboarding heraus.
 
 **Das Repository ist öffentlich**, weil GitHub Pages ohne bezahltes Konto nur so funktioniert.
 Unbedenklich: In den Dateien stehen keine persönlichen Daten — die Messwerte entstehen erst
