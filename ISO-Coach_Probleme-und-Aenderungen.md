@@ -4700,9 +4700,11 @@ danach das Onboarding und keine Messpunkte.
 
 - **Betroffen ist jeder mit gespeicherten Daten**, ganz gleich aus welcher Fassung, also auch die
   Beta-Tester. Wer die App zum ersten Mal öffnet, merkt nichts.
-- **Das Laden selbst löscht nichts.** Die alten Daten bleiben im Speicher des Browsers, bis die App zum
-  ersten Mal speichert. Das tut sie, sobald man das Onboarding durchläuft oder trainiert. Erst dann ist
-  der alte Stand überschrieben.
+- **Das Laden selbst löscht nichts, der erste Tipp oft schon.** Die alten Daten bleiben im Speicher des
+  Browsers, bis die App zum ersten Mal speichert. Das tut sie nicht erst am Ende des Onboardings oder beim
+  Training. Ein Tipp auf „Start“ in der Leiste speichert sofort, weil der Startbildschirm beim Zeichnen den
+  Plan des Tages ablegt. Eine Antwort auf die Kniebeugungsfrage speichert ebenso. Danach ist der alte Stand
+  überschrieben. (Nachgetragen am 27.10. nach Lukes Rückmeldung zu `2026-10-27 b`, siehe unten.)
 - **Gleiches Muster wie zweimal zuvor.** Die Kommentare an `laeuferKnieseite` und `geraetDa` beschreiben
   dieselbe Falle: Was `normalize()` beim Start braucht, muss vor `let S = load()` stehen.
 
@@ -4722,8 +4724,8 @@ nacheinander durch die ausgelieferten Fassungen vom 16.10. bis 23.10. geladen: 6
 - **Wer das Onboarding schon neu durchlaufen hat, bekommt seine Daten nicht automatisch zurück.** Für ihn
   bleibt nur der Import einer eigenen Sicherung. Die Kopie unter `isocoach.v1.gerettet` gibt es erst ab
   diesem Build.
-- **Die Kopie hat keinen Weg zurück in die App.** Holen lässt sie sich nur über die Entwicklerwerkzeuge
-  des Browsers, bis ein Build sie liest.
+- ~~**Die Kopie hat keinen Weg zurück in die App.**~~ Seit `2026-10-27 c` bietet die App sie an, sobald der
+  Hauptstand leer ist und die Fassung sie lesen kann.
 - ~~**Ein Ladefehler bleibt still.**~~ Seit `2026-10-27 b` steht statt des Onboardings eine Rettungskarte,
   siehe unten.
 
@@ -4750,18 +4752,244 @@ vorbei. Nachgestellt: Öffnen der Einstellungen und der Knopf schreiben nichts i
 - **Die gesicherte Datei ist der Rohstand.** Lesen kann sie erst ein Build, der den Fehler behebt. Der Import
   in derselben Fassung scheitert am selben Fehler.
 - **Wer „Ohne Daten neu beginnen“ tippt, überschreibt den Stand beim ersten Speichern.** Die Kopie unter
-  `isocoach.v1.gerettet` bleibt.
-- **Die Leiste bleibt sichtbar.** Wer von der Karte aus in die Einstellungen geht und dort etwas ändert,
-  speichert den leeren Stand. Auch dann bleibt die Kopie.
+  `isocoach.v1.gerettet` bleibt. Seit `2026-10-27 c` wird sie beim nächsten Start angeboten.
+- ~~**Die Leiste bleibt sichtbar.**~~ Seit `2026-10-27 c` führt sie zurück auf die Karte, und Speichern ist
+  gesperrt.
 
 **Für den Nachbau:** `load()`, `LADEFEHLER`, `KEY_GERETTET`, `KNIEBEUGUNG_ANTWORTEN`, `renderLadefehler()`,
 `render()`. `EX_VERSION` bleibt 36: Ein gespeicherter Stand der Fassung 35 zieht beim ersten Laden normal um.
+
+**Rückmeldung zu `2026-10-27 b` (Luke, 27.10. abends).** „es wird die aktuelle fassung angezeigt, leider
+nach wie vor das onboarding“. Mit seinen Daten unter `isocoach.v1` zeigte `2026-10-27 b` entweder den
+Startbildschirm oder die Rettungskarte. Das Onboarding heißt: Unter dem Schlüssel liegt nichts mehr oder ein
+leerer Stand. Sehr wahrscheinlich hat ein Tipp in der leeren App von `2026-10-25 a` gespeichert, siehe
+„Der erste Tipp“ oben. Offen: ob Luke die App früher in Safari statt über das Symbol auf dem Startbildschirm
+geöffnet hat (getrennte Speicher) und ob auf dem Handy ein Export nach dem 16.10. liegt.
+
+**Was `2026-10-27 b` hier nicht abdeckt.** Beides gebaut in `2026-10-27 c`, siehe unten.
+
+- ~~**Die Kopie unter `isocoach.v1.gerettet` wird nie angeboten.**~~ Lädt der Hauptschlüssel ohne Fehler einen
+  leeren Stand, erscheint keine Karte, auch wenn die Kopie daneben liegt.
+- ~~**Speichern ist während eines Ladefehlers nicht gesperrt.**~~ Ein Tipp auf „Start“ in der Leiste überschreibt
+  den Hauptschlüssel genauso wie in `2026-10-25 a`. Danach sichert „Daten als Datei sichern“ den leeren Stand,
+  weil es den Hauptschlüssel vor der Kopie liest.
+
+**Gebaut in 2026-10-27 c: Schutz gegen das Überschreiben.** Luke, 27.10. spät, als die Daten wieder da
+waren: „okay daten sind wieder da, wie gehen wir vor, das dass nicht wieder passiert? bzw warum ist das
+passiert?“
+
+**Warum die Prüfung vor `2026-10-25 a` den Fehler nicht fand.** Sie lud nur erfundene Stände und offenbar
+keinen gespeicherten Stand beim ersten Start. Nur dort tritt der Fehler auf. Sobald die Seite läuft, ist die
+Konstante belegt, und `normalize()` arbeitet fehlerfrei.
+
+- **Sperre.** Solange ein Ladefehler offen ist, schreibt `save()` nichts. Die Leiste führt zurück auf die
+  Rettungskarte statt auf den Startbildschirm. Speichern dürfen nur die Wege, die den Stand bewusst ersetzen:
+  Import, „Alles löschen“, „Ohne Daten neu beginnen“ und „Sicherung zurückholen“.
+- **Notbremse.** Im Gebrauch kommen Sitzungen nur dazu. Soll `save()` weniger Sitzungen schreiben, als im
+  Speicher liegen, schreibt es nichts. Es legt den Stand unter `isocoach.v1.gerettet` ab und zeigt die
+  Rettungskarte, darunter etwa „Speichern gestoppt: 69 Sitzungen gespeichert, 10 in der App“. Das greift
+  auch, wenn ein zweiter offener Tab inzwischen mehr gespeichert hat.
+- **Laden zählt nach.** Liefert `normalize()` weniger Sitzungen, als gespeichert sind, gilt das als
+  Ladefehler: Rettungskarte und Sperre.
+- **Laufende Sicherung** unter `isocoach.v1.sicherung`. Vor dem ersten Speichern eines neuen Tages kommt der
+  gespeicherte Stand dorthin. Ein Fehler von heute erreicht also nicht den Stand vom letzten Trainingstag.
+  Vor einem Import kommt der alte Stand sofort dorthin. Ein Stand ohne Sitzungen überschreibt nie eine
+  Sicherung.
+- **Angebot statt Onboarding.** Hat der Hauptstand keine Sitzung, liegt aber eine lesbare Sicherung oder
+  Kopie mit Sitzungen daneben, steht statt der ersten Frage: „Auf diesem Gerät liegt eine Sicherung deiner
+  Messpunkte: 69 Sitzungen, die letzte vom 16. Oktober 2026.“ Darunter „Sicherung zurückholen“ und „Ohne die
+  Sicherung weiter“. Angeboten wird die mit den meisten Sitzungen. So kommt auch die Kopie aus einem
+  Ladefehler zurück in die App, sobald eine Fassung sie lesen kann.
+- **„Daten als Datei sichern“** auf der Rettungskarte nimmt den längeren von Hauptstand und Kopie.
+- **Ladeprobe vor jedem Push.** Ein Haken in `.git/hooks/pre-push` ruft `ladeprobe/ladeprobe.mjs` auf. Beides
+  liegt neben dem Repo, nicht darin. Die Probe lädt Lukes Export vom 16.10. als gespeicherten Stand in die
+  Fassung, die gepusht wird. Das geschieht einmal direkt und einmal über die Fassung, die gerade ausgeliefert
+  ist. Danach tippt sie durch die Leiste. Sie prüft: alle Sitzungen geladen, Startbildschirm statt
+  Onboarding, kein Ladefehler, kein `NaN`, Speicher nach den Tipps unverändert, keine Konsolenfehler. Dazu
+  kommen ein neues Gerät und ein unlesbarer Stand. Fällt sie durch, geht der Push nicht raus. Ist
+  `index.html` unverändert, überspringt sie sich.
+
+**Der Preis.**
+
+- **Bis zu dreimal derselbe Stand auf dem Gerät:** Hauptstand, Sicherung und Kopie aus einem Ladefehler.
+  Bei Lukes 69 Sitzungen sind das rund 160 KB. Ein Browser gibt einer Seite etwa 5 MB. Ist der Speicher
+  voll, fällt die Sicherung aus, gespeichert wird trotzdem.
+- **Die Sicherung hinkt bis zu einem Tag hinterher.** Sie hält den Stand vom letzten Tag, an dem die App
+  benutzt wurde. Was heute trainiert wurde, steht nur im Hauptstand.
+- **Angeboten wird nur, wenn der Hauptstand keine Sitzung hat.** Wer eine ältere Datei importiert, hat den
+  neueren Stand danach in der Sicherung, bekommt ihn aber nicht angeboten. Zurück kommt er nur über die
+  Entwicklerwerkzeuge des Browsers.
+- **Das Angebot kommt bei jedem Start wieder**, solange der Hauptstand keine Sitzung hat und eine Sicherung
+  daneben liegt. Das gilt auch nach „Ohne die Sicherung weiter“ und „Ohne Daten neu beginnen“. Es
+  verschwindet mit der ersten Sitzung oder mit „Alles löschen“.
+- **Zwei offene Tabs:** Hat der andere mehr gespeichert, zeigt der ältere beim nächsten Speichern die
+  Rettungskarte. „Neu laden“ holt den neuen Stand.
+- **Die Karte nach der Notbremse trägt den Titel „Deine Daten konnten nicht geladen werden“**, obwohl sie
+  geladen waren. Den Grund nennt die Zeile darunter.
+- **Die Ladeprobe läuft nur auf Lukes Mac.** Ein Push mit `--no-verify` oder von einem anderen Rechner geht
+  an ihr vorbei. Sie braucht Chrome und node, prüft nur `index.html` und hat bisher nur Lukes Stand vom
+  16.10. Weitere Stände kommen als Datei nach `ladeprobe/staende/`. Ein Push dauert rund 20 Sekunden länger.
+
+**Für den Nachbau:** `save(ersetzen)`, `SPEICHER_N`, `sichern()`, `KEY_SICHERUNG`, `KEY_SICHERUNG_TAG`,
+`sicherungFinden()`, `renderAngebot()`, `karteZeigen()`, das Ereignis `storage`, `ladeprobe/ladeprobe.mjs`.
+`EX_VERSION` bleibt 36, Export Schema 10.
+
+### P101 · Außenrotation im hohen Seitsitz, mit geschätzter Kurve nur für Luke
+
+Luke, 02.11.: „ich brauche noch eine Übung und zwar Schulter außenrotationen im low oblique sit
+[…] bau diese Übung ganz normal in die app ein.“ Danach: „baue für mich eine geschätzte kurve auf
+ich schaffe dynmaisch ca 12 wiederholungen mit 5kg gewicht, interpoliere daraus eine isometrische
+haltezeit und nur für mich eine vorläufige kurve“.
+
+Auf die Rückfragen:
+
+| Frage | Lukes Antwort |
+|---|---|
+| Name | „schreibe 'im hohen Seitsitz' die Kunden stützen sich auf der hand ab“ |
+| Haltewinkel | Unterarm waagerecht |
+| Welcher Arm | der obere, Ellbogen aufs Knie |
+| Leiter | nur über das Hantelgewicht |
+| Erholung | eigene Gruppe |
+| Seiten | direkt hintereinander, beide gemessen |
+| Raster | 0,5 kg |
+| Sicherheitsfrage | sein Entwurf, wörtlich |
+
+**Gebaut in 2026-11-02 a.**
+
+- **Neue Übung „Außenrotation im hohen Seitsitz“**, Schlüssel `aussenrot`, Region Rotatorenmanschette,
+  eigene Erholungsgruppe. Sie darf am selben Tag laufen wie Liegestütz und Schrägzug.
+- **Eine Sprosse, die Leiter ist das Hantelgewicht:** 0 bis 15 kg in Schritten von 0,5 kg, vorgeschlagen
+  wird bis 10 kg. Bei 0 kg heißt die Sprosse „Nur der Unterarm“, mit Gewicht „Mit Kurzhantel“.
+- **Die Last ist gerechnet**, nach dem Segmentmodell von de Leva (1996): Unterarm und Hand wirken bei
+  waagerechtem Unterarm wie 1,21 % des Körpergewichts in der Faust. Grundlast 0,0121, Hebel des
+  Gewichts 83. Bei 80 kg Körpergewicht verdoppelt jedes Kilo die Grundlast. Bei Frauen läge der
+  Hebel bei rund 90. Die Sprosse steht als Platzhalter rot, bis Luke misst.
+- **Das Gerät „Kettlebell oder Kurzhantel“ trägt die ganze Übung.** Ohne Haken bietet die App sie nicht
+  an, im Modus ohne Geräte auch nicht. Der Unterarm allein hielte Minuten und läge über dem
+  Messfenster von 360 s. Die Gerätebeschreibung nennt die Außenrotation und die 0,5-kg-Schritte.
+- **Links heißt: Der linke Arm ist oben und arbeitet.** Beide Seiten kommen direkt nacheinander dran,
+  beide werden gemessen.
+- **Einstieg ohne Messung:** Die ersten drei Workouts der Gruppe beginnen mit 2, 3,5 und 5 kg statt mit
+  0, einem Viertel und der Hälfte des Hausgewichts. Ab dem ersten gültigen Halt rechnet die App wie
+  bei jeder Übung.
+- **Feineres Raster in der Lastrechnung:** Unter einer Grundlast von 0,05 rundet die App auf fünf statt
+  drei Nachkommastellen. Sonst fielen benachbarte 0,5-kg-Schritte auf dieselbe Last. Das betrifft nur
+  diese Übung.
+- **Sicherheitsfrage vor dem ersten Mal**, Lukes Wortlaut: „Bevor du die Außenrotation zum ersten Mal
+  machst“, vier Punkte, danach „Dann lässt du das zuerst ärztlich abklären.“
+- **Der Hinweistext ist ein Entwurf.** Luke formuliert ihn neu.
+
+**Die geschätzte Kurve.**
+
+- **Rechnung:** 12 Wiederholungen mit 5 kg ergeben nach Brzycki ein Maximum vom 1,44-fachen der Last.
+  Isometrisch ist angenommen, dass die Schulter 10 % mehr hält als dynamisch. 5 kg sind damit 63 %
+  der Maximalkraft. Die Haltezeit kommt aus der Schulterkurve von Frey Law und Avin (2010),
+  `t = 14,86 · I^−1,83`: rund 35 s mit 5 kg.
+- **Drei geschätzte Punkte** in der Mitte jeder Zone, je Seite dieselben, bei 80 kg Körpergewicht:
+  40 s mit 4,5 kg, 90 s mit 2,6 kg, 150 s mit 1,7 kg. Die Kurve durch sie sagt für 5 kg 37 s voraus.
+- **Die Leiter nach der Schätzung:** 6 kg 30 s, 5 kg 37 s, 4 kg 48 s, 3,5 kg 57 s, 3 kg 69 s, 2,5 kg 88 s,
+  2 kg 120 s, 1,5 kg 191 s, 1 kg 468 s. Die Kraftausdauer von 120 bis 180 s trifft keine Stufe genau.
+  Die App nimmt die näher liegende, 1,5 kg mit 191 s.
+- **Nur für Luke:** Die Punkte entstehen nur, wenn unter den Sitzungen die Kennung seines ersten
+  Workouts vom 14.09.2026 steht. Ein anderer Stand hat sie nicht.
+- **Keine Messung:** Die Punkte stehen nicht in den Sitzungen und nicht im Export. Sie zählen nicht für
+  die Abdeckung der Zonen und markieren keine Sprosse als gemessen. Im Profil sind sie gestrichelte
+  Ringe, darunter steht ein Satz, woher sie kommen.
+- **Sie fallen weg**, sobald zwei echte Messungen mit verschiedenem Gewicht selbst eine Kurve tragen.
+  Bis dahin rechnet die App mit Schätzung und Messung zusammen.
+
+**Der Preis.**
+
+- **Grundlast und Hebel sind gerechnet, nicht gemessen.** Wie bei jeder Platzhalter-Sprosse.
+- **Die Schätzung ruht auf drei Annahmen:** der Formel von Brzycki, den 10 % mehr im Halten und einer
+  Kurve, die über viele Personen gemittelt ist. Lukes erste Halte ersetzen sie.
+- **0,5 kg sind bei dieser Grundlast ein grober Schritt.** Bei 2 kg ist ein Schritt rund ein Fünftel der
+  Last. In der Kraftausdauer liegt der Halt deshalb oft über 180 s oder knapp an 120 s.
+- **Fehlt die Kennung auf Lukes Handy**, etwa nach einem Import ohne diese Sitzung oder nach „Alles
+  löschen“, gibt es keine geschätzte Kurve. Die Übung beginnt dann mit 2 kg wie bei jedem.
+- **Die Kennung steht im öffentlichen Code.** Sie verrät nur den Zeitpunkt seines ersten Workouts.
+
+**Für den Nachbau:**
+
+- `DEFAULT_EX.aussenrot` mit `seitenParallel`, `extraGeraet:["gewicht"]`, `extraSchritt` 0,5,
+  `startKg` `[2, 3.5, 5]`, die Sprosse mit `geraet:"gewicht"` und `platzhalter`. `mkBlock` liest
+  `startKg` beim Einstieg ohne Messung. `lastVon` rundet unter einer Grundlast von 0,05 auf `1e5`.
+- `SCHAETZKURVE.aussenrot` = `{kg:5, wdh:12, iso:1.1, b0:14.86, b1:-1.83, zeiten:[40, 90, 150]}`,
+  `SCHAETZ_GERAET` = `"w1789377227588"`, `schaetzPunkte(ex, side)`. `kurvenPunkte` ist jetzt eine
+  Funktion: Ohne eigene Kurve aus den Messungen stellt sie die Schätzpunkte davor. `messKurvenPunkte`
+  liefert nur die Messungen, `zoneCoverage` zählt über sie. Die Zeichnung erkennt `geschaetzt`.
+- `EX_VERSION` bleibt 36, `normalize()` ergänzt den neuen Schlüssel von selbst. Export Schema 10, neu ist
+  der Wert `aussenrot` in der Spalte `uebung`.
 
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-11-02 a — Außenrotation im hohen Seitsitz, geschätzte Kurve für Luke
+
+**Befund (Luke).** „ich brauche noch eine Übung und zwar Schulter außenrotationen im low oblique sit“,
+dazu „nur für mich eine vorläufige kurve“ aus 12 Wiederholungen mit 5 kg (P101).
+
+**Gebaut.**
+
+- Neue Übung „Außenrotation im hohen Seitsitz“: eine Sprosse, Hantelgewicht in 0,5-kg-Schritten,
+  eigene Erholungsgruppe, beide Seiten direkt nacheinander und beide gemessen.
+- Ohne angehakte Kettlebell oder Kurzhantel bietet die App die Übung nicht an.
+- Sicherheitsfrage vor dem ersten Mal mit Lukes Wortlaut.
+- Einstieg ohne Messung mit 2, 3,5 und 5 kg.
+- Geschätzte Kurve aus 12 Wiederholungen mit 5 kg, nur auf Lukes Stand, im Profil gestrichelt.
+- Fassung der Übungsliste bleibt 36, Export Schema 10.
+
+**Geprüft.** Headless Chrome bei 375 × 812, mit Lukes Export vom 16.10.
+
+- Ladeprobe `2026-11-02 a` über `2026-10-27 b`: 15 von 15 Prüfungen bestanden, 69 von 69 Sitzungen
+  direkt und über die ausgelieferte Fassung.
+- 21 Einzelprüfungen, alle bestanden:
+  - Lukes Stand, wie er ist: Übung da, aktiv, mit Sicherheitsfrage. Ohne Hantel nicht ausführbar. Je
+    Seite drei geschätzte Punkte und eine Kurve, keine Messung in der Zonenabdeckung. Alle anderen
+    Kurven unverändert. Im Profil der Satz zur Schätzung, sechs gestrichelte Ringe, kein NaN.
+  - Kopie mit angehakter Hantel: Spanne 0 bis 15 kg in 0,5-kg-Schritten. Der Plan legt links und rechts
+    direkt hintereinander, je 1,5 kg. Beim Start kommt zuerst die Sicherheitsfrage.
+  - Kopie ohne Lukes erstes Workout: keine geschätzten Punkte.
+  - Neues Gerät: Onboarding, keine geschätzten Punkte.
+- Keine Konsolenfehler. Testdaten und Chrome-Profile danach gelöscht.
+- **Nicht geprüft:** auf dem Handy, ein echter Halt mit der Hantel, ob Lukes Stand auf dem Handy die
+  Kennung trägt.
+
+### 2026-10-27 c — Schutz gegen das Überschreiben gespeicherter Daten
+
+**Befund (Luke).** „okay daten sind wieder da, wie gehen wir vor, das dass nicht wieder passiert?“ (P100)
+
+**Gebaut.**
+
+- Sperre: Während eines Ladefehlers speichert die App nichts, die Leiste führt auf die Rettungskarte.
+- Notbremse: Weniger Sitzungen, als im Speicher liegen, werden nie geschrieben. Stattdessen kommt die
+  Rettungskarte. Gilt auch gegenüber einem zweiten offenen Tab.
+- Laden zählt nach: Gehen beim Laden Sitzungen verloren, ist das ein Ladefehler.
+- Laufende Sicherung unter `isocoach.v1.sicherung`, einmal am Tag und vor jedem Import.
+- Liegt der Hauptstand leer da und eine Sicherung daneben, bietet die App sie statt des Onboardings an.
+- „Daten als Datei sichern“ nimmt den längeren Stand.
+- Ladeprobe vor jedem Push, außerhalb des Repos.
+- Fassung der Übungsliste bleibt 36, Export Schema 10.
+
+**Geprüft.** Headless Chrome bei 375 × 812, mit Lukes Export vom 16.10.
+
+- Ladeprobe `2026-10-27 c` über `2026-10-27 b`: 15 von 15 Prüfungen bestanden.
+- Gegenprobe `2026-10-25 a`: durchgefallen mit 7 von 15, darunter „0 von 69 Sitzungen geladen“,
+  „Onboarding statt Startbildschirm“ und „nach den Tipps 0 Sitzungen im Speicher, vorher 69“.
+  `2026-10-27 b` fällt beim unlesbaren Stand durch.
+- Der Haken hätte den Push von `2026-10-25 a` über `2026-10-23 d` gestoppt. Ohne Änderung an `index.html`
+  überspringt er die Probe.
+- 32 Einzelprüfungen: Notbremse mit Karte und Kopie, Sperre über die Leiste, Neu laden, Sicherung am ersten
+  Speichern des Tages und nicht am zweiten, kein Überschreiben durch einen leeren Stand, Angebot aus der
+  Sicherung und aus einer lesbaren Kopie, keins aus einer unlesbaren, Zurückholen und Ablehnen,
+  „Daten als Datei sichern“, „Ohne Daten neu beginnen“, Import mit Sicherung davor, „Alles löschen“
+  entfernt alles, zweiter Tab.
+- Gegenprobe zweiter Tab: Ohne das Ereignis `storage` geht die neue Sitzung des anderen Tabs verloren.
+- Keine Konsolenfehler. Die Testdaten sind danach gelöscht.
+- **Nicht geprüft:** auf dem Handy, das Teilen-Menü des iPhones.
 
 ### 2026-10-27 b — Rettungskarte statt Onboarding bei einem Ladefehler
 

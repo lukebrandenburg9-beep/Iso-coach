@@ -51,11 +51,19 @@ Umbauten trotzdem einmal über **Einstellungen → Sichern (Datei)** sichern.
 
 **Ausnahme Build `2026-10-25 a`:** Er konnte gespeicherte Daten nicht laden
 und zeigte eine leere App mit Onboarding (Papier P100). Gelöscht wurde dabei nichts, solange man
-nicht weitergemacht hat. Build `2026-10-27 a` lädt sie wieder. Schlägt das Laden künftig fehl,
+dort nichts angetippt hat, das speichert: „Start“ in der Leiste, die Kniebeugungsfrage oder das
+Onboarding bis zum Ende. Dann ist der alte Stand überschrieben und kommt nur über den Import einer
+eigenen Sicherung zurück. Build `2026-10-27 a` lädt die Daten wieder, wenn sie noch da sind. Schlägt das Laden künftig fehl,
 legt die App den Stand vorher unter `isocoach.v1.gerettet` ab; „Alles löschen“ entfernt auch ihn.
 Seit Build `2026-10-27 b` steht dann statt des Onboardings eine Karte, über die du die Daten als
 Datei sichern kannst. Welche Fassung läuft, steht im Onboarding unten und unter **Einstellungen →
 Fassung**. Dort holt **Neu laden und Fassung holen** die neue, auch aus dem Onboarding heraus.
+
+**Seit Build `2026-10-27 c` kann das so nicht mehr passieren.** Während eines Ladefehlers speichert die
+App nichts, und weniger Sitzungen, als im Speicher liegen, schreibt sie nie. Stattdessen kommt die Karte.
+Einmal am Tag legt sie den Stand zusätzlich unter `isocoach.v1.sicherung` ab. Liegt der Hauptstand leer
+da und eine Sicherung daneben, bietet sie diese statt des Onboardings an. Vor jedem Push lädt eine
+Ladeprobe einen echten Stand in die neue Fassung. Fällt sie durch, geht nichts raus (Papier P100).
 
 **Das Repository ist öffentlich**, weil GitHub Pages ohne bezahltes Konto nur so funktioniert.
 Unbedenklich: In den Dateien stehen keine persönlichen Daten — die Messwerte entstehen erst
@@ -201,7 +209,7 @@ aus — Arbeitsplatte, Tisch, Stuhl, Hocker, Stepper, Kiste, Kissen, Sofa. Gerä
 |---|---|---|
 | Etwas zum Daranziehen | Schrägzug, **die ganze Übung** | an — eine stabile Tischkante zählt mit |
 | Faszienrolle | Fersenbrücke, die zwei obersten Stufen beidbeinig und einbeinig (Knie 90° und langer Hebel 170°), dazu der ganze Pfad fürs innere Knie | aus |
-| Kettlebell oder Kurzhantel | Aufrechter Läufer, Zusatzgewicht | aus |
+| Kettlebell oder Kurzhantel | Aufrechter Läufer, Zusatzgewicht. Außenrotation im hohen Seitsitz, **die ganze Übung**, in 0,5-kg-Schritten | aus |
 | Personenwaage mit Zeiger (analog) | Isometrisches und endgradiges Wadenheben, einbeinig mit Entlastung | aus |
 | Spanngurt mit Türanker | Hyperextension, die zwei leichten Stufen im Türrahmen. Ohne Gurt beginnt die Leiter am Stepper | aus |
 
@@ -437,6 +445,23 @@ einen anderen Carry. Die Kettlebell sitzt immer auf der Seite des freien Beins: 
 rechte Bein, heißen die Knöpfe „Front Rack · vor der Schulter – links" und „Suitcase · in der
 Hand – links". Wechselst du, bleibt die Last gleich und die App rechnet das Kilo um.
 
+**Die Außenrotation im hohen Seitsitz** (seit Build `2026-11-02 a`, Papier P101) trainiert die
+Rotatorenmanschette. Man sitzt auf einer Hüfte, stützt sich auf die Hand und legt den Ellbogen des
+oberen Arms aufs Knie. Gehalten wird mit waagerechtem Unterarm. „Links“ heißt: Der linke Arm ist oben
+und arbeitet. Beide Seiten kommen direkt nacheinander dran, beide werden gemessen, und die Übung hat
+eine eigene Erholungsgruppe. Auch hier ist das Gewicht die ganze Leiter: eine Sprosse, 0 bis 15 kg in
+0,5-kg-Schritten. Unterarm und Hand wirken wie 1,21 % des Körpergewichts in der Faust (de Leva 1996),
+das Gewicht mit `83·X/BW`. Bei 80 kg verdoppelt jedes Kilo die Last. Beides ist gerechnet, die Sprosse
+steht rot. Ohne angehakte Kettlebell oder Kurzhantel bietet die App die Übung nicht an, denn der
+Unterarm allein hielte Minuten. Wer noch nie gemessen hat, beginnt mit 2, dann 3,5, dann 5 kg.
+
+Für Luke steht in dieser Übung eine geschätzte Kurve, bis er selbst misst. Er schafft 12
+Wiederholungen mit 5 kg. Daraus rechnet die App nach Brzycki das Maximum, nimmt fürs Halten 10 % mehr
+an und liest die Haltezeit aus der Schulterkurve von Frey Law und Avin (2010): rund 35 s mit 5 kg. Je
+Zone steht ein geschätzter Punkt, im Profil als gestrichelter Ring. Die Punkte gibt es nur auf seinem
+Stand, sie stehen nicht im Export, und sie fallen weg, sobald zwei Messungen mit verschiedenem Gewicht
+eine eigene Kurve tragen.
+
 ---
 
 ## Was der Prototyp nicht kann
@@ -455,9 +480,10 @@ Hand – links". Wechselst du, bleibt die Last gleich und die App rechnet das Ki
 
 ## Datensicherung
 
-**Einstellungen → Sichern (Datei)** legt eine JSON-Datei ab. Das ist die einzige Sicherung, die es gibt:
-Leerst du die Browserdaten oder wechselst das Gerät, sind die Messwerte weg. Vor jedem
-Browser-Aufräumen einmal sichern.
+**Einstellungen → Sichern (Datei)** legt eine JSON-Datei ab. Das ist die einzige Sicherung, die das
+Gerät überlebt: Leerst du die Browserdaten oder wechselst das Gerät, sind die Messwerte weg, auch die
+Sicherung, die die App seit `2026-10-27 c` einmal am Tag im Browser ablegt. Vor jedem Browser-Aufräumen
+einmal sichern.
 
 ---
 

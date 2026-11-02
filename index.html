@@ -1767,6 +1767,77 @@ const DEFAULT_EX = {
       {name:"Stepper · Hände in der Hüfte",              load:0.776},
       {name:"Stepper · Hände vor der Brust",             load:0.847}
     ]
+  },
+
+  /* Aussenrotation im hohen Seitsitz (Build 2026-11-02 a). Luke, 02.11.2026:
+     "Schulter außenrotationen im low oblique sit" — Uebung 3 im Grobskript
+     Schulterimpingement (1.1). Hartmans Oblique Sit heisst hier Seitsitz,
+     "hoch", weil sich die Kunden auf die Hand stuetzen (Luke). Seine
+     Entscheidungen vom selben Tag:
+       - gearbeitet wird mit dem OBEREN Arm, der Ellbogen liegt auf dem Knie;
+       - gehalten wird mit waagerechtem Unterarm. Dort wirkt der volle Hebel,
+         und ein paar Grad daneben aendern die Last kaum (cos 10° = 0,98);
+       - die Leiter ist nur das Hantelgewicht: eine Sprosse wie beim
+         aufrechten Laeufer, Raster 0,5 kg;
+       - eigene Gruppe, darf also mit Liegestuetz und Schraegzug an einen Tag;
+       - beide Seiten direkt nacheinander, beide gemessen (seitenParallel).
+     Hebel nach de Leva 1996 (Maenner): Unterarm 1,62 % KG mit Schwerpunkt
+     12,3 cm vor dem Ellbogen, Hand 0,61 % KG bei 33,7 cm. Zusammen wirken sie
+     wie 1,21 % KG in der Faust (Griff 33,5 cm). Daher load 0,0121 und extraK
+     1/0,0121 = 83: Bei 80 kg verdoppelt ein Kilo die Last. Frauen liegen bei
+     rund 90. Eine Kettlebell wirkt bei waagerechtem Unterarm wie eine
+     Kurzhantel gleichen Gewichts, der waagerechte Hebel ist derselbe.
+     Kein ort: Im Modus ohne Geraete gibt es kein Gewicht, und der Unterarm
+     allein haelt Minuten — dort faellt die Uebung weg.
+     VORLAEUFIG, bis Luke misst: load, extraK und der Hinweistext. */
+  aussenrot: {
+    name:"Außenrotation im hohen Seitsitz", region:"Rotatorenmanschette", group:"rotation",
+    sides:["links","rechts"], seitenParallel:true,
+    seitenRuf:{links:"LINKER ARM OBEN", rechts:"RECHTER ARM OBEN"},
+    seitenKopf:{links:"linker Arm oben", rechts:"rechter Arm oben"},
+    extraAb:0, extraK:83,
+    extraMin:0, extraMax:15, extraSchritt:0.5, extraReal:10,
+    extraGeraet:["gewicht"],
+    extraLabel:"Kurzhantel",
+    /* Ohne Hantel traegt der Unterarm bei 80 kg grob ein Achtel der
+       Maximalkraft; so ein Halt liegt fuer die meisten ueber dem Messfenster.
+       Der erste Test beginnt deshalb bei 2 kg statt ohne Gewicht (siehe
+       mkBlock). Grob geschaetzt landen Maenner dort bei 40 %, Frauen bei 65 %
+       der Maximalkraft, beide im Fenster. */
+    startKg:[2, 3.5, 5],
+    extraHint:"Eine Kurzhantel, eine kleine Kettlebell oder eine gefüllte Wasserflasche, fest in "
+             +"der Faust. Es zählt, was sie wiegt. Hast du das vorgeschlagene Gewicht nicht, stell "
+             +"ein, was du hast.",
+    hint:"»Links« heißt: Der LINKE Arm ist oben und arbeitet. Setz dich auf die rechte Hüfte, die "
+        +"Beine angewinkelt zur Seite abgelegt, und stütz dich mit gestrecktem Arm auf die rechte "
+        +"Hand, sodass der Oberkörper aufrecht steht — das ist der hohe Seitsitz. Der linke "
+        +"Ellbogen liegt auf dem oberen Knie und ist rechtwinklig gebeugt. Die Kurzhantel in der "
+        +"linken Faust: Dreh den Unterarm nach außen, bis er waagerecht steht, und halte ihn genau "
+        +"dort. Der Ellbogen bleibt auf dem Knie. Keine Wiederholungen. Beide Seiten kommen direkt "
+        +"nacheinander dran, und beide werden gemessen.",
+    /* Wortlaut der Punkte: Luke, 02.11.2026. */
+    warnung:{
+      titel:"Bevor du die Außenrotation zum ersten Mal machst",
+      frage:"Trifft eines davon auf dich zu?",
+      punkte:[
+        "Deine Schulter ist schon einmal ausgekugelt oder herausgesprungen",
+        "Seit einem Sturz kannst du den Arm nicht mehr aus eigener Kraft heben",
+        "Der Schmerz zieht vom Nacken bis in die Hand, mit Kribbeln",
+        "Die Schulter ist seit Wochen rundum steif, auch wenn jemand anderes deinen Arm bewegt"
+      ],
+      warum:"Dann lässt du das zuerst ärztlich abklären. Einer gereizten Rotatorenmanschette tut "
+           +"isometrisches Halten gut. Eine Schulter, die schon einmal ausgekugelt war, ein "
+           +"Sehnenriss nach einem Sturz, ein gereizter Nerv aus der Halswirbelsäule oder eine "
+           +"Schultersteife brauchen aber zuerst eine Diagnose, und die kann keine App stellen."
+    },
+    /* geraet:"gewicht" auf der Sprosse: Ohne Gewicht bleibt nur der Unterarm,
+       1,21 % des Koerpergewichts — so eine Haltezeit laeuft weit ueber
+       MESS_MAX und misst nichts. Ohne angehakte Kurzhantel bietet die App die
+       Uebung deshalb gar nicht an (stufeErlaubt, ausfuehrbar), wie die
+       Sprossen am Zug oder auf der Rolle. */
+    levels:[
+      {name:"Nur der Unterarm", nameMitGewicht:"Mit Kurzhantel", load:0.0121, platzhalter:true, geraet:"gewicht"}
+    ]
   }
 };
 
@@ -1869,8 +1940,10 @@ const GERAETE = [
    +"auf der Seite des angehobenen Knies hältst: vorn an der Schulter (Front Rack) oder "
    +"seitlich in der Hand (Suitcase). Es zählt, was diese eine Kettlebell wiegt. Die App "
    +"rechnet in 2-kg-Schritten; hast du die vorgeschlagene nicht, stell auf der Karte "
-   +"die ein, die du hast.",
-   fuer:"Aufrechter Läufer — Zusatzgewicht auf der Seite des freien Knies"},
+   +"die ein, die du hast. Für die Außenrotation reicht eine leichte Kurzhantel oder eine "
+   +"gefüllte Wasserflasche, dort in 0,5-kg-Schritten.",
+   fuer:"Aufrechter Läufer — Zusatzgewicht auf der Seite des freien Knies. Außenrotation im "
+       +"hohen Seitsitz — das Gewicht in der Faust"},
   {id:"waage", name:"Personenwaage mit Zeiger (analog)", was:"Eine Waage, die du unter den "
    +"Vorfuß legen kannst. Sie ist hier kein Zubehör, sondern das Messgerät: die Zahl auf der "
    +"Anzeige IST die Stufe. Sie muss analog sein — eine Digitalwaage schaltet bei stehender "
@@ -1905,9 +1978,14 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-10-27 b";
+const BUILD = "2026-11-02 a";
 const KEY = "isocoach.v1";
 const KEY_GERETTET = "isocoach.v1.gerettet";
+/* Laufende Sicherung (Build 2026-10-27 c, nach P100): der gespeicherte Stand,
+   wie er vor dem ersten Speichern eines neuen Tages war, und dieser Tag. Bevor
+   ein Import den Stand ersetzt, kommt er ebenfalls hierher (sichern). */
+const KEY_SICHERUNG = "isocoach.v1.sicherung";
+const KEY_SICHERUNG_TAG = "isocoach.v1.sicherung.tag";
 /* Marke der Zonenwahl. Bis Fassung 1 stand "Rotation" vorgewaehlt da und die
    drei Zonen leer daneben; ein Tipp darauf war eine FESTE Wahl. Seit Fassung 2
    steht die Zone der Rotation selbst vorgewaehlt — eine alte gespeicherte Wahl
@@ -3118,6 +3196,10 @@ const KNIEBEUGUNG_ANTWORTEN = [
    zeigt render() die Rettungskarte statt des Onboardings (renderLadefehler).
    Steht vor load(), weil load() es setzt. */
 let LADEFEHLER = null;
+/* Wie viele Sitzungen im Speicher liegen, gezaehlt am Rohstand, nicht am
+   geladenen. save() schreibt nie weniger darueber (Notbremse, Build
+   2026-10-27 c). Steht vor load(), weil load() es setzt. */
+let SPEICHER_N = 0;
 let S = load();
 /* Muss nach load() laufen: sidesOf() braucht S.sessions. */
 (function(){ const sd = S.ex[S.exercise] ? sidesOf(S.exercise) : [null];
@@ -3442,26 +3524,88 @@ function load(){
   let raw = null;
   try{
     raw = localStorage.getItem(KEY);
-    return raw ? normalize(JSON.parse(raw)) : fresh();
+    if(!raw) return fresh();
+    const d = JSON.parse(raw);
+    const roh = Array.isArray(d && d.sessions) ? d.sessions.length : 0;
+    SPEICHER_N = roh;
+    const s = normalize(d);
+    /* Kommen beim Laden weniger Sitzungen heraus, als gespeichert sind, ist
+       das ein Ladefehler wie jeder andere: Rettungskarte statt einer App, die
+       beim naechsten Speichern Sitzungen verliert (Build 2026-10-27 c). */
+    if(s.sessions.length < roh)
+      throw new Error(`Beim Laden fehlen ${roh - s.sessions.length} von ${roh} Sitzungen`);
+    return s;
   }catch(e){
     if(raw) LADEFEHLER = String((e && e.message) || e);
-    /* Wirft das Laden, startet die App leer, und das naechste save()
-       ueberschreibt die gespeicherten Daten. Darum vorher eine Kopie unter
-       KEY_GERETTET, die ein spaeterer Build zurueckholen kann. Eine schon
-       vorhandene, laengere Kopie bleibt (Build 2026-10-27 a, nach dem
-       Ladefehler von 2026-10-25 a). */
-    try{
-      const alt = localStorage.getItem(KEY_GERETTET);
-      if(raw && (!alt || raw.length > alt.length)) localStorage.setItem(KEY_GERETTET, raw);
-    }catch(_){ /* Speicher voll oder gesperrt */ }
+    retten(raw);
     return fresh();
   }
 }
-function save(){
-  try{ localStorage.setItem(KEY, JSON.stringify(S)); }
+/* Wirft das Laden, startet die App leer. Darum vorher eine Kopie des Rohstands
+   unter KEY_GERETTET, die ein spaeterer Build zurueckholen kann. Eine schon
+   vorhandene, laengere Kopie bleibt (Build 2026-10-27 a, nach dem Ladefehler
+   von 2026-10-25 a). */
+function retten(raw){
+  try{
+    const alt = localStorage.getItem(KEY_GERETTET);
+    if(raw && (!alt || raw.length > alt.length)) localStorage.setItem(KEY_GERETTET, raw);
+  }catch(_){ /* Speicher voll oder gesperrt */ }
+}
+/* ersetzen: Der Stand wird bewusst ersetzt (Import, Alles loeschen, Ohne Daten
+   neu beginnen, Sicherung zurueckholen). Nur dann darf weniger gespeichert
+   werden, als im Speicher liegt.
+
+   Build 2026-10-27 c, nach P100. Luke, 27.10.2026: „okay daten sind wieder da,
+   wie gehen wir vor, das dass nicht wieder passiert?" In 2026-10-25 a warf das
+   Laden, die App stand leer da, und ein Tipp auf "Start" schrieb den leeren
+   Stand ueber alle Messpunkte. */
+function save(ersetzen){
+  /* Sperre: Solange ein Ladefehler offen ist, ist S leer, und jedes save()
+     ueberschriebe die Daten, die nicht geladen werden konnten. */
+  if(LADEFEHLER && !ersetzen) return;
+  const n = S.sessions.length;
+  /* Notbremse: Im Gebrauch kommen Sitzungen nur dazu, keine geht weg. Liegen
+     im Speicher mehr, als S hat, ist etwas schiefgegangen. Dann wird nichts
+     geschrieben, und statt der App steht die Rettungskarte da. */
+  if(!ersetzen && n < SPEICHER_N){
+    LADEFEHLER = `Speichern gestoppt: ${SPEICHER_N} Sitzungen gespeichert, ${n} in der App`;
+    try{ retten(localStorage.getItem(KEY)); }catch(_){}
+    setTimeout(render, 0);
+    return;
+  }
+  try{
+    /* Beim bewussten Ersetzen nicht: Der Import sichert selbst vorher, und
+       "Alles loeschen" soll keine neue Sicherung anlegen. */
+    if(!ersetzen) sichern(false);
+    localStorage.setItem(KEY, JSON.stringify(S));
+    SPEICHER_N = n;
+  }
   catch(e){ /* privater Modus o.ä. — Export ist der Ausweg */ }
   if(DB){ clearTimeout(dbTimer); dbTimer = setTimeout(pushDB, 1200); }
 }
+/* Laufende Sicherung: Vor dem ersten Speichern eines neuen Tages kommt der
+   gespeicherte Stand nach KEY_SICHERUNG. Sie haelt also den Stand vom letzten
+   Tag, an dem die App benutzt wurde, und ein Fehler von heute erreicht sie
+   nicht. vorErsetzen: vor einem Import sofort, unabhaengig vom Tag. Ein Stand
+   ohne Sitzungen ueberschreibt nie eine Sicherung. */
+function sichern(vorErsetzen){
+  try{
+    const tag = new Date().toLocaleDateString("sv-SE");
+    if(!vorErsetzen && localStorage.getItem(KEY_SICHERUNG_TAG) === tag) return;
+    const raw = localStorage.getItem(KEY);
+    if(!raw || !SPEICHER_N) return;
+    localStorage.setItem(KEY_SICHERUNG, raw);
+    localStorage.setItem(KEY_SICHERUNG_TAG, tag);
+  }catch(_){ /* Speicher voll: Die Sicherung faellt aus, gespeichert wird trotzdem */ }
+}
+/* Zwei offene Tabs teilen sich den Speicher. Speichert der andere eine neue
+   Sitzung, haette dieser Tab die alte Zahl im Kopf und schriebe beim
+   naechsten Speichern ueber sie hinweg. So greift die Notbremse auch dann. */
+window.addEventListener("storage", e=>{
+  if(e.key !== KEY || !e.newValue) return;
+  try{ const d = JSON.parse(e.newValue);
+       SPEICHER_N = Array.isArray(d && d.sessions) ? d.sessions.length : 0; }catch(_){}
+});
 
 /* ── Serverspeicher ──────────────────────────────────────────────
    Nur in der veröffentlichten Fassung vorhanden. Ohne ihn lebt alles
@@ -3487,7 +3631,9 @@ async function initDB(){
     const ln = Array.isArray(S.sessions) ? S.sessions.length : 0;
     if(rn > ln){                       // Server führt — z.B. anderes Gerät
       S = normalize(remote);
-      try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
+      try{ localStorage.setItem(KEY, JSON.stringify(S)); SPEICHER_N = S.sessions.length; }catch(e){}
+      /* Der Server hatte lesbare Daten: kein Ladefehler mehr offen. */
+      if(LADEFEHLER){ LADEFEHLER = null; karteWeg(); }
       dbState = "vom Server geladen";
       render();
     } else if(!LADEFEHLER){            // nach einem Ladefehler ist S leer
@@ -4297,8 +4443,55 @@ function gemesseneSprossen(ex){
 function sprosseVorlaeufig(ex, i){ return !gemesseneSprossen(ex).has(i); }
 /* Die Punkte, mit denen die Kurve rechnet und die sie zeichnet — die
    letzten PUNKTE_GRENZE. points() bleibt die ganze Messreihe. */
-const kurvenPunkte = (ex, side) => points(ex, side).slice(-PUNKTE_GRENZE);
+const messKurvenPunkte = (ex, side) => points(ex, side).slice(-PUNKTE_GRENZE);
+/* Davor die geschaetzten Punkte, solange die gemessenen allein noch keine
+   Kurve tragen (siehe SCHAETZKURVE). Sonst dieselben Punkte wie bisher. */
+function kurvenPunkte(ex, side){
+  /* Ohne Argumente wie points(): die gewaehlte Uebung und Seite. Sonst fehlte
+     die Schaetzung, wo renderProfile kurvenPunkte() ohne Argumente zaehlt. */
+  ex = ex === undefined ? S.exercise : ex;
+  side = side === undefined ? S.side : side;
+  const echt = messKurvenPunkte(ex, side);
+  const sz = fit(echt) ? [] : schaetzPunkte(ex, side);
+  return sz.length ? sz.concat(echt) : echt;
+}
 const curFit = (ex, side) => fit(kurvenPunkte(ex, side));
+
+/* ── Geschaetzte Startkurve, nur auf Lukes Geraet (Build 2026-11-02 a) ──
+   Luke, 02.11.2026: "baue für mich eine geschätzte kurve auf ich schaffe
+   dynmaisch ca 12 wiederholungen mit 5kg gewicht, interpoliere daraus eine
+   isometrische haltezeit und nur für mich eine vorläufige kurve".
+   Gerechnet in Lasten; die Last waechst linear mit dem Gewicht in der Faust.
+     1. 12 Wiederholungen sind nach Brzycki 25/36 = 69 % des Einmal-Maximums.
+     2. Gehalten ist man staerker als bewegt. Angesetzt sind 10 % (iso),
+        eine Annahme. Mit 5 kg haelt Luke damit 63 % seiner Maximalkraft.
+     3. Haltezeit nach Frey Law & Avin 2010, Schulter: t = 14,86 · I^-1,83.
+        Mit 5 kg sind das rund 35 s.
+   Daraus drei Punkte auf den Zonenmitten 40, 90 und 150 s, fuer beide Seiten
+   dieselben. Sie sind KEINE Messung: Sie stehen nicht in S.sessions und nicht
+   im Export, keine Sprosse gilt durch sie als gemessen, und fuer die
+   Abdeckung der Zonen zaehlen sie nicht (zoneCoverage). In die Kurve gehen
+   sie nur, solange die gemessenen Punkte einer Seite allein noch keine Kurve
+   tragen: Der zweite Halt mit einem anderen Gewicht loest sie ab.
+   Nur fuer Luke: Sie gelten nur auf dem Geraet, auf dem sein erstes Workout
+   liegt (Ausfallschritt, 14.09.2026). */
+const SCHAETZKURVE = {
+  aussenrot: {kg:5, wdh:12, iso:1.1, b0:14.86, b1:-1.83, zeiten:[40, 90, 150]}
+};
+const SCHAETZ_GERAET = "w1789377227588";
+function schaetzPunkte(ex, side){
+  const s = SCHAETZKURVE[ex], e = S.ex[ex];
+  if(!s || !e || !e.levels[0] || !S.sessions.some(x => x.workout === SCHAETZ_GERAET)) return [];
+  /* Ohne Klemmung gerechnet: Ist das Geraet nicht angehakt, bliebe von den
+     5 kg sonst nichts uebrig. */
+  const bw = (S.bw > 0 ? S.bw : BW_DEFAULT), k = extraKOf(ex, s.kg, side), L0 = e.levels[0].load;
+  const mvc = L0 * (1 + k * s.kg / bw) * 36 / (37 - s.wdh) * s.iso;
+  return s.zeiten.map(t => {
+    const load = Math.round(mvc * Math.pow(t / s.b0, 1 / s.b1) * 1e5) / 1e5;
+    return {load, time: t, pain: false, geschaetzt: true, date: null, level: 0,
+            extra: Math.round((load / L0 - 1) * bw / k * 10) / 10, beid: false};
+  });
+}
 
 /* ── Satzkurve: wie lange Satz 2, 3, … halten ───────────────────────
    Build 2026-10-06 h. Luke: "waehrend der onboarding phase wird mit den
@@ -4443,7 +4636,7 @@ function zoneOf(t){
 }
 function zoneCoverage(ex, side){
   const cov = {A:0, B:0, C:0};
-  for(const p of kurvenPunkte(ex, side)) cov[zoneOf(p.time).id]++;
+  for(const p of messKurvenPunkte(ex, side)) cov[zoneOf(p.time).id]++;
   return cov;
 }
 
@@ -5628,9 +5821,14 @@ function lastVon(ex, level, kg, side, cm){
   const L = S.ex[ex] && S.ex[ex].levels[level];
   if(!L) return 0;
   const basis = L.bank ? bankLast(L, cm > 0 ? cm : bankCmOf(ex, side)) : L.load;
+  /* Die Aussenrotation (Build 2026-11-02 a) traegt nur den Unterarm, rund ein
+     Prozent des Koerpergewichts. Auf drei Stellen gerundet laege ein halbes
+     Kilo dort bis zu drei Prozent daneben, kleine Grundlasten runden deshalb
+     feiner. Alle anderen Leitern beginnen ueber 0,05 und bleiben bei drei. */
+  const raster = basis < 0.05 ? 1e5 : 1000;
   /* kgWirksam: Y rechnet ohne gemerktes Brust-Gewicht, die Brust nie unter
      ihrem Mindestgewicht. Fuer alle anderen Uebungen kg unveraendert. */
-  return Math.round(basis * extraFaktor(ex, kgWirksam(ex, level, kg), side) * 1000) / 1000;
+  return Math.round(basis * extraFaktor(ex, kgWirksam(ex, level, kg), side) * raster) / raster;
 }
 /* Name der Sprosse mit Blick auf das Gewicht: Die einzige Sprosse des
    Laeufers heisst "Ohne Zusatzlast" — mit Kettlebell waere das falsch. Ein
@@ -6144,9 +6342,12 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
          hatte: ohne Zusatz, ein Viertel, die Haelfte der realistischen
          Spanne. Die leichteste Stellung ist bewusst NICHT dabei. */
       const b = extraBereich(ex, level);
-      const anteil = [0, 0.25, 0.5][Math.min(2, groupWorkoutCount(groupOf(ex)))];
-      neuKg = Math.max(b.lo, Math.min(b.hi,
-        Math.round((anteil * extraRealOf(ex, level)) / b.schritt) * b.schritt));
+      const platz = Math.min(2, groupWorkoutCount(groupOf(ex)));
+      /* Die Aussenrotation nennt ihre drei Plaetze selbst (startKg): Ohne
+         Gewicht laege ihr erster Halt ueber dem Messfenster. */
+      const sk = (DEFAULT_EX[ex] || {}).startKg;
+      const roh = sk ? sk[platz] : [0, 0.25, 0.5][platz] * extraRealOf(ex, level);
+      neuKg = Math.max(b.lo, Math.min(b.hi, Math.round(roh / b.schritt) * b.schritt));
     }
     if(neuKg != null && neuKg !== kg){
       kg = neuKg;
@@ -8894,7 +9095,11 @@ function curveSVG(f, pts, paar, nur){
   pts.forEach((p, i)=>{
     const o = lage[i], w = wichte[i];
     if(!o.da) return;
-    g += `<g opacity="${deck(w)}">` + (p.pain
+    /* Geschaetzt (SCHAETZKURVE): gestrichelter Ring, keine Messung. */
+    g += `<g opacity="${deck(w)}">` + (p.geschaetzt
+      ? `${umriss(p, o.xb, o.y, 5)} fill="var(--bg)"
+          style="stroke:${farbe("var(--acc)", w)}" stroke-width="1.8" stroke-dasharray="2.2 1.8"/>`
+      : p.pain
       ? `${umriss(p, o.xb, o.y, 5.5)} fill="var(--bg)"
           style="stroke:${farbe("var(--bad)", w)}" stroke-width="2.6"/>`
       : `${umriss(p, o.xb, o.y, 5)}
@@ -9814,7 +10019,11 @@ function renderProfile(){
       ? ` Bis zur senkrechten Linie hältst du${paar.length > 1 ? " auf beiden Seiten" : ""} länger als ${
         ZONES[2].hi} s, dort ist jede Stufe zu leicht.`
       : ` Links der senkrechten Linie hieltest du länger als ${ZONES[2].hi} s, dort ist jede Stufe
-      zu leicht.`}</p>
+      zu leicht.`}${
+      !(paar || [S.side]).some(sd => kurvenPunkte(S.exercise, sd).some(p => p.geschaetzt)) ? ""
+      : ` Gestrichelte Ringe sind geschätzt, aus ${SCHAETZKURVE[S.exercise].wdh} Wiederholungen mit ${
+        String(SCHAETZKURVE[S.exercise].kg).replace(".", ",")} kg. Sie fallen weg, sobald zwei Messungen mit
+      verschiedenem Gewicht die Kurve tragen.`}</p>
       ${stufenLegende(pts, paar)}
     </div>
     ${formKarte(S.exercise)}
@@ -10571,16 +10780,22 @@ function renderSetup(){
       try{
         const d = JSON.parse(r.result);
         if(!d || !Array.isArray(d.sessions)) throw 0;
-        S = normalize(d); save(); render();
+        const neu = normalize(d);
+        /* Der Import ersetzt den ganzen Stand. Der alte kommt vorher in die
+           Sicherung, auch wenn heute schon gesichert wurde. */
+        sichern(true);
+        S = neu; save(true); render();
       }catch(err){ alert("Die Datei konnte nicht gelesen werden."); }
     };
     r.readAsText(file);
   };
   el("resetBtn").onclick = ()=>{
     if(confirm("Alle Sessions und Einstellungen löschen? Das lässt sich nicht rückgängig machen.")){
-      /* Auch die Kopie aus einem Ladefehler (KEY_GERETTET): Alles heisst alles. */
-      try{ localStorage.removeItem(KEY_GERETTET); }catch(e){}
-      S = fresh(); save(); render();
+      /* Auch die Kopie aus einem Ladefehler (KEY_GERETTET) und die laufende
+         Sicherung: Alles heisst alles. */
+      try{ [KEY_GERETTET, KEY_SICHERUNG, KEY_SICHERUNG_TAG]
+             .forEach(k => localStorage.removeItem(k)); }catch(e){}
+      S = fresh(); save(true); render();
     }
   };
 }
@@ -10671,6 +10886,10 @@ function fixSide(){
   if(!sd.includes(S.side || null)) S.side = sd[0];
 }
 function show(name){
+  /* Waehrend eines Ladefehlers fuehrt jeder Weg zurueck auf die Rettungskarte.
+     In 2026-10-25 a fuehrte "Start" in der Leiste auf den Startbildschirm, und
+     der speicherte den leeren Stand (P100). */
+  if(LADEFEHLER){ render(); return; }
   aktiverScreen = name;
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));
   el("s-"+name).classList.add("on");
@@ -10718,23 +10937,84 @@ function amOrt(ankerId, zeichne){
   else window.scrollBy(0, b.getBoundingClientRect().top - vorher);
 }
 function renderAmOrt(ankerId){ amOrt(ankerId, render2); }
+/* Die Sicherung, die die App statt des Onboardings anbietet (sicherungFinden).
+   undefined: noch nicht gesucht. angebotWeg: fuer diesen Seitenaufruf
+   abgelehnt oder schon erledigt. */
+let angebot, angebotWeg = false;
 function render(){
-  if(!S.onboarded && LADEFEHLER){ el("s-onboard").classList.add("on"); renderLadefehler(); }
+  if(LADEFEHLER){ karteZeigen(); renderLadefehler(); }
+  else if(!S.sessions.length && !angebotWeg
+          && (angebot === undefined ? (angebot = sicherungFinden()) : angebot)){
+    karteZeigen(); renderAngebot();
+  }
   else if(!S.onboarded){ el("s-onboard").classList.add("on"); renderOnboard(); }
   else show("home");
+}
+/* Rettungskarte und Angebot stehen auf dem Onboarding-Bildschirm, an Stelle
+   der ersten Frage. Die Notbremse in save() kann die Karte auch mitten aus
+   einem anderen Bildschirm holen, darum gehen alle anderen aus. */
+function karteZeigen(){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));
+  document.querySelectorAll("nav button").forEach(b=>b.classList.remove("on"));
+  el("s-onboard").classList.add("on");
+}
+function karteBox(){
+  el("ob1").style.display = "none";
+  let box = el("obKarte");
+  if(!box){
+    box = document.createElement("div"); box.id = "obKarte";
+    el("s-onboard").insertBefore(box, el("ob1"));
+  }
+  return box;
+}
+function karteWeg(){
+  const box = el("obKarte"); if(box) box.remove();
+  el("ob1").style.display = "";
+}
+/* Liegt der Hauptstand ohne Sitzungen da, aber eine Kopie mit Sitzungen
+   daneben, bietet die App sie an statt des Onboardings (Build 2026-10-27 c).
+   Kandidaten sind die laufende Sicherung und die Kopie aus einem Ladefehler.
+   Angeboten wird nur, was diese Fassung vollstaendig lesen kann, und davon
+   die mit den meisten Sitzungen. */
+function sicherungFinden(){
+  let beste = null;
+  for(const key of [KEY_SICHERUNG, KEY_GERETTET]){
+    try{
+      const raw = localStorage.getItem(key); if(!raw) continue;
+      const d = JSON.parse(raw);
+      const n = Array.isArray(d && d.sessions) ? d.sessions.length : 0;
+      if(!n || normalize(JSON.parse(raw)).sessions.length < n) continue;
+      const letzte = Math.max(...d.sessions.map(s => +new Date(s && s.date) || 0));
+      if(!beste || n > beste.n) beste = {raw, n, letzte};
+    }catch(_){ /* nicht lesbar: kein Angebot */ }
+  }
+  return beste;
+}
+function renderAngebot(){
+  const box = karteBox(), a = angebot;
+  const am = a.letzte ? new Date(a.letzte).toLocaleDateString("de-DE",
+               {day:"numeric", month:"long", year:"numeric"}) : null;
+  box.innerHTML = `
+    <h1>ISO Coach</h1>
+    <div class="note">Auf diesem Gerät liegt eine Sicherung deiner Messpunkte:
+      <b>${a.n} Sitzungen</b>${am ? `, die letzte vom ${am}` : ""}.</div>
+    <button class="primary" style="width:100%;margin-top:14px" id="sgZurueck">Sicherung zurückholen</button>
+    <button class="ghost" style="width:100%;margin-top:8px" id="sgOhne">Ohne die Sicherung weiter</button>
+    <p class="tiny muted" style="margin-top:18px;font-family:var(--mono)">Fassung ${BUILD}</p>`;
+  el("sgZurueck").onclick = ()=>{
+    try{ S = normalize(JSON.parse(a.raw)); }catch(e){ return; }
+    angebotWeg = true; karteWeg(); save(true); render();
+  };
+  el("sgOhne").onclick = ()=>{ angebotWeg = true; karteWeg(); render(); };
 }
 /* Die gespeicherten Daten waren da, aber load() konnte sie nicht lesen
    (Build 2026-10-27 b, nach P100). Statt des Onboardings, das beim ersten
    Speichern alles ueberschreiben wuerde, steht diese Karte: Daten als Datei
    sichern, neu laden oder bewusst neu beginnen. Die Fassung und der Fehler
-   stehen klein darunter, damit ein Bildschirmfoto reicht. */
+   stehen klein darunter, damit ein Bildschirmfoto reicht. Seit 2026-10-27 c
+   ist Speichern dabei gesperrt, und die Leiste fuehrt zurueck auf die Karte. */
 function renderLadefehler(){
-  el("ob1").style.display = "none";
-  let box = el("obFehler");
-  if(!box){
-    box = document.createElement("div"); box.id = "obFehler";
-    el("s-onboard").insertBefore(box, el("ob1"));
-  }
+  const box = karteBox();
   box.innerHTML = `
     <h1>ISO Coach</h1>
     <div class="note bad"><b>Deine Daten konnten nicht geladen werden.</b>
@@ -10746,16 +11026,24 @@ function renderLadefehler(){
       Fassung ${BUILD} · <span id="lfText"></span></p>`;
   el("lfText").textContent = LADEFEHLER;
   el("lfSichern").onclick = ()=>{
+    /* Der laengere von Hauptstand und Kopie. Vor 2026-10-27 c kam der
+       Hauptstand zuerst, auch wenn er schon leer ueberschrieben war. */
     let roh = null;
-    try{ roh = localStorage.getItem(KEY) || localStorage.getItem(KEY_GERETTET); }catch(e){}
+    try{
+      const a = localStorage.getItem(KEY), b = localStorage.getItem(KEY_GERETTET);
+      roh = (a && b) ? (a.length >= b.length ? a : b) : (a || b);
+    }catch(e){}
     if(!roh) return;
     dateiTeilen(`iso-coach-gerettet-${new Date().toISOString().slice(0,10)}.json`,
                 roh, "application/json", el("lfSichern"));
   };
   el("lfNeuLaden").onclick = ()=> location.replace(location.pathname + "?frisch=" + Date.now());
   el("lfNeuBeginnen").onclick = ()=>{
-    if(!confirm("Ohne deine Daten neu beginnen? Sie werden beim ersten Speichern überschrieben.")) return;
-    LADEFEHLER = null; box.remove(); el("ob1").style.display = ""; render();
+    if(!confirm("Ohne deine Daten neu beginnen? Eine Kopie bleibt auf diesem Gerät.")) return;
+    /* Die Kopie unter KEY_GERETTET hat load() oder die Notbremse schon
+       angelegt. Sie wird angeboten, sobald eine Fassung sie lesen kann. */
+    LADEFEHLER = null; angebotWeg = true; karteWeg();
+    S = fresh(); save(true); render();
   };
 }
 /* Waehrend eines Laufs fuehrt "Start" zurueck INS Workout, nicht auf den
