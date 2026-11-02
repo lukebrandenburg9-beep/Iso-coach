@@ -4921,11 +4921,118 @@ Auf die Rückfragen:
 - `EX_VERSION` bleibt 36, `normalize()` ergänzt den neuen Schlüssel von selbst. Export Schema 10, neu ist
   der Wert `aussenrot` in der Spalte `uebung`.
 
+### P102 · Seitheben in der Schulterblattebene, nur auf Wahl
+
+Luke, 02.11.: „okay arbeite bitte noch eine weiter Übung ein und zwar das Seitliche Armheben im der
+Scaptionsebene (isometrische Seitheben)“. Festgelegt hatte er die Übung schon am 29.10.:
+Arm gestreckt, Daumen oben, auf Schulterhöhe, bewusst im
+schmerzhaften Bogen. Darunter eine Stufe mit rechtwinklig gebeugtem Ellbogen ohne Gewicht, darüber
+Gewicht, erst Flaschen (leer, halb, voll), dann mehr. Konstant gehalten wird mit einer Marke an der
+Wand für die Fingerspitzen, die Schulter bleibt unten.
+
+Auf die Rückfragen:
+
+| Frage | Lukes Antwort |
+|---|---|
+| Name | „Seitheben in der Schulterblattebene“ |
+| Erholung | „die Übung wird nur speziell bei schulterschmerzen angewählt ansonsten ist sie ausgegraut und nicht im normalen training drin“ |
+| Seiten | ein Arm, beide nacheinander |
+
+**Gebaut in 2026-11-02 b.**
+
+- **Neue Übung „Seitheben in der Schulterblattebene“**, Schlüssel `seitheben`, Region Schulter,
+  eigene Erholungsgruppe.
+- **Nur auf Wahl.** Auf *Start* steht die Übung ausgegraut mit dem Satz „nur bei Schulterschmerzen“.
+  Solange niemand sie anhakt, ist sie nicht im Plan. Anhaken lässt sie sich trotzdem, und rechts
+  steht, wie viele Minuten sie dazurechnet. Ein Haken nimmt sie in die Rotation auf, auch für die
+  folgenden Tage. Nimmt man den Haken wieder ab, ist sie wieder aus und ausgegraut. Ein neues Gerät
+  startet ohne sie. Alle anderen Übungen bleiben, wie sie waren: an, bis man sie abwählt.
+- **Zwei Sprossen:** „Ellbogen rechtwinklig gebeugt“ und „Arm gestreckt“. Gewicht gibt es nur auf dem
+  gestreckten Arm, 0 bis 10 kg in Schritten von 0,5 kg, vorgeschlagen wird bis 5 kg. Kein Gerätehaken,
+  denn eine Wasserflasche hat jeder. Im Modus ohne Geräte bleiben beide Sprossen, nur ohne Gewicht.
+- **Die Last ist gerechnet**, nach de Leva (1996), Männer, Arm waagerecht. Gestreckt wirkt der Arm wie
+  2,39 % des Körpergewichts in der Faust: Grundlast 0,0239, Hebel des Gewichts 42. Bei 80 kg wiegt der
+  Arm so viel wie 1,9 kg in der Faust, ein halbes Kilo hebt die Last um das 1,26-fache. Gebeugt zählt
+  fürs Seitheben nur die Oberarmlänge: 0,01733. Der Abstand der Sprossen ist 1,38. Bei Frauen läge
+  der Hebel grob bei 46. Beide Sprossen stehen rot, bis Luke misst.
+- **Links heißt: Der linke Arm arbeitet.** Beide Seiten kommen direkt nacheinander dran, beide werden
+  gemessen.
+- **Sicherheitsfrage vor dem ersten Mal:** dieselben vier Punkte wie bei der Außenrotation, Lukes
+  Wortlaut vom 02.11. Der Titel heißt „Bevor du das Seitheben zum ersten Mal machst“. „Trifft zu“
+  nimmt die Übung wieder raus, sie steht dann wieder ausgegraut da.
+- **Hinweistext und Sicherheitsfrage sind Entwürfe.** Luke formuliert sie neu oder bestätigt sie.
+
+**Der Preis.**
+
+- **Eigene Gruppe, weil die Antwort die Gruppe offen ließ.** Das Seitheben darf deshalb am selben Tag
+  laufen wie die Außenrotation und der Liegestütz. Dabei arbeitet der Untergrätenmuskel auch bei der
+  Außenrotation und der vordere Deltamuskel auch beim Liegestütz. Soll es mit einer der beiden eine
+  Gruppe teilen, ist das eine Zeile.
+- **Der erste Test liegt auf der gebeugten Sprosse.** Für eine gesunde Schulter ist das grob ein
+  Sechstel der Maximalkraft, der Halt dürfte länger dauern als die 360 s des Messfensters. Dann stuft
+  die App wie immer hoch. Bei der gereizten Schulter, für die die Übung da ist, liegt der Halt
+  wahrscheinlich im Fenster.
+- **Haken ab heißt: ganz raus.** Bei den anderen Übungen nimmt ein Haken ab die Übung nur für heute
+  raus. Beim Seitheben gibt es diesen Unterschied nicht: Wer es heute auslassen will, nimmt es ganz
+  raus und hakt es später wieder an. Die Messpunkte bleiben dabei.
+- **Ruht die Gruppe, ist die Zeile gesperrt.** Abnehmen lässt sich der Haken dann erst am nächsten
+  freien Tag.
+- **Grundlast und Hebel sind gerechnet, nicht gemessen.** Der Obergrätenmuskel (Supraspinatus)
+  arbeitet hier nicht allein, den Hauptanteil trägt der mittlere Deltamuskel.
+
+**Für den Nachbau:**
+
+- `DEFAULT_EX.seitheben` mit `nurAufWahl:"nur bei Schulterschmerzen"`, `seitenParallel`, `extraAb` 1,
+  `extraK` 42, `extraSchritt` 0,5, `extraMax` 10, `extraReal` 5, beide Sprossen mit `platzhalter` und
+  `ort:"boden"`, ohne `extraGeraet`.
+- `aufWahl(ex)` liest `nurAufWahl` aus `DEFAULT_EX`. `uebungAn(ex)` heißt bei einer Übung auf Wahl
+  `S.aktiv[ex] === true`, sonst wie bisher `S.aktiv[ex] !== false`. Es ersetzt die drei Abfragen in
+  `uebungslage`, `nachholZone` und der Ohne-Pause-Liste. `uebungslage` liefert dazu `wahl`, den Satz
+  für die Zeile. `haekchenSetzen` setzt beim Abnehmen `S.aktiv[ex] = false`, wenn die Übung auf Wahl
+  ist.
+- `EX_VERSION` bleibt 36, `normalize()` ergänzt den neuen Schlüssel von selbst. Export Schema 10, neu
+  ist der Wert `seitheben` in der Spalte `uebung`.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-11-02 b — Seitheben in der Schulterblattebene, nur auf Wahl
+
+**Befund (Luke).** „arbeite bitte noch eine weiter Übung ein und zwar das Seitliche Armheben im der
+Scaptionsebene (isometrische Seitheben)“, dazu „die Übung wird nur speziell bei schulterschmerzen
+angewählt ansonsten ist sie ausgegraut und nicht im normalen training drin“ (P102).
+
+**Gebaut.**
+
+- Neue Übung „Seitheben in der Schulterblattebene“: zwei Sprossen, Ellbogen rechtwinklig gebeugt und
+  Arm gestreckt. Gewicht nur auf dem gestreckten Arm, in 0,5-kg-Schritten. Eigene Erholungsgruppe,
+  beide Seiten direkt nacheinander und beide gemessen.
+- Neu sind Übungen nur auf Wahl. Ohne Haken steht die Übung ausgegraut mit „nur bei
+  Schulterschmerzen“ da und ist nicht im Plan. Mit Haken läuft sie in der Rotation, Haken ab heißt
+  wieder aus.
+- Sicherheitsfrage vor dem ersten Mal, Punkte wie bei der Außenrotation.
+- Fassung der Übungsliste bleibt 36, Export Schema 10.
+
+**Geprüft.** Headless Chrome bei 375 × 812, mit Lukes Export vom 16.10.
+
+- Ladeprobe `2026-11-02 b` über `2026-11-02 a`: 15 von 15 Prüfungen bestanden, 69 von 69 Sitzungen
+  direkt und über die ausgelieferte Fassung.
+- 30 Einzelprüfungen, alle bestanden:
+  - Ohne Wahl: aus und nicht im Plan. Auf *Start* ausgegraut mit dem Satz, anhakbar, „+15 min“. Alle
+    anderen Übungen unverändert.
+  - Angehakt: links und rechts direkt hintereinander im Plan, der erste Test auf der gebeugten Sprosse
+    ohne Gewicht. Am nächsten Tag ohne Handauswahl weiter im Plan.
+  - Lasten 0,01733 und 0,0239, mit 1 kg bei 80 kg 0,03645. Gewicht erst ab „Arm gestreckt“, 0 bis
+    10 kg in 0,5-kg-Schritten, Name „Arm gestreckt + 1,5 kg“. Ohne Geräte beide Sprossen ohne Gewicht.
+  - Die Sicherheitsfrage erscheint, „Trifft zu“ nimmt die Übung raus.
+  - Haken ab: wieder aus und ausgegraut, nicht im Plan, nicht in der Ohne-Pause-Liste.
+  - Kurvenseite und Startseite ohne NaN, danach 69 Sitzungen unverändert. Neues Gerät: Seitheben aus,
+    Außenrotation an.
+- Keine Konsolenfehler. Testdaten und Chrome-Profile danach gelöscht.
+- **Nicht geprüft:** auf dem Handy, ein echter Halt.
 
 ### 2026-11-02 a — Außenrotation im hohen Seitsitz, geschätzte Kurve für Luke
 

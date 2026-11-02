@@ -1838,6 +1838,87 @@ const DEFAULT_EX = {
     levels:[
       {name:"Nur der Unterarm", nameMitGewicht:"Mit Kurzhantel", load:0.0121, platzhalter:true, geraet:"gewicht"}
     ]
+  },
+
+  /* Seitheben in der Schulterblattebene (Build 2026-11-02 b). Luke,
+     02.11.2026: "das Seitliche Armheben im der Scaptionsebene (isometrische
+     Seitheben)". Festgelegt am 29.10.2026: Arm
+     gestreckt, Daumen oben, auf Schulterhoehe, bewusst im schmerzhaften
+     Bogen. Die Sprosse darunter mit rechtwinklig gebeugtem Ellbogen ohne
+     Gewicht, darueber Gewicht (Flaschen leer, halb, voll, dann mehr).
+     Konstant gehalten wird mit einer Marke an der Wand fuer die
+     Fingerspitzen, die Schulter bleibt unten. Seine Entscheidungen vom
+     02.11.2026:
+       - Name "Seitheben in der Schulterblattebene";
+       - nur auf Wahl: "die Übung wird nur speziell bei schulterschmerzen
+         angewählt ansonsten ist sie ausgegraut und nicht im normalen
+         training drin" (siehe uebungAn);
+       - ein Arm, beide direkt nacheinander, beide gemessen (seitenParallel).
+     Eigene Gruppe "armheben": Lukes Antwort liess die Gruppe offen. Damit
+     darf die Uebung an denselben Tag wie Aussenrotation und Liegestuetz,
+     obwohl der Infraspinatus auch bei der Aussenrotation arbeitet und der
+     vordere Deltamuskel auch beim Liegestuetz.
+     Hebel nach de Leva 1996 (Maenner), Arm waagerecht in der Ebene:
+       Oberarm 2,71 % KG, Schwerpunkt 16,3 cm vor der Schulter
+       Unterarm 1,62 % KG bei 40,5 cm, Hand 0,61 % KG bei 61,9 cm
+       Griff 61,7 cm vor der Schulter
+     Gestreckt wirkt der Arm wie 2,39 % KG in der Faust: load 0,0239, extraK
+     1/0,0239 = 42. Bei 80 kg wiegt der Arm so viel wie 1,9 kg in der Faust,
+     ein halbes Kilo hebt die Last um das 1,26-fache. Frauen liegen grob bei
+     46. Gebeugt zeigt der Unterarm nach vorn: Fuer das Seitheben zaehlt dann
+     nur, wie weit er seitlich von der Schulter weg ist, also die
+     Oberarmlaenge (28,2 cm). Das ergibt 1,07 % KG mal Meter, umgerechnet auf
+     denselben Griff 0,01733. Was er nach vorn hebelt, halten die
+     Aussenrotatoren mit. Abstand der beiden Sprossen 1,38: Tor 2 (1,25) und
+     Tor 3 (1,82) halten. Die Gesamtspanne traegt das Gewicht: Bei 80 kg sind es
+     mit halb voller 1-Liter-Flasche 1,74, mit voller 2,10, mit 1,5 kg 2,47.
+     Kein extraGeraet: Eine Wasserflasche hat jeder. ort:"boden" auf beiden
+     Sprossen: Die Wand gibt nur die Marke, getragen wird nichts.
+     Der erste Test liegt gespreizt auf der gebeugten Sprosse (mkBlock). Fuer
+     eine gesunde Schulter ist das grob ein Sechstel der Maximalkraft und
+     dauert vermutlich laenger als MESS_MAX. Die Uebung ist aber fuer die
+     gereizte Schulter da, die weniger Kraft hat.
+     VORLAEUFIG, bis Luke misst: load, extraK, Hinweistext und
+     Sicherheitsfrage. */
+  seitheben: {
+    name:"Seitheben in der Schulterblattebene", region:"Schulter", group:"armheben",
+    nurAufWahl:"nur bei Schulterschmerzen",
+    sides:["links","rechts"], seitenParallel:true,
+    seitenRuf:{links:"LINKER ARM", rechts:"RECHTER ARM"},
+    seitenKopf:{links:"linker Arm", rechts:"rechter Arm"},
+    extraAb:1, extraK:42,
+    extraMin:0, extraMax:10, extraSchritt:0.5, extraReal:5,
+    extraLabel:"Flasche oder Kurzhantel",
+    extraHint:"Eine 1-Liter-Flasche, fest in der Faust: halb voll wiegt sie 0,5 kg, voll 1 kg. "
+             +"Danach eine 1,5-Liter-Flasche oder eine Kurzhantel. Es zählt, was sie wiegt.",
+    hint:"»Links« heißt: Der LINKE Arm arbeitet. Stell dich aufrecht hin, die linke Seite zur "
+        +"Wand. Heb den gestreckten Arm schräg nach vorn, etwa eine Handbreit vor die Seite, bis "
+        +"auf Schulterhöhe. Der Daumen zeigt nach oben. Stell dich so weit weg, dass die "
+        +"Fingerspitzen die Wand fast berühren, und kleb dort eine Marke hin: Daran hältst du "
+        +"jedes Mal gleich hoch. Zieh die Schulter nicht zum Ohr. Halte genau dort, keine "
+        +"Wiederholungen. Auf der leichten Stufe ist der Ellbogen rechtwinklig gebeugt, der "
+        +"Unterarm zeigt nach vorn, und der Oberarm steht genauso hoch. Beide Seiten kommen "
+        +"direkt nacheinander dran, und beide werden gemessen.",
+    /* Punkte und Begruendung wie bei der Aussenrotation (Luke, 02.11.2026),
+       nur Titel und erster Satz der Begruendung angepasst. */
+    warnung:{
+      titel:"Bevor du das Seitheben zum ersten Mal machst",
+      frage:"Trifft eines davon auf dich zu?",
+      punkte:[
+        "Deine Schulter ist schon einmal ausgekugelt oder herausgesprungen",
+        "Seit einem Sturz kannst du den Arm nicht mehr aus eigener Kraft heben",
+        "Der Schmerz zieht vom Nacken bis in die Hand, mit Kribbeln",
+        "Die Schulter ist seit Wochen rundum steif, auch wenn jemand anderes deinen Arm bewegt"
+      ],
+      warum:"Dann lässt du das zuerst ärztlich abklären. Einer gereizten Schulter tut "
+           +"isometrisches Halten gut. Eine Schulter, die schon einmal ausgekugelt war, ein "
+           +"Sehnenriss nach einem Sturz, ein gereizter Nerv aus der Halswirbelsäule oder eine "
+           +"Schultersteife brauchen aber zuerst eine Diagnose, und die kann keine App stellen."
+    },
+    levels:[
+      {name:"Ellbogen rechtwinklig gebeugt", load:0.01733, platzhalter:true, ort:"boden"},
+      {name:"Arm gestreckt",                 load:0.0239,  platzhalter:true, ort:"boden"}
+    ]
   }
 };
 
@@ -1978,7 +2059,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-11-02 a";
+const BUILD = "2026-11-02 b";
 const KEY = "isocoach.v1";
 const KEY_GERETTET = "isocoach.v1.gerettet";
 /* Laufende Sicherung (Build 2026-10-27 c, nach P100): der gespeicherte Stand,
@@ -5573,13 +5654,25 @@ function fersenTeile(host){
 function planTeile(ex){
   return kniePfadAn(ex) ? fersenTeile(ex) : planSeiten(ex).map(sd => ({ex, side: sd}));
 }
+/* ── Nur auf Wahl (Build 2026-11-02 b) ────────────────────────────────
+   Luke, 02.11.2026, zum Seitheben in der Schulterblattebene: "die Übung wird
+   nur speziell bei schulterschmerzen angewählt ansonsten ist sie ausgegraut
+   und nicht im normalen training drin". Eine Uebung mit nurAufWahl ist aus,
+   bis der Nutzer sie unter Start anhakt: S.aktiv[ex] muss true sein, nicht
+   nur ungleich false. Der Haken gilt ueber den Tag hinaus, danach laeuft sie
+   in der Rotation wie jede andere. Nimmt er den Haken wieder raus, ist sie
+   wieder aus und ausgegraut (haekchenSetzen). nurAufWahl ist zugleich der
+   Satz in der Zeile. Gelesen aus DEFAULT_EX wie ohneZusatz. */
+function aufWahl(ex){ return (DEFAULT_EX[ex] || {}).nurAufWahl || ""; }
+function uebungAn(ex){ return aufWahl(ex) ? S.aktiv[ex] === true : S.aktiv[ex] !== false; }
 function uebungslage(){
   /* Der Baker-Pfad steht nicht als eigene Zeile da: Er ist ein Teil der
      Fersenbruecke und wird mit ihr geplant (fersenTeile). */
   return Object.keys(S.ex).filter(ex => !istKniePfad(ex)).map(ex => {
     const gr = groupOf(ex);
     const geht = kniePfadAn(ex) ? fersenTeile(ex).length > 0 : ausfuehrbar(ex);
-    return {ex, group:gr, aktiv: S.aktiv[ex] !== false && geht,
+    return {ex, group:gr, aktiv: uebungAn(ex) && geht,
+            wahl: uebungAn(ex) ? "" : aufWahl(ex),
             ohneGeraet: !geht, tor: gateGroup(gr), offen: offeneSeite(ex),
             verworfen: nachholVerworfen(ex)};
   });
@@ -6404,7 +6497,7 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
    Vorgabe anzeigen kann). */
 function nachholZone(gr){
   for(const ex of Object.keys(S.ex)){
-    if(S.aktiv[ex] === false || !ausfuehrbar(ex)) continue;
+    if(!uebungAn(ex) || !ausfuehrbar(ex)) continue;
     if(gr != null && groupOf(ex) !== gr) continue;
     const o = offeneSeite(ex);
     if(o && o.zone) return o;
@@ -9510,6 +9603,7 @@ function renderHome(){
         : u.verworfen ? `${u.verworfen.seite} offen · nicht nachholen`
         : (!u.tor.ok && !ignoreRest)
           ? tage(u.tor.wait)
+        : u.wahl ? u.wahl
         : partner ? `nicht zusammen mit ${S.ex[partner].name}` : "";
       /* Die aeussere Huefte ist ein Rat, kein Ausschluss: anhakbar bleibt es,
          das Haekchen tauscht nicht, und an beiden steht der Grund. */
@@ -9531,7 +9625,8 @@ function renderHome(){
       const minText = min == null ? ""
         : an ? `${min} min`
         : min > 0 ? `+${min} min` : min < 0 ? `−${-min} min` : "±0 min";
-      return `<label class="chk" for="ak-${u.ex}"${frei ? "" : ` style="opacity:.55"`}>
+      /* Nur auf Wahl und nicht gewaehlt: ausgegraut, aber anhakbar. */
+      return `<label class="chk" for="ak-${u.ex}"${frei && !u.wahl ? "" : ` style="opacity:.55"`}>
         <input type="checkbox" id="ak-${u.ex}" ${drin.has(u.ex) ? "checked" : ""}
           ${frei ? "" : "disabled"}>
         <span><b>${e.name}</b>${status ? `<br><span class="tiny" style="color:${
@@ -10181,6 +10276,8 @@ function haekchenSetzen(u, an, drin){
     if(u.verworfen) delete S.nachholWeg[u.ex];
   } else {
     sel.delete(u.ex); selbst.delete(u.ex);
+    /* Nur auf Wahl: Haken raus heisst wieder aus und ausgegraut (uebungAn). */
+    if(aufWahl(u.ex)) S.aktiv[u.ex] = false;
     /* Das Haekchen am Nachholblock abgewaehlt: Diese Seite wird nicht mehr
        nachgeholt (offeneSeite). */
     if(u.offen) S.nachholWeg[u.ex] = {tag: u.offen.tag, am: today()};
@@ -10717,7 +10814,7 @@ function renderSetup(){
   const ohost = el("ohnePauseEdit");
   if(ohost){
     const reihen = Object.keys(S.ex).filter(ex => !istKniePfad(ex)
-      && (S.aktiv[ex] !== false || ohnePause(groupOf(ex))));
+      && (uebungAn(ex) || ohnePause(groupOf(ex))));
     ohost.innerHTML = `<p class="tiny" style="margin:16px 0 8px"><b>Ohne Pause.</b> Diese
       Übungen kannst du trainieren, so oft du willst, auch mehrmals am Tag. Nach einem
       Schmerzabbruch ist für den Tag trotzdem Schluss.</p>`

@@ -157,6 +157,10 @@ Rechenlogik:
   `kurzeinheit`.
 - **Nachholblock zum Abwählen.** Wer die offene Seite nicht mehr nachholen will, nimmt das Häkchen
   der Zeile ab. Bis Mitternacht lässt es sich wieder setzen, danach plant die App die Übung normal.
+- **Übungen nur auf Wahl** (seit Build `2026-11-02 b`, Papier P102). Das Seitheben in der
+  Schulterblattebene steht auf *Start* ausgegraut mit „nur bei Schulterschmerzen“ und ist nicht im
+  Plan, bis man es anhakt. Dann läuft es in der Rotation wie jede andere Übung, auch an den
+  folgenden Tagen. Haken ab heißt wieder aus. Ein neues Gerät startet ohne diese Übung.
 - **Dein Workout.** *Weiter* auf *Start* führt auf eine Liste der angehakten Übungen in der
   Reihenfolge des Plans. Dort stellst du für jede Übung schon vorher Sprosse, Zusatzgewicht und
   Sätze ein, je Seite eine Zeile mit der Zielzeit im Kopf. Oben springt die Dauer mit. Die Karte vor
@@ -461,6 +465,16 @@ an und liest die Haltezeit aus der Schulterkurve von Frey Law und Avin (2010): r
 Zone steht ein geschätzter Punkt, im Profil als gestrichelter Ring. Die Punkte gibt es nur auf seinem
 Stand, sie stehen nicht im Export, und sie fallen weg, sobald zwei Messungen mit verschiedenem Gewicht
 eine eigene Kurve tragen.
+
+**Das Seitheben in der Schulterblattebene** (seit Build `2026-11-02 b`, Papier P102) ist für die
+gereizte Schulter da und läuft nur, wenn man es anhakt. Man steht aufrecht und hält den gestreckten
+Arm schräg vor der Seite auf Schulterhöhe, Daumen oben. Eine Marke an der Wand für die Fingerspitzen
+hält die Höhe gleich. „Links“ heißt: Der linke Arm arbeitet. Beide Seiten kommen direkt nacheinander
+dran, beide werden gemessen, die Übung hat eine eigene Erholungsgruppe. Zwei Sprossen: „Ellbogen
+rechtwinklig gebeugt“ und „Arm gestreckt“, Gewicht nur auf dem gestreckten Arm, 0 bis 10 kg in
+0,5-kg-Schritten, etwa eine Wasserflasche. Gestreckt wirkt der Arm wie 2,39 % des Körpergewichts in
+der Faust (de Leva 1996), das Gewicht mit `42·X/BW`, gebeugt sind es 1,73 %. Alles gerechnet, beide
+Sprossen stehen rot. Im Modus ohne Geräte bleiben beide Sprossen, nur ohne Gewicht.
 
 ---
 
