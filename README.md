@@ -139,7 +139,10 @@ Rechenlogik:
   **Fortschrittsziel** sagt, ab welcher Haltezeit in Satz 1 dieselbe Zone beim nächsten Mal schwerer
   wird. Das **PR-Ziel** sagt, ab wann die Kurve über ihrem Bestwert liegt (Mittel der Lasten bei 40,
   90 und 150 s), und erscheint nur bis 20 % über dem Ziel. Neben „Satz beenden“ steht ein Knopf
-  „Schmerz“. Die Pause zeigt nur die Sekunden, alles andere liegt hinter *Aktionen*.
+  „Schmerz“. Die Pause zeigt nur die Sekunden, alles andere liegt hinter *Aktionen*. Seit
+  `2026-11-05 d` (P106) sehen alle Kurven so aus: die Karte vor der Übung in der Farbe der Zone, mit
+  Achse und der Zeit über jedem Punkt, im Profil Kraftkurve und Formtrend mit blassem Raster, Zahlen
+  in Mono und einer Fläche unter der Linie.
 - **Erholung:** Dieselbe Muskelgruppe **dreimal pro Woche**, jedes Energiesystem — also jede
   Zone — **einmal pro Woche**. Beides zusammen ist genau eine Rotation: drei Zonen, drei
   Einheiten, ein Mo/Mi/Fr-Rhythmus. Umgesetzt als zwei Schranken: mindestens zwei Tage zwischen

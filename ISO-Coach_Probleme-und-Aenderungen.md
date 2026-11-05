@@ -5268,11 +5268,94 @@ Vorgabe war aus dem Bild verschwunden.
   trägt `aria-expanded`.
 - Gespeichert wird wie bisher. `EX_VERSION` bleibt 36, Export Schema 10.
 
+### P106 · Alle Kurven im Aussehen der Trainingskurve
+
+Luke, 05.11., nach Build 2026-11-05 c: „die neue ansicht sieht super aus kannst du das design auch auf alle anderen seiten übertragen auf denen kurven zu sehen sind?“
+
+**Gebaut in 2026-11-05 d.**
+
+- **Die Karte vor der Übung** zeigt die geplanten Sätze mit derselben Zeichnung wie das Training:
+  Sekunden links, Raster, Satznummern unten, die Vorgabe geschwungen und gestrichelt, darunter eine
+  Fläche, kräftig an der Linie und unten fast durchsichtig. Über jedem Punkt steht seine Zeit. Die
+  Farbe bleibt die der Zone. Grip Gains zeigt die Kurve vor dem Start ebenso in eigener Farbe (rosa)
+  und erst im Satz blau.
+- **Die Kraftkurve im Profil** hat ein ruhigeres Raster: Die Linien an Zonen und Stufen sind blass
+  und durchgezogen statt gepunktet. Unter der gemessenen Kurve liegt eine Fläche wie im Training. Sie
+  ersetzt das helle Band über dem gemessenen Bereich. Mit zwei Seiten trägt jede Fläche gut die halbe
+  Stärke. Die Punkte sind etwas größer und haben einen hellen Ring. Die Zahlen stehen wie im Training
+  in der Schrift mit fester Ziffernbreite.
+- **Der Formtrend im Profil** hat ein Raster bei 0, 25, 50, 75 und 100 und senkrecht eine Linie je
+  Tag, solange es nicht mehr als 14 sind. Unter der Formlinie liegt eine Fläche, die Linie ist
+  kräftiger, die Punkte haben einen Ring. Tal und Median-Strich bleiben.
+- **Der Inhalt bleibt gleich:** Kurven, Kreise und Quadrate, Pfeile, Schmerzringe, das Verblassen
+  älterer Punkte, die graue gestrichelte Verlängerung, Zonenbänder und Zonennamen, die senkrechte
+  Linie bei 180 s und alle Texte unter den Zeichnungen.
+
+**Der Preis.**
+
+- **Die Karte vor der Übung wird länger:** bei 390 px Breite um rund 26 px je Seite, mit zwei Seiten
+  um rund 53 px.
+- **Das helle Band über dem gemessenen Bereich ist weg.** Den gemessenen Bereich zeigt jetzt die
+  Fläche: Sie beginnt und endet, wo die Kurve gemessen ist. Unter der grau gestrichelten Verlängerung
+  liegt keine Fläche, dort fängt sie mit einer senkrechten Kante an.
+- **Im Formtrend liegen Fläche und Tal übereinander.** Das Tal bleibt als Feld erkennbar, das Wort
+  „Tal“ steht über der Fläche.
+- **Die Zahlen im Profil stehen jetzt in Mono.** Zonennamen und Achsentitel bleiben in der normalen
+  Schrift.
+- **Der Verlauf-Bildschirm bleibt, wie er war.** Er ist in der App derzeit nicht zu erreichen.
+- **Auf dem Handy nicht geprüft.**
+
+**Für den Nachbau:**
+
+- `verlauf(farbe, staerke)`: senkrechter Verlauf mit eigener ID je Zeichnung (`kv1`, `kv2` …). Eine ID
+  gilt im ganzen Dokument: Auf der Karte stehen zwei Kurven in verschiedenen Zonenfarben, und Chrome
+  zeichnet einen Verlauf nicht, der in einem verborgenen Bildschirm liegt.
+- `trainingsKurveSVG(vorgabe, gehalten, aktiv, o)` mit `o.farbe`, `o.hoehe` und `o.zahlen`.
+  `satzKurveSVG(zeiten, zone)` ruft sie mit der Zonenfarbe, Höhe 132 und Zahlen auf, ohne gehaltene
+  Sätze und ohne laufenden Satz.
+- CSS: `.kurve` für alle Zeichnungen, `.kurve.ks` für die Satzkurve (alle Zahlen in Mono), `.kz` für
+  einzelne Zahlen im Profil, `.tkZ` für die Zahl über dem Vorgabepunkt. Die Regeln für `#tKurve` und
+  für `.skurve svg`, `.skW`, `.skN` und `.skP` sind weg.
+- `curveSVG`: Statt des Band-Rechtecks sammelt die Schleife die gemessenen Stücke (`stuecke`), unter
+  jedes kommt eine Fläche mit `verlauf("var(--acc)", .32)`, bei zwei Seiten mit `fill-opacity` 0,55.
+- `formSVG` neu geschrieben, mit gleicher Geometrie. `historySVG` unverändert.
+- Gespeichert wird wie bisher. `EX_VERSION` bleibt 36, Export Schema 10.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-11-05 d — Alle Kurven im Aussehen der Trainingskurve
+
+**Auftrag (Luke).** „die neue ansicht sieht super aus kannst du das design auch auf alle anderen seiten übertragen auf denen kurven zu sehen sind?“ (P106)
+
+**Gebaut.**
+
+- Karte vor der Übung: dieselbe Zeichnung wie im Training, in der Zonenfarbe, mit Achse, Raster,
+  Fläche und der Zeit über jedem Punkt.
+- Kraftkurve im Profil: blasses, durchgezogenes Raster, Fläche unter der gemessenen Kurve statt des
+  hellen Bands, Punkte mit Ring, Zahlen in Mono.
+- Formtrend im Profil: Raster bei 0, 25, 50, 75 und 100 und je Tag, Fläche unter der Formlinie,
+  Punkte mit Ring.
+- `EX_VERSION` bleibt 36, Export Schema 10.
+
+**Geprüft.** Headless Chrome bei 390 × 844, mit Lukes Export vom 16.10.
+
+- Ladeprobe `2026-11-05 d` über `2026-11-05 c`: 15 von 15 Prüfungen bestanden, 69 von 69 Sitzungen
+  direkt und über die vorige Fassung.
+- Ablauftest Training: 53 von 53.
+- Kurvenvergleich gegen Build c, 62 Prüfungen, alle bestanden:
+  - Karte: zwei Kurven wie vorher, je Punkt eine Zahl mit denselben Zeiten (154, 61, 35 s und 40,
+    16, 9, 8, 8 s), Farbe der Zonen C und A, Gesamtzeit gleich.
+  - Kraftkurve in 15 Profilen: alle Texte und Punkte gleich, je Seite eine Fläche statt des Bands.
+  - Formtrend in 9 Profilen: gleich viele Punkte, Texte gleich, dazu 25 und 75.
+  - Keine doppelten IDs, jeder Verlauf liegt in seiner eigenen Zeichnung.
+- Fotos vorher und nachher: Karte, Kraftkurve Liegestütz und Ausfallschritt, Formtrend Liegestütz.
+  Danach das Wort „Tal“ über die Fläche gelegt.
+- Keine Konsolenfehler. Testdaten und Chrome-Profile danach gelöscht.
+- **Nicht geprüft:** auf dem Handy.
 
 ### 2026-11-05 c — Trainingskurve mit Vorgabe und gehaltener Zeit, Aussehen wie Grip Gains
 
