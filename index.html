@@ -22,6 +22,7 @@
   --zoneA:#d9534f; --zoneB:#4a9fd4; --zoneC:#d9a441;   /* Zonenskala, eigen */
   --ok:#5ec26a; --warn:#e0a33e; --bad:#e0574a;         /* Zustand */
   --orange:#ff8a1f;                                    /* Glut im Timer, Seitenansage */
+  --plan:#6f8cff;                                      /* Vorgabe in der Trainingskurve */
   --mono:"IBM Plex Mono","SF Mono",ui-monospace,Menlo,monospace;
   --r:14px;
 }
@@ -107,58 +108,98 @@ nav .ic{font-size:17px;line-height:1}
   padding:2px 8px;text-transform:uppercase;letter-spacing:.06em}
 .big{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:300;letter-spacing:-.02em}
 td.n,.kpi b{font-family:var(--mono)}
-/* Trainingsbildschirm (Build 2026-11-05 a). EIN Bildschirm vom Vorlauf bis
-   zum letzten Satz der Uebung, nach dem Vorbild Grip Gains: Kopf mit Zielen,
-   Satzkurve, Uhr, Knoepfe, darunter die gehaltenen Saetze. Die Pause laeuft
-   hier mit, nicht mehr auf einer Karte der Startseite. */
+/* Trainingsbildschirm. EIN Bildschirm vom Vorlauf bis zum letzten Satz der
+   Uebung, nach dem Vorbild Grip Gains (Build 2026-11-05 a). Seit Build
+   2026-11-05 c auch im Aussehen wie dort, Luke: "das Design sieht immer noch
+   nicht so toll aus wie bei Grip Gains". Violette Kopfkarte mit den Zielen,
+   Kurvenkarte mit Achse, Uhr mit Balken, roter Knopf, Aktionen als Leiste,
+   eine Kachel je Satz in zwei Spalten. */
 #timerScreen{position:fixed;inset:0;background:var(--bg);z-index:100;display:none;
   flex-direction:column;padding:14px 16px 16px;overflow-y:auto;
   padding-top:calc(14px + env(safe-area-inset-top,0px));
   padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
 #timerScreen.on{display:flex}
 #timerScreen>*{width:100%;max-width:520px;margin-left:auto;margin-right:auto}
-.tKopf{display:flex;align-items:flex-start;gap:10px;position:relative}
-.tKopf>div:first-child{flex:1;min-width:0}
-#tWhat{font-weight:650;font-size:16px}
-#tStufe{color:var(--tx2);font-size:13.5px;margin-top:2px}
-#tAkt{padding:8px 12px;font-size:13px;flex:none}
-#tMenue{position:absolute;right:0;top:calc(100% + 6px);z-index:2;background:var(--panel);
-  border:1px solid var(--line);border-radius:12px;padding:6px;min-width:240px;
-  box-shadow:0 10px 30px rgba(0,0,0,.45);display:flex;flex-direction:column}
+.tKopf{background:linear-gradient(180deg,#3a2b6c,#2a2350);border:1px solid #47388a;border-bottom:0;
+  border-radius:14px 14px 0 0;padding:11px 12px 10px;text-align:center}
+#tWhat{font-weight:650;font-size:15px}
+#tStufe{color:#b4add6;font-size:12.5px;margin-top:1px}
+#tStufe:empty{display:none}
+#tSeite{color:var(--orange);font-weight:700;font-size:clamp(17px,5vw,21px);letter-spacing:.06em;
+  margin-top:5px}
+#tSeite:empty{display:none}
+#tZiele{display:flex;flex-wrap:wrap;justify-content:center;margin-top:6px;font-size:12.5px;color:#b4add6}
+#tZiele>span+span::before{content:"|";color:#5f5394;margin:0 9px}
+#tZiele b{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:500;color:var(--tx)}
+#tZiele2{display:flex;flex-wrap:wrap;justify-content:center;gap:0 18px;margin-top:4px;font-size:12.5px;
+  color:var(--acc)}
+#tZiele2:empty{display:none}
+#tZiele2 b{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:600}
+#tZiele2 .ok{color:var(--ok);font-weight:600}
+.tKurveKarte{background:var(--panel);border:1px solid var(--line);border-radius:0 0 14px 14px;
+  padding:8px 6px 7px}
+#tKurve svg{display:block;width:100%;height:auto}
+#tKurve text{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:9.5px;fill:var(--tx3)}
+#tKurve text.tkW{font-size:10.5px;font-weight:600;fill:var(--ok);stroke:var(--panel);stroke-width:3px;
+  stroke-linejoin:round;paint-order:stroke}
+#tKurve text.jetzt{fill:var(--tx);font-weight:600}
+#tLegende{display:flex;gap:16px;padding:3px 8px 0;font-size:11px;color:var(--tx3);letter-spacing:.04em}
+#tLegende i{display:inline-block;vertical-align:middle;margin:-2px 6px 0 0}
+#tLegende .lgV{width:16px;border-top:2px dashed var(--plan)}
+#tLegende .lgG{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+.tUhr{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;user-select:none;-webkit-user-select:none;border-radius:16px;margin:8px 0;
+  min-height:180px;text-align:center}
+.tUhr:active{background:var(--panel)}
+#tClock{font-size:clamp(60px,19vw,92px);line-height:1;font-weight:650;letter-spacing:-.01em;
+  font-variant-numeric:tabular-nums}
+#tLabel{color:var(--tx2);font-size:17px;margin-top:6px}
+#tLabel:empty{display:none}
+#tUnter{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:15px;color:var(--tx2);
+  margin-top:4px}
+#tUnter:empty{display:none}
+#tBar{width:min(270px,72%);height:6px;margin:12px 0 0}
+#tBar.aus{display:none}
+#tBar>i{background:linear-gradient(90deg,var(--ok),var(--acc));transition:none}
+#tFort{font-size:13.5px;color:var(--acc);margin-top:9px}
+#tFort:empty{display:none}
+#tFort.ok{color:var(--ok);font-weight:600}
+#tFort.warn{color:var(--warn)}
+#tSeiteWahl .tiny{text-align:center}
+#tSeiteWahl .zw{margin:4px 0 10px}
+#tKnoepfe{justify-content:center;flex-wrap:nowrap}
+#tStop{flex:0 1 64%;padding:16px;font-size:19px;font-weight:650;background:var(--bad);
+  border-color:var(--bad);color:#fff;box-shadow:0 6px 26px rgba(224,87,74,.38)}
+#tStop.weiter{flex-basis:100%;background:var(--acc);border-color:var(--acc);color:var(--accInk);
+  box-shadow:none}
+#tStop:disabled{opacity:1;background:var(--panel2);border-color:var(--panel2);color:var(--tx3);
+  box-shadow:none}
+#tSchmerz{flex:0 0 30%;color:#e8917f;border-color:#5a2b28;background:transparent}
+#tSatzNr{text-align:center;color:var(--tx2);font-size:14px;margin-top:10px}
+#tSatzNr b{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--tx);font-size:16px;
+  font-weight:600;margin-left:4px}
+.tAktZeile{margin-top:12px}
+#tAkt{width:100%;display:flex;justify-content:space-between;align-items:center;padding:11px 14px;
+  font-size:13.5px;background:var(--panel);color:var(--tx2)}
+#tAkt::after{content:"";width:7px;height:7px;border-right:1.6px solid currentColor;
+  border-bottom:1.6px solid currentColor;transform:rotate(45deg);margin:-4px 3px 0 0}
+#tAkt[aria-expanded="true"]::after{transform:rotate(-135deg);margin-top:4px}
+#tMenue{display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);
+  border-radius:11px;padding:6px;margin-top:6px}
 #tMenue[hidden]{display:none}
 #tMenue button{text-align:left;padding:11px 12px;background:transparent;border:0}
 #tMenue button:active{background:var(--panel2)}
 #tMenue .tiny{padding:4px 12px 6px}
-#tSeite{color:var(--orange);font-weight:700;font-size:clamp(20px,6vw,28px);letter-spacing:.06em;
-  margin:6px 0 0;text-align:center}
-#tSeite:empty{display:none}
-#tZiele{display:flex;flex-wrap:wrap;gap:3px 14px;margin-top:8px;font-size:13px;color:var(--tx2)}
-#tZiele b{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:500;color:var(--tx)}
-#tZiele .ok{color:var(--ok);font-weight:600}
-#tKurve .skurve{margin-top:12px}
-#tLabel{color:var(--tx2);font-size:14px;min-height:1.3em}
-#tClock{font-size:clamp(84px,30vw,160px);line-height:1;margin:4px 0;font-weight:300}
-#tUnter{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:clamp(20px,6vw,26px);
-  color:var(--tx2);min-height:1.3em}
-#tFort{font-size:13.5px;color:var(--tx3);min-height:1.4em;margin-top:6px}
-#tFort.ok{color:var(--ok)}
-#tFort.warn{color:var(--warn)}
-#tSeiteWahl .tiny{text-align:center}
-#tSeiteWahl .zw{margin:4px 0 10px}
-#tKnoepfe button{padding:16px}
-#tSchmerz{flex:0 0 32%;color:#e8917f;border-color:#5a2b28}
-#tKacheln{margin-top:14px;display:flex;flex-direction:column;gap:6px}
-.tKachel{display:flex;align-items:baseline;gap:10px;background:var(--panel);border:1px solid var(--line);
-  border-left:3px solid var(--zk,var(--line));border-radius:9px;padding:9px 12px;font-size:13.5px;
-  color:var(--tx2)}
-.tKachel b{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:500;color:var(--tx);flex:1}
-.tKachel .pz{font-family:var(--mono);font-variant-numeric:tabular-nums}
+#tKacheln{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tKachel{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--zk,var(--line));
+  border-radius:9px;padding:7px 10px;font-size:12px;color:var(--tx3);text-align:center;line-height:1.4}
+.tKachel b{display:block;font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:500;
+  color:var(--tx);font-size:13.5px}
+.tKachel.offen b{color:var(--tx3)}
+.tKachel.jetzt{border-color:var(--plan);background:color-mix(in srgb,var(--plan) 13%,var(--panel))}
+.tKachel .pz{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--tx2)}
 .tKachel .pz.drueber{color:var(--ok)}
-.tKachel .sz{color:var(--bad);font-size:12px;font-weight:600}
-.tapzone{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  cursor:pointer;user-select:none;-webkit-user-select:none;border-radius:20px;margin:10px 0;
-  min-height:210px;text-align:center}
-.tapzone:active{background:var(--panel)}
+.tKachel .sz{color:var(--bad);font-weight:600;margin-left:6px}
 .bar{height:7px;background:var(--panel2);border-radius:99px;overflow:hidden;margin:14px 0}
 .bar>i{display:block;height:100%;background:var(--acc);width:0;transition:width .25s linear}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
@@ -374,26 +415,32 @@ code{background:var(--panel2);padding:1.5px 5px;border-radius:5px;font-size:12.5
 <!-- ══════════ TRAINING (Vollbild) ══════════ -->
 <div id="timerScreen">
   <div class="tKopf">
-    <div>
-      <div id="tWhat"></div>
-      <div id="tStufe"></div>
-    </div>
-    <button class="ghost" id="tAkt" aria-haspopup="true">Aktionen</button>
-    <div id="tMenue" hidden></div>
+    <div id="tWhat"></div>
+    <div id="tStufe"></div>
+    <div id="tSeite"></div>
+    <div id="tZiele"></div>
+    <div id="tZiele2"></div>
   </div>
-  <div id="tSeite"></div>
-  <div id="tZiele"></div>
-  <div id="tKurve"></div>
-  <div class="tapzone" id="tTap">
+  <div class="tKurveKarte">
+    <div id="tKurve"></div>
+    <div id="tLegende"><span><i class="lgV"></i>Vorgabe</span><span><i class="lgG"></i>Gehalten</span></div>
+  </div>
+  <div class="tUhr" id="tTap">
+    <div id="tClock"></div>
     <div id="tLabel"></div>
-    <div id="tClock" class="big"></div>
     <div id="tUnter"></div>
+    <div class="bar aus" id="tBar"><i></i></div>
     <div id="tFort"></div>
   </div>
   <div id="tSeiteWahl"></div>
   <div class="row" id="tKnoepfe">
-    <button class="ghost" id="tSchmerz">Schmerz</button>
-    <button class="primary grow" id="tStop">Satz beenden</button>
+    <button id="tSchmerz">Schmerz</button>
+    <button id="tStop">Satz beenden</button>
+  </div>
+  <div id="tSatzNr"></div>
+  <div class="tAktZeile">
+    <button id="tAkt" aria-haspopup="true" aria-expanded="false">Aktionen</button>
+    <div id="tMenue" hidden></div>
   </div>
   <div id="tKacheln"></div>
 </div>
@@ -2202,7 +2249,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-11-05 b";
+const BUILD = "2026-11-05 c";
 const KEY = "isocoach.v1";
 const KEY_GERETTET = "isocoach.v1.gerettet";
 /* Laufende Sicherung (Build 2026-10-27 c, nach P100): der gespeicherte Stand,
@@ -7571,29 +7618,112 @@ function trainingKopf(){
   const ges = Math.round(zeiten.reduce((a, t) => a + t, 0) + (zeiten.length - 1) * PAUSE_S);
   const z = [];
   if(offen) z.push(`Ziel <b>${fmt(zeiten[RUN.i])}</b>`);
-  z.push(`<b>${n}</b> Sätze`, `Gesamt <b>${mmss(ges)}</b>`);
+  z.push(`Sätze <b>${n}</b>`, `Gesamt <b>${mmss(ges)}</b>`);
+  el("tZiele").innerHTML = z.map(x => `<span>${x}</span>`).join("");
+  const z2 = [];
   const zi = (RUN.ziele && RUN.ziele.b === RUN.b) ? RUN.ziele : null;
   if(zi){
     const s1 = RUN.sets[0];
     const zaehlt = s1 && !s1.pain && messbar(s1.time);
     if(!s1){
-      if(zi.fort) z.push(`Fortschrittsziel <b>${fmt(zi.fort)}</b>`);
-      if(zi.pr)   z.push(`PR-Ziel <b>${fmt(zi.pr)}</b>`);
+      if(zi.fort) z2.push(`Fortschrittsziel <b>${fmt(zi.fort)}</b>`);
+      if(zi.pr)   z2.push(`PR-Ziel <b>${fmt(zi.pr)}</b>`);
     } else {
-      if(zi.fort && zaehlt && s1.time >= zi.fort) z.push(`<span class="ok">Fortschrittsziel erreicht</span>`);
-      if(zi.pr && zaehlt && s1.time >= zi.pr)     z.push(`<span class="ok">PR erreicht</span>`);
+      if(zi.fort && zaehlt && s1.time >= zi.fort) z2.push(`<span class="ok">Fortschrittsziel erreicht</span>`);
+      if(zi.pr && zaehlt && s1.time >= zi.pr)     z2.push(`<span class="ok">PR erreicht</span>`);
     }
   }
-  el("tZiele").innerHTML = z.map(x => `<span>${x}</span>`).join("");
-  el("tKurve").innerHTML = satzKurveSVG(zeiten, b.zoneErwartet || b.zone,
-    {ist: RUN.sets.length, aktiv: offen ? RUN.i : -1, ohneGesamt: true});
-  el("tKacheln").innerHTML = RUN.sets.map((s, i) => {
+  el("tZiele2").innerHTML = z2.map(x => `<span>${x}</span>`).join("");
+  /* Ein gehaltener Satz behaelt in der Kurve seine Vorgabe von vor dem Satz.
+     Bis Build 2026-11-05 b stand dort die gehaltene Zeit — der gruene Punkt
+     lag genau auf dem Vorgabepunkt, und 60 s gegen 40 s sah aus wie Plan
+     erfuellt (Luke, 05.11.2026). */
+  const vorgabe = zeiten.map((t, i) => RUN.sets[i] ? RUN.sets[i].target : t);
+  el("tKurve").innerHTML = trainingsKurveSVG(vorgabe, RUN.sets.map(s => s.time), offen ? RUN.i : -1);
+  el("tSatzNr").innerHTML = `Satz <b>${Math.min(RUN.i + 1, n)} / ${n}</b>`;
+  el("tKacheln").innerHTML = zeiten.map((t, i) => {
+    const s = RUN.sets[i];
+    if(!s) return `<div class="tKachel ${i === RUN.i ? "jetzt" : "offen"}"><span>Satz ${i + 1}</span><b>– / ${
+      Math.round(t)} s</b></div>`;
     const p = Math.round((s.time / s.target - 1) * 100);
     return `<div class="tKachel" style="--zk:${s.time >= s.target ? "var(--ok)" : "var(--bad)"}">
-      <span>Satz ${i + 1}</span><b>${Math.round(s.time)} / ${Math.round(s.target)} s</b>${
-      s.pain ? `<span class="sz">Schmerz${s.painSeite && s.painSeite !== "beide" ? " " + s.painSeite : ""}</span>` : ""}
-      <span class="pz${p > 0 ? " drueber" : ""}">${p > 0 ? "+" + p : p < 0 ? "−" + (-p) : "±0"} %</span></div>`;
+      <span>Satz ${i + 1}</span><b>${Math.round(s.time)} / ${Math.round(s.target)} s</b><span class="pz${
+      p > 0 ? " drueber" : ""}">${p > 0 ? "+" + p : p < 0 ? "−" + (-p) : "±0"} %</span>${
+      s.pain ? `<span class="sz">Schmerz${s.painSeite && s.painSeite !== "beide" ? " " + s.painSeite : ""}</span>` : ""}</div>`;
   }).join("");
+}
+/* Die Kurve auf dem Trainingsbildschirm, wie bei Grip Gains: zwei Reihen.
+   Die Vorgabe geschwungen und gestrichelt — gehaltene Saetze mit ihrer
+   Vorgabe von vor dem Satz, die offenen aus dem zuletzt gehaltenen neu
+   gerechnet — und die gehaltenen Saetze als eigene gruene Linie, gerade von
+   Punkt zu Punkt, mit Zahl. Die Achse waechst mit
+   dem hoechsten Wert, damit ein Satz ueber der Vorgabe nicht oben anstoesst. */
+function trainingsKurveSVG(vorgabe, gehalten, aktiv){
+  const W = 340, H = 172, L = 36, R = 14, TP = 20, BASE = H - 20;
+  const n = vorgabe.length;
+  const hoch = Math.max(1, ...vorgabe, ...gehalten);
+  const schritt = [5, 10, 20, 25, 50, 100].find(st => hoch / st <= 5) || 100;
+  const top = Math.ceil(hoch / schritt) * schritt;
+  const X = i => n === 1 ? (L + W - R) / 2 : L + i * (W - L - R) / (n - 1);
+  const Y = v => TP + (1 - v / top) * (BASE - TP);
+  const pkt = (t, i) => [+X(i).toFixed(1), +Y(t).toFixed(1)];
+  const plan = vorgabe.map(pkt), held = gehalten.map(pkt);
+  const gerade = q => "M" + q.map(([x, y]) => `${x},${y}`).join("L");
+  const flaeche = (q, linie) => `${linie(q)}L${q[q.length - 1][0]},${BASE}L${q[0][0]},${BASE}Z`;
+  let g = `<defs>${[["tkV", "var(--plan)"], ["tkG", "var(--ok)"]].map(([id, f]) =>
+    `<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${f}"
+      stop-opacity=".38"/><stop offset="1" stop-color="${f}" stop-opacity=".04"/></linearGradient>`).join("")}</defs>`;
+  for(let v = 0; v <= top; v += schritt){
+    const y = +Y(v).toFixed(1);
+    g += `<line x1="${L}" y1="${y}" x2="${W - R}" y2="${y}" stroke="var(--line)" opacity=".55"/><text
+      x="${L - 10}" y="${y + 3}" text-anchor="end">${v}</text>`;
+  }
+  plan.forEach(([x], i) => {
+    g += `<line x1="${x}" y1="${TP}" x2="${x}" y2="${BASE}" stroke="var(--line)" opacity=".35"/><text
+      ${i === aktiv ? `class="jetzt" ` : ""}x="${x}" y="${H - 5}" text-anchor="middle">${i + 1}</text>`;
+  });
+  if(n > 1) g += `<path d="${flaeche(plan, glattPfad)}" fill="url(#tkV)"/><path d="${glattPfad(plan)}" fill="none"
+    stroke="var(--plan)" stroke-width="2" stroke-dasharray="5 4"/>`;
+  if(held.length > 1) g += `<path d="${flaeche(held, gerade)}" fill="url(#tkG)"/><path d="${gerade(held)}"
+    fill="none" stroke="var(--ok)" stroke-width="2.5"/>`;
+  plan.forEach(([x, y], i) => {
+    g += `<circle class="tkV" cx="${x}" cy="${y}" r="${i === aktiv ? 5.5 : 4}" fill="var(--plan)"${
+      i === aktiv ? ` stroke="var(--tx)" stroke-width="1.5"` : ""}/>`;
+  });
+  /* Die Zahl steht ueber dem gruenen Punkt, liegt er unter der Vorgabe
+     darunter — so verdeckt sie den Vorgabepunkt nicht. Am ersten und
+     letzten Satz zeigt sie nach innen, sonst ragt sie aus dem Bild. */
+  held.forEach(([x, y], i) => {
+    const oben = gehalten[i] >= vorgabe[i] || y + 18 > BASE;
+    const rand = n > 1 && i === 0 ? ["start", x - 3] : n > 1 && i === n - 1 ? ["end", x + 3] : ["middle", x];
+    g += `<circle class="tkG" cx="${x}" cy="${y}" r="5.5" fill="var(--ok)" stroke="#dff5e3"
+      stroke-width="1.5"/><text class="tkW" x="${rand[1]}" y="${oben ? y - 10 : y + 18}" text-anchor="${rand[0]}">${
+      fmt(gehalten[i])}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Vorgabe je Satz: ${
+    vorgabe.map(t => Math.round(t)).join(", ")} Sekunden${gehalten.length ? `, gehalten: ${
+    gehalten.map(t => Math.round(t)).join(", ")} Sekunden` : ""}">${g}</svg>`;
+}
+/* Glatte Linie durch die Punkte, ohne Ueberschwinger: monotone kubische
+   Interpolation (Fritsch-Carlson). Zwischen zwei Saetzen geht die Linie nie
+   ueber den hoeheren oder unter den tieferen Punkt hinaus. */
+function glattPfad(p){
+  const n = p.length;
+  if(n < 2) return "";
+  if(n === 2) return `M${p[0][0]},${p[0][1]}L${p[1][0]},${p[1][1]}`;
+  const dx = [], d = [], m = [];
+  for(let i = 0; i < n - 1; i++){ dx[i] = p[i + 1][0] - p[i][0]; d[i] = (p[i + 1][1] - p[i][1]) / dx[i]; }
+  m[0] = d[0]; m[n - 1] = d[n - 2];
+  for(let i = 1; i < n - 1; i++)
+    m[i] = d[i - 1] * d[i] <= 0 ? 0
+         : 3 * (dx[i - 1] + dx[i]) / ((2 * dx[i] + dx[i - 1]) / d[i - 1] + (dx[i] + 2 * dx[i - 1]) / d[i]);
+  let out = `M${p[0][0]},${p[0][1]}`;
+  for(let i = 0; i < n - 1; i++){
+    const h = dx[i] / 3;
+    out += `C${(p[i][0] + h).toFixed(1)},${(p[i][1] + m[i] * h).toFixed(1)} ${(p[i + 1][0] - h).toFixed(1)},${
+      (p[i + 1][1] - m[i + 1] * h).toFixed(1)} ${p[i + 1][0]},${p[i + 1][1]}`;
+  }
+  return out;
 }
 function trainingOeffnen(){
   el("timerScreen").classList.add("on");
@@ -7622,8 +7752,11 @@ async function wachHalten(){
 }
 function uhrLeeren(){
   const c = el("tClock"); c.style.color = ""; c.style.textShadow = "";
+  el("tLabel").textContent = "";
   el("tUnter").textContent = "";
   const f = el("tFort"); f.textContent = ""; f.className = "";
+  const bar = el("tBar"); bar.classList.add("aus");
+  bar.firstElementChild.style.width = "0"; bar.firstElementChild.style.background = "";
 }
 /* an: Satz laeuft. weiter: Text des Weiter-Knopfs nach dem letzten Satz.
    Im Vorlauf und in der Pause stehen beide Knoepfe grau da — der Bildschirm
@@ -7632,6 +7765,7 @@ function knopfStand(an, weiter){
   const st = el("tStop"), sm = el("tSchmerz");
   sm.style.display = weiter ? "none" : "";
   st.textContent = weiter || "Satz beenden";
+  st.classList.toggle("weiter", !!weiter);
   st.disabled = !an && !weiter;
   sm.disabled = !an;
   if(!weiter) tWeiter = null;
@@ -7643,8 +7777,9 @@ async function runSet(cfg){
   knopfStand(false);
   el("tSeiteWahl").innerHTML = "";
   const starten = ()=>{
-    el("tLabel").textContent = `Satz ${RUN.i + 1} von ${curSets()}`;
-    el("tClock").style.color = "";
+    el("tLabel").textContent = "";
+    el("tClock").style.color = "var(--ok)";
+    el("tBar").classList.remove("aus");
     const zi = (RUN.i === 0 && RUN.ziele && RUN.ziele.b === RUN.b) ? RUN.ziele : null;
     T = {start:performance.now(), target:cfg.target, fort: zi ? zi.fort : null,
          raf:0, half:false, ticks:new Set(), done:cfg.done};
@@ -7658,14 +7793,18 @@ async function runSet(cfg){
 
   let n = LEAD_IN;
   T = {lead:true, done:cfg.done};
+  /* Gelb, orange, rot zum Start hin, wie bei Grip Gains. */
+  const zeig = ()=>{
+    el("tClock").textContent = n;
+    el("tClock").style.color = n > 5 ? "var(--warn)" : n > 3 ? "var(--orange)" : "var(--bad)";
+  };
   el("tLabel").textContent = "In Position gehen";
-  el("tClock").style.color = "var(--tx2)";
-  el("tClock").textContent = n;
+  zeig();
   cueTick();
   leadIv = setInterval(()=>{
     if(!T || !T.lead){ clearInterval(leadIv); leadIv = null; return; }
     n--;
-    if(n > 0){ el("tClock").textContent = n; cueTick(); return; }
+    if(n > 0){ zeig(); cueTick(); return; }
     clearInterval(leadIv); leadIv = null;
     starten();
   }, 1000);
@@ -7677,15 +7816,17 @@ async function runSet(cfg){
 function tick(){
   if(!T || T.lead) return;
   const s = (performance.now()-T.start)/1000;
-  const c = el("tClock"), u = el("tUnter"), f = el("tFort");
+  const c = el("tClock"), u = el("tUnter"), f = el("tFort"), bar = el("tBar").firstElementChild;
   if(s < T.target){
     c.textContent = Math.ceil(T.target - s);
-    u.textContent = `${Math.floor(s)} s gehalten`;
+    u.textContent = `${Math.floor(s)} s`;
+    bar.style.width = (s / T.target * 100).toFixed(1) + "%";
   } else {
     c.textContent = "+" + Math.floor(s - T.target);
     u.textContent = `+${Math.round((s / T.target - 1) * 100)} %`;
     const g = glut((s - T.target) / T.target);
     c.style.color = g.farbe; c.style.textShadow = g.schein;
+    bar.style.width = "100%"; bar.style.background = g.farbe;
   }
   /* Nur in Satz 1 — nur der ist ein Messpunkt. */
   if(T.fort){
@@ -7736,11 +7877,15 @@ function endSet(aborted, schmerz){
 
 /* ── Aktionen ────────────────────────────────────────────────────────
    Was vorher als vier Knoepfe und drei Erklaerabsaetze in der Pause stand,
-   liegt hinter EINEM Knopf im Kopf. */
-function menueZu(){ const m = el("tMenue"); if(m) m.hidden = true; }
+   liegt hinter EINEM Knopf. Seit Build 2026-11-05 c als Leiste unter den
+   Knoepfen, die nach unten aufklappt, wie "Session Actions" bei Grip Gains. */
+function menueZu(){
+  const m = el("tMenue"); if(!m) return;
+  m.hidden = true; el("tAkt").setAttribute("aria-expanded", "false");
+}
 function menueAuf(){
   const m = el("tMenue");
-  if(!m.hidden){ m.hidden = true; return; }
+  if(!m.hidden){ menueZu(); return; }
   if(!RUN) return;
   const laeuft = !!T;
   const punkte = [];
@@ -7752,6 +7897,8 @@ function menueAuf(){
     + punkte.map(([k, t]) => `<button data-akt="${k}">${t}</button>`).join("");
   m.querySelectorAll("[data-akt]").forEach(b => b.onclick = ()=> trainingsAktion(b.dataset.akt));
   m.hidden = false;
+  el("tAkt").setAttribute("aria-expanded", "true");
+  m.scrollIntoView({block:"nearest"});
 }
 function trainingsAktion(k){
   menueZu();
@@ -8264,38 +8411,27 @@ function knieImLauf(){
    Punkte, wie der Saetze-Stepper sagt, mit den Zahlen aus satzZeiten.
    Gesamt rechnet wie Grip Gains: Haltezeiten plus die Pausen dazwischen
    (149 + 48 + 35 + 27 + 3 · 20 = 5:19). */
-/* o.ist: so viele Saetze sind gehalten — sie stehen durchgezogen in der
-   Akzentfarbe, der Rest gestrichelt in der Zonenfarbe, aus dem letzten
-   gehaltenen weitergerechnet (Trainingsbildschirm, Build 2026-11-05 a).
-   o.aktiv: der laufende Satz, seine Nummer steht hell. Ohne o die Karte vor
-   der Uebung, wie bisher. */
-function satzKurveSVG(zeiten, zone, o = {}){
+function satzKurveSVG(zeiten, zone){
   const W = 300, H = 92, L = 24, R = 24, TP = 20, BASE = H - 17;
-  const n = zeiten.length, top = Math.max(...zeiten) || 1, ist = o.ist || 0;
+  const n = zeiten.length, top = Math.max(...zeiten) || 1;
   const X = i => n === 1 ? W / 2 : L + i * (W - L - R) / (n - 1);
   const Y = v => TP + (1 - v / top) * (BASE - TP);
   const farbe = `var(--zone${zone})`;
   const pkt = zeiten.map((t, i) => [+X(i).toFixed(1), +Y(t).toFixed(1)]);
-  const zug = a => a.map(p => p.join(",")).join(" ");
+  const linie = pkt.map(p => p.join(",")).join(" ");
   let g = `<line x1="${L}" y1="${BASE}" x2="${W - R}" y2="${BASE}" stroke="var(--line)" stroke-width="1"/>`;
-  if(n > 1) g += `<polygon points="${pkt[0][0]},${BASE} ${zug(pkt)} ${pkt[n - 1][0]},${BASE}"
-      fill="${farbe}" opacity=".16"/>`;
-  const plan = pkt.slice(Math.max(0, ist - 1));
-  if(plan.length > 1) g += `<polyline points="${zug(plan)}" fill="none" stroke="${farbe}"
+  if(n > 1) g += `<polygon points="${pkt[0][0]},${BASE} ${linie} ${pkt[n - 1][0]},${BASE}"
+      fill="${farbe}" opacity=".16"/><polyline points="${linie}" fill="none" stroke="${farbe}"
       stroke-width="2" stroke-dasharray="5 4"/>`;
-  if(ist > 1) g += `<polyline points="${zug(pkt.slice(0, ist))}" fill="none" stroke="var(--acc)"
-      stroke-width="2.5"/>`;
   pkt.forEach(([x, y], i) => {
-    const geh = i < ist;
-    g += `<circle class="skP" cx="${x}" cy="${y}" r="${i === o.aktiv ? 5 : 4}" fill="${geh ? "var(--acc)" : farbe}"/><text
-      class="skW" x="${x}" y="${y - 8}" text-anchor="middle"${geh ? ` style="fill:var(--acc)"` : ""}>${
-      fmt(zeiten[i])}</text><text class="skN" x="${x}" y="${H - 3}" text-anchor="middle"${
-      i === o.aktiv ? ` style="fill:var(--tx);font-weight:600"` : ""}>${i + 1}</text>`;
+    g += `<circle class="skP" cx="${x}" cy="${y}" r="4" fill="${farbe}"/><text class="skW" x="${x}"
+      y="${y - 8}" text-anchor="middle">${fmt(zeiten[i])}</text><text class="skN" x="${x}"
+      y="${H - 3}" text-anchor="middle">${i + 1}</text>`;
   });
   const ges = Math.round(zeiten.reduce((sum, t) => sum + t, 0) + (n - 1) * PAUSE_S);
   return `<div class="skurve"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Haltezeiten je Satz: ${
-    zeiten.map(t => Math.round(t)).join(", ")} Sekunden">${g}</svg>${o.ohneGesamt ? "" : `<div class="skGes">Gesamt <b>${
-    Math.floor(ges / 60)}:${String(ges % 60).padStart(2, "0")}</b></div>`}</div>`;
+    zeiten.map(t => Math.round(t)).join(", ")} Sekunden">${g}</svg><div class="skGes">Gesamt <b>${
+    Math.floor(ges / 60)}:${String(ges % 60).padStart(2, "0")}</b></div></div>`;
 }
 /* Eine Seite: Kopfzeile mit Seite und Zeit, darunter Variante, Seite des
    Gewichts, Position des Gewichts (beides nur der Laeufer), Gewicht und
@@ -8789,7 +8925,11 @@ function pauseLaufen(){
   pauseIv = setInterval(()=>{
     const left = Math.ceil((ende - Date.now()) / 1000);
     if(left <= 0){ clearInterval(pauseIv); pauseIv = null; nextSet(); return; }
-    if(left !== zuletzt){ zuletzt = left; el("tClock").textContent = left; if(left <= 3) cueTick(); }
+    if(left !== zuletzt){
+      zuletzt = left; el("tClock").textContent = left;
+      if(left <= 5) el("tClock").style.color = "var(--bad)";
+      if(left <= 3) cueTick();
+    }
   }, 200);
 }
 /* Nach dem letzten Satz ersetzt "Weiter" die Pausenzahl. Beide Seiten
@@ -11473,7 +11613,7 @@ el("tAkt").onclick     = ()=> menueAuf();
 el("timerScreen").addEventListener("click", e => {
   const m = el("tMenue");
   if(m.hidden || m.contains(e.target) || el("tAkt").contains(e.target)) return;
-  m.hidden = true; e.stopPropagation(); e.preventDefault();
+  menueZu(); e.stopPropagation(); e.preventDefault();
 }, true);
 window.show = show; window.S = S; window.save = save; window.render = render;
 

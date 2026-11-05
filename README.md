@@ -130,9 +130,12 @@ Rechenlogik:
   Messreihen — erst über alle Übungen, dann je Übung und Seite. Der Timer gibt ab Satz 2 genau
   diese Zahlen vor; wer länger hält als geplant, bekommt einen längeren nächsten Satz. Dieselbe
   Rechnung steckt in der Dauer auf *Start*.
-- **Der Trainingsbildschirm** (seit Build `2026-11-05 a`, Papier P103) gilt vom Vorlauf bis zum
-  Ende der Übung. Oben stehen Ziel, Sätze, Gesamtzeit und die Satzkurve: gestrichelt geplant,
-  durchgezogen gehalten. Die Uhr zählt bis zum Ziel runter, danach „+12“ und „+8 %“. Das
+- **Der Trainingsbildschirm** (seit Build `2026-11-05 a`, Papier P103, Aussehen und Kurve seit
+  `2026-11-05 c`, P105) gilt vom Vorlauf bis zum Ende der Übung. Oben steht eine Karte mit Ziel,
+  Sätzen und Gesamtzeit, darunter die Satzkurve mit zwei Linien: gestrichelt die Vorgabe, grün die
+  gehaltenen Sätze mit ihrer Zahl. Ein gehaltener Satz behält seinen Vorgabepunkt, so sieht man, um
+  wie viel er darüber oder darunter lag. Die Uhr zählt bis zum Ziel runter, mit einem Balken bis zum
+  Ziel, danach „+12“ und „+8 %“. Unten steht eine Kachel je Satz. Das
   **Fortschrittsziel** sagt, ab welcher Haltezeit in Satz 1 dieselbe Zone beim nächsten Mal schwerer
   wird. Das **PR-Ziel** sagt, ab wann die Kurve über ihrem Bestwert liegt (Mittel der Lasten bei 40,
   90 und 150 s), und erscheint nur bis 20 % über dem Ziel. Neben „Satz beenden“ steht ein Knopf

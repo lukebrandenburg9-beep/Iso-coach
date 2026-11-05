@@ -5203,11 +5203,109 @@ beim neuen Nutzer auf der Tischposition oder Sprosse 4.
 - Export: Band-Sprossen tragen `last_aus_band` mit `band_kg` und `last_jetzt`. `EX_VERSION` bleibt 36,
   Export Schema 10, neu ist der Wert `dip` in der Spalte `uebung`.
 
+### P105 · Trainingskurve zeigt Vorgabe und gehaltene Zeit getrennt, Aussehen wie Grip Gains
+
+Luke, 05.11., nach dem ersten Training mit 2026-11-05 a: „Die neue Trainingsübersicht ist jetzt schon
+ein bisschen besser, allerdings sieht das Design immer noch nicht so toll aus wie bei Grip Games. Und
+die Kurve, der Punkt, der eingetragen wird, der überschneidet sich einfach immer mit dem Punkt. Das
+heißt, ich habe jetzt 60 Sekunden trainiert, 40 waren vorgegeben und auf dem Diagramm war nicht zu
+erkennen, dass ich den Punkt, den alten Punkt, den alten Messwert um 40 Sekunden geschlagen habe. […]
+Das war dann beim zweiten und dritten Durchgang genauso und das macht keinen Sinn.“ Dazu der Auftrag,
+die Bildschirmaufnahme von Grip Gains noch einmal anzusehen.
+
+**Die Ursache.** Die Kurve hatte nur eine Reihe. `blockPlan()` setzt für gehaltene Sätze die gehaltene
+Zeit ein, damit die offenen Sätze daraus neu gerechnet werden. Die Kurve zeichnete genau diese Reihe:
+An Satz 1 stand nach dem Satz 60 s statt 40 s, der grüne Punkt lag auf dem Vorgabepunkt, und die
+Vorgabe war aus dem Bild verschwunden.
+
+**Gebaut in 2026-11-05 c.**
+
+- **Zwei Reihen in der Kurve, wie bei Grip Gains.** Die Vorgabe läuft geschwungen und gestrichelt in
+  Blau. Ein gehaltener Satz behält dort seine Vorgabe von vor dem Satz, die offenen rechnet die App
+  weiter aus dem zuletzt gehaltenen. Die gehaltenen Sätze sind eine eigene grüne Linie, gerade von
+  Punkt zu Punkt, mit der Zahl am Punkt. Liegt der Satz unter der Vorgabe, steht die Zahl darunter.
+- **Eine Achse mit Sekunden links**, Gitterlinien und Satznummern unten, der laufende Satz fett. Die
+  Achse wächst mit dem höchsten Wert, bei 59 s gegen 40 s also bis 60. Unter der Kurve steht
+  „Vorgabe“ und „Gehalten“.
+- **Oben eine violette Kopfkarte** mit Übung, Stufe und Seitenansage, darunter „Ziel | Sätze |
+  Gesamt“ und in einer zweiten Zeile Fortschrittsziel und PR-Ziel. Die Kurve hängt als Karte darunter.
+- **Die Uhr in Farbe.** Im Vorlauf gelb, ab 5 orange, ab 3 rot. Im Satz grün, darunter die gehaltenen
+  Sekunden und ein Balken bis zum Ziel. Über dem Ziel glüht die Zahl wie bisher (Lukes Festlegung vom
+  29.09.), der Balken steht voll in der Glutfarbe. In der Pause grau, die letzten fünf Sekunden rot.
+- **„Satz beenden“ ist groß und rot**, „Schmerz“ schmal daneben. Nach dem letzten Satz steht dort
+  „Weiter“ in Türkis über die ganze Breite. Darunter „Satz 2 / 3“.
+- **Aktionen als Leiste über die ganze Breite**, die nach unten aufklappt, wie „Session Actions“ bei
+  Grip Gains. Vorher ein Knopf oben rechts.
+- **Eine Kachel je Satz, auch für die offenen**, in zwei Spalten. Gehaltene mit „166 / 154 s“ und
+  Prozent, der laufende blau umrandet mit „– / 66 s“, die offenen blass.
+
+**Der Preis.**
+
+- **Die Kurve auf dem Trainingsbildschirm trägt nicht mehr die Farbe der Zone.** Vorgabe immer blau,
+  gehalten immer grün, sonst wären die zwei Reihen in Zone A nicht zu trennen. Die Kurve auf der Karte
+  vor der Übung bleibt in der Zonenfarbe.
+- **Bei knappem Vorsprung überdecken sich die Punkte weiter zum Teil.** 166 s gegen 154 s liegen 8 px
+  auseinander, die Punkte haben 5,5 px Radius. Dann sagen es die Zahl am Punkt und die Kachel (+8 %).
+  Bei 59 s gegen 40 s sind es 44 px.
+- **Der Bildschirm ist länger.** Bei 390 × 844 und drei oder mehr Sätzen liegt die letzte
+  Kachelreihe unter dem Rand, man scrollt. Bei Grip Gains ebenso.
+- **„Satz 1 von 3“ über der Uhr ist weg.** Die Satznummer steht unter den Knöpfen.
+- **Der Balken kommt zurück**, den P103 gestrichen hatte, jetzt als Weg bis zum Ziel.
+- **Die Zahlen an den Punkten können sich bei vielen Sätzen mit ähnlichen Zeiten berühren.** Sie haben
+  einen dunklen Rand und bleiben über den Linien lesbar. Mit sechs Sätzen nicht geprüft.
+
+**Für den Nachbau:**
+
+- `trainingsKurveSVG(vorgabe, gehalten, aktiv)`, nur für den Trainingsbildschirm. `vorgabe[i]` ist
+  `RUN.sets[i].target` für gehaltene Sätze, sonst `blockPlan()[i]`. Achsenschritt aus 5, 10, 20, 25, 50
+  und 100 mit höchstens fünf Abständen, oben aufgerundet.
+- `glattPfad(p)`: monotone kubische Interpolation (Fritsch-Carlson), schwingt zwischen zwei Sätzen nie
+  über den höheren oder unter den tieferen Punkt. Die gehaltene Linie ist gerade.
+- `satzKurveSVG(zeiten, zone)` wieder wie vor 2026-11-05 a, nur für die Karte. `ist`, `aktiv` und
+  `ohneGesamt` sind weg.
+- `blockPlan()` bleibt: Ziel, Gesamtzeit und die offenen Sätze rechnen weiter aus den gehaltenen Zeiten.
+- Neue Farbe `--plan` (#6f8cff). Neue Elemente `tZiele2`, `tLegende`, `tBar` und `tSatzNr`, `tAkt`
+  trägt `aria-expanded`.
+- Gespeichert wird wie bisher. `EX_VERSION` bleibt 36, Export Schema 10.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-11-05 c — Trainingskurve mit Vorgabe und gehaltener Zeit, Aussehen wie Grip Gains
+
+**Befund (Luke).** 60 s gehalten gegen 40 s Vorgabe, und auf der Kurve war nicht zu sehen, dass er die
+Vorgabe geschlagen hat. „Das war dann beim zweiten und dritten Durchgang genauso und das macht keinen
+Sinn.“ Dazu: Das Design sieht noch nicht aus wie bei Grip Gains (P105).
+
+**Gebaut.**
+
+- Kurve mit zwei Reihen: Vorgabe gestrichelt blau, gehaltene Sätze als eigene grüne Linie mit Zahl.
+  Ein gehaltener Satz behält seinen Vorgabepunkt. Achse mit Sekunden, Gitter und Satznummern.
+- Violette Kopfkarte mit den Zielen, Kurve als Karte darunter.
+- Uhr gelb, orange, rot im Vorlauf, grün im Satz mit Balken bis zum Ziel, Glut darüber wie bisher.
+- „Satz beenden“ rot, „Schmerz“ schmal daneben, „Satz 2 / 3“ darunter.
+- Aktionen als aufklappende Leiste, eine Kachel je Satz in zwei Spalten, auch für die offenen.
+- `EX_VERSION` bleibt 36, Export Schema 10.
+
+**Geprüft.** Headless Chrome bei 390 × 844, mit Lukes Export vom 16.10.
+
+- Ladeprobe `2026-11-05 c` über `2026-11-05 b`: 15 von 15 Prüfungen bestanden, 69 von 69 Sitzungen
+  direkt und über die vorige Fassung.
+- Ablauf, 53 Prüfungen, alle bestanden. Neu darunter:
+  - Vorlauf gelb, bei 3 rot, der Balken erst im Satz. Kacheln für alle drei Sätze, „Satz 1 / 3“.
+  - Vor Satz 1 drei Vorgabepunkte und kein grüner.
+  - Nach Satz 1 (166 s gegen 154 s) steht der Vorgabepunkt auf derselben Höhe wie vor dem Satz, der
+    grüne Punkt darüber, mit „166 s“.
+  - Lukes Fall direkt gerechnet: 60 s gegen 40 s, der grüne Punkt 44 px über dem Vorgabepunkt.
+  - Der Balken wächst mit der Zeit, über dem Ziel steht er voll in der Glutfarbe.
+  - Nach dem letzten Satz drei grüne Punkte mit Zahl, „Weiter“ in Türkis.
+- Lukes Fall als Foto nachgestellt: Fersenbrücke rechts, Zone A, Vorgabe 40 s, gehalten 59 s (1 s
+  Reaktionsabzug), danach 31 gegen 23 s und 21 gegen 17 s.
+- Keine Konsolenfehler. Testdaten und Chrome-Profile danach gelöscht.
+- **Nicht geprüft:** auf dem Handy, ein echter Halt.
 
 ### 2026-11-05 b — Dip-Halt für die vordere Schulter
 
