@@ -130,6 +130,13 @@ Rechenlogik:
   Messreihen — erst über alle Übungen, dann je Übung und Seite. Der Timer gibt ab Satz 2 genau
   diese Zahlen vor; wer länger hält als geplant, bekommt einen längeren nächsten Satz. Dieselbe
   Rechnung steckt in der Dauer auf *Start*.
+- **Der Trainingsbildschirm** (seit Build `2026-11-05 a`, Papier P103) gilt vom Vorlauf bis zum
+  Ende der Übung. Oben stehen Ziel, Sätze, Gesamtzeit und die Satzkurve: gestrichelt geplant,
+  durchgezogen gehalten. Die Uhr zählt bis zum Ziel runter, danach „+12“ und „+8 %“. Das
+  **Fortschrittsziel** sagt, ab welcher Haltezeit in Satz 1 dieselbe Zone beim nächsten Mal schwerer
+  wird. Das **PR-Ziel** sagt, ab wann die Kurve über ihrem Bestwert liegt (Mittel der Lasten bei 40,
+  90 und 150 s), und erscheint nur bis 20 % über dem Ziel. Neben „Satz beenden“ steht ein Knopf
+  „Schmerz“. Die Pause zeigt nur die Sekunden, alles andere liegt hinter *Aktionen*.
 - **Erholung:** Dieselbe Muskelgruppe **dreimal pro Woche**, jedes Energiesystem — also jede
   Zone — **einmal pro Woche**. Beides zusammen ist genau eine Rotation: drei Zonen, drei
   Einheiten, ein Mo/Mi/Fr-Rhythmus. Umgesetzt als zwei Schranken: mindestens zwei Tage zwischen
@@ -188,7 +195,7 @@ Rechenlogik:
   auseinander, gibt es **keine Kurve**, sondern einen Verlauf der Haltezeit über die Wochen. Zwei
   zu eng beieinander liegende Lasten ergeben rechnerisch keine Kurve — sie ergeben eine, die
   perfekt aussieht und falsch ist.
-- **Schmerz** als Häkchen pro Satz plus ein Ampelwert am Sessionende.
+- **Schmerz** als zweiter Knopf im Satz plus ein Ampelwert am Sessionende.
 - **Sicherheitsregel:** dreimal in Folge Ampelwert 6 oder höher → Hinweis auf ärztliche Abklärung.
 - Red-Flag-Abfrage im Onboarding, Timer mit Tonsignalen, 20-Sekunden-Pausen, Export/Import.
 - **Selbsttest zur Kniebeugung im Onboarding**, freiwillig. Die Antwort sagt, ab welcher Sprosse der
@@ -214,6 +221,7 @@ aus — Arbeitsplatte, Tisch, Stuhl, Hocker, Stepper, Kiste, Kissen, Sofa. Gerä
 | Etwas zum Daranziehen | Schrägzug, **die ganze Übung** | an — eine stabile Tischkante zählt mit |
 | Faszienrolle | Fersenbrücke, die zwei obersten Stufen beidbeinig und einbeinig (Knie 90° und langer Hebel 170°), dazu der ganze Pfad fürs innere Knie | aus |
 | Kettlebell oder Kurzhantel | Aufrechter Läufer, Zusatzgewicht. Außenrotation im hohen Seitsitz, **die ganze Übung**, in 0,5-kg-Schritten | aus |
+| Klimmzugbänder | Dip-Halt, die drei Band-Stufen. Nur an einem echten Barren, nicht an zwei Stuhllehnen. Ohne Bänder geht die Leiter vom Stuhl unter den Füßen direkt zum vollen Halt | aus |
 | Personenwaage mit Zeiger (analog) | Isometrisches und endgradiges Wadenheben, einbeinig mit Entlastung | aus |
 | Spanngurt mit Türanker | Hyperextension, die zwei leichten Stufen im Türrahmen. Ohne Gurt beginnt die Leiter am Stepper | aus |
 
@@ -475,6 +483,19 @@ rechtwinklig gebeugt“ und „Arm gestreckt“, Gewicht nur auf dem gestreckten
 0,5-kg-Schritten, etwa eine Wasserflasche. Gestreckt wirkt der Arm wie 2,39 % des Körpergewichts in
 der Faust (de Leva 1996), das Gewicht mit `42·X/BW`, gebeugt sind es 1,73 %. Alles gerechnet, beide
 Sprossen stehen rot. Im Modus ohne Geräte bleiben beide Sprossen, nur ohne Gewicht.
+
+**Der Dip-Halt** (seit Build `2026-11-05 b`, Papier P104) ist für die vordere Schulter da, die
+Hauptlast tragen die lange Bizepssehne und die vordere Kapsel in Schulterstreckung. Er läuft im
+normalen Training, beide Arme gleichzeitig, und gehört mit dem Liegestütz in eine Gruppe: Die
+beiden teilen sich die Ruhe und laufen nie am selben Tag. Neun Sprossen: zwei Krabben am Boden mit
+gestreckten Armen (Gesäß abgelegt, dann Tischposition), dann mit Ellbogen 90° der Stuhl (Knie 90°,
+dann gestreckte Beine) und der Barren, erst mit dem Fußspann auf einem Stuhl, dann im grünen,
+violetten und roten Band, zuletzt mit dem vollen Körpergewicht. Ohne Barren dienen zwei Stuhllehnen
+als Barren. Die Bänder gehen nur am echten Barren, ohne Haken bei „Klimmzugbänder“ geht die Leiter
+von Sprosse 5 auf 9. Die Sprossen 1 bis 5 sind gerechnet (de Leva 1996), die Band-Sprossen tragen
+1 − Bandzug ÷ Körpergewicht mit der Mitte der Herstellerspanne: Grün 40 kg, Violett 27,5 kg, Rot
+11 kg. Ein Dipgürtel gibt nur auf der letzten Sprosse Gewicht dazu, 0 bis 40 kg in 2,5-kg-Schritten.
+Alles steht rot. Im Modus ohne Geräte bleiben die beiden Krabben, ohne Gewicht.
 
 ---
 

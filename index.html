@@ -107,33 +107,57 @@ nav .ic{font-size:17px;line-height:1}
   padding:2px 8px;text-transform:uppercase;letter-spacing:.06em}
 .big{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:300;letter-spacing:-.02em}
 td.n,.kpi b{font-family:var(--mono)}
-/* Timer */
+/* Trainingsbildschirm (Build 2026-11-05 a). EIN Bildschirm vom Vorlauf bis
+   zum letzten Satz der Uebung, nach dem Vorbild Grip Gains: Kopf mit Zielen,
+   Satzkurve, Uhr, Knoepfe, darunter die gehaltenen Saetze. Die Pause laeuft
+   hier mit, nicht mehr auf einer Karte der Startseite. */
 #timerScreen{position:fixed;inset:0;background:var(--bg);z-index:100;display:none;
-  flex-direction:column;padding:20px;text-align:center;
-  padding-top:calc(20px + env(safe-area-inset-top,0px));
-  padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+  flex-direction:column;padding:14px 16px 16px;overflow-y:auto;
+  padding-top:calc(14px + env(safe-area-inset-top,0px));
+  padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
 #timerScreen.on{display:flex}
-#tClock{font-size:clamp(74px,26vw,148px);line-height:1;margin:8px 0;font-weight:300}
-#tTarget{font-size:17px;color:var(--tx2)}
-#tSeite{color:var(--orange);font-weight:700;font-size:clamp(20px,6vw,28px);letter-spacing:.06em;margin:4px 0 2px}
+#timerScreen>*{width:100%;max-width:520px;margin-left:auto;margin-right:auto}
+.tKopf{display:flex;align-items:flex-start;gap:10px;position:relative}
+.tKopf>div:first-child{flex:1;min-width:0}
+#tWhat{font-weight:650;font-size:16px}
+#tStufe{color:var(--tx2);font-size:13.5px;margin-top:2px}
+#tAkt{padding:8px 12px;font-size:13px;flex:none}
+#tMenue{position:absolute;right:0;top:calc(100% + 6px);z-index:2;background:var(--panel);
+  border:1px solid var(--line);border-radius:12px;padding:6px;min-width:240px;
+  box-shadow:0 10px 30px rgba(0,0,0,.45);display:flex;flex-direction:column}
+#tMenue[hidden]{display:none}
+#tMenue button{text-align:left;padding:11px 12px;background:transparent;border:0}
+#tMenue button:active{background:var(--panel2)}
+#tMenue .tiny{padding:4px 12px 6px}
+#tSeite{color:var(--orange);font-weight:700;font-size:clamp(20px,6vw,28px);letter-spacing:.06em;
+  margin:6px 0 0;text-align:center}
 #tSeite:empty{display:none}
-/* Drei Zeilen: ueber der Uhr der Abstand zum PR, darunter die Restzeit bis
-   zur Vorgabe. Beide halten ihren Platz auch leer — sonst rutscht die grosse
-   Uhr in dem Moment, in dem die Prozentzeile erscheint. */
-#tPct{min-height:44px;display:flex;align-items:baseline;justify-content:center;gap:10px;
-  color:var(--tx2);visibility:hidden}
-#tPct.an{visibility:visible}
-#tPct b{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:400;
-  font-size:clamp(28px,9vw,40px);line-height:1;letter-spacing:-.02em;color:var(--tx2)}
-#tPct b.drueber{color:var(--tx)}
-#tPct b i{font-style:normal;font-family:"IBM Plex Sans",sans-serif;font-size:.6em;margin-left:.1em}
-#tPct small{font-size:14px}
-#tRest{font-size:clamp(30px,10vw,52px);line-height:1.15;min-height:1.15em;margin-bottom:6px;
-  font-weight:400;color:var(--tx3)}
-/* Nicht gruen: unter der gluehenden Restzeile lasen sich zwei Farben wie zwei Meldungen. */
-#tHit{color:var(--tx2);font-weight:600}
+#tZiele{display:flex;flex-wrap:wrap;gap:3px 14px;margin-top:8px;font-size:13px;color:var(--tx2)}
+#tZiele b{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:500;color:var(--tx)}
+#tZiele .ok{color:var(--ok);font-weight:600}
+#tKurve .skurve{margin-top:12px}
+#tLabel{color:var(--tx2);font-size:14px;min-height:1.3em}
+#tClock{font-size:clamp(84px,30vw,160px);line-height:1;margin:4px 0;font-weight:300}
+#tUnter{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:clamp(20px,6vw,26px);
+  color:var(--tx2);min-height:1.3em}
+#tFort{font-size:13.5px;color:var(--tx3);min-height:1.4em;margin-top:6px}
+#tFort.ok{color:var(--ok)}
+#tFort.warn{color:var(--warn)}
+#tSeiteWahl .tiny{text-align:center}
+#tSeiteWahl .zw{margin:4px 0 10px}
+#tKnoepfe button{padding:16px}
+#tSchmerz{flex:0 0 32%;color:#e8917f;border-color:#5a2b28}
+#tKacheln{margin-top:14px;display:flex;flex-direction:column;gap:6px}
+.tKachel{display:flex;align-items:baseline;gap:10px;background:var(--panel);border:1px solid var(--line);
+  border-left:3px solid var(--zk,var(--line));border-radius:9px;padding:9px 12px;font-size:13.5px;
+  color:var(--tx2)}
+.tKachel b{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:500;color:var(--tx);flex:1}
+.tKachel .pz{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.tKachel .pz.drueber{color:var(--ok)}
+.tKachel .sz{color:var(--bad);font-size:12px;font-weight:600}
 .tapzone{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  cursor:pointer;user-select:none;-webkit-user-select:none;border-radius:20px;margin:10px 0}
+  cursor:pointer;user-select:none;-webkit-user-select:none;border-radius:20px;margin:10px 0;
+  min-height:210px;text-align:center}
 .tapzone:active{background:var(--panel)}
 .bar{height:7px;background:var(--panel2);border-radius:99px;overflow:hidden;margin:14px 0}
 .bar>i{display:block;height:100%;background:var(--acc);width:0;transition:width .25s linear}
@@ -347,24 +371,31 @@ code{background:var(--panel2);padding:1.5px 5px;border-radius:5px;font-size:12.5
 
 </div>
 
-<!-- ══════════ TIMER (Vollbild) ══════════ -->
+<!-- ══════════ TRAINING (Vollbild) ══════════ -->
 <div id="timerScreen">
-  <div>
-    <div class="muted" id="tWhat"></div>
-    <div id="tSeite"></div>
-    <div id="tTarget"></div>
+  <div class="tKopf">
+    <div>
+      <div id="tWhat"></div>
+      <div id="tStufe"></div>
+    </div>
+    <button class="ghost" id="tAkt" aria-haspopup="true">Aktionen</button>
+    <div id="tMenue" hidden></div>
   </div>
+  <div id="tSeite"></div>
+  <div id="tZiele"></div>
+  <div id="tKurve"></div>
   <div class="tapzone" id="tTap">
-    <div id="tPct"></div>
-    <div id="tClock" class="big">0,0</div>
-    <div id="tRest" class="big"></div>
-    <div class="muted" id="tHint">Tippen, wenn du nicht mehr kannst</div>
+    <div id="tLabel"></div>
+    <div id="tClock" class="big"></div>
+    <div id="tUnter"></div>
+    <div id="tFort"></div>
   </div>
-  <div class="bar"><i id="tBar"></i></div>
-  <div class="row">
-    <button class="ghost" id="tAbort">Abbrechen</button>
+  <div id="tSeiteWahl"></div>
+  <div class="row" id="tKnoepfe">
+    <button class="ghost" id="tSchmerz">Schmerz</button>
     <button class="primary grow" id="tStop">Satz beenden</button>
   </div>
+  <div id="tKacheln"></div>
 </div>
 
 <nav><div class="inner">
@@ -1919,6 +1950,109 @@ const DEFAULT_EX = {
       {name:"Ellbogen rechtwinklig gebeugt", load:0.01733, platzhalter:true, ort:"boden"},
       {name:"Arm gestreckt",                 load:0.0239,  platzhalter:true, ort:"boden"}
     ]
+  },
+
+  /* Dip-Halt (Build 2026-11-05 b): die vordere Schulter in Streckung,
+     Hauptlast lange Bizepssehne und vordere Kapsel. Luke, 02.11.2026: "den
+     krabbenstand am Boden mit Hüft abgelegt, Hüft angehoben, Am stuhl mit
+     ellenbogen gebeugt Knie 90°, dann knie gestreckt und danach in der Dip
+     Position am Barren mit Füßen auf dem stuhl, Füßen in grünem band, blauen
+     band, roten band und dannach die komplette dip position isometrisch mit
+     dem eigenen Körpergewicht (optional zusatzgewicht)". Seine Entscheidungen
+     vom 02. bis 05.11.2026:
+       - Name "Dip-Halt", beide Arme gleichzeitig;
+       - am Boden gestreckte Arme, ab dem Stuhl Ellbogen 90°;
+       - Krabbe mit den Haenden eine Handlaenge hinter dem Gesaess, die
+         zweite Sprosse in der Tischposition mit Knie 90°;
+       - Barren mit Stuhl: "das knie ist90° gebeugt, der fußspann liegt
+         hinter dem körper auf dem stuhl hier ist kein maximales drücken vom
+         eigenen körpergewicht möglich";
+       - Baender Gruen, Violett, Rot (Rot statt Blau), quer ueber beide
+         Holme, nur am echten Barren (Haken "baender");
+       - ohne Barren zwei Stuhllehnen, deshalb kein Haken auf den Sprossen
+         5 und 9;
+       - normales Training, Gruppe "push": Dip-Halt und Liegestuetz laufen
+         nie am selben Tag. Die Gruppe teilt nur die Ruhe, den Tag sperrt
+         nichtMit (wie bei Wadenheben und Handtuchrolle). nichtMit steht nur
+         hier: Beim Liegestuetz ersetzt die gespeicherte Uebung das Objekt aus
+         dem Build (normalize), und konflikt() prueft beide Richtungen;
+       - Dipguertel 0 bis 40 kg in 2,5-kg-Schritten, nur auf der letzten
+         Sprosse.
+     Lasten: was die Haende tragen, in Anteilen des Koerpergewichts.
+     Sprossen 1 bis 5 gerechnet in scratchpad/dip.mjs, ebenes Gleichgewicht
+     mit den Segmenten nach de Leva 1996 (Maenner):
+       1 Krabbe, Huefte abgelegt  0,387  Haende 20 cm hinter dem Gesaess,
+                                         Rumpf 19° zurueck (15 cm: 0,50,
+                                         25 cm: 0,33)
+       2 Krabbe, Tischposition    0,598
+       3 Stuhl, Knie 90°          0,477  Sitz 45 cm, Huefte 23 cm ueber dem
+                                         Boden
+       4 Stuhl, Beine gestreckt   0,674  Rumpf 20° vorgeneigt: 0,717
+       5 Barren, Fussspann        0,938  Schwerpunkt ueber den Haenden
+                                         (6 cm dahinter: 0,83)
+     Sprossen 6 bis 8 rechnet lastVon mit 1 - Bandzug / Koerpergewicht. Der
+     Bandzug ist die Mitte der Herstellerspanne fuer 208-cm-Schlaufen (Revity
+     bei Decathlon, French Fitness): Gruen 40 kg (23 bis 57), Violett 27,5 kg
+     (16 bis 39), Rot 11 kg (7 bis 15). Die Angaben gelten fuer ein senkrecht
+     eingehaengtes Band und liegen nach Messungen eher zu hoch. load ist der
+     Wert bei 80 kg, damit alles, was L.load direkt liest, eine sinnvolle Zahl
+     hat (Vorbild ist die Bank-Sprosse des Ausfallschritts).
+     Die Leiter faellt zweimal: bei 2 -> 3 auf das 0,80-fache, weil der Winkel
+     von gestreckt auf 90° wechselt, und bei 5 -> 6 auf das 0,53-fache. Hoch
+     und runter geht die App nach der Nummer (sprosseUeber, sprosseUnter),
+     nach der Last waehlen nur stufeZuLast und naechsteErlaubte. 8 -> 9 liegt
+     mit 1,16 unter Tor 2. Spanne ohne Gewicht 2,58, mit 40 kg 3,88: Tor 1
+     haelt.
+     extraK 1: Das Gewicht haengt am Guertel nah am Koerperschwerpunkt.
+     Kein extraGeraet und kein Bild, solange es keine echten Fotos gibt.
+     VORLAEUFIG, bis Luke misst: alle Lasten, die Bandwerte, Hinweistext und
+     Sicherheitsfrage. */
+  dip: {
+    name:"Dip-Halt", region:"Vordere Schulter", group:"push", nichtMit:["push"],
+    sides:null,
+    extraAb:8, extraK:1,
+    extraMin:0, extraMax:40, extraSchritt:2.5,
+    extraLabel:"Dipgürtel",
+    extraHint:"Eine Hantelscheibe oder Kettlebell am Dipgürtel, sie hängt zwischen den Beinen. "
+             +"Es zählt, was sie wiegt.",
+    hint:"Beide Arme arbeiten gleichzeitig. Die Schultern sind nach hinten gestreckt, die Brust "
+        +"bleibt offen, und die Schultern ziehen nicht zu den Ohren. Halte genau dort, keine "
+        +"Wiederholungen. Am Boden sind die Arme gestreckt und die Hände liegen eine Handlänge "
+        +"hinter dem Gesäß: erst mit dem Gesäß am Boden, dann mit angehobener Hüfte in der "
+        +"Tischposition, die Knie 90° gebeugt. Ab dem Stuhl sind die Ellbogen 90° gebeugt, die "
+        +"Hände auf der Sitzkante, erst mit 90° im Knie, dann mit gestreckten Beinen. Am Barren "
+        +"liegt der Fußspann hinter dir auf einem Stuhl, die Knie 90° gebeugt, und die Beine "
+        +"drücken nicht mit. Statt des Stuhls trägt dich danach ein Band quer über beiden Holmen, "
+        +"der Fußspann liegt darin. Ohne Barren nimmst du zwei stabile Stühle, Rücken an Rücken, "
+        +"und stützt dich auf die Lehnen. Die Bänder gehen dort nicht, die Leiter springt dann "
+        +"vom Stuhl unter den Füßen direkt zum vollen Halt.",
+    /* Punkte und Begruendung wie bei Aussenrotation und Seitheben, nur der
+       Titel angepasst. */
+    warnung:{
+      titel:"Bevor du den Dip-Halt zum ersten Mal machst",
+      frage:"Trifft eines davon auf dich zu?",
+      punkte:[
+        "Deine Schulter ist schon einmal ausgekugelt oder herausgesprungen",
+        "Seit einem Sturz kannst du den Arm nicht mehr aus eigener Kraft heben",
+        "Der Schmerz zieht vom Nacken bis in die Hand, mit Kribbeln",
+        "Die Schulter ist seit Wochen rundum steif, auch wenn jemand anderes deinen Arm bewegt"
+      ],
+      warum:"Dann lässt du das zuerst ärztlich abklären. Einer gereizten Schulter tut "
+           +"isometrisches Halten gut. Eine Schulter, die schon einmal ausgekugelt war, ein "
+           +"Sehnenriss nach einem Sturz, ein gereizter Nerv aus der Halswirbelsäule oder eine "
+           +"Schultersteife brauchen aber zuerst eine Diagnose, und die kann keine App stellen."
+    },
+    levels:[
+      {name:"Krabbe am Boden · Gesäß abgelegt",    load:0.387, platzhalter:true, ort:"boden"},
+      {name:"Krabbe am Boden · Tischposition",     load:0.598, platzhalter:true, ort:"boden"},
+      {name:"Stuhl · Knie 90°",                    load:0.477, platzhalter:true},
+      {name:"Stuhl · Beine gestreckt",             load:0.674, platzhalter:true},
+      {name:"Barren · Fußspann auf einem Stuhl",   load:0.938, platzhalter:true},
+      {name:"Barren · Fußspann im grünen Band",    load:0.500, bandKg:40,   platzhalter:true, geraet:"baender"},
+      {name:"Barren · Fußspann im violetten Band", load:0.656, bandKg:27.5, platzhalter:true, geraet:"baender"},
+      {name:"Barren · Fußspann im roten Band",     load:0.863, bandKg:11,   platzhalter:true, geraet:"baender"},
+      {name:"Barren · volles Körpergewicht",       load:1.000, platzhalter:true}
+    ]
   }
 };
 
@@ -2039,7 +2173,16 @@ const GERAETE = [
    +"anderen Ende eine Schlaufe um die Hüfte. Verstellbar und 2,5 bis 3 m lang, dann passt er "
    +"für jede Körpergröße.",
    fuer:"Hyperextension: die zwei leichten Stufen im Türrahmen. Ohne Gurt beginnt die Leiter am "
-       +"Stepper."}
+       +"Stepper."},
+  /* Seit Build 2026-11-05 b: die drei Band-Sprossen des Dip-Halts. Luke,
+     05.11.2026: nur am echten Barren, zwischen zwei Stuhllehnen haelt das
+     Band nicht. Die Kilo je Farbe stehen beim Dip-Halt in DEFAULT_EX. */
+  {id:"baender", name:"Klimmzugbänder", was:"Lange Widerstandsbänder als Schlaufe (rund 2 m), "
+   +"in Grün, Violett und Rot. Das Band liegt quer über beiden Holmen eines echten Barrens, der "
+   +"Fußspann liegt darin. Nur an einem echten Barren, nicht an zwei Stuhllehnen: Dort hält das "
+   +"Band nicht.",
+   fuer:"Dip-Halt, die drei Band-Stufen. Ohne Bänder geht die Leiter vom Stuhl unter den Füßen "
+       +"direkt zum vollen Halt."}
 ];
 
 const RED_FLAGS = [
@@ -2059,7 +2202,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-11-02 b";
+const BUILD = "2026-11-05 b";
 const KEY = "isocoach.v1";
 const KEY_GERETTET = "isocoach.v1.gerettet";
 /* Laufende Sicherung (Build 2026-10-27 c, nach P100): der gespeicherte Stand,
@@ -5075,6 +5218,16 @@ function bankCmOf(ex, side){
 function bankLast(L, cm){
   return L.bank.basis * (1 + L.bank.anteil * cm / L.bank.cm);
 }
+/* Band-Sprossen des Dip-Halts (Build 2026-11-05 b): Das Band nimmt immer
+   dieselben Kilo ab, die Last haengt deshalb am Koerpergewicht. load ist nur
+   der Wert bei 80 kg. Untergrenze wie extraFaktor. */
+function bandLast(L){
+  const bw = (S.bw > 0 ? S.bw : BW_DEFAULT);
+  return Math.max(0.05, 1 - L.bandKg / bw);
+}
+/* Grundlast einer Sprosse ohne Gewicht, fuer alle, die nach der Last
+   waehlen. Nur die Band-Sprossen weichen von load ab. */
+function grundLast(L){ return L.bandKg > 0 ? bandLast(L) : L.load; }
 /* Rechnet fn, als waere der Modus aus: fuer alles, was mit den Werten von
    zuhause rechnen muss (Handeintrag im Verlauf, Angaben im Export). */
 function mitGeraeten(fn){
@@ -5093,7 +5246,7 @@ function naechsteErlaubte(ex, i, side){
   const L = S.ex[ex] && S.ex[ex].levels[i];
   if(!st.length || !L) return i;
   if(st.some(x => x.i === i)) return i;
-  const ab = x => Math.abs(Math.log(x.load / L.load));
+  const ab = x => Math.abs(Math.log(grundLast(x) / grundLast(L)));
   return st.reduce((a, b) => (ab(b) < ab(a) - 1e-9) ? b : a).i;
 }
 function modusName(){ return MODUS_NAME[S.modus] || ""; }
@@ -5913,7 +6066,7 @@ function extraFaktor(ex, kg, side){
 function lastVon(ex, level, kg, side, cm){
   const L = S.ex[ex] && S.ex[ex].levels[level];
   if(!L) return 0;
-  const basis = L.bank ? bankLast(L, cm > 0 ? cm : bankCmOf(ex, side)) : L.load;
+  const basis = L.bank ? bankLast(L, cm > 0 ? cm : bankCmOf(ex, side)) : grundLast(L);
   /* Die Aussenrotation (Build 2026-11-02 a) traegt nur den Unterarm, rund ein
      Prozent des Koerpergewichts. Auf drei Stellen gerundet laege ein halbes
      Kilo dort bis zu drei Prozent daneben, kleine Grundlasten runden deshalb
@@ -7079,7 +7232,7 @@ function applyRules(session, etikett){
     const gewichtDirekt = vor => {
       const e   = S.ex[session.exercise];
       const bw  = (S.bw > 0 ? S.bw : BW_DEFAULT);
-      const bas = e.levels[lvNow()] ? e.levels[lvNow()].load : 0;
+      const bas = e.levels[lvNow()] ? grundLast(e.levels[lvNow()]) : 0;
       if(!(bas > 0)) return;
       const b   = extraBereich(session.exercise, lvNow());
       /* Die Umkehrung braucht denselben Hebel wie die Hinrechnung: liegt die
@@ -7260,14 +7413,13 @@ const cueTick  = ()=> beep(760,80,.14);
 const cueDone  = ()=>{beep(990,150); setTimeout(()=>beep(1320,260),170);};
 
 /* ═══════════ Timer ═══════════ */
-let T = null, wakeLock = null, leadIv = null;
+let T = null, wakeLock = null, leadIv = null, pauseIv = null, tWeiter = null;
 
-/* Drei Zeilen auf der Uhr (Luke, 29.09.2026): oben der Abstand zum PR, in
-   der Mitte die Uhr, darunter die Restzeit bis zur Vorgabe. Die Restzeit
-   laeuft auf null und von dort positiv weiter; ab null glueht sie — orange,
-   gelb, hellweiss, je weiter die Vorgabe geschlagen ist. Gemessen am Anteil
-   der Vorgabe, nicht in Sekunden: 5 s ueber 20 s Vorgabe sind mehr als
-   5 s ueber 120 s. */
+/* Das Gluehen der Uhr (Luke, 29.09.2026): Ab der Vorgabe glueht die Zahl —
+   orange, gelb, hellweiss, je weiter die Vorgabe geschlagen ist. Gemessen am
+   Anteil der Vorgabe, nicht in Sekunden: 5 s ueber 20 s Vorgabe sind mehr
+   als 5 s ueber 120 s. Seit Build 2026-11-05 a glueht die grosse Zahl
+   selbst, denn sie IST jetzt der Abstand zur Vorgabe (siehe tick). */
 const GLUT = [[0, [255,138,31]], [0.10, [255,210,40]], [0.20, [255,251,238]]];
 const GLUT_VOLL = 0.25;   // ab hier leuchtet es nicht mehr staerker
 function glut(r){
@@ -7282,46 +7434,222 @@ function glut(r){
           schein: `0 0 ${Math.round(4 + 18*w)}px rgba(${rgb},${(.35 + .5*w).toFixed(2)}),`
                 + `0 0 ${Math.round(10 + 40*w)}px rgba(255,170,60,${(.15 + .35*w).toFixed(2)})`};
 }
-function zeilenLeeren(){
-  const z = el("tPct"); z.classList.remove("an"); z.innerHTML = "";
-  const r = el("tRest"); r.textContent = ""; r.style.color = ""; r.style.textShadow = "";
+/* ═══════════ Fortschrittsziel und PR-Ziel (Build 2026-11-05 a) ═══════════
+   Luke, 05.11.2026, nach Grip Gains: ueber der Uhr ein Fortschrittsziel —
+   ab wann die Kapazitaet steigt — und ein PR-Ziel, das nur erscheint, wenn
+   es heute in Reichweite ist. Beide gelten fuer Satz 1, denn nur der ist ein
+   Messpunkt (points). Seine Entscheidungen:
+   Fortschrittsziel = "Gleiche Zone wird schwerer": die kuerzeste Haltezeit in
+   Satz 1, nach der die App dieselbe Zone beim naechsten Mal schwerer plant —
+   eine Sprosse hoeher oder ein Gewichtsschritt mehr. Ueber MESS_MAX oder gar
+   nicht erreichbar: keine Zeile.
+   PR-Ziel = "Kurve auf Bestwert", gemessen als "Mittel der drei Zonen": die
+   Kapazitaet ist das Mittel der Lasten, die die Kurve in den Zonenmitten
+   traegt (40, 90 und 150 s). PR-Ziel ist die Haltezeit, ab der diese Zahl
+   ueber ihrem bisher hoechsten Stand liegt. Zu sehen nur "Bis 20 % ueber
+   Ziel" — weiter weg ist es heute kein Ziel, sondern ein Wunsch. */
+const PR_REICHWEITE = 1.2;
+function kapazitaet(f){
+  if(!f) return null;
+  const k = ZONES.reduce((a, z) => a + lastZuZeit(f, (z.lo + z.hi) / 2), 0) / ZONES.length;
+  return isFinite(k) ? k : null;
 }
-/* Die Uhr zaehlt, solange die Position steht — der Reaktionsabzug entsteht
-   erst beim Druecken NACH dem Ende. Laufende Uhr und gespeicherter PR messen
-   also dasselbe, der Vergleich braucht keine Umrechnung. */
-function prZeile(s){
-  const z = el("tPct");
-  if(!z.classList.contains("an")){
-    z.classList.add("an");
-    /* Ab Satz 2 sagt die Zeile, welcher Satz der Massstab ist — sonst hielte
-       man 27 s in Satz 2 fuer den Rekord von Satz 1. */
-    const n = T.prSatz || 0;
-    z.innerHTML = T.pr == null
-      ? `<small>${n ? `Erster ${n+1}. Satz` : "Erster Halt"} mit dieser Last</small>`
-      : `<b></b><small>zum PR ${fmt(T.pr)}${n ? ` in Satz ${n+1}` : ""}</small>`;
+/* Der hoechste Stand, den die gemessene Kurve je hatte: der Fit nach jedem
+   Messpunkt, ueber dieselben PUNKTE_GRENZE Punkte wie die Kurve selbst.
+   Geschaetzte Punkte zaehlen nicht — ein Bestwert muss gemessen sein.
+   fitRechnen statt fit: Die Reihe flutete sonst den Fit-Speicher. */
+const _bestSpeicher = new Map();
+function bestKapazitaet(ex, side){
+  const pts = points(ex, side);
+  const key = ex + "|" + side + "|" + pts.map(p => p.load + ":" + p.time).join(",");
+  if(_bestSpeicher.has(key)) return _bestSpeicher.get(key);
+  let best = null;
+  for(let i = 2; i <= pts.length; i++){
+    const k = kapazitaet(fitRechnen(pts.slice(Math.max(0, i - PUNKTE_GRENZE), i)));
+    if(k != null && (best == null || k > best)) best = k;
   }
-  if(T.pr == null) return;
-  const p = Math.round((s / T.pr - 1) * 100);
-  const b = z.querySelector("b");
-  /* Das Prozentzeichen klein und in der Textschrift — in der Monoschrift
-     stand es eine ganze Ziffernbreite von der Zahl weg. */
-  b.innerHTML = (p > 0 ? "+" + p : p < 0 ? "\u2212" + (-p) : "\u00b10") + "<i>%</i>";
-  b.classList.toggle("drueber", s > T.pr);
+  if(_bestSpeicher.size >= 50) _bestSpeicher.clear();
+  _bestSpeicher.set(key, best);
+  return best;
+}
+/* Ziele gibt es nur, wo Satz 1 ein Messpunkt wird: frisch, an einer Kurve.
+   Der schmerzgefuehrte Pfad (knieBlock) folgt der Leiter, nicht der Kurve. */
+function zielFaehig(bl){
+  return !!bl && bl.fresh !== false && !(DEFAULT_EX[bl.exercise] || {}).schmerzGefuehrt;
+}
+function prZiel(bl, last){
+  if(!zielFaehig(bl) || !(last > 0)) return null;
+  const best = bestKapazitaet(bl.exercise, bl.side);
+  if(best == null) return null;
+  const pts = points(bl.exercise, bl.side);
+  const ueber = t => {
+    const k = kapazitaet(fitRechnen(pts.concat([{load: last, time: t}]).slice(-PUNKTE_GRENZE)));
+    return k != null && k > best;
+  };
+  const deckel = Math.min(MESS_MAX, Math.floor(bl.target * PR_REICHWEITE));
+  if(deckel < MESS_MIN || !ueber(deckel)) return null;
+  let lo = MESS_MIN, hi = deckel;
+  if(ueber(lo)) return lo;
+  while(hi - lo > 1){ const m = (lo + hi) >> 1; if(ueber(m)) hi = m; else lo = m; }
+  return hi;
+}
+/* Welche Last plant die App fuer dieselbe Zone, wenn Satz 1 heute t Sekunden
+   haelt? Sie fragt den Planer selbst (mkBlock) — mit einer gedachten Sitzung
+   am Ende der Reihe. Alles, was mkBlock dabei anfasst, kommt zurueck: die
+   Sitzung, die Gewichte (S.extra) und die heutige Gewichtswahl, die beim
+   naechsten Mal nicht mehr gilt (extraSelbstGesetzt fragt nach dem Tag). */
+function planLastNach(bl, last, t){
+  const kg = Object.assign({}, S.extra), wahl = S.extraWahl;
+  S.sessions.push({exercise: bl.exercise, side: bl.side, level: bl.level, extra: bl.extra || 0,
+                   load: last, fresh: true, date: today(), sets: [{time: t, target: bl.target}]});
+  S.extraWahl = null;
+  try{
+    const b = mkBlock(bl.exercise, bl.side, bl.zone, bl.soll || zoneMitte(bl.zone), true, false, true);
+    return lastVon(b.exercise, b.level, b.extra, b.side);
+  }finally{
+    S.sessions.pop();
+    S.extraWahl = wahl;
+    for(const k of Object.keys(S.extra)) if(!(k in kg)) delete S.extra[k];
+    Object.assign(S.extra, kg);
+  }
+}
+/* Gesucht ab der Vorgabe: Darunter wuerde die Kurve sinken, ein kuerzeres
+   Fortschrittsziel kann es nur geben, wenn heute leichter gewaehlt wurde, als
+   der Planer es taete — dann reicht eben die Vorgabe. */
+function fortschrittsZiel(bl, last){
+  if(!zielFaehig(bl) || !(last > 0)) return null;
+  const schwerer = t => planLastNach(bl, last, t) > last * (1 + 1e-9);
+  const lo0 = Math.max(MESS_MIN, Math.round(bl.target));
+  if(lo0 > MESS_MAX || !schwerer(MESS_MAX)) return null;
+  if(schwerer(lo0)) return lo0;
+  let lo = lo0, hi = MESS_MAX;
+  while(hi - lo > 1){ const m = (lo + hi) >> 1; if(schwerer(m)) hi = m; else lo = m; }
+  return hi;
+}
+/* Einmal je Block gerechnet und am Lauf gemerkt. Nicht in laufSichern: Nach
+   einem Neuladen rechnet es sich aus denselben Sitzungen neu. */
+function blockZiele(){
+  if(RUN.ziele && RUN.ziele.b === RUN.b) return RUN.ziele;
+  const bl = curBlock();
+  let fort = null, pr = null;
+  try{ fort = fortschrittsZiel(bl, RUN.load); pr = prZiel(bl, RUN.load); }catch(e){}
+  RUN.ziele = {b: RUN.b, fort, pr};
+  return RUN.ziele;
+}
+/* Die Rechnung kostet einige Fits. Sie laeuft nach dem ersten Bild, im
+   Vorlauf von Satz 1 — die Uhr steht dann schon. */
+function zieleNachreichen(){
+  if(RUN.ziele && RUN.ziele.b === RUN.b) return;
+  const b = RUN.b;
+  setTimeout(()=>{
+    if(!RUN || RUN.b !== b || !el("timerScreen").classList.contains("on")) return;
+    blockZiele();
+    trainingKopf();
+    if(T && !T.lead && RUN.i === 0) T.fort = RUN.ziele.fort;
+  }, 60);
+}
+
+/* ═══════════ Der Trainingsbildschirm ═══════════ */
+/* Die Haltezeiten des Blocks: gehaltene Saetze, wie sie waren, die offenen
+   aus dem zuletzt gehaltenen weitergerechnet — dieselbe Rechnung wie
+   setTarget, also zeigen Kurve und Uhr dieselbe Zahl. */
+function blockPlan(){
+  const b = curBlock(), n = curSets();
+  const m = b.satzModell || satzModell(b.exercise, b.side);
+  if(!RUN.sets.length) return satzZeiten(b.target, n, m);
+  const out = RUN.sets.map(s => s.time);
+  for(let k = out.length + 1; k <= n; k++) out.push(naechsterSatz(m, k, out[k - 2]));
+  return out;
+}
+const mmss = s => `${Math.floor(s / 60)}:${String(Math.round(s) % 60).padStart(2, "0")}`;
+function trainingKopf(){
+  const b = curBlock(), n = curSets(), zeiten = blockPlan();
+  const offen = RUN.i < n;
+  el("tWhat").textContent = blockLabel(b);
+  el("tStufe").textContent = RUN.levelName || "";
+  el("tSeite").textContent = seitenRuf(b);
+  const ges = Math.round(zeiten.reduce((a, t) => a + t, 0) + (zeiten.length - 1) * PAUSE_S);
+  const z = [];
+  if(offen) z.push(`Ziel <b>${fmt(zeiten[RUN.i])}</b>`);
+  z.push(`<b>${n}</b> Sätze`, `Gesamt <b>${mmss(ges)}</b>`);
+  const zi = (RUN.ziele && RUN.ziele.b === RUN.b) ? RUN.ziele : null;
+  if(zi){
+    const s1 = RUN.sets[0];
+    const zaehlt = s1 && !s1.pain && messbar(s1.time);
+    if(!s1){
+      if(zi.fort) z.push(`Fortschrittsziel <b>${fmt(zi.fort)}</b>`);
+      if(zi.pr)   z.push(`PR-Ziel <b>${fmt(zi.pr)}</b>`);
+    } else {
+      if(zi.fort && zaehlt && s1.time >= zi.fort) z.push(`<span class="ok">Fortschrittsziel erreicht</span>`);
+      if(zi.pr && zaehlt && s1.time >= zi.pr)     z.push(`<span class="ok">PR erreicht</span>`);
+    }
+  }
+  el("tZiele").innerHTML = z.map(x => `<span>${x}</span>`).join("");
+  el("tKurve").innerHTML = satzKurveSVG(zeiten, b.zoneErwartet || b.zone,
+    {ist: RUN.sets.length, aktiv: offen ? RUN.i : -1, ohneGesamt: true});
+  el("tKacheln").innerHTML = RUN.sets.map((s, i) => {
+    const p = Math.round((s.time / s.target - 1) * 100);
+    return `<div class="tKachel" style="--zk:${s.time >= s.target ? "var(--ok)" : "var(--bad)"}">
+      <span>Satz ${i + 1}</span><b>${Math.round(s.time)} / ${Math.round(s.target)} s</b>${
+      s.pain ? `<span class="sz">Schmerz${s.painSeite && s.painSeite !== "beide" ? " " + s.painSeite : ""}</span>` : ""}
+      <span class="pz${p > 0 ? " drueber" : ""}">${p > 0 ? "+" + p : p < 0 ? "−" + (-p) : "±0"} %</span></div>`;
+  }).join("");
+}
+function trainingOeffnen(){
+  el("timerScreen").classList.add("on");
+  menueZu();
+  wachHalten();
+}
+function trainingSchliessen(){
+  if(T && T.raf) cancelAnimationFrame(T.raf);
+  clearInterval(leadIv); leadIv = null;
+  clearInterval(pauseIv); pauseIv = null;
+  T = null; tWeiter = null;
+  el("timerScreen").classList.remove("on");
+  menueZu();
+  uhrLeeren();
+  try{ wakeLock && wakeLock.release(); }catch(e){}
+  wakeLock = null;
+}
+/* Ueber die ganze Uebung wach, nicht nur waehrend des Satzes — die Pause
+   steht jetzt auf demselben Bildschirm. Das System gibt die Sperre beim
+   Wegschalten selbst frei; dann holt der naechste Satz sie neu. */
+async function wachHalten(){
+  try{
+    if("wakeLock" in navigator && (!wakeLock || wakeLock.released))
+      wakeLock = await navigator.wakeLock.request("screen");
+  }catch(e){}
+}
+function uhrLeeren(){
+  const c = el("tClock"); c.style.color = ""; c.style.textShadow = "";
+  el("tUnter").textContent = "";
+  const f = el("tFort"); f.textContent = ""; f.className = "";
+}
+/* an: Satz laeuft. weiter: Text des Weiter-Knopfs nach dem letzten Satz.
+   Im Vorlauf und in der Pause stehen beide Knoepfe grau da — der Bildschirm
+   springt so nicht, wenn der Satz anfaengt. */
+function knopfStand(an, weiter){
+  const st = el("tStop"), sm = el("tSchmerz");
+  sm.style.display = weiter ? "none" : "";
+  st.textContent = weiter || "Satz beenden";
+  st.disabled = !an && !weiter;
+  sm.disabled = !an;
+  if(!weiter) tWeiter = null;
 }
 
 async function runSet(cfg){
-  el("tWhat").textContent = cfg.what;
-  el("tSeite").textContent = cfg.seite || "";
-  el("tTarget").innerHTML = `Ziel: <b>${fmt(cfg.target)}</b>`;
-  el("timerScreen").classList.add("on");
-  el("tBar").style.width = "0%";
-  zeilenLeeren();
-  try{ if("wakeLock" in navigator) wakeLock = await navigator.wakeLock.request("screen"); }catch(e){}
-
+  trainingOeffnen();
+  uhrLeeren();
+  knopfStand(false);
+  el("tSeiteWahl").innerHTML = "";
   const starten = ()=>{
+    el("tLabel").textContent = `Satz ${RUN.i + 1} von ${curSets()}`;
     el("tClock").style.color = "";
-    el("tHint").textContent = "Tippen, wenn du nicht mehr kannst";
-    T = {start:performance.now(), target:cfg.target, pr:cfg.pr, prSatz:cfg.prSatz, raf:0, half:false, ticks:new Set(), done:cfg.done};
+    const zi = (RUN.i === 0 && RUN.ziele && RUN.ziele.b === RUN.b) ? RUN.ziele : null;
+    T = {start:performance.now(), target:cfg.target, fort: zi ? zi.fort : null,
+         raf:0, half:false, ticks:new Set(), done:cfg.done};
+    knopfStand(true);
+    wachHalten();
     cueStart();
     tick();
   };
@@ -7330,7 +7658,7 @@ async function runSet(cfg){
 
   let n = LEAD_IN;
   T = {lead:true, done:cfg.done};
-  el("tHint").textContent = "In Position gehen";
+  el("tLabel").textContent = "In Position gehen";
   el("tClock").style.color = "var(--tx2)";
   el("tClock").textContent = n;
   cueTick();
@@ -7342,72 +7670,104 @@ async function runSet(cfg){
     starten();
   }, 1000);
 }
+/* Die Uhr zaehlt RUNTER wie bei Grip Gains (Luke, 05.11.2026): gross die
+   ganzen Sekunden bis zur Vorgabe, klein darunter die gehaltenen. Ab der
+   Vorgabe gross "+12" und darunter "+8 %", die Zahl glueht. Die Uhr misst die
+   Zeit, die die Position steht; der Reaktionsabzug kommt erst in endSet. */
 function tick(){
-  if(!T) return;
+  if(!T || T.lead) return;
   const s = (performance.now()-T.start)/1000;
-  el("tClock").textContent = s.toFixed(1).replace(".",",");
-  /* Auf Zehntel gerundet wie die Uhr — dann ergeben Uhr und Restzeit in
-     jedem Moment zusammen die Vorgabe, und die Null steht genau dort, wo die
-     Uhr die Vorgabe zeigt. */
-  const rest = Math.round((s - T.target)*10)/10;
-  el("tRest").textContent = rest > 0 ? "+" + rest.toFixed(1).replace(".",",")
-    : rest < 0 ? "\u2212" + (-rest).toFixed(1).replace(".",",") : "0,0";
-  if(s >= T.target){
+  const c = el("tClock"), u = el("tUnter"), f = el("tFort");
+  if(s < T.target){
+    c.textContent = Math.ceil(T.target - s);
+    u.textContent = `${Math.floor(s)} s gehalten`;
+  } else {
+    c.textContent = "+" + Math.floor(s - T.target);
+    u.textContent = `+${Math.round((s / T.target - 1) * 100)} %`;
     const g = glut((s - T.target) / T.target);
-    el("tRest").style.color = g.farbe; el("tRest").style.textShadow = g.schein;
-    /* Ohne Angabe (undefined) keine Zeile; null heisst: noch kein Halt mit
-       dieser Last. */
-    if(T.pr !== undefined) prZeile(s);
+    c.style.color = g.farbe; c.style.textShadow = g.schein;
   }
-  const pct = Math.min(100, s/T.target*100);
-  el("tBar").style.width = pct+"%";
+  /* Nur in Satz 1 — nur der ist ein Messpunkt. */
+  if(T.fort){
+    const r = Math.ceil(T.fort - s);
+    f.textContent = r > 0 ? `Fortschrittsziel in ${r} s` : "Fortschrittsziel erreicht";
+    f.className = r > 0 ? "" : "ok";
+  }
   if(!T.half && s >= T.target/2){ T.half = true; cueHalf(); }
   const left = Math.ceil(T.target - s);
   if(left<=10 && left>0 && !T.ticks.has(left)){ T.ticks.add(left); cueTick(); }
-  if(s>=T.target && !T.ticks.has(0)){
-    T.ticks.add(0); cueDone();
-    /* Die grosse Uhr bleibt weiss — das Signal traegt jetzt die Restzeile
-       darunter. Gruen ueber orange las sich wie zwei Meldungen. */
-    el("tHint").innerHTML = '<span id="tHit">Vorgabe erreicht — jede Sekunde mehr zieht die Kurve hoch</span>';
-  }
-  /* Ab hier zieht keine Sekunde mehr irgendetwas: points() verwirft den Wert,
-     und die Zeile darueber wuerde weiter das Gegenteil behaupten ("jede Sekunde
-     mehr zieht die Kurve hoch"). Wer das nicht erfaehrt, steht umsonst weiter.
-     -1 ist kein Sekundenwert, nur ein freier Schluessel im selben Set. */
-  if(s >= MESS_MAX && !T.ticks.has(-1)){
-    T.ticks.add(-1); cueDone();
-    el("tClock").style.color = "var(--warn)";
-    el("tHint").innerHTML = '<span style="color:var(--warn)">Über ' + MESS_MAX
-      + ' Sekunden — ab hier zählt der Wert nicht mehr für die Kurve. Diese Stufe ist zu '
-      + 'leicht. Beende den Satz; die App stuft dich danach hoch.</span>';
+  if(s>=T.target && !T.ticks.has(0)){ T.ticks.add(0); cueDone(); }
+  /* Ab hier zieht keine Sekunde mehr irgendetwas: points() verwirft den Wert.
+     Wer das nicht erfaehrt, steht umsonst weiter. -1 ist kein Sekundenwert,
+     nur ein freier Schluessel im selben Set. */
+  if(s >= MESS_MAX){
+    if(!T.ticks.has(-1)){ T.ticks.add(-1); cueDone(); }
+    c.style.color = "var(--warn)"; c.style.textShadow = "";
+    f.textContent = `Über ${MESS_MAX} s — zählt nicht mehr für die Kurve. Satz beenden.`;
+    f.className = "warn";
   }
   T.raf = requestAnimationFrame(tick);
 }
-function endSet(aborted){
+/* schmerz: der zweite Knopf im Satz (Luke, 05.11.2026, "Zweiter Knopf im
+   Satz"). Ein Tipp beendet den Satz und markiert ihn — das Haekchen in der
+   Pause ist weg. */
+function endSet(aborted, schmerz){
   if(!T) return;
   if(T.lead){
     /* Noch im Vorlauf — es gibt nichts zu messen, nur abbrechen ist sinnvoll. */
     if(!aborted) return;
-    clearInterval(leadIv); leadIv = null;
-    const cb0 = T.done; T = null;
-    el("timerScreen").classList.remove("on");
-    el("tClock").style.color = "";
-    try{ wakeLock && wakeLock.release(); wakeLock = null; }catch(e){}
+    const cb0 = T.done;
+    trainingSchliessen();
     cb0(null);
     return;
   }
   const s = (performance.now()-T.start)/1000;
   cancelAnimationFrame(T.raf);
   const cb = T.done; T = null;
-  el("timerScreen").classList.remove("on");
-  el("tClock").style.color = "";
-  try{ wakeLock && wakeLock.release(); wakeLock = null; }catch(e){}
+  uhrLeeren();
+  if(aborted) trainingSchliessen();
   /* Zwischen dem Ende der Position und dem Knopfdruck vergeht Zeit. Der Abzug
      ist fuer jeden Satz gleich gross, verzerrt die Verhaeltnisse also nicht —
      er verschiebt nur das Niveau dorthin, wo es hingehoert. Einstellbar. */
   const roh = Math.round(s*10)/10;
   const abzug = (S.reaction == null ? REACTION_DEFAULT : S.reaction);
-  cb(aborted ? null : Math.max(1, Math.round((roh - abzug)*10)/10), roh);
+  cb(aborted ? null : Math.max(1, Math.round((roh - abzug)*10)/10), roh, !!schmerz);
+}
+
+/* ── Aktionen ────────────────────────────────────────────────────────
+   Was vorher als vier Knoepfe und drei Erklaerabsaetze in der Pause stand,
+   liegt hinter EINEM Knopf im Kopf. */
+function menueZu(){ const m = el("tMenue"); if(m) m.hidden = true; }
+function menueAuf(){
+  const m = el("tMenue");
+  if(!m.hidden){ m.hidden = true; return; }
+  if(!RUN) return;
+  const laeuft = !!T;
+  const punkte = [];
+  if(laeuft) punkte.push(["verwerfen", "Satz verwerfen"]);
+  else if(RUN.sets.length) punkte.push(["verwerfen", `Satz ${RUN.sets.length} verwerfen`]);
+  if(RUN.i < curSets() && RUN.b + 1 < RUN.plan.blocks.length) punkte.push(["uebung", "Übung beenden"]);
+  punkte.push(["ende", "Workout beenden und speichern"], ["spaeter", "Für später unterbrechen"]);
+  m.innerHTML = (laeuft && !T.lead ? `<div class="tiny">Der laufende Satz zählt dabei nicht.</div>` : "")
+    + punkte.map(([k, t]) => `<button data-akt="${k}">${t}</button>`).join("");
+  m.querySelectorAll("[data-akt]").forEach(b => b.onclick = ()=> trainingsAktion(b.dataset.akt));
+  m.hidden = false;
+}
+function trainingsAktion(k){
+  menueZu();
+  if(k === "verwerfen"){
+    /* Laeuft ein Satz, ist er der verworfene. In der Pause der eben gehaltene:
+       Er war schon gesichert und geht wieder raus. */
+    if(T){ endSet(true); return; }
+    RUN.sets.pop(); RUN.i = RUN.sets.length; laufSichern();
+    trainingSchliessen();
+    satzVerworfen();
+    return;
+  }
+  trainingSchliessen();
+  if(k === "uebung") endBlock();
+  else if(k === "ende") workoutBeenden();
+  else if(k === "spaeter") workoutUnterbrechen();
 }
 
 /* ═══════════ Sessionablauf ═══════════ */
@@ -7445,7 +7805,7 @@ function laufFortsetzen(){
   const bl = curBlock();                    /* mitten im Block weiter */
   RUN.load = lastVon(bl.exercise, bl.level, bl.extra, bl.side);
   RUN.levelName = stufenName(bl.exercise, bl.level, bl.extra, bl.side);
-  nextSet();
+  nextSet(true);
 }
 /* Wie viele Saetze stecken schon im Lauf? */
 function laufSaetze(L){
@@ -7904,27 +8264,38 @@ function knieImLauf(){
    Punkte, wie der Saetze-Stepper sagt, mit den Zahlen aus satzZeiten.
    Gesamt rechnet wie Grip Gains: Haltezeiten plus die Pausen dazwischen
    (149 + 48 + 35 + 27 + 3 · 20 = 5:19). */
-function satzKurveSVG(zeiten, zone){
+/* o.ist: so viele Saetze sind gehalten — sie stehen durchgezogen in der
+   Akzentfarbe, der Rest gestrichelt in der Zonenfarbe, aus dem letzten
+   gehaltenen weitergerechnet (Trainingsbildschirm, Build 2026-11-05 a).
+   o.aktiv: der laufende Satz, seine Nummer steht hell. Ohne o die Karte vor
+   der Uebung, wie bisher. */
+function satzKurveSVG(zeiten, zone, o = {}){
   const W = 300, H = 92, L = 24, R = 24, TP = 20, BASE = H - 17;
-  const n = zeiten.length, top = Math.max(...zeiten) || 1;
+  const n = zeiten.length, top = Math.max(...zeiten) || 1, ist = o.ist || 0;
   const X = i => n === 1 ? W / 2 : L + i * (W - L - R) / (n - 1);
   const Y = v => TP + (1 - v / top) * (BASE - TP);
   const farbe = `var(--zone${zone})`;
   const pkt = zeiten.map((t, i) => [+X(i).toFixed(1), +Y(t).toFixed(1)]);
-  const linie = pkt.map(p => p.join(",")).join(" ");
+  const zug = a => a.map(p => p.join(",")).join(" ");
   let g = `<line x1="${L}" y1="${BASE}" x2="${W - R}" y2="${BASE}" stroke="var(--line)" stroke-width="1"/>`;
-  if(n > 1) g += `<polygon points="${pkt[0][0]},${BASE} ${linie} ${pkt[n - 1][0]},${BASE}"
-      fill="${farbe}" opacity=".16"/><polyline points="${linie}" fill="none" stroke="${farbe}"
+  if(n > 1) g += `<polygon points="${pkt[0][0]},${BASE} ${zug(pkt)} ${pkt[n - 1][0]},${BASE}"
+      fill="${farbe}" opacity=".16"/>`;
+  const plan = pkt.slice(Math.max(0, ist - 1));
+  if(plan.length > 1) g += `<polyline points="${zug(plan)}" fill="none" stroke="${farbe}"
       stroke-width="2" stroke-dasharray="5 4"/>`;
+  if(ist > 1) g += `<polyline points="${zug(pkt.slice(0, ist))}" fill="none" stroke="var(--acc)"
+      stroke-width="2.5"/>`;
   pkt.forEach(([x, y], i) => {
-    g += `<circle class="skP" cx="${x}" cy="${y}" r="4" fill="${farbe}"/><text class="skW" x="${x}"
-      y="${y - 8}" text-anchor="middle">${fmt(zeiten[i])}</text><text class="skN" x="${x}"
-      y="${H - 3}" text-anchor="middle">${i + 1}</text>`;
+    const geh = i < ist;
+    g += `<circle class="skP" cx="${x}" cy="${y}" r="${i === o.aktiv ? 5 : 4}" fill="${geh ? "var(--acc)" : farbe}"/><text
+      class="skW" x="${x}" y="${y - 8}" text-anchor="middle"${geh ? ` style="fill:var(--acc)"` : ""}>${
+      fmt(zeiten[i])}</text><text class="skN" x="${x}" y="${H - 3}" text-anchor="middle"${
+      i === o.aktiv ? ` style="fill:var(--tx);font-weight:600"` : ""}>${i + 1}</text>`;
   });
   const ges = Math.round(zeiten.reduce((sum, t) => sum + t, 0) + (n - 1) * PAUSE_S);
   return `<div class="skurve"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Haltezeiten je Satz: ${
-    zeiten.map(t => Math.round(t)).join(", ")} Sekunden">${g}</svg><div class="skGes">Gesamt <b>${
-    Math.floor(ges / 60)}:${String(ges % 60).padStart(2, "0")}</b></div></div>`;
+    zeiten.map(t => Math.round(t)).join(", ")} Sekunden">${g}</svg>${o.ohneGesamt ? "" : `<div class="skGes">Gesamt <b>${
+    Math.floor(ges / 60)}:${String(ges % 60).padStart(2, "0")}</b></div>`}</div>`;
 }
 /* Eine Seite: Kopfzeile mit Seite und Zeit, darunter Variante, Seite des
    Gewichts, Position des Gewichts (beides nur der Laeufer), Gewicht und
@@ -8330,7 +8701,10 @@ function setTarget(){
   return naechsterSatz(m, s.length + 1, s[s.length - 1].time);
 }
 
-/* Der alte PR fuer die Prozentzeile im Timer: der laengste Halt mit
+/* Seit Build 2026-11-05 a ohne Aufrufer: Die Uhr misst "+8 %" an der
+   Vorgabe, und das PR-Ziel kommt aus der Kurve (prZiel). Die Funktion bleibt
+   liegen, falls die Zeile zurueckkommt.
+   Der alte PR fuer die Prozentzeile im Timer: der laengste Halt mit
    DERSELBEN Einstellung — Uebung, Seite, Stufe, Zusatzgewicht, Position —
    im selben Satz. Echte Uhrzeit, keine Umrechnung ueber die Kurve: ein PR,
    der erst gerechnet werden muss, waere keiner. Satz 2 misst sich an Satz 2,
@@ -8352,153 +8726,86 @@ function prVon(bl, satz){
   return best;
 }
 
-function nextSet(){
-  const p = curBlock();
+/* vorlauf: auch ab Satz 2 mit den Sekunden zum In-Position-Gehen — nach
+   einer Unterbrechung oder einem verworfenen Satz. */
+function nextSet(vorlauf){
   const tgt = setTarget();
+  trainingKopf();
+  zieleNachreichen();
   runSet({
-    what: `${blockLabel(p)} · ${RUN.levelName} · Satz ${RUN.i+1} von ${curSets()}`,
     target: tgt,
-    seite: seitenRuf(p),
-    pr: prVon(p, RUN.i), prSatz: RUN.i,
-    lead: RUN.i === 0,
-    done: (time, roh)=>{
+    lead: RUN.i === 0 || !!vorlauf,
+    done: (time, roh, schmerz)=>{
       if(time===null){ satzVerworfen(); return; }
-      afterSet(time, tgt, roh);
+      afterSet(time, tgt, schmerz);
     }
   });
 }
-/* Nach jedem Satz: Die 20 Sekunden Pause laufen SOFORT und ungebremst durch.
-   Die Schmerzfrage steht daneben, nicht davor — vorher hat die Erklaerung samt
-   Rueckfrage die Pause aufgefressen, und damit war der Abfall ueber die Saetze
-   nicht mehr vergleichbar. Der Abfall ist aber selbst ein Messwert. */
-function afterSet(time, tgt, roh){
-  const letzter = RUN.i + 1 >= curSets();
-  /* Beide Seiten standen auf EINER Karte. Folgt die zweite direkt, fuehrt
-     "Weiter" ohne Umweg auf die Uhr — der Knopf sagt, wohin. */
-  const naechster = RUN.plan.blocks[RUN.b + 1];
-  /* In der Kurzeinheit nie: Auch zwischen links und rechts steht die Minute,
-     und die laeuft auf der Karte (blockIntro). */
-  const direkt = !!(naechster && naechster.eingestellt && !RUN.plan.kurzMax
-                 && naechster.exercise === curBlock().exercise);
-  /* Abbrechen lohnt nur, solange noch etwas käme — nach dem letzten Satz des
-     letzten Blocks ist "beenden" ohnehin der nächste Schritt. */
-  const mehrKommt = !letzter || RUN.b + 1 < RUN.plan.blocks.length;
-  /* Die UEBUNG abbrechen und trotzdem weitertrainieren ergibt nur Sinn, solange
-     von dieser Uebung noch Saetze kaemen UND danach noch ein Block steht. Nach
-     dem letzten Satz fuehrt "Weiter" ohnehin zum naechsten Block. */
-  const blockStop = !letzter && RUN.b + 1 < RUN.plan.blocks.length;
-  show("home");
-  el("homeTitle").textContent = `Satz ${RUN.i+1} von ${curSets()}`;
-  el("homeSub").textContent = blockLabel(curBlock());
-
-  const abzug = (roh != null && roh > time) ? Math.round((roh - time)*10)/10 : 0;
+/* Nach jedem Satz: Der Satz ist sofort gesichert, die 20 Sekunden Pause
+   laufen auf demselben Bildschirm ungebremst durch. Luke, 05.11.2026: der
+   Pausenbildschirm war "maximal ueberladen" — jetzt steht dort nur die Zahl.
+   Weg sind die Kacheln "gewertet / Richtwert", der Satz zur Zeitverzoegerung,
+   das Schmerz-Haekchen (dafuer der Knopf im Satz) und die Erklaerabsaetze. */
+function afterSet(time, tgt, schmerz){
+  const satz = {time, target:tgt, pain: !!schmerz};
   /* Beim beidbeinigen Halt zaehlt der Satz fuer BEIDE Kurven — dann muss der
      Schmerz eine Seite haben, sonst stuft eine Meldung aus dem linken Fuss
      auch die rechte Leiter zurueck. Vorbelegt ist "beide": das ist die
-     vorsichtigere Antwort und das bisherige Verhalten. */
-  const beidFrage = beidBlock(curBlock());
-  let painSeite = "beide";
-  const karte = left => `
-    <div class="card">
-      <div class="kpi" style="margin-bottom:${abzug>0?"8px":"14px"}">
-        <div><b>${fmt(time)}</b><small>gewertet</small></div>
-        <div><b>${fmt(tgt)}</b><small>Richtwert</small></div>
-      </div>
-      ${abzug>0 ? `<p class="tiny" style="margin:0 0 14px">Uhr stand bei ${fmt(roh)} —
-        ${abzug} s Zeitverzögerung der Stoppuhr abgezogen. Gleicher Abzug bei jedem Satz,
-        die Verhältnisse bleiben also unberührt. Änderbar unter Einstellungen → Messung.</p>` : ""}
-      <label class="chk"><input type="checkbox" id="painChk">
-        <span>Ich habe wegen <b>Schmerzen</b> abgebrochen<br>
-        <span class="tiny">Nur ankreuzen, wenn der Schmerz der Grund war — nicht bei normaler
-        Muskelermüdung.</span></span>
-      </label>
-      ${beidFrage ? `<div id="psBox" style="display:none">
-        <p class="tiny" style="margin:8px 0 0 30px">Welche Seite?</p>
-        <div class="zw drei je ein">
-          ${["links","rechts","beide"].map(v =>
-            `<button data-ps="${v}"${v === "beide" ? ` class="sel"` : ``}>${v}</button>`).join("")}
-        </div>
-      </div>` : ""}
-      ${left === null
-        ? `<button class="primary" style="width:100%;margin-top:14px" id="weiterBtn">${
-            direkt && naechster.side ? `Weiter mit ${naechster.side}` : "Weiter"}</button>`
-        : `<div style="text-align:center;margin-top:16px">
-             <div class="big" id="pauseNum" style="font-size:64px;line-height:1">${left}</div>
-             <p class="tiny" style="margin:4px 0 0">Sekunden bis zum nächsten Satz</p>
-           </div>
-           <p class="tiny" style="margin-top:12px">Die Pause läuft durch und ist immer gleich
-           lang. Das Häkchen kannst du währenddessen setzen — es hält die Uhr nicht an.</p>
-           <p class="tiny">Die Vorgabe für den nächsten Satz rechnet sich aus dem, was du eben
-           tatsächlich geschafft hast — nicht aus dem Wert vom Sessionbeginn.</p>`}
-      ${blockStop ? `<button class="ghost" style="width:100%;margin-top:14px" id="blkStop">
-        Übung hier beenden und zur nächsten</button>
-        <p class="tiny" style="margin:6px 0 0">Der eben gehaltene Satz ist gespeichert. Für Kurve
-        und Stufenregel zählt ohnehin nur der erste Satz jeder Übung — was fehlt, ist
-        Trainingsumfang, keine Messung.</p>` : ""}
-      ${mehrKommt ? `<button class="ghost" style="width:100%;margin-top:${
-        left===null?"8px":(blockStop?"8px":"14px")}"
-        id="wkStop">Workout hier beenden und speichern</button>
-        <button class="ghost" style="width:100%;margin-top:8px" id="wkPause">Für später
-          unterbrechen</button>
-        <p class="tiny" style="margin:6px 0 0">Der eben gehaltene Satz bleibt im Lauf, gespeichert
-        wird noch nichts. Bis Mitternacht machst du hier weiter.</p>` : ""}
-    </div>`;
-
-  const speichern = ()=>{
-    const satz = {time, target:tgt, pain: el("painChk").checked};
-    if(beidFrage && satz.pain) satz.painSeite = painSeite;
-    RUN.sets.push(satz);
-    RUN.i++;
+     vorsichtigere Antwort und das bisherige Verhalten. Gefragt wird nur
+     nach einem Tipp auf "Schmerz". */
+  const beidFrage = satz.pain && beidBlock(curBlock());
+  if(beidFrage) satz.painSeite = "beide";
+  RUN.sets.push(satz);
+  RUN.i++;
+  laufSichern();
+  trainingKopf();
+  el("tSeiteWahl").innerHTML = "";
+  if(beidFrage) schmerzSeite(satz);
+  if(RUN.i >= curSets()){ blockFertig(); return; }
+  pauseLaufen();
+}
+function schmerzSeite(satz){
+  const box = el("tSeiteWahl");
+  box.innerHTML = `<div class="tiny">Schmerz auf welcher Seite?</div>
+    <div class="zw drei">${["links","rechts","beide"].map(v =>
+      `<button data-ps="${v}"${v === satz.painSeite ? ` class="sel"` : ``}>${v}</button>`).join("")}</div>`;
+  box.querySelectorAll("[data-ps]").forEach(b => b.onclick = ()=>{
+    satz.painSeite = b.dataset.ps;
+    box.querySelectorAll("[data-ps]").forEach(x => x.classList.toggle("sel", x === b));
     laufSichern();
-  };
-  /* Muss nach JEDEM innerHTML laufen — die Karte wird an zwei Stellen
-     geschrieben, mit und ohne Pausenuhr. */
-  const psBinden = ()=>{
-    if(!beidFrage) return;
-    const box = el("psBox"), chk = el("painChk");
-    chk.onchange = ()=>{ box.style.display = chk.checked ? "block" : "none"; };
-    box.querySelectorAll("[data-ps]").forEach(b => b.onclick = ()=>{
-      painSeite = b.dataset.ps;
-      box.querySelectorAll("[data-ps]").forEach(x => x.classList.toggle("sel", x === b));
-    });
-  };
-
-  if(letzter){
-    el("homeBody").innerHTML = karte(null);
-    psBinden();
-    el("weiterBtn").onclick = ()=>{ speichern(); endBlock(direkt); };
-    /* Der eben gehaltene Satz zählt mit — erst sichern, dann beenden. */
-    if(el("wkStop")) el("wkStop").onclick = ()=>{ speichern(); workoutBeenden(); };
-    if(el("wkPause")) el("wkPause").onclick = ()=>{ speichern(); workoutUnterbrechen(); };
-    return;
-  }
-
-  let left = PAUSE_S;
-  el("homeBody").innerHTML = karte(left);
-  psBinden();
-  let iv = null;
-  if(el("wkStop")) el("wkStop").onclick = ()=>{
-    clearInterval(iv); speichern(); workoutBeenden();
-  };
-  /* Der eben gehaltene Satz zaehlt mit — erst sichern, dann den Block zumachen.
-     endBlock() legt ihn ueber blockSichern() als KURZEN Block ab, mit der Zahl
-     der geplanten Saetze daneben; das ist derselbe Weg wie beim Workoutende. */
-  if(el("blkStop")) el("blkStop").onclick = ()=>{
-    clearInterval(iv); speichern(); endBlock();
-  };
-  iv = setInterval(()=>{
-    left--;
-    if(left <= 0){
-      clearInterval(iv);
-      speichern();
-      nextSet();
-      return;
-    }
-    if(left <= 3) cueTick();
-    const n = el("pauseNum");
-    if(n) n.textContent = left;
-    else clearInterval(iv);   /* Bildschirm gewechselt — Pause abbrechen */
-  }, 1000);
+    trainingKopf();
+  });
+}
+/* Gegen die Uhr gerechnet, nicht in Takten gezaehlt: Ein Handy drosselt
+   setInterval im Hintergrund, die Pause bleibt trotzdem 20 Sekunden lang. */
+function pauseLaufen(){
+  const ende = Date.now() + PAUSE_S * 1000;
+  let zuletzt = PAUSE_S;
+  el("tLabel").textContent = `Pause vor Satz ${RUN.i + 1}`;
+  el("tClock").style.color = "var(--tx2)";
+  el("tClock").textContent = PAUSE_S;
+  knopfStand(false);
+  clearInterval(pauseIv);
+  pauseIv = setInterval(()=>{
+    const left = Math.ceil((ende - Date.now()) / 1000);
+    if(left <= 0){ clearInterval(pauseIv); pauseIv = null; nextSet(); return; }
+    if(left !== zuletzt){ zuletzt = left; el("tClock").textContent = left; if(left <= 3) cueTick(); }
+  }, 200);
+}
+/* Nach dem letzten Satz ersetzt "Weiter" die Pausenzahl. Beide Seiten
+   standen auf EINER Karte: Folgt die zweite direkt, fuehrt "Weiter" ohne
+   Umweg auf die Uhr — der Knopf sagt, wohin. In der Kurzeinheit nie: Auch
+   zwischen links und rechts steht die Minute, und die laeuft auf der Karte
+   (blockIntro). */
+function blockFertig(){
+  const naechster = RUN.plan.blocks[RUN.b + 1];
+  const direkt = !!(naechster && naechster.eingestellt && !RUN.plan.kurzMax
+                 && naechster.exercise === curBlock().exercise);
+  el("tLabel").textContent = "Übung fertig";
+  el("tClock").style.color = "var(--acc)";
+  el("tClock").textContent = "✓";
+  knopfStand(false, direkt && naechster.side ? `Weiter mit ${naechster.side}` : "Weiter");
+  tWeiter = ()=>{ trainingSchliessen(); endBlock(direkt); };
 }
 
 /* Ein abgebrochener Satz ist ein abgebrochener SATZ. Vorher flog dabei der
@@ -8537,7 +8844,7 @@ function satzVerworfen(){
       <button class="ghost" style="width:100%;margin-top:8px" id="wkWeg">Workout ganz
         verwerfen</button>
     </div>`;
-  el("wdh").onclick = ()=> nextSet();
+  el("wdh").onclick = ()=> nextSet(true);
   if(el("blkEnde")) el("blkEnde").onclick = ()=> endBlock();
   if(el("blkSkip")) el("blkSkip").onclick = ()=> endBlock();
   if(el("wkEnde")) el("wkEnde").onclick = ()=> workoutBeenden();
@@ -9441,7 +9748,11 @@ function messreihenJSON(){
         L.premium ? {premium: true} : {},
         L.gruppe ? {gleichlast_gruppe: L.gruppe} : {},
         L.bank ? {last_aus_hoehe: {basis: L.bank.basis, anteil: L.bank.anteil,
-                                   bezug_cm: L.bank.cm}} : {}))
+                                   bezug_cm: L.bank.cm}} : {},
+        /* Band-Sprossen des Dip-Halts: last ist der Wert bei 80 kg,
+           last_jetzt der beim eingetragenen Koerpergewicht. */
+        L.bandKg > 0 ? {last_aus_band: {band_kg: L.bandKg,
+                                        last_jetzt: Math.round(bandLast(L) * 1000) / 1000}} : {}))
     }, (DEFAULT_EX[k] || {}).teilVon ? {teil_von: DEFAULT_EX[k].teilVon} : {})),
     messungen: messreihen()
   }, null, 2);
@@ -11153,9 +11464,17 @@ document.querySelectorAll("nav button").forEach(b=> b.onclick = ()=>{
   if(!RUN && b.dataset.go === "home") liste = false;
   show(b.dataset.go);
 });
-el("tStop").onclick  = ()=> endSet(false);
-el("tTap").onclick   = ()=> endSet(false);
-el("tAbort").onclick = ()=> { if(confirm("Satz verwerfen?")) endSet(true); };
+el("tStop").onclick    = ()=> tWeiter ? tWeiter() : endSet(false);
+el("tSchmerz").onclick = ()=> endSet(false, true);
+el("tTap").onclick     = ()=> endSet(false);
+el("tAkt").onclick     = ()=> menueAuf();
+/* Ein Tipp neben das offene Menue schliesst nur das Menue — er darf nicht
+   nebenbei den Satz beenden (die Uhrflaeche ist selbst ein Knopf). */
+el("timerScreen").addEventListener("click", e => {
+  const m = el("tMenue");
+  if(m.hidden || m.contains(e.target) || el("tAkt").contains(e.target)) return;
+  m.hidden = true; e.stopPropagation(); e.preventDefault();
+}, true);
 window.show = show; window.S = S; window.save = save; window.render = render;
 
 render();

@@ -4993,11 +4993,298 @@ Auf die Rückfragen:
 - `EX_VERSION` bleibt 36, `normalize()` ergänzt den neuen Schlüssel von selbst. Export Schema 10, neu
   ist der Wert `seitheben` in der Spalte `uebung`.
 
+### P103 · Trainingsbildschirm nach dem Vorbild von Grip Gains, Pause auf das Nötigste
+
+Luke, 05.11.: „mir gefällt die trainingsansicht immer noch nicht, bei gripp gains ist oben eine kurve
+eingblendet die mir anzeigt welche haltezeiten über alle sätze hinweg für heute vorgeschlagen werden,
+dazu ein "progressions" ziel […] und sogar das PR target dies wird aber nur eingblendet wenn ich gerade
+in einer phase bin dies auch über alle energiesysteme hinweg zu erreichen. Dazu ist der
+pausenbildschirm maximal überladen. Hier wirklich nur auf das nötigste reduzieren.“ Dazu eine
+Bildschirmaufnahme von Grip Gains im Übungsmodus.
+
+Auf die Rückfragen:
+
+| Frage | Lukes Antwort |
+|---|---|
+| Was heißt Fortschritt? | „Nächste Stufe“, genauer: „Gleiche Zone wird schwerer“ |
+| Was ist ein PR? | „Kurve auf Bestwert“, gemessen als „Mittel der drei Zonen“ |
+| Wann erscheint das PR-Ziel? | „Bis 20 % über Ziel“ |
+| Wie läuft die Uhr? | „Runter wie Grip Gains“ |
+| Wohin mit dem Schmerz? | „Zweiter Knopf im Satz“ |
+
+**Gebaut in 2026-11-05 a.**
+
+- **Ein Bildschirm von „In Position gehen“ bis zum Ende der Übung.** Vorlauf, Satz, Pause und
+  Abschluss stehen auf derselben Fläche, die Leiste unten ist so lange ausgeblendet. Oben stehen
+  Übung und Seite, die Stufe und die Ansage, welche Seite trägt. Darunter eine Zeile: Ziel des
+  nächsten Satzes, Zahl der Sätze, Gesamtzeit mit Pausen, Fortschrittsziel und PR-Ziel.
+- **Die Satzkurve steht oben.** Geplante Haltezeiten gestrichelt in der Farbe der Zone, gehaltene
+  Sätze als durchgezogene Linie. Nach jedem Satz rechnet die App die offenen Sätze aus dem gehaltenen
+  neu. Kurve, Kopfzeile und Uhr zeigen dieselbe Zahl.
+- **Die Uhr zählt runter.** Groß stehen die Sekunden bis zum Ziel, klein darunter die gehaltenen.
+  Ab dem Ziel steht groß „+12“ und darunter „+8 %“, die große Zahl glüht wie bisher.
+- **Fortschrittsziel.** Die kürzeste Haltezeit in Satz 1, nach der die App dieselbe Zone beim
+  nächsten Mal schwerer plant, also eine Sprosse höher oder mit mehr Gewicht. Gerechnet wird mit dem
+  Planer selbst: Er plant einmal mit einer gedachten Sitzung, danach ist alles wie vorher. Liegt die
+  Zeit über 360 s oder gibt es sie nicht, fehlt die Angabe. Während Satz 1 zählt unter der Uhr eine
+  Zeile mit: „Fortschrittsziel in 33 s“.
+- **PR-Ziel.** Die Kapazität einer Kurve ist das Mittel der Lasten, die sie bei 40, 90 und 150 s
+  trägt, also in der Mitte der drei Zonen. Das PR-Ziel ist die Haltezeit in Satz 1, ab der diese Zahl
+  über ihrem bisher höchsten gemessenen Stand liegt. Es erscheint nur, wenn es höchstens 20 % über dem
+  Ziel liegt.
+- **Nach Satz 1** stehen „Fortschrittsziel erreicht“ und „PR erreicht“ grün in der Kopfzeile, sonst
+  verschwinden beide Angaben. Ein Satz mit Schmerz oder außerhalb von 20 bis 360 s zählt nicht.
+- **Schmerz ist ein zweiter Knopf** neben „Satz beenden“. Ein Tipp beendet den Satz und markiert
+  ihn. Beim beidbeinigen Halt fragt die Pause danach klein „Schmerz auf welcher Seite?“, vorbelegt
+  ist „beide“.
+- **Die Pause zeigt nur noch die Zahl:** „Pause vor Satz 2“ und die 20 Sekunden. Weg sind die
+  Kacheln „gewertet“ und „Richtwert“, der Satz zur Zeitverzögerung, das Schmerz-Häkchen und die
+  Erklärabsätze. Nach dem letzten Satz steht statt der Zahl ein Haken, darunter „Weiter“.
+- **Unten eine Kachel je gehaltenem Satz:** „Satz 1 · 166 / 154 s · +8 %“. Der Rand ist grün, wenn
+  das Ziel erreicht ist, sonst rot. Ein markierter Satz trägt „Schmerz“.
+- **Aktionen hinter einem Knopf oben rechts:** Satz verwerfen, Übung beenden, Workout beenden und
+  speichern, Für später unterbrechen. Ein Tipp neben das offene Menü schließt nur das Menü, der Satz
+  läuft weiter.
+- **Die Pause läuft gegen die Uhrzeit**, nicht in Takten. Drosselt das Handy den Tab im Hintergrund,
+  bleibt sie trotzdem 20 Sekunden lang. Jeder Satz ist gesichert, sobald der Knopf gedrückt ist.
+
+**Der Preis.**
+
+- **Die Zeile „zum PR …“ über der Uhr ist weg** (Lukes Festlegung vom 29.09.). Sie nannte den
+  Bestwert der einen Einstellung. Das neue PR-Ziel misst die ganze Kurve und erscheint seltener.
+- **Weg sind auch** der Fortschrittsbalken, der Hinweis „Tippen, wenn du nicht mehr kannst“ und
+  „Vorgabe erreicht“. Ein Tipp auf die Uhr beendet den Satz weiterhin.
+- **Abbrechen fragt nicht mehr nach.** Es liegt jetzt im Menü: ein Tipp mehr statt einer Rückfrage.
+- **Das Schmerz-Häkchen in der Pause gibt es nicht mehr.** Wer erst danach merkt, dass es weh tat,
+  verwirft den Satz über das Menü.
+- **In der Pause steht nichts mehr zum Reaktionsabzug.** Abgezogen wird weiter, wie unter
+  *Einstellungen* festgelegt.
+- **Das PR-Ziel kann sehr nahe am Ziel liegen.** Steht die Kurve gerade auf ihrem Bestwert, ist schon
+  das Ziel plus eine Sekunde ein PR. Im Test mit Lukes Stand: Ziel 154 s, PR-Ziel 155 s,
+  Fortschrittsziel 182 s.
+- **Beide Ziele kosten einige Fits** beim Start jeder Übung. Gerechnet wird im Vorlauf, auf Lukes
+  Stand im Rechner in wenigen Millisekunden. Auf dem Handy nicht gemessen.
+- **Ohne Kurve keine Ziele.** Für nicht frische Blöcke und den schmerzgeführten Pfad am Knie fehlen
+  beide Angaben.
+
+**Für den Nachbau:**
+
+- `kapazitaet(f)`: Mittel von `lastZuZeit` in den drei Zonenmitten. `bestKapazitaet(ex, side)`:
+  höchster Stand über die Fits nach jedem Messpunkt, je über dieselben `PUNKTE_GRENZE` Punkte, mit
+  `fitRechnen`, damit der Fit-Speicher nicht vollläuft. Eigener Speicher, bis 50 Einträge.
+- `prZiel(bl, last)`: Halbierung zwischen `MESS_MIN` und `min(MESS_MAX, 1,2 · Ziel)`.
+- `planLastNach(bl, last, t)`: hängt eine gedachte Sitzung an, ruft `mkBlock(…, fest = true)` und
+  gibt `S.sessions`, `S.extra` und `S.extraWahl` danach zurück. `fortschrittsZiel(bl, last)` sucht
+  ab dem Ziel bis `MESS_MAX`.
+- `blockZiele()` und `zieleNachreichen()`: einmal je Block, 60 ms nach dem ersten Bild, am Lauf
+  gemerkt und nicht gesichert. Nach dem Neuladen rechnen sie sich neu.
+- Bildschirm: `trainingKopf`, `runSet`, `tick`, `endSet(aborted, schmerz)`, `afterSet`,
+  `schmerzSeite`, `pauseLaufen`, `blockFertig`, `menueAuf`, `trainingsAktion`. `satzKurveSVG` kennt
+  `ist`, `aktiv` und `ohneGesamt`. `prVon` hat keinen Aufrufer mehr.
+- Gespeichert wird wie bisher: `pain` und `painSeite` am Satz. `EX_VERSION` bleibt 36, Export
+  Schema 10.
+
+### P104 · Dip-Halt für die vordere Schulter, neun Sprossen vom Boden bis zum Barren
+
+Luke, 02.11.: „den krabbenstand am Boden mit Hüft abgelegt, Hüft angehoben, Am stuhl mit ellenbogen
+gebeugt Knie 90°, dann knie gestreckt und danach in der Dip Position am Barren mit Füßen auf dem stuhl,
+Füßen in grünem band, blauen band, roten band und dannach die komplette dip position isometrisch mit
+dem eigenen Körpergewicht (optional zusatzgewicht) die Progressionsreihe fäng ich für die Vordere
+schulter noch mega geil“.
+
+Auf die Rückfragen vom 02. bis 05.11.:
+
+| Frage | Lukes Antwort |
+|---|---|
+| Name | „Dip-Halt“ |
+| Winkel | am Boden gestreckte Arme, ab dem Stuhl Ellbogen 90° |
+| Was die Übung trifft | lange Bizepssehne und vordere Kapsel |
+| Krabbe | Hände eine Handlänge hinter dem Gesäß, rund 20 cm. Die zweite Sprosse in der Tischposition mit Knie 90° |
+| Barren mit Stuhl | „das knie ist90° gebeugt, der fußspann liegt hinter dem körper auf dem stuhl hier ist kein maximales drücken vom eigenen körpergewicht möglich“ |
+| Bänder | „die standard fitnessbänder in orange, scharz, rot, violett, grün --> recherchiere die gewichte im internet“. Danach: Grün, Violett, Rot (Rot statt des blauen Bands), quer über beide Holme, mit den Herstellerwerten |
+| Bänder an zwei Stühlen | nur am echten Barren |
+| Ohne Barren | zwei Stuhllehnen als Barren |
+| Training | im normalen Training, in einer Gruppe mit dem Liegestütz, nie am selben Tag |
+| Zusatzgewicht | Dipgürtel bis 40 kg, in 2,5-kg-Schritten |
+
+**Gebaut in 2026-11-05 b.**
+
+- **Neue Übung „Dip-Halt“**, Schlüssel `dip`, Region „Vordere Schulter“, beide Arme gleichzeitig, im
+  normalen Training.
+- **In der Gruppe `push` mit dem Liegestütz.** Die beiden teilen sich die Ruhe, und am selben Tag läuft
+  nie beides. Hakt man beide von Hand an, bleibt der Liegestütz.
+- **Neun Sprossen.** Was die Hände tragen, als Anteil des Körpergewichts:
+
+  | Sprosse | Hände tragen | Woher |
+  |---|---|---|
+  | 1 Krabbe am Boden · Gesäß abgelegt | 0,387 | gerechnet: Hände 20 cm hinter dem Gesäß, Rumpf 19° zurück |
+  | 2 Krabbe am Boden · Tischposition | 0,598 | gerechnet |
+  | 3 Stuhl · Knie 90° | 0,477 | gerechnet: Sitzhöhe 45 cm |
+  | 4 Stuhl · Beine gestreckt | 0,674 | gerechnet |
+  | 5 Barren · Fußspann auf einem Stuhl | 0,938 | gerechnet: Schwerpunkt über den Händen |
+  | 6 Barren · Fußspann im grünen Band | 1 − 40 kg ÷ Körpergewicht, bei 80 kg 0,500 | Herstellerwert |
+  | 7 Barren · Fußspann im violetten Band | 1 − 27,5 kg ÷ Körpergewicht, bei 80 kg 0,656 | Herstellerwert |
+  | 8 Barren · Fußspann im roten Band | 1 − 11 kg ÷ Körpergewicht, bei 80 kg 0,863 | Herstellerwert |
+  | 9 Barren · volles Körpergewicht | 1,000, mit 40 kg am Gürtel 1,500 | — |
+
+  Gerechnet ist mit dem ebenen Gleichgewicht und den Körpersegmenten nach de Leva (1996), Männer, im
+  Skript `scratchpad/dip.mjs`. Der Bandzug ist die Mitte der Herstellerspanne für Klimmzugbänder mit
+  208 cm Schlaufe (Revity bei Decathlon, French Fitness): Grün 23 bis 57 kg, Violett 16 bis 39 kg, Rot
+  7 bis 15 kg. Alle Sprossen stehen rot, bis Luke misst.
+- **Neuer Gerätehaken „Klimmzugbänder“** (Kennung `baender`). Sein Text sagt: nur an einem echten
+  Barren, nicht an zwei Stuhllehnen. Ohne Haken fehlen die Sprossen 6 bis 8, und die Leiter geht von
+  Sprosse 5 auf 9. Ein neues Gerät startet ohne Haken.
+- **Ohne Barren zwei Stuhllehnen.** Deshalb haben die Sprossen 5 und 9 keinen Gerätehaken. Der
+  Hinweistext beschreibt den Ersatz.
+- **Im Modus ohne Geräte** (nur Boden oder an der Wand) bleiben die Sprossen 1 und 2, ohne Gewicht.
+- **Dipgürtel nur auf Sprosse 9**, 0 bis 40 kg in 2,5-kg-Schritten, ein Kilo zählt als ein Kilo.
+  Gedeckelt wird wie überall bei einem halben Körpergewicht, bei 60 kg also bei 30 kg.
+- **Sicherheitsfrage vor dem ersten Mal:** dieselben vier Punkte wie bei Außenrotation und Seitheben,
+  Titel „Bevor du den Dip-Halt zum ersten Mal machst“.
+- **Hinweistext und Sicherheitsfrage sind Entwürfe.** Luke formuliert sie neu oder bestätigt sie.
+
+**Wo der erste Dip-Halt liegt.** Gerechnet ohne Bildschirm, auf einer Kopie von Lukes Stand vom 16.10.
+und auf einem leeren Stand:
+
+| Wer | ohne Bänder-Haken | mit Bänder-Haken |
+|---|---|---|
+| Luke | Sprosse 5, Barren mit dem Fußspann auf dem Stuhl (0,94), 90 s | Sprosse 7, violettes Band (0,66), 90 s |
+| neuer Nutzer | Sprosse 4, Stuhl mit gestreckten Beinen (0,67), 90 s | Sprosse 5, Barren mit dem Fußspann auf dem Stuhl (0,94), 90 s |
+
+Der zweite Test liegt jeweils tiefer und zielt auf 150 s: bei Luke auf Sprosse 4 oder dem grünen Band,
+beim neuen Nutzer auf der Tischposition oder Sprosse 4.
+
+**Der Preis.**
+
+- **Kein neuer Nutzer beginnt auf der Krabbe.** Die Startsprossen sind über die Gruppe gespreizt,
+  nicht über die Übung: der erste Test der Gruppe bei einem Fünftel der Leiter, der zweite in der
+  Mitte, der dritte bei drei Vierteln. Den ersten Test der Gruppe bekommt meist der Liegestütz. Der
+  Dip-Halt startet deshalb in der Mitte, auf dem Stuhl mit gestreckten Beinen oder schon am Barren.
+  Käme er als erster dran, läge er auf der Tischposition (ohne Bänder) oder dem Stuhl mit Knie 90°
+  (mit Bändern). Sprosse 1 ist nie eine Startsprosse. Die Sicherheitsfrage kommt vorher.
+- **Der Liegestütz läuft seltener.** In 21 simulierten Tagen kam er bei Luke vorher 8-mal dran, jetzt
+  5-mal, dazu 5-mal der Dip-Halt. Beim neuen Nutzer in 14 Tagen vorher 8-mal, jetzt 4-mal, dazu 4-mal
+  der Dip-Halt.
+- **Die Leiter fällt zweimal.** Bei 2 → 3 auf das 0,80-fache, weil der Winkel von gestreckt auf 90°
+  wechselt, und bei 5 → 6 auf das 0,53-fache (bei 80 kg). Die App steigt nach der Nummer: Wer auf
+  Sprosse 5 zu lange hält, bekommt mit Bändern eine leichtere Sprosse.
+- **Mit Bändern startet Luke leichter als ohne.** Gespreizt wird nach der Nummer, und drei Viertel der
+  Leiter sind mit Bändern das violette Band (0,66), ohne Bänder Sprosse 5 (0,94).
+- **8 → 9 liegt bei 1,16**, unter dem Mindestabstand von 1,25.
+- **Sprosse 1 trägt 0,39, nicht rund 0,30**, wie in der Rückfrage geschätzt. Sprosse 5 trägt 0,94,
+  nicht rund 0,80.
+- **Die Bänder hängen am Körpergewicht.** Grün lässt bei 60 kg 0,33 auf den Händen, weniger als
+  Sprosse 1, bei 100 kg 0,60.
+- **Die Herstellerwerte sind unsicher.** Sie gelten für ein senkrecht eingehängtes Band. Quer über die
+  Holme zieht es anders, und nachgemessen liegen die Angaben eher zu hoch. Abhilfe auf Lukes Wort: jedes
+  Band mit der Kofferwaage in der Haltestellung messen, der Wert ersetzt `bandKg`.
+- **Auf Sprosse 9 passt sich das Gewicht an** (bestehende Regel, P50). In der Simulation mit gedachten
+  Haltezeiten, die genau die Vorgabe treffen (90 s auf Sprosse 5, 150 s auf Sprosse 4), plant die App
+  ohne Bänder den dritten Dip-Halt als vollen Dip mit 40 kg und 49 s. Die Last steigt dabei in einem
+  Schritt von 0,94 auf 1,50. Mit echten Haltezeiten sieht das anders aus, die Regel bleibt.
+- **Kein Gerätehaken für den Dipgürtel.** Die App schlägt das Gewicht auch vor, wenn kein Gürtel da ist.
+  Ein Haken wäre eine Zeile.
+
+**Für den Nachbau:**
+
+- `DEFAULT_EX.dip` mit `group:"push"`, `nichtMit:["push"]`, `sides:null`, `extraAb` 8, `extraK` 1,
+  `extraMax` 40, `extraSchritt` 2,5 und `extraLabel` „Dipgürtel“. Alle Sprossen tragen `platzhalter`,
+  1 und 2 dazu `ort:"boden"`, 6 bis 8 `geraet:"baender"` und `bandKg`. `nichtMit` steht nur am
+  Dip-Halt: Beim Liegestütz ersetzt die gespeicherte Übung das Objekt aus dem Build (`normalize`), und
+  `konflikt()` prüft beide Richtungen.
+- `GERAETE` bekommt `baender` („Klimmzugbänder“).
+- `bandLast(L)` = max(0,05; 1 − `bandKg` ÷ Körpergewicht), ohne eingetragenes Gewicht mit `BW_DEFAULT`
+  (80 kg). `grundLast(L)` gibt an Band-Sprossen `bandLast`, sonst `load`. `lastVon`, `naechsteErlaubte`
+  und `gewichtDirekt` lesen `grundLast`. `load` der Band-Sprossen ist der Wert bei 80 kg, damit alles,
+  was `L.load` direkt liest, eine sinnvolle Zahl hat.
+- `sprosseUeber` und `sprosseUnter` zählen nach der Nummer. Auf eine erlaubte Sprosse setzt erst
+  `mkBlock` den Block (`nahe`, die nächste erlaubte Nummer): Ohne Bänder ist drei über Sprosse 5 das
+  rote Band, daraus wird Sprosse 9.
+- Export: Band-Sprossen tragen `last_aus_band` mit `band_kg` und `last_jetzt`. `EX_VERSION` bleibt 36,
+  Export Schema 10, neu ist der Wert `dip` in der Spalte `uebung`.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-11-05 b — Dip-Halt für die vordere Schulter
+
+**Befund (Luke).** Eine Progression vom Krabbenstand am Boden bis zum isometrischen Dip am Barren, „die
+Progressionsreihe fäng ich für die Vordere schulter noch mega geil“ (P104).
+
+**Gebaut.**
+
+- Neue Übung „Dip-Halt“: neun Sprossen, zwei Krabben am Boden mit gestreckten Armen, dann Stuhl und
+  Barren mit Ellbogen 90°, am Barren erst der Fußspann auf einem Stuhl, dann drei Bänder, zuletzt das
+  volle Körpergewicht. Beide Arme gleichzeitig, im normalen Training.
+- In einer Gruppe mit dem Liegestütz, nie am selben Tag.
+- Neues Gerät „Klimmzugbänder“, nur am echten Barren. Ohne Haken geht die Leiter von Sprosse 5 auf 9.
+- Die Last der Band-Sprossen folgt aus dem Körpergewicht.
+- Dipgürtel nur auf der letzten Sprosse, 0 bis 40 kg in 2,5-kg-Schritten.
+- Sicherheitsfrage vor dem ersten Mal, Punkte wie bei der Außenrotation.
+- Fassung der Übungsliste bleibt 36, Export Schema 10.
+
+**Geprüft.** Headless Chrome bei 375 × 812, mit Lukes Export vom 16.10.
+
+- Ladeprobe `2026-11-05 b` über `2026-11-02 b` und über `2026-11-05 a`: je 15 von 15 Prüfungen
+  bestanden, 69 von 69 Sitzungen direkt und über die vorige Fassung.
+- 38 Einzelprüfungen, alle bestanden:
+  - Dip-Halt da, neun Sprossen, im normalen Training. Sperre mit dem Liegestütz in beide Richtungen,
+    nicht mit dem Ausfallschritt.
+  - Ohne Bänder-Haken die Sprossen 1 bis 5 und 9, im Plan nie eine Band-Sprosse. Mit Haken alle neun.
+    Nur Boden und Wand: Sprossen 1 und 2 ohne Gewicht.
+  - Band-Lasten bei 60, 80 und 100 kg wie gerechnet, die anderen Sprossen unabhängig vom
+    Körpergewicht. Dipgürtel 0 bis 40 kg, erst ab Sprosse 9, Deckel 30 kg bei 60 kg Körpergewicht.
+    Voller Dip mit 40 kg bei 80 kg: 1,5.
+  - Export mit `last_aus_band` an den Sprossen 6 bis 8.
+  - Beide von Hand angehakt: nur der Liegestütz im Plan.
+  - Sicherheitsfrage beim ersten Start. Keine NaN auf Start, Profil, Verlauf und Einstellungen,
+    „Klimmzugbänder“ in den Einstellungen.
+  - Planer über 21 Tage (Luke) und 14 Tage (neuer Nutzer), je mit und ohne Bänder: nie beide am selben
+    Tag. Der Liegestütz kommt dabei seltener dran, siehe P104.
+- Keine Konsolenfehler. Testdaten und Chrome-Profile danach gelöscht.
+- **Nicht geprüft:** auf dem Handy, ein echter Halt, die Bandwerte.
+
+### 2026-11-05 a — Trainingsbildschirm nach dem Vorbild von Grip Gains, schlanke Pause
+
+**Befund (Luke).** Oben soll eine Kurve die Haltezeiten aller Sätze für heute zeigen, dazu ein
+Fortschrittsziel und, wenn erreichbar, ein PR-Ziel. „Dazu ist der pausenbildschirm maximal
+überladen. Hier wirklich nur auf das nötigste reduzieren.“ (P103)
+
+**Gebaut.**
+
+- Ein Bildschirm vom Vorlauf bis zum Ende der Übung: Kopfzeile mit Ziel, Sätzen, Gesamtzeit,
+  Fortschrittsziel und PR-Ziel, darunter die Satzkurve, die Uhr, die Knöpfe und eine Kachel je Satz.
+- Die Uhr zählt bis zum Ziel runter, danach „+12“ und „+8 %“.
+- Fortschrittsziel: ab welcher Haltezeit in Satz 1 die App dieselbe Zone beim nächsten Mal schwerer
+  plant. PR-Ziel: ab welcher Haltezeit die Kurve über ihrem Bestwert liegt, nur bis 20 % über dem
+  Ziel zu sehen.
+- Schmerz als zweiter Knopf im Satz. Beim beidbeinigen Halt danach die Frage nach der Seite.
+- Die Pause zeigt nur „Pause vor Satz 2“ und die Zahl. Die übrigen Aktionen liegen hinter einem
+  Knopf oben rechts.
+- `EX_VERSION` bleibt 36, Export Schema 10.
+
+**Geprüft.** Headless Chrome, mit Lukes Export vom 16.10.
+
+- Ladeprobe `2026-11-05 a` über `2026-11-02 b`: 15 von 15 Prüfungen bestanden, 69 von 69 Sitzungen
+  direkt und über die ausgelieferte Fassung.
+- Ablauf bei 390 × 844, 42 Prüfungen, alle bestanden:
+  - Vorlauf mit grauen Knöpfen, Kopfzeile mit Ziel 154 s, 3 Sätzen, 4:50, Fortschrittsziel 182 s und
+    PR-Ziel 155 s (Fersenbrücke links).
+  - Die Rechnung der Ziele lässt Sitzungen, Gewichte und Gewichtswahl unverändert. Das
+    Fortschrittsziel ist genau die Schwelle: bei 181 s plant die App gleich, bei 182 s schwerer.
+  - Die Uhr zählt runter, über dem Ziel steht „+13“ mit „+9 %“ und glüht.
+  - Die Pause zeigt nur die Zahl, keiner der alten Texte steht mehr da. Der Satz ist sofort
+    gesichert. Satz 2 kommt aus Satz 1 (65 s), das Fortschrittsziel steht dort nicht mehr.
+  - Ein Tipp neben das offene Menü beendet den Satz nicht. Schmerz-Knopf, Satz in der Pause
+    verwerfen, wiederholen mit Vorlauf, „Übung fertig“ mit „Weiter“.
+  - Hip Hinge beidbeinig: Die Seitenfrage erscheint, „links“ wird gespeichert.
+  - Neuladen mitten in der Übung und weitermachen. „Workout beenden und speichern“ schreibt 3 und
+    2 Sätze.
+- Keine Konsolenfehler. Testdaten und Chrome-Profile danach gelöscht.
+- **Nicht geprüft:** auf dem Handy, Töne und Bildschirmsperre, ein echter Halt.
 
 ### 2026-11-02 b — Seitheben in der Schulterblattebene, nur auf Wahl
 
