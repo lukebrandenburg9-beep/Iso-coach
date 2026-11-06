@@ -2294,7 +2294,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-11-06 a";
+const BUILD = "2026-11-06 b";
 const KEY = "isocoach.v1";
 const KEY_GERETTET = "isocoach.v1.gerettet";
 /* Laufende Sicherung (Build 2026-10-27 c, nach P100): der gespeicherte Stand,
@@ -3017,7 +3017,7 @@ function pushObjekt(o, offen){
 }
 /* Gehalten, also Sitzung oder gelaufener Block: Umzug, dann der Grund fuer
    die gestrichene Sprosse. Ein schon gesetzter Grund bleibt stehen. Der
-   gelaufene Block traegt ihn mit in die Sitzung, die scOk aus ihm macht. */
+   gelaufene Block traegt ihn mit in die Sitzung, die finishWorkout aus ihm macht. */
 function pushGehalten(o){
   const n = pushObjekt(o);
   return (n && n.entfalleneSprosse && !n.ausKurve)
@@ -3531,6 +3531,9 @@ function fresh(){
        eigenem Stand. Vorher war das global — eine Schmerzserie am Knie stufte
        die Schulter mit zurueck. */
     levels:{}, streak:{}, lauf:null,
+    /* Stand vor dem zuletzt gespeicherten Block, fuer "Diesen Block loeschen"
+       (siehe letzterBlock). */
+    vorBlock:null,
     /* Von Hand gesetzte Zone, gilt nur fuer einen Tag: {tag, zone}. */
     zoneWahl:null, ausfWahl:null,
     /* Zusatzgewicht in kg, je Kurve gemerkt — wie die Stufe. */
@@ -3829,6 +3832,10 @@ function normalize(d){
                                                  ? d.kniebeugung : null,
                                     lungeTiefe: (d.lungeTiefe && typeof d.lungeTiefe === "object")
                                                 ? d.lungeTiefe : {},
+                                    /* Nach einem Leiterumbau zeigen die gemerkten
+                                       Sprossen woandershin. */
+                                    vorBlock: (d.vorBlock && d.vorBlock.ex === EX_VERSION
+                                               && d.vorBlock.stand) ? d.vorBlock : null,
                                     extra: umzug.extra,
                                     bw: (d.bw > 0 ? d.bw : BW_DEFAULT),
                                     levels: umzug.levels,
@@ -7137,11 +7144,21 @@ function knieRegeln(session, etikett){
   return msgs;
 }
 /* Sicherheitsregel Abschnitt 7 — Schmerzwert gilt fuers ganze Workout,
-   deshalb ueber alle Sessions hinweg gezaehlt, nicht je Kurve. */
+   deshalb ueber alle Sessions hinweg gezaehlt, nicht je Kurve.
+   Seit Build 2026-11-06 b fragt die App am Workout-Ende nicht mehr. Der Wert
+   eines Workouts ist dann der hoechste aus seinen Satzpausen; ein
+   Schmerzabbruch ohne Eingabe zaehlt SCHMERZ_ANNAHME. Aeltere Workouts
+   behalten den Wert, den sie am Ende bekommen haben. */
+function workoutSchmerz(w){
+  const teile = S.sessions.filter(x => (x.workout || x.date) === w);
+  const alt = teile.find(x => Number.isFinite(x.painEnd));
+  if(alt) return alt.painEnd;
+  return Math.max(0, ...teile.flatMap(x => (x.sets || [])
+    .map(st => st && st.pain ? (st.painWert || SCHMERZ_ANNAHME) : 0)));
+}
 function schmerzSerie(){
-  const recent = [...new Set(S.sessions.map(x=>x.workout || x.date))].slice(-3)
-    .map(w => S.sessions.find(x => (x.workout || x.date) === w));
-  if(recent.length===3 && recent.every(s=>s && s.painEnd>=6))
+  const recent = [...new Set(S.sessions.map(x=>x.workout || x.date))].slice(-3);
+  if(recent.length===3 && recent.every(w => workoutSchmerz(w) >= 6))
     return {t:"bad", x:"Dein Schmerzwert lag dreimal in Folge bei 6 oder höher. Bitte lass das ärztlich abklären, bevor du weitertrainierst."};
   return null;
 }
@@ -9441,88 +9458,33 @@ function workoutUnterbrechen(){
   render();
 }
 
+/* Luke, 06.11.2026, zur Frage „Wie stark war der Schmerz heute?" am Ende:
+   „den können wir streichen um alles schlank zu halten". Der Schmerz kommt
+   seitdem nur aus der Satzpause (Build 2026-11-06 a). Mit der Frage ging die
+   Regel „Schmerzwert 7+ stuft jede Kurve des Workouts zurueck": Eine 7 in der
+   Pause stuft nur die Uebung zurueck, die wehgetan hat. Luke auf die Frage,
+   was mit den anderen passiert: „Nur Fersenbrücke runter". Die Serie dreimal
+   ab 6 rechnet aus den Satzwerten (workoutSchmerz). */
 function finishWorkout(){
-  show("home");
-  el("homeBody").innerHTML = `
-    <div class="card">
-      <h2 style="margin-top:0">Wie stark war der Schmerz heute?</h2>
-      <p class="tiny">Ein Wert für das ganze Workout, alle Blöcke zusammen.
-      0 = kein Schmerz, 10 = unerträglich.
-      Ziel ist ein Bereich von 0 bis 4.</p>
-      <div class="scaleBtns" id="sc1"></div>
-      <div class="scaleBtns" id="sc2" style="margin-top:5px"></div>
-      <div id="scHint" class="tiny" style="margin-top:9px;min-height:18px"></div>
-      <button class="primary" style="width:100%;margin-top:12px" id="scOk" disabled>Session abschließen</button>
-    </div>`;
-  let sel = null;
-  const mk = (host,a,b)=>{
-    for(let i=a;i<=b;i++){
-      const btn = document.createElement("button");
-      btn.textContent = i;
-      btn.onclick = ()=>{
-        sel = i;
-        document.querySelectorAll("#sc1 button,#sc2 button").forEach(x=>x.classList.remove("sel"));
-        btn.classList.add("sel");
-        el("scOk").disabled = false;
-        el("scHint").textContent = i<=4 ? "Im Zielbereich."
-          : i<=6 ? "Über dem Zielbereich — die nächste Vorgabe wird vorsichtiger."
-          : "Deutlich zu hoch. Die App geht eine Stufe zurück.";
-        el("scHint").style.color = i<=4 ? "var(--ok)" : i<=6 ? "var(--warn)" : "var(--bad)";
-      };
-      el(host).appendChild(btn);
-    }
-  };
-  mk("sc1",0,5); mk("sc2",6,10);
-  el("scOk").onclick = ()=>{
-    const wid  = "w" + Date.now();
-    /* Ein nachtraeglich abgeschlossener Lauf traegt SEIN Datum, nicht das von
-       heute — sonst wandert eine Messung von gestern in die heutige Erholung. */
-    const jetzt = new Date(RUN.start || Date.now()).toISOString();
-    const gespeichert = [];
-    for(const b of RUN.fertig){
-      const ses = Object.assign({}, b, {date: jetzt, workout: wid, painEnd: sel});
-      S.sessions.push(ses);
-      gespeichert.push({ses, msgs: regelnAnwenden(ses)});
-    }
-    /* Schmerzwert 7+ stuft jede im Workout belastete Kurve eine Stufe zurueck —
-       ausser denen, die schon in der Satzpause zurueckgegangen sind. */
-    const schon = new Set();
-    for(const {ses} of gespeichert) if(ses.rueckstufung) for(const k of regelKeys(ses)){
-      const sr = ses.rueckstufung.seite;
-      if(!sr || sr === "beide" || sr === String(k).split("|")[1]) schon.add(k);
-    }
-    if(sel >= 7) for(const {ses} of gespeichert){
-      /* Beim beidbeinigen Halt beide Leitern — es war EINE Belastung fuer
-         beide Seiten. */
-      /* Im Modus ohne Geraete auf die naechste erlaubte Sprosse darunter:
-         Liegestuetz Nur Koerpergewicht von "Boden" (6) auf "Knie abgelegt" (4), nicht
-         auf den Stuhlsitz, den es im Hotel nicht gibt. */
-      /* Ist bei der Fersenbruecke ein Bein angehakt, geht das gesunde nicht
-         auf die beidbeinige Rampe zurueck (stufenBoden). */
-      const boden = stufenBoden(ses.exercise);
-      for(const k of regelKeys(ses)) if(standOf(k) > boden && !schon.has(k)){
-        const sk = String(k).split("|")[1];
-        const tiefer = ohneGeraete()
-          ? verfuegbareStufen(ses.exercise, sk).filter(x => x.i < standOf(k) && x.i >= boden).pop() : null;
-        /* sprosseUnter statt "- 1": Beim Ausfallschritt laege eine Nummer
-           darunter die andere Stellung derselben Tiefe. */
-        if(!ohneGeraete()) S.levels[k] = sprosseUnter(ses.exercise, standOf(k), sk);
-        else if(tiefer) S.levels[k] = tiefer.i;
-        tiefeLernen(ses.exercise, sk, S.levels[k]);
-        if(S.streak[k]) S.streak[k].gut = 0;
-      }
-      /* Im Modus ohne Geraete auch die geparkte Heimsprosse: Schmerz ist ein
-         Koerpersignal, kein Modus-Signal. */
-      const heim = ses.modus && S.standMitGeraeten && S.standMitGeraeten.levels;
-      if(heim) for(const k of regelKeys(ses))
-        if(Number.isFinite(heim[k]) && heim[k] > 0 && !schon.has(k))
-          heim[k] = sprosseUnter(ses.exercise, heim[k], String(k).split("|")[1]);
-    }
-    S.plan = null; S.planDay = null; ignoreRest = false; RUN = null; S.lauf = null; save();
-    showWorkoutResult(gespeichert, sel);
-  };
+  const wid  = "w" + Date.now();
+  /* Ein nachtraeglich abgeschlossener Lauf traegt SEIN Datum, nicht das von
+     heute — sonst wandert eine Messung von gestern in die heutige Erholung. */
+  const jetzt = new Date(RUN.start || Date.now()).toISOString();
+  const gespeichert = [];
+  for(const b of RUN.fertig){
+    const ses = Object.assign({}, b, {date: jetzt, workout: wid});
+    /* Der Teil nach einer Rueckstufung gehoert zu seinem Block: Gemerkt wird
+       der Stand vor dessen erstem Teil. */
+    if(!ses.nachSchmerz || !S.vorBlock || S.vorBlock.workout !== wid)
+      S.vorBlock = {workout: wid, ab: S.sessions.length, ex: EX_VERSION,
+                    modus: S.modus || "normal", stand: standKopie()};
+    S.sessions.push(ses);
+    gespeichert.push({ses, msgs: regelnAnwenden(ses)});
+  }
+  S.plan = null; S.planDay = null; ignoreRest = false; RUN = null; S.lauf = null; save();
+  showWorkoutResult(gespeichert);
 }
-function showWorkoutResult(gespeichert, painEnd){
+function showWorkoutResult(gespeichert){
   const alle = gespeichert.flatMap(x => x.msgs);
   const nxt = planWorkout();
   const g = gate();
@@ -9533,7 +9495,7 @@ function showWorkoutResult(gespeichert, painEnd){
   el("homeTitle").textContent = "Workout gespeichert";
   /* Der Teil nach einer Rueckstufung ist kein eigener Block. */
   const bloecke = gespeichert.filter(x => !x.ses.nachSchmerz).length;
-  el("homeSub").textContent = `${anzahl(bloecke, "Block", "Blöcke")} · Schmerzwert ${painEnd}`;
+  el("homeSub").textContent = anzahl(bloecke, "Block", "Blöcke");
   el("homeBody").innerHTML = `
     ${gespeichert.map(({ses})=>`
       <div class="card">
@@ -10183,7 +10145,8 @@ function messreihenJSON(){
            + "last ist ein Lastverhaeltnis INNERHALB einer Uebung, nicht zwischen Uebungen. "
            + "schmerz_ende ist der Schmerzwert (0-10) am Ende des Workouts und steht in "
            + "jeder Zeile dieses Workouts; je Workout zaehlen, nicht je Zeile. Leer bei "
-           + "nachgetragenen Punkten. aus_kurve_grund nennt, warum eine Messung bewusst "
+           + "nachgetragenen Punkten und ab Fassung 2026-11-06 b, seitdem fragt die App am "
+           + "Ende nicht mehr; der Schmerz steht dann in schmerz_wert. aus_kurve_grund nennt, warum eine Messung bewusst "
            + "aus der Kurve genommen ist (alte Skala, Stellung gestrichen); leer heisst "
            + "kein solcher Grund. unterlage_cm ist die Hoehe von Bank oder Sofa unter dem "
            + "hinteren Fuss, nur auf der Sprosse, deren Last aus dieser Hoehe kommt. "
@@ -11026,8 +10989,8 @@ function renderHistory(){
           ?' <span style="color:var(--bad)">!</span>':""}${s.sets[0]&&s.sets[0].time
             &&!messbar(s.sets[0].time)?' <span style="color:var(--warn)">×</span>':""}</td>
         <td class="n">${fmt(s.target)}</td>
-        <td class="n" style="color:${s.painEnd<=4?"var(--ok)":s.painEnd<=6?"var(--warn)":"var(--bad)"}">
-          ${s.painEnd}</td></tr>`).join("")}
+        <td class="n" style="color:${s.painEnd==null?"var(--tx3)":s.painEnd<=4?"var(--ok)":s.painEnd<=6?"var(--warn)":"var(--bad)"}">
+          ${s.painEnd==null?"–":s.painEnd}</td></tr>`).join("")}
       </tbody></table>
       <p class="tiny" style="margin-top:9px">! = Satz wegen Schmerzen beendet ·
       abgeblendet = zählt nicht in die Kurve: vorermüdete zweite Seite, oder auf einer
@@ -11242,6 +11205,94 @@ function verzoegerungNotiz(v){
     Zeit, die Stopptaste zu drücken.` : "";
 }
 
+/* ═══════════ Letzten Block löschen ═══════════
+   Luke, 06.11.2026: „Wie kann ich den letzten datenpunkt löschen bei der
+   fersenbrücke die app sperrt jetzt die Übung komplett". Ein Schmerzabbruch
+   sperrt die Gruppe bis Mitternacht (schmerzHeute), deckelt die naechste
+   Vorgabe und stuft ab 5 eine Sprosse zurueck. Auf die Frage, wie der Punkt
+   weg soll: „Knopf in die App". Unter Mehr steht deshalb der zuletzt
+   gespeicherte Block mit „Diesen Block löschen".
+   Geloescht wird der ganze Block, auch der Teil nach einer Rueckstufung, und
+   zurueck kommt der Stand davor: Sprosse, Gewicht, Zaehler. Den merkt sich
+   finishWorkout vor jedem Block (S.vorBlock). Fehlt der Merker — Block vor
+   Build 2026-11-06 b gespeichert, nachgetragen, oder seitdem den Modus
+   gewechselt —, rechnet blockZurueck den Stand aus dem Block selbst. */
+function standKopie(){
+  return structuredClone({levels: S.levels || {}, extra: S.extra || {}, streak: S.streak || {},
+    lungeTiefe: S.lungeTiefe || {}, standMitGeraeten: S.standMitGeraeten || null});
+}
+function letzterBlock(){
+  const ss = S.sessions; if(!ss.length) return null;
+  const gleich = (a, b) => !!a.workout && a.workout === b.workout && a.exercise === b.exercise
+                           && (a.side || null) === (b.side || null);
+  let ab = ss.length - 1;
+  while(ab > 0 && ss[ab].nachSchmerz && gleich(ss[ab - 1], ss[ab])) ab--;
+  const v = S.vorBlock;
+  const genau = !!(v && v.stand && v.ex === EX_VERSION && v.ab === ab
+                   && v.workout === ss[ab].workout && v.modus === (S.modus || "normal"));
+  return {ab, teile: ss.slice(ab), genau};
+}
+/* Ohne Merker: Der Block selbst sagt, auf welcher Sprosse und mit welchem
+   Gewicht er lief — das war der Stand davor. Bei einer Seite stimmt das
+   immer; beim beidbeinigen Halt nur, wo der Schmerz die Seite tiefer gesetzt
+   hat, denn eine Seite kann einbeinig weiter oben gestanden haben. Der
+   Schmerzzaehler geht um den Abbruch zurueck. */
+function blockZurueck(teile){
+  const erst = teile[0], ex = erst.exercise, e = S.ex[ex];
+  if(!e || !e.levels[erst.level]) return;
+  const pain = !!(erst.sets[0] || {}).pain;
+  const rueck = teile.some(x => x.rueckstufung);
+  for(const k of regelKeys(erst)){
+    const runter = standOf(k) < erst.level;
+    if(erst.side || ((pain || rueck) && runter)){
+      S.levels[k] = erst.level;
+      if(erst.level >= extraAbOf(ex)) S.extra[kgKey(ex, k, erst.level)] = erst.extra || 0;
+    }
+    const st = S.streak[k];
+    if(st && pain && !rueck) st.pain = runter ? PAIN_BACK - 1 : Math.max(0, (st.pain || 0) - 1);
+  }
+}
+function blockLoeschen(){
+  const lb = letzterBlock(); if(!lb) return;
+  /* Wie vor einem Import: Der Stand mit dem Block kommt in die Sicherung. */
+  sichern(true);
+  if(lb.genau) Object.assign(S, structuredClone(S.vorBlock.stand));
+  else blockZurueck(lb.teile);
+  S.sessions.splice(lb.ab);
+  S.vorBlock = null;
+  S.plan = null; S.planDay = null;
+  /* Weniger Sitzungen als im Speicher: Das haelt die Notbremse in save()
+     sonst fuer einen Fehler. */
+  save(true);
+  /* Sofort zum Server: Fuehrt der beim naechsten Oeffnen mehr Sitzungen,
+     laedt initDB seinen Stand — samt dem geloeschten Block. */
+  if(DB){ clearTimeout(dbTimer); pushDB(); }
+}
+function letzterBlockZeigen(){
+  const host = el("lbHost"); if(!host) return;
+  const lb = letzterBlock();
+  if(!lb){ host.innerHTML = ""; return; }
+  const erst = lb.teile[0], s1 = erst.sets[0] || {};
+  const d = new Date(erst.date), t = dayNum(d), h = today();
+  const tag = t === h ? "heute" : t === h - 1 ? "gestern"
+    : d.toLocaleDateString("de-DE", {weekday:"short", day:"numeric", month:"short"});
+  const uhr = d.toLocaleTimeString("de-DE", {hour:"2-digit", minute:"2-digit"});
+  const saetze = lb.teile.flatMap(x => x.sets || []).filter(Boolean);
+  const wert = Math.max(0, ...saetze.map(st => st.painWert || 0));
+  const schmerz = saetze.some(st => st.pain);
+  host.innerHTML = `<div class="card">
+      <h3 style="margin-top:0">Letzter Block</h3>
+      <p style="margin:0">${labelOf(erst.exercise, erst.side, erst.level)}</p>
+      <p class="tiny" style="margin:4px 0 0">${tag} ${uhr} · ${s1.time ? fmt(s1.time) : "–"}${
+        schmerz ? ` · Schmerz${wert > SCHMERZ_ANNAHME ? ` ${wert}` : ""}` : ""}</p>
+      <button class="ghost" style="width:100%;margin-top:10px" id="lbWeg">Diesen Block löschen</button>
+    </div>`;
+  el("lbWeg").onclick = ()=>{
+    if(!confirm("Block löschen? Sprosse und Vorgabe gehen zurück auf den Stand davor.")) return;
+    blockLoeschen();
+    renderAmOrt("lbHost");
+  };
+}
 function renderSetup(){
   const j = JSON.stringify(S);
   el("setupBody").innerHTML = `
@@ -11375,6 +11426,7 @@ function renderSetup(){
         anderen Sprossen bleibt die Spalte leer.</p>
       </details>
     </div>
+    <div id="lbHost"></div>
     <div class="card">
       <h3 style="margin-top:0">Deine Daten</h3>
       <p class="tiny" style="display:flex;justify-content:space-between;gap:10px">
@@ -11429,7 +11481,7 @@ function renderSetup(){
       <p class="tiny"><b>Umgesetzt:</b> Die 2-Parameter-Kurve aus Handoff 4.1 mit Alterung der
       Messpunkte · das gespreizte Onboarding über drei Stufen (M7, Abschnitt 4.4) · die
       Zonenrotation, damit die Spreizung erhalten bleibt (Regel 5) · die Progressionsregeln 1
-      bis 4 · Schmerz-Häkchen pro Satz und ein Ampelwert am Sessionende (Abschnitt 2.4) · die
+      bis 4 · Schmerzabbruch pro Satz mit Schmerzskala in der Satzpause (Abschnitt 2.4) · die
       Sicherheitsregel bei dreimal 6 oder höher (Abschnitt 7) · Timer mit Tonsignalen und
       20-Sekunden-Pausen.</p>
       <p class="tiny"><b>Nicht umgesetzt:</b> das Lernen der Lastfaktoren über viele Nutzer
@@ -11668,6 +11720,7 @@ function renderSetup(){
     location.replace(location.pathname + "?frisch=" + Date.now());
   };
 
+  letzterBlockZeigen();
   el("expBtn").onclick = async ()=>{
     const json = JSON.stringify(S, null, 2);
     const name = `iso-coach-${new Date().toISOString().slice(0,10)}.json`;

@@ -5380,7 +5380,8 @@ Die Schwelle ist „Ab 5“, und heute heißt das: „Sofort auf leichtere spros
 - **Farben an der Grenze 4:** 0 bis 3 grün, 4 gelb, ab 5 rot mit „Stopp – Abbruch wegen Schmerz“.
 - **Der Knopf „Schmerz“** neben „Satz beenden“ bleibt.
 - **Die Frage am Workout-Ende** „Wie stark war der Schmerz heute?“ fällt weg. Die Rückstufung ab 7
-  und der Hinweis nach dreimal 6 oder mehr rechnen dann aus den Werten im Satz.
+  und der Hinweis nach dreimal 6 oder mehr rechnen dann aus den Werten im Satz. Vorgezogen in
+  `2026-11-06 b` (P108); die Regel ab 7 für das ganze Workout entfiel dabei.
 - **Ohne Eingabe** zählt ein Abbruch wegen Schmerz weiter als 4.
 
 **Der Preis.**
@@ -5389,7 +5390,8 @@ Die Schwelle ist „Ab 5“, und heute heißt das: „Sofort auf leichtere spros
   den ganzen Block. Sonst spränge er von Satz zu Satz.
 - **Die Sätze auf der leichteren Stufe zählen nicht für die Kurve,** weder für die alte noch für die
   neue Sprosse. Sie sind vorermüdet.
-- **Bis Stufe 2 fragt die App zweimal:** in der Pause nach dem Satz und am Workout-Ende nach dem Tag.
+- **Bis `2026-11-06 b` fragte die App zweimal:** in der Pause nach dem Satz und am Workout-Ende nach dem
+  Tag. Seitdem nur in der Pause (P108).
 - **Auf dem Handy nicht geprüft,** auch nicht, ob der Doppelton bei stummem iPhone kommt.
 
 **Für den Nachbau:**
@@ -5414,11 +5416,106 @@ Die Schwelle ist „Ab 5“, und heute heißt das: „Sofort auf leichtere spros
 - Export Schema 11 mit den Spalten `schmerz_wert` und `nach_rueckstufung`. `EX_VERSION` bleibt 36.
 - Nebenbei: „2 Blocke“ im Ergebnis heißt jetzt „2 Blöcke“.
 
+### P108 · Frage am Workout-Ende gestrichen, letzten Block löschen
+
+Zwei Aufträge vom 06.11., beide nach dem ersten Training mit `2026-11-06 a`.
+
+Erstens, mit Bildschirmfoto der Frage „Wie stark war der Schmerz heute?“: „Nach der schmerzabgrage kommt immer noch dieset bildschirm den können wir streichen um alles svhlank zu halten“.
+Mit der Frage hing die Regel „Schmerzwert ab 7 stuft jede Kurve des Workouts zurück“. Auf die Frage,
+was bei einer 7 in der Pause mit den anderen Übungen passiert, wählte Luke „Nur Fersenbrücke runter“.
+
+Zweitens: „Wie kann ich den letzten datenpunkt löschen bei der fersenbrücke die app sperrt jetzt die Übung komplett“. Der Grund: Nach einem Abbruch wegen Schmerz ist die Gruppe bis
+Mitternacht zu, auch mit „Ohne Pause“. Einen einzelnen Punkt löschen ging bisher nicht, nur alles.
+Luke wählte „Knopf in die App“ statt einer Löschung von Hand im Speicher.
+
+**Gebaut in 2026-11-06 b.**
+
+- **Die Frage am Ende fällt weg.** Nach „Workout beenden“ steht sofort das Ergebnis, oben „Workout
+  gespeichert · 1 Block“ ohne Schmerzwert. Damit ist dieser Punkt aus Stufe 2 von P107 vorgezogen.
+- **Eine 7 stuft nur die Übung zurück, die wehgetan hat.** Das erledigt schon die Regel ab 5 in der
+  Satzpause. Die Regel ab 7 für das ganze Workout ist gestrichen.
+- **Die Warnung nach dreimal 6 oder mehr** rechnet aus den Werten der Satzpause: je Workout der
+  höchste Wert, ein Abbruch wegen Schmerz ohne Eingabe zählt 4. Ältere Workouts mit einem Wert vom
+  Ende behalten diesen.
+- **Verlauf und Export:** Neue Workouts zeigen beim Schmerz am Ende „–“. Die Spalte `schmerz_ende`
+  bleibt im Export und ist für sie leer, der Schmerz steht in `schmerz_wert`.
+- **Einstellungen → Karte „Letzter Block“** über „Deine Daten“: Übung und Seite, darunter zum Beispiel
+  „heute 11:52 · 38 s · Schmerz“, ab 5 mit Zahl („Schmerz 7“). Knopf „Diesen Block löschen“, davor
+  die Rückfrage „Block löschen? Sprosse und Vorgabe gehen zurück auf den Stand davor.“ Danach zeigt
+  die Karte den Block davor.
+- **Gelöscht wird der ganze Block,** bei einer Rückstufung in der Pause also beide Teile. Sprosse,
+  Gewicht und die Zähler für Schmerz und Fehlversuche gehen auf den Stand davor. Damit ist auch die
+  Sperre für heute weg, wenn der Block der einzige mit Schmerz war.
+- **Wie genau:** Vor jedem Block merkt sich die App den Stand (Sprossen, Gewichte, Zähler, Kniewinkel
+  beim Ausfallschritt, Geräte). Für den letzten Block ist das genau der Stand davor. Ohne diesen
+  Merker, also bei Blöcken aus Fassungen vor `b` oder nach einem ersten Löschen, nimmt die App
+  Sprosse und Gewicht aus dem Block selbst und zählt den Schmerzzähler um den Abbruch zurück.
+- **Vor dem Löschen** legt die App eine Sicherung an. Mit Server geht der neue Stand sofort hinaus,
+  nicht erst nach der üblichen Wartezeit.
+
+**Der Preis.**
+
+- **Ohne Merker ist es eine Näherung.** Folgen der Regel ab 7 aus `2026-11-06 a` an anderen Übungen
+  nimmt sie nicht zurück, den gelernten Kniewinkel beim Ausfallschritt auch nicht. Beim
+  beidbeinigen Halt bleibt eine Seite unberührt, die einbeinig höher stand und nicht zurückging.
+- **Der Knopf löscht immer den jüngsten Block.** Wer ein zweites Mal bestätigt, löscht auch den
+  davor.
+- **Offline gelöscht** und neu geladen, bevor der Server erreicht war: Der Server hat dann mehr
+  Sitzungen, sein Stand gewinnt, und der Block ist wieder da. Dann noch einmal löschen.
+- **Schmerz, der nicht in einem Satz kam,** fragt die App nicht mehr ab.
+- **Auf dem Handy nicht geprüft.**
+
+**Für den Nachbau:**
+
+- `S.vorBlock {workout, ab, ex, modus, stand}`, gesetzt in `finishWorkout` vor jedem Block, nicht vor
+  dessen zweitem Teil. `standKopie()` kopiert `levels`, `extra`, `streak`, `lungeTiefe`,
+  `standMitGeraeten`. `normalize` verwirft den Merker bei anderer `EX_VERSION`.
+- `letzterBlock()` gibt `{ab, teile, genau}`; `genau` nur bei passendem `ab`, Workout, `EX_VERSION`
+  und Modus. Sonst `blockZurueck(teile)`. `blockLoeschen()`: `sichern(true)`, Merker anwenden oder
+  Rückrechnung, `splice`, `save(true)` wegen der Notbremse, `pushDB()` sofort.
+  `letzterBlockZeigen()` füllt `#lbHost` in `renderSetup`.
+- `workoutSchmerz(w)`: `painEnd`, wenn vorhanden, sonst der höchste `painWert` (ohne Wert
+  `SCHMERZ_ANNAHME`). `schmerzSerie()` prüft die letzten drei Workouts.
+- `showWorkoutResult(gespeichert)` ohne Schmerzwert, `#scOk` entfällt. `EX_VERSION` bleibt 36,
+  Export Schema 11.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-11-06 b — Frage am Workout-Ende gestrichen, letzten Block löschen
+
+**Auftrag (Luke).** „Nach der schmerzabgrage kommt immer noch dieset bildschirm den können wir streichen um alles svhlank zu halten“ Dazu „Wie kann ich den letzten datenpunkt löschen bei der fersenbrücke die app sperrt jetzt die Übung komplett“. Gewählt: „Nur Fersenbrücke
+runter“ und „Knopf in die App“. (P108)
+
+**Gebaut.**
+
+- Keine Frage mehr am Workout-Ende, das Ergebnis zeigt „Workout gespeichert · N Blöcke“.
+- Die Regel ab 7 für das ganze Workout ist gestrichen, eine 7 in der Pause stuft nur die Übung
+  zurück. Die Warnung nach dreimal 6 oder mehr rechnet aus den Werten der Satzpause.
+- Einstellungen → „Letzter Block“ mit „Diesen Block löschen“: Block weg, Sprosse, Gewicht und Zähler zurück,
+  genau über einen Merker vor jedem Block, ohne Merker aus dem Block selbst.
+- Verlauf „–“ und leeres `schmerz_ende` für neue Workouts. `EX_VERSION` bleibt 36, Export Schema 11.
+
+**Geprüft.** Headless Chrome bei 390 × 844, mit Lukes Export vom 16.10.
+
+- Ladeprobe `2026-11-06 b` über `2026-11-06 a`: 15 von 15 Prüfungen bestanden, 69 von 69 Sitzungen
+  direkt und über die vorige Fassung.
+- Ablauftest Training: 53 von 53. Ablauftest Schmerz: 42 von 42, ohne Frage am Ende.
+- Ablauftest Löschen, 16 Prüfungen, alle bestanden:
+  - Lukes Fall nachgestellt: Fersenbrücke links mit „Schmerz“ bei 38 s, „Ohne Pause“ an, Gruppe bis
+    morgen zu. Karte „Fersenbrücke · links, heute 12:41 · 38 s · Schmerz“, Rückfrage im Wortlaut,
+    nach dem Löschen 69 Sitzungen, Sprossen und Zähler wie vorher, Gruppe wieder frei, Sicherung
+    mit 70 Sitzungen angelegt.
+  - Mit Merker: Workout aus links ohne Schmerz und rechts mit Schmerz 7 in zwei Teilen. Rechts von
+    15 auf 14. Der Merker übersteht das Neuladen. Löschen nimmt beide Teile, rechts steht wieder auf
+    15, links behält seinen Block, die Karte zeigt danach „links · 75 s“.
+  - Warnung nach dreimal Schmerz 6 aus der Pause: nach dem dritten Workout da, nach einem ohne
+    Schmerz weg. Export `schmerz_ende` leer. Keine Konsolenfehler.
+- Fotos an Luke: Ergebnis ohne Schmerzwert, Karte „Letzter Block“, Karte nach dem Löschen.
+- **Nicht geprüft:** auf dem Handy, und das Löschen mit Server.
 
 ### 2026-11-06 a — Schmerz-Balken am Timer und Schmerzskala in der Satzpause
 

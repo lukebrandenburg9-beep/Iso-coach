@@ -206,8 +206,12 @@ Rechenlogik:
   perfekt aussieht und falsch ist.
 - **Schmerz** als zweiter Knopf im Satz. In der Pause danach die Skala 4 bis 10, ohne Eingabe gilt 4.
   Ab 5 laufen die restlichen Sätze eine Stufe leichter, als eigener Block außerhalb der Kurve, und
-  das nächste Mal beginnt eine Stufe tiefer. Dazu ein Ampelwert am Sessionende.
-- **Sicherheitsregel:** dreimal in Folge Ampelwert 6 oder höher → Hinweis auf ärztliche Abklärung.
+  das nächste Mal beginnt eine Stufe tiefer. Am Workout-Ende fragt die App seit `2026-11-06 b`
+  nicht mehr nach dem Schmerz.
+- **Sicherheitsregel:** dreimal in Folge Schmerz 6 oder höher in der Satzpause → Hinweis auf
+  ärztliche Abklärung.
+- **Letzten Block löschen:** Einstellungen → „Letzter Block“ → „Diesen Block löschen“. Sprosse,
+  Gewicht und Zähler gehen auf den Stand davor, eine Sperre nach Schmerz ist damit weg (P108).
 - Red-Flag-Abfrage im Onboarding, Timer mit Tonsignalen, 20-Sekunden-Pausen, Export/Import.
 - **Selbsttest zur Kniebeugung im Onboarding**, freiwillig. Die Antwort sagt, ab welcher Sprosse der
   Ausfallschritt Gewicht bekommt (siehe unten).
