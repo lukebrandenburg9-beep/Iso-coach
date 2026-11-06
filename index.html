@@ -174,6 +174,36 @@ td.n,.kpi b{font-family:var(--mono)}
 #tFort.warn{color:var(--warn)}
 #tSeiteWahl .tiny{text-align:center}
 #tSeiteWahl .zw{margin:4px 0 10px}
+/* Der Schmerzbalken am linken Rand (Build 2026-11-06 a). Er steht nur in dem
+   Satz, in dem beim letzten Workout dieser Uebung Schmerz gedrueckt wurde, und
+   fuellt sich weiss bis zu der Sekunde, die dem Abbruch von damals entspricht.
+   Voll wird er gruen. Keine Prognose und kein Abbruchkriterium: nur die Zahl
+   von damals. Der Platz links bleibt fuer den ganzen Block frei, sonst
+   sprunge der Bildschirm zwischen zwei Saetzen. */
+#timerScreen.mitBalken{padding-left:calc(46px + env(safe-area-inset-left,0px))}
+#timerScreen>#tSchmerzBalken{position:fixed;left:calc(10px + env(safe-area-inset-left,0px));
+  top:calc(14px + env(safe-area-inset-top,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  width:26px;max-width:none;margin:0;display:flex;flex-direction:column;align-items:center;gap:5px}
+#timerScreen>#tSchmerzBalken[hidden]{display:none}
+#tSchmerzBalken svg{width:20px;height:20px;flex:none;color:#3a3d4a}
+#tSchmerzBalken .sbZahl{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:11px;
+  color:#8a8d99;white-space:nowrap}
+#tSchmerzBalken .sbSpur{flex:1;width:8px;border-radius:4px;background:#2a2c36;position:relative;overflow:hidden}
+#tSchmerzBalken .sbSpur i{position:absolute;left:0;right:0;bottom:0;height:0;background:#e9e9ef;border-radius:4px}
+#tSchmerzBalken.voll svg,#tSchmerzBalken.voll .sbZahl{color:var(--ok)}
+#tSchmerzBalken.voll .sbSpur i{background:var(--ok)}
+#tSchmerzZeile{font-size:13.5px;color:#b9877c;margin-top:6px}
+#tSchmerzZeile:empty{display:none}
+#tSchmerzZeile.achtung{color:#e8917f;font-weight:600}
+#tSchmerzZeile.weiter{color:var(--ok);font-weight:600}
+/* Die Skala in der Pause nach einem Abbruch wegen Schmerz: 4 bis 10, die 4
+   steht schon gewaehlt da. */
+#tSchmerzWahl .tiny{text-align:center}
+#tSchmerzWahl .sk{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin:4px 0 6px}
+#tSchmerzWahl .sk button{padding:9px 0;font-size:14px;font-family:var(--mono);color:var(--skf);border-color:var(--skf)}
+#tSchmerzWahl .sk button.sel{background:var(--skf);color:var(--bg);font-weight:650}
+#tSchmerzWahl .skHin{text-align:center;font-size:13.5px;color:#f0c9c0;margin:0 0 10px}
+#tSchmerzWahl .skHin:empty{display:none}
 #tKnoepfe{justify-content:center;flex-wrap:nowrap}
 #tStop{flex:0 1 64%;padding:16px;font-size:19px;font-weight:650;background:var(--bad);
   border-color:var(--bad);color:#fff;box-shadow:0 6px 26px rgba(224,87,74,.38)}
@@ -416,6 +446,11 @@ code{background:var(--panel2);padding:1.5px 5px;border-radius:5px;font-size:12.5
 
 <!-- ══════════ TRAINING (Vollbild) ══════════ -->
 <div id="timerScreen">
+  <div id="tSchmerzBalken" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12"
+    r="9" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="1.3"
+    fill="currentColor"/><circle cx="15" cy="10" r="1.3" fill="currentColor"/><path d="M8 14.5c1 1.6
+    2.4 2.4 4 2.4s3-.8 4-2.4" fill="none" stroke="currentColor" stroke-width="2"
+    stroke-linecap="round"/></svg><div class="sbZahl"></div><div class="sbSpur"><i></i></div></div>
   <div class="tKopf">
     <div id="tWhat"></div>
     <div id="tStufe"></div>
@@ -433,8 +468,10 @@ code{background:var(--panel2);padding:1.5px 5px;border-radius:5px;font-size:12.5
     <div id="tUnter"></div>
     <div class="bar aus" id="tBar"><i></i></div>
     <div id="tFort"></div>
+    <div id="tSchmerzZeile"></div>
   </div>
   <div id="tSeiteWahl"></div>
+  <div id="tSchmerzWahl"></div>
   <div class="row" id="tKnoepfe">
     <button id="tSchmerz">Schmerz</button>
     <button id="tStop">Satz beenden</button>
@@ -541,6 +578,12 @@ const SETS_MIN = 1;
 const SETS_MAX = 6;
 const MISS_RATIO = 0.8;  // Regel 3
 const PAIN_BACK  = 2;    // Regel 1: zweimal in Folge → Level zurück
+/* Schmerz in der Satzpause (Build 2026-11-06 a). Ein Abbruch wegen Schmerz
+   zaehlt ohne Eingabe als 4 von 10 — die Grenze, bis zu der in der Challenge
+   trainiert wird. Ab 5 geht es sofort eine Stufe leichter weiter. */
+const SCHMERZ_ANNAHME = 4;
+const SCHMERZ_STOPP   = 5;
+const SCHMERZ_VORWARN = 8;   // s vor der Marke: "Achte jetzt besonders auf deinen Schmerz."
 const MISS_BACK  = 3;    // Regel 3: dreimal in Folge → Level zurück
 const KNIE_HOCH  = 2;    // Baker-Pfad: zweimal Vorgabe ohne Schmerz → eine Sprosse weiter
 const DECAY      = 0.97; // Alterung der Messpunkte (Abschnitt 4.1)
@@ -2251,7 +2294,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-11-05 d";
+const BUILD = "2026-11-06 a";
 const KEY = "isocoach.v1";
 const KEY_GERETTET = "isocoach.v1.gerettet";
 /* Laufende Sicherung (Build 2026-10-27 c, nach P100): der gespeicherte Stand,
@@ -6298,6 +6341,8 @@ function ankerpunkt(ex){
        verworfen wurde. Beim Schraegzug hiess das nach dem Faktorwechsel vom
        21.09. eine bis zu 2,6-fach zu schwere Sprosse im ersten Workout. */
     if(ses.ausKurve) continue;
+    /* Nach einer Rueckstufung ist Satz 1 dieses Teils ein spaeter Satz. */
+    if(ses.nachSchmerz) continue;
     (ses.fresh === false ? vorermuedet : frisch).push(ses);
   }
   const pool = frisch.length ? frisch : vorermuedet;
@@ -6997,7 +7042,9 @@ function regelnAnwenden(ses){
        vorsichtigere Lesart und das bisherige Verhalten. */
     const ps = (ses.sets[0] || {}).painSeite;
     const zaehlt = !ps || ps === "beide" || ps === seite;
+    const r = ses.rueckstufung;
     const kopie = Object.assign({}, ses, {side: seite,
+      rueckstufung: (r && (!r.seite || r.seite === "beide" || r.seite === seite)) ? r : undefined,
       sets: ses.sets.map((z, i) => (i === 0 && !zaehlt)
                                  ? Object.assign({}, z, {pain:false}) : z)});
     return applyRules(kopie, BEID_PLATZ);
@@ -7034,6 +7081,21 @@ function knieRegeln(session, etikett){
   const first = session.sets[0], msgs = [];
   const stand = () => standOf(key);
   const name = () => stufenName(ex, stand(), 0, session.side);
+  /* Schmerz ueber 4 in der Satzpause (Build 2026-11-06 a): eine Sprosse
+     zurueck, von der aus, auf der es wehgetan hat. */
+  if(session.rueckstufung){
+    const r = session.rueckstufung, kopf = `${etikett}: Satz ${r.satz} bei Schmerz ${r.wert}/10 beendet`;
+    st.pain = 0; st.gut = 0;
+    const neu = leichtereVariante(ex, Math.min(session.level, stand()), 0, session.side);
+    if(neu){
+      S.levels[key] = neu.level;
+      msgs.push({t:"bad", x:`${kopf} → eine Stufe zurück auf „${name()}".`});
+    } else msgs.push({t:"bad", x:`${kopf} — und sanfter als „${name()}" geht es nicht. Lass die `
+      + `Übung weg, bis es besser ist, und lass das Knie abklären.`});
+    const serie = schmerzSerie();
+    if(serie) msgs.push(serie);
+    return msgs;
+  }
   /* Selbst gewaehlte Sprosse ohne Schmerz: Dort steht das Bein jetzt, und
      gezaehlt wird von dort aus. */
   if(session.userPicked && !first.pain && session.level !== stand()
@@ -7085,6 +7147,9 @@ function schmerzSerie(){
 }
 function applyRules(session, etikett){
   etikett = etikett || labelOf(session.exercise, session.side, session.level);
+  /* Die Saetze nach einer Rueckstufung sind trainiert, nicht gemessen. Nur
+     tut auch die leichtere Stufe ueber 4 weh, gilt die Schmerzregel. */
+  if(session.nachSchmerz && !session.rueckstufung) return [];
   if((DEFAULT_EX[session.exercise] || {}).schmerzGefuehrt) return knieRegeln(session, etikett);
   const msgs = [];
   const first = session.sets[0];
@@ -7202,6 +7267,38 @@ function applyRules(session, etikett){
     }
     return null;
   };
+
+  /* Schmerz ueber 4 in der Satzpause (Build 2026-11-06 a): Die
+     Rueckstufung gilt sofort und fuer das naechste Mal — von der Stufe aus,
+     auf der es wehgetan hat, oder vom Stand, wenn der schon tiefer liegt.
+     Danach greift keine andere Regel: kein Hochstufen nach einem Satz ueber 4.
+     Gilt auch fuer die zweite, vorermuedete Seite: eine Sicherheitsregel. */
+  if(session.rueckstufung){
+    const r = session.rueckstufung, kopf = `${etikett}: Satz ${r.satz} bei Schmerz ${r.wert}/10 beendet`;
+    st.pain = 0; st.miss = 0; st.leer = 0; st.gut = 0;
+    const tiefer = session.level < lvNow()
+      || (session.level === lvNow() && (session.extra || 0) < kgNow());
+    const basis = tiefer ? {level: session.level, extra: session.extra || 0} : {level: lvNow(), extra: kgNow()};
+    const neu = leichtereVariante(session.exercise, basis.level, basis.extra, session.side);
+    if(neu){
+      S.levels[key] = neu.level;
+      if(neu.level >= extraAbOf(session.exercise)) S.extra[kgSchluessel()] = neu.extra;
+      if(neu.level !== basis.level) tiefeLernen(session.exercise, session.side, neu.level);
+      /* Wie beim Schmerzwert 7+: im Modus ohne Geraete auch die geparkte
+         Heimsprosse. */
+      const heim = session.modus && S.standMitGeraeten && S.standMitGeraeten.levels;
+      if(heim && Number.isFinite(heim[key]) && heim[key] > 0)
+        heim[key] = sprosseUnter(session.exercise, heim[key], session.side);
+      msgs.push({t:"bad", x: neu.level === basis.level
+        ? `${kopf} → ${komma(basis.extra - neu.extra, 1)} kg weniger, jetzt „${wieJetzt()}".`
+        : `${kopf} → eine Stufe zurück auf „${wieJetzt()}".`});
+    } else msgs.push({t:"bad", x:`${kopf} — und diese Position hat keine leichtere Stufe mehr. `
+      + `Hier ist die App am Ende ihrer Mittel: Lass die Übung weg, bis es besser ist, oder `
+      + `lass die Beschwerden abklären.`});
+    const serie = schmerzSerie();
+    if(serie) msgs.push(serie);
+    return msgs;
+  }
 
   /* Die zweite, vorermuedete Seite wird trainiert, nicht bewertet. Ihre Zahlen
      sagen nichts ueber die Belastbarkeit dieser Seite — nur die Schmerzregel
@@ -7460,9 +7557,15 @@ const cueStart = ()=>{beep(660,120); setTimeout(()=>beep(990,180),150);};
 const cueHalf  = ()=> beep(560,110,.16);
 const cueTick  = ()=> beep(760,80,.14);
 const cueDone  = ()=>{beep(990,150); setTimeout(()=>beep(1320,260),170);};
+/* Tief und doppelt, damit er sich von den Sekundentoenen abhebt. */
+const cueAchtung = ()=>{beep(330,150,.24); setTimeout(()=>beep(330,150,.24),190);};
 
 /* ═══════════ Timer ═══════════ */
 let T = null, wakeLock = null, leadIv = null, pauseIv = null, tWeiter = null;
+/* Ende der laufenden Satzpause, und was von ihr uebrig war, als ein
+   Schmerzwert ueber 4 die Uebung beendet hat — tippt man danach doch 4,
+   laeuft die Pause von dort weiter. */
+let pauseEnde = 0, pauseUebrig = 0;
 
 /* Das Gluehen der Uhr (Luke, 29.09.2026): Ab der Vorgabe glueht die Zahl —
    orange, gelb, hellweiss, je weiter die Vorgabe geschlagen ist. Gemessen am
@@ -7606,14 +7709,15 @@ function blockPlan(){
   const b = curBlock(), n = curSets();
   const m = b.satzModell || satzModell(b.exercise, b.side);
   if(!RUN.sets.length) return satzZeiten(b.target, n, m);
-  const out = RUN.sets.map(s => s.time);
-  for(let k = out.length + 1; k <= n; k++) out.push(naechsterSatz(m, k, out[k - 2]));
+  const out = RUN.sets.map(s => s.time), w = b.schmerzWechsel;
+  for(let k = out.length + 1; k <= n; k++)
+    out.push((w && w.target && k === w.ab + 1) ? w.target : naechsterSatz(m, k, out[k - 2]));
   return out;
 }
 const mmss = s => `${Math.floor(s / 60)}:${String(Math.round(s) % 60).padStart(2, "0")}`;
 function trainingKopf(){
   const b = curBlock(), n = curSets(), zeiten = blockPlan();
-  const offen = RUN.i < n;
+  const offen = RUN.i < n && !b.schmerzEnde;
   el("tWhat").textContent = blockLabel(b);
   el("tStufe").textContent = RUN.levelName || "";
   el("tSeite").textContent = seitenRuf(b);
@@ -7761,6 +7865,7 @@ function trainingSchliessen(){
   el("timerScreen").classList.remove("on");
   menueZu();
   uhrLeeren();
+  balkenAus();
   try{ wakeLock && wakeLock.release(); }catch(e){}
   wakeLock = null;
 }
@@ -7778,6 +7883,7 @@ function uhrLeeren(){
   el("tLabel").textContent = "";
   el("tUnter").textContent = "";
   const f = el("tFort"); f.textContent = ""; f.className = "";
+  const sz = el("tSchmerzZeile"); sz.textContent = ""; sz.className = "";
   const bar = el("tBar"); bar.classList.add("aus");
   bar.firstElementChild.style.width = "0"; bar.firstElementChild.style.background = "";
 }
@@ -7794,18 +7900,75 @@ function knopfStand(an, weiter){
   if(!weiter) tWeiter = null;
 }
 
+/* ── Der Schmerzbalken (Build 2026-11-06 a) ───────────────────────────
+   Luke, 06.11.2026: Wer der Uhr hinterherjagt, rutscht ueber die
+   Schmerzgrenze. Der Balken erscheint nur in dem Satz, in dem beim letzten
+   Workout dieser Uebung und Seite "Schmerz" gedrueckt wurde, gleich auf
+   welcher Stufe. Nach einem Workout ohne Schmerz in diesem Satz ist er weg.
+   Die Marke ist der Anteil von damals an der heutigen Vorgabe desselben
+   Satzes: 100 von 120 s damals, heute 40 s Vorgabe → 33 s. Die Uhr, ihr
+   Balken, das Fortschrittsziel und die Toene bleiben, wie sie sind. */
+function schmerzVorlage(bl){
+  const passt = x => x.exercise === bl.exercise && (x.side || null) === (bl.side || null) && !x.manuell;
+  let letzte = null;
+  for(let k = S.sessions.length - 1; k >= 0 && !letzte; k--) if(passt(S.sessions[k])) letzte = S.sessions[k];
+  if(!letzte) return [];
+  /* Nach einer Rueckstufung steht der Block in zwei Teilen da — der Satz
+     zaehlt ueber beide weiter. */
+  const w = letzte.workout || letzte.date;
+  return S.sessions.filter(x => passt(x) && (x.workout || x.date) === w)
+    .sort((a, b) => (a.satzAb || 0) - (b.satzAb || 0))
+    .flatMap(x => x.sets || []);
+}
+/* k: Satz im Block, ab 0. ziel: heutige Vorgabe dieses Satzes. */
+function schmerzPunkt(k, ziel){
+  if(!RUN || !(ziel > 0)) return null;
+  const r = schmerzVorlage(curBlock())[k];
+  if(!r || !r.pain || !(r.target > 0) || !(r.time > 0)) return null;
+  return Math.max(1, Math.round(r.time / r.target * ziel));
+}
+function balkenZeigen(punkt){
+  const b = el("tSchmerzBalken");
+  el("timerScreen").classList.toggle("mitBalken", punkt != null
+    || (!!RUN && RUN.b < RUN.plan.blocks.length && schmerzVorlage(curBlock()).some(x => x && x.pain)));
+  b.hidden = punkt == null;
+  b.classList.remove("voll");
+  b.querySelector(".sbZahl").textContent = punkt != null ? `${punkt} s` : "";
+  b.querySelector(".sbSpur i").style.height = "0";
+}
+function balkenAus(){
+  el("timerScreen").classList.remove("mitBalken");
+  el("tSchmerzBalken").hidden = true;
+}
+function schmerzBalkenTick(s){
+  const p = T.schmerzBei, sb = el("tSchmerzBalken"), z = el("tSchmerzZeile");
+  const voll = s >= p, achtung = !voll && s >= p - SCHMERZ_VORWARN;
+  sb.querySelector(".sbSpur i").style.height = (Math.min(1, s / p) * 100).toFixed(1) + "%";
+  sb.classList.toggle("voll", voll);
+  const text = voll ? "Weiter als letztes Mal – nur weiter bis höchstens 4."
+             : achtung ? "Achte jetzt besonders auf deinen Schmerz."
+             : "Letztes Mal Abbruch wegen Schmerz";
+  if(z.textContent !== text){ z.textContent = text; z.className = voll ? "weiter" : achtung ? "achtung" : ""; }
+  /* Liegt die Marke unter 8 s, steht der Hinweis von Anfang an da; der Ton
+     kommt dann kurz nach dem Startton, nicht auf ihm. */
+  if(achtung && !T.achtung && s >= 0.6){ T.achtung = true; cueAchtung(); }
+}
+
 async function runSet(cfg){
   trainingOeffnen();
   uhrLeeren();
   knopfStand(false);
   el("tSeiteWahl").innerHTML = "";
+  el("tSchmerzWahl").innerHTML = "";
+  const bei = schmerzPunkt(RUN.i, cfg.target);
+  balkenZeigen(bei);
   const starten = ()=>{
     el("tLabel").textContent = "";
     el("tClock").style.color = "var(--ok)";
     el("tBar").classList.remove("aus");
     const zi = (RUN.i === 0 && RUN.ziele && RUN.ziele.b === RUN.b) ? RUN.ziele : null;
     T = {start:performance.now(), target:cfg.target, fort: zi ? zi.fort : null,
-         raf:0, half:false, ticks:new Set(), done:cfg.done};
+         raf:0, half:false, ticks:new Set(), done:cfg.done, schmerzBei: bei, achtung: false};
     knopfStand(true);
     wachHalten();
     cueStart();
@@ -7857,6 +8020,7 @@ function tick(){
     f.textContent = r > 0 ? `Fortschrittsziel in ${r} s` : "Fortschrittsziel erreicht";
     f.className = r > 0 ? "" : "ok";
   }
+  if(T.schmerzBei) schmerzBalkenTick(s);
   if(!T.half && s >= T.target/2){ T.half = true; cueHalf(); }
   const left = Math.ceil(T.target - s);
   if(left<=10 && left>0 && !T.ticks.has(left)){ T.ticks.add(left); cueTick(); }
@@ -7929,7 +8093,9 @@ function trainingsAktion(k){
     /* Laeuft ein Satz, ist er der verworfene. In der Pause der eben gehaltene:
        Er war schon gesichert und geht wieder raus. */
     if(T){ endSet(true); return; }
-    RUN.sets.pop(); RUN.i = RUN.sets.length; laufSichern();
+    RUN.sets.pop(); RUN.i = RUN.sets.length;
+    schmerzVerworfen(curBlock());
+    laufSichern();
     trainingSchliessen();
     satzVerworfen();
     return;
@@ -7968,7 +8134,7 @@ function laufFortsetzen(){
   if(RUN.b >= RUN.plan.blocks.length){ finishWorkout(); return; }
   /* Unterbrochen zwischen letztem Satz und Blockwechsel: nachholen. */
   /* Die Minute der Kurzeinheit zaehlt ab der Unterbrechung, nicht ab jetzt. */
-  if(RUN.i >= curSets()){ endBlock(false, L.stand); return; }
+  if(RUN.i >= curSets() || curBlock().schmerzEnde){ endBlock(false, L.stand); return; }
   /* Kein Satz im laufenden Block — also steht die Karte VOR der Übung an.
      Nicht sofort die Uhr starten: die Variante will erst bestätigt werden. */
   if(!RUN.sets.length){ blockIntro(RUN.b); return; }
@@ -8844,6 +9010,10 @@ function blockIntro(i){
 function setTarget(){
   const s = RUN.sets, b = curBlock();
   if(s.length === 0) return b.target;
+  /* Der erste Satz auf der leichteren Stufe rechnet aus deren Kurve, nicht
+     aus dem Satz, der wegen Schmerz endete (Build 2026-11-06 a). */
+  const w = b.schmerzWechsel;
+  if(w && w.target && s.length === w.ab) return w.target;
   const m = b.satzModell || satzModell(b.exercise, b.side);
   return naechsterSatz(m, s.length + 1, s[s.length - 1].time);
 }
@@ -8895,6 +9065,8 @@ function nextSet(vorlauf){
    das Schmerz-Haekchen (dafuer der Knopf im Satz) und die Erklaerabsaetze. */
 function afterSet(time, tgt, schmerz){
   const satz = {time, target:tgt, pain: !!schmerz};
+  /* Ohne Eingabe in der Pause zaehlt ein Abbruch wegen Schmerz als 4 von 10. */
+  if(satz.pain) satz.painWert = SCHMERZ_ANNAHME;
   /* Beim beidbeinigen Halt zaehlt der Satz fuer BEIDE Kurven — dann muss der
      Schmerz eine Seite haben, sonst stuft eine Meldung aus dem linken Fuss
      auch die rechte Leiter zurueck. Vorbelegt ist "beide": das ist die
@@ -8907,9 +9079,11 @@ function afterSet(time, tgt, schmerz){
   laufSichern();
   trainingKopf();
   el("tSeiteWahl").innerHTML = "";
+  el("tSchmerzWahl").innerHTML = "";
   if(beidFrage) schmerzSeite(satz);
-  if(RUN.i >= curSets()){ blockFertig(); return; }
-  pauseLaufen();
+  if(RUN.i >= curSets()) blockFertig();
+  else pauseLaufen();
+  if(satz.pain) schmerzWahl(satz);
 }
 function schmerzSeite(satz){
   const box = el("tSeiteWahl");
@@ -8923,19 +9097,143 @@ function schmerzSeite(satz){
     trainingKopf();
   });
 }
+/* ── Wie stark war der Schmerz? (Build 2026-11-06 a) ─────────────────
+   Luke, 06.11.2026: Ein Abbruch wegen Schmerz zaehlt als 4 von 10, "außer es
+   wird vom Kunden was anderes in der Satzpause angeklickt". Ab 5 geht es
+   sofort eine Stufe leichter weiter, die restlichen Saetze von heute und das
+   naechste Mal. Gibt es keine leichtere, oder tut auch die leichtere ueber 4
+   weh, ist die Uebung fuer heute fertig. Zurueck auf 4 nimmt beides zurueck.
+   Die Pause laeuft dabei weiter; der erste Satz auf der neuen Stufe beginnt
+   mit dem Vorlauf zum Umbauen. */
+function schmerzWahl(satz){
+  const box = el("tSchmerzWahl");
+  const zeichnen = ()=>{
+    box.innerHTML = `<div class="tiny">Wie stark war der Schmerz?</div>
+      <div class="sk">${[4, 5, 6, 7, 8, 9, 10].map(v => `<button data-pw="${v}" style="--skf:var(--${
+        v >= SCHMERZ_STOPP ? "bad" : "warn"})"${v === satz.painWert ? ` class="sel"` : ``}>${v}</button>`).join("")}</div>
+      <div class="skHin">${schmerzFolge(satz)}</div>`;
+    box.querySelectorAll("[data-pw]").forEach(b => b.onclick = ()=>{ schmerzWert(satz, +b.dataset.pw); zeichnen(); });
+  };
+  zeichnen();
+}
+function schmerzFolge(satz){
+  if(!(satz.painWert >= SCHMERZ_STOPP)) return "";
+  const bl = curBlock(), w = bl.schmerzWechsel;
+  if(bl.schmerzEnde) return w ? "Auch die leichtere Stufe geht über 4. Die Übung ist für heute fertig."
+                              : "Über 4, und leichter geht es nicht. Die Übung ist für heute fertig.";
+  if(w && w.ab === RUN.sets.length)
+    return `Über 4 – ab jetzt ${w.level !== bl.level ? "eine Stufe " : ""}leichter: „${RUN.levelName}".`;
+  const neu = leichtereVariante(bl.exercise, bl.level, bl.extra, bl.side);
+  return neu ? `Über 4 – beim nächsten Mal ${neu.level !== bl.level ? "eine Stufe " : ""}leichter: „${
+                 stufenName(bl.exercise, neu.level, neu.extra, bl.side)}".`
+             : "Über 4, und leichter geht es nicht.";
+}
+function schmerzWert(satz, wert){
+  const bl = curBlock(), vorher = satz.painWert >= SCHMERZ_STOPP, jetzt = wert >= SCHMERZ_STOPP;
+  satz.painWert = wert;
+  const w = bl.schmerzWechsel;
+  if(jetzt && !vorher && RUN.i < curSets()){
+    const neu = !w && leichtereVariante(bl.exercise, bl.level, bl.extra, bl.side);
+    if(neu){
+      bl.schmerzWechsel = {ab: RUN.sets.length, level: bl.level, extra: bl.extra || 0, target: null};
+      bl.level = neu.level; bl.extra = neu.extra;
+      bl.schmerzWechsel.target = wechselZiel(bl);
+      varianteNachziehen(bl);
+    } else {
+      bl.schmerzEnde = true;
+      pauseUebrig = pauseIv ? Math.max(1, Math.ceil((pauseEnde - Date.now()) / 1000)) : PAUSE_S;
+      clearInterval(pauseIv); pauseIv = null;
+      blockFertig();
+    }
+  } else if(!jetzt && vorher){
+    if(w && w.ab === RUN.sets.length) wechselZuruecknehmen(bl);
+    else if(bl.schmerzEnde){ delete bl.schmerzEnde; pauseLaufen(pauseUebrig); }
+  }
+  laufSichern();
+  trainingKopf();
+  if(pauseIv) balkenZeigen(schmerzPunkt(RUN.i, setTarget()));
+}
+/* Die Vorgabe fuer den ersten Satz auf der leichteren Stufe: Satz 1 aus
+   deren Kurve, mal der Satzquote an dieser Stelle. Ohne Kurve bleibt es bei
+   der ueblichen Rechnung aus dem letzten Satz (null). */
+function wechselZiel(bl){
+  const probe = Object.assign({}, bl, {target: null});
+  zielNeu(probe);
+  if(!probe.target) return null;
+  const m = bl.satzModell || satzModell(bl.exercise, bl.side);
+  return Math.max(8, Math.round(probe.target * satzQuote(m, RUN.sets.length + 1)));
+}
+function varianteNachziehen(bl){
+  RUN.load = lastVon(bl.exercise, bl.level, bl.extra, bl.side);
+  RUN.levelName = stufenName(bl.exercise, bl.level, bl.extra, bl.side);
+}
+function wechselZuruecknehmen(bl){
+  const w = bl.schmerzWechsel;
+  if(!w) return;
+  bl.level = w.level; bl.extra = w.extra;
+  delete bl.schmerzWechsel;
+  varianteNachziehen(bl);
+}
+/* Geht der Satz raus, der die Rueckstufung oder das Aus ausgeloest hat,
+   gehen beide mit. */
+function schmerzVerworfen(bl){
+  delete bl.schmerzEnde;
+  if(bl.schmerzWechsel && RUN.sets.length < bl.schmerzWechsel.ab) wechselZuruecknehmen(bl);
+}
+/* Eine Stufe leichter: dieselbe Leiter wie bei der Rueckstufung nach Regel 1,
+   aber zuerst die Sprosse und erst, wenn keine mehr darunter liegt, weniger
+   Gewicht (Luke: "leichtere Sprosse, wenn das möglich ist"). Beim
+   beidbeinigen Halt nur beidbeinige Sprossen. null: leichter geht es nicht. */
+function leichtereVariante(ex, level, kg, side){
+  const e = S.ex[ex];
+  if(!e || level == null) return null;
+  kg = kg || 0;
+  if((DEFAULT_EX[ex] || {}).schmerzGefuehrt){
+    const t = verfuegbareStufen(ex).filter(x => x.i < level).pop();
+    return t ? {level: t.i, extra: 0} : null;
+  }
+  const boden = stufenBoden(ex);
+  let tiefer = verfuegbareStufen(ex, side).filter(x => x.i < level && x.i >= boden);
+  if(!side && e.sides) tiefer = tiefer.filter(x => beidStufe(ex, x.i));
+  const t = tiefer.pop();
+  if(t){
+    let k2 = t.i < extraAbOf(ex) ? 0 : kg;
+    /* Tragen beide Sprossen ihr eigenes Gewicht, zieht die Last mit um — und
+       schliessen sie nahtlos aneinander, geht es dort ein Raster weiter
+       runter, wie in stufeWechseln. */
+    if(kgJeSprosse(ex) && level >= extraAbOf(ex) && t.i >= extraAbOf(ex)){
+      k2 = kgUmrechnen(ex, level, kg, t.i, side);
+      const b = extraBereich(ex, t.i);
+      if(lastVon(ex, t.i, k2, side) >= lastVon(ex, level, kg, side) - 1e-9)
+        k2 = Math.max(b.lo, Math.min(b.hi, Math.round((k2 - b.schritt) * 10) / 10));
+    }
+    return {level: t.i, extra: kgWirksam(ex, t.i, extraKlemm(ex, k2, t.i))};
+  }
+  const b = extraBereich(ex, level);
+  if(kg > b.lo) return {level, extra: kgWirksam(ex, level, Math.max(b.lo, Math.round((kg - b.schritt) * 10) / 10))};
+  return null;
+}
 /* Gegen die Uhr gerechnet, nicht in Takten gezaehlt: Ein Handy drosselt
-   setInterval im Hintergrund, die Pause bleibt trotzdem 20 Sekunden lang. */
-function pauseLaufen(){
-  const ende = Date.now() + PAUSE_S * 1000;
-  let zuletzt = PAUSE_S;
+   setInterval im Hintergrund, die Pause bleibt trotzdem 20 Sekunden lang.
+   rest: die Pause laeuft mit so vielen Sekunden weiter (zurueck auf 4). */
+function pauseLaufen(rest){
+  const dauer = rest || PAUSE_S;
+  const ende = pauseEnde = Date.now() + dauer * 1000;
+  let zuletzt = dauer;
   el("tLabel").textContent = `Pause vor Satz ${RUN.i + 1}`;
   el("tClock").style.color = "var(--tx2)";
-  el("tClock").textContent = PAUSE_S;
+  el("tClock").textContent = dauer;
   knopfStand(false);
+  balkenZeigen(schmerzPunkt(RUN.i, setTarget()));
   clearInterval(pauseIv);
   pauseIv = setInterval(()=>{
     const left = Math.ceil((ende - Date.now()) / 1000);
-    if(left <= 0){ clearInterval(pauseIv); pauseIv = null; nextSet(); return; }
+    if(left <= 0){
+      clearInterval(pauseIv); pauseIv = null;
+      const w = curBlock().schmerzWechsel;
+      nextSet(!!w && RUN.i === w.ab);
+      return;
+    }
     if(left !== zuletzt){
       zuletzt = left; el("tClock").textContent = left;
       if(left <= 5) el("tClock").style.color = "var(--bad)";
@@ -8952,6 +9250,7 @@ function blockFertig(){
   const naechster = RUN.plan.blocks[RUN.b + 1];
   const direkt = !!(naechster && naechster.eingestellt && !RUN.plan.kurzMax
                  && naechster.exercise === curBlock().exercise);
+  balkenZeigen(null);
   el("tLabel").textContent = "Übung fertig";
   el("tClock").style.color = "var(--acc)";
   el("tClock").textContent = "✓";
@@ -9023,10 +9322,31 @@ function blockModus(bl){
   if(!bl.fest && bl.zoneErwartet) o.zoneGezaehlt = bl.zoneErwartet;
   return o;
 }
+/* Nach einer Rueckstufung in der Satzpause (Build 2026-11-06 a) wird der
+   Block geteilt: die Saetze bis zum Schmerz auf der alten Stufe, die danach
+   als eigener Block auf der leichteren. Jeder Teil traegt so seine eigene
+   Last. Der zweite ist nicht frisch (fresh false, nachSchmerz) und zaehlt
+   nicht fuer die Kurve; seine Saetze zaehlen im Block weiter (satzAb). */
 function blockSichern(){
   if(!RUN.sets.length) return false;
-  const bl = curBlock();
-  RUN.fertig.push(Object.assign({
+  const bl = curBlock(), w = bl.schmerzWechsel;
+  const vorn = w ? RUN.sets.slice(0, w.ab) : RUN.sets.slice();
+  RUN.fertig.push(blockEintrag(w ? Object.assign({}, bl, {level: w.level, extra: w.extra}) : bl, vorn, {}));
+  if(w && RUN.sets.length > w.ab)
+    RUN.fertig.push(blockEintrag(bl, RUN.sets.slice(w.ab), {
+      fresh: false, nachSchmerz: true, satzAb: w.ab, target: RUN.sets[w.ab].target,
+      zone: zoneOf(vorn[0].time).id, saetzeGeplant: curSets() - w.ab}));
+  /* Der Block ist abgehakt: Saetze leeren, Zaehler zurueck, einen weiter.
+     Dieser Dreisatz ist der Stand, den laufFortsetzen() wiederfindet. */
+  RUN.sets = []; RUN.i = 0; RUN.b++;
+  laufSichern();
+  return true;
+}
+/* rueckstufung: der erste Satz mit Schmerz ueber 4 — applyRules stuft
+   danach fuer das naechste Mal zurueck. satz zaehlt ab 1 ueber den ganzen
+   Block. */
+function blockEintrag(bl, sets, mehr){
+  const e = Object.assign({
     exercise: bl.exercise, side: bl.side, level: bl.level,
     levelName: stufenName(bl.exercise, bl.level, bl.extra, bl.side),
     /* Ein Plan von vor 2026-10-06 a kann am Seitstuetz noch Gewicht tragen. */
@@ -9040,19 +9360,18 @@ function blockSichern(){
     lage: ((bl.extra || 0) > 0 && lageOf(bl.exercise, bl.side)) ? lageOf(bl.exercise, bl.side).id : undefined,
     target: bl.target, workoutZone: bl.zone,
     /* Zone nach der ERREICHTEN Zeit — wer eine Stufe selbst waehlt, landet oft woanders. */
-    zone: zoneOf(RUN.sets[0].time).id,
+    zone: zoneOf(sets[0].time).id,
     fresh: bl.fresh, userPicked: !!bl.userPicked, nachhol: !!bl.nachhol,
     /* Aus einer Kurzeinheit (20 Min) — dort stehen weniger Saetze und eine
        Minute Blockpause. */
     kurz: !!RUN.plan.kurzMax,
     saetzeGeplant: curSets(),
-    sets: RUN.sets.slice()
-  }, blockModus(bl)));
-  /* Der Block ist abgehakt: Saetze leeren, Zaehler zurueck, einen weiter.
-     Dieser Dreisatz ist der Stand, den laufFortsetzen() wiederfindet. */
-  RUN.sets = []; RUN.i = 0; RUN.b++;
-  laufSichern();
-  return true;
+    sets
+  }, blockModus(bl), mehr);
+  const k = sets.findIndex(x => x.painWert >= SCHMERZ_STOPP);
+  if(k >= 0) e.rueckstufung = Object.assign({satz: (mehr.satzAb || 0) + k + 1, wert: sets[k].painWert},
+                                            sets[k].painSeite ? {seite: sets[k].painSeite} : {});
+  return e;
 }
 /* Wird die ERSTE Seite ausgelassen, ohne dass ein Satz steht, ist die zweite
    Seite nicht mehr vorermuedet, sondern frisch. Ohne diese Nachfuehrung liefe
@@ -9165,7 +9484,13 @@ function finishWorkout(){
       S.sessions.push(ses);
       gespeichert.push({ses, msgs: regelnAnwenden(ses)});
     }
-    /* Schmerzwert 7+ stuft jede im Workout belastete Kurve eine Stufe zurueck. */
+    /* Schmerzwert 7+ stuft jede im Workout belastete Kurve eine Stufe zurueck —
+       ausser denen, die schon in der Satzpause zurueckgegangen sind. */
+    const schon = new Set();
+    for(const {ses} of gespeichert) if(ses.rueckstufung) for(const k of regelKeys(ses)){
+      const sr = ses.rueckstufung.seite;
+      if(!sr || sr === "beide" || sr === String(k).split("|")[1]) schon.add(k);
+    }
     if(sel >= 7) for(const {ses} of gespeichert){
       /* Beim beidbeinigen Halt beide Leitern — es war EINE Belastung fuer
          beide Seiten. */
@@ -9175,7 +9500,7 @@ function finishWorkout(){
       /* Ist bei der Fersenbruecke ein Bein angehakt, geht das gesunde nicht
          auf die beidbeinige Rampe zurueck (stufenBoden). */
       const boden = stufenBoden(ses.exercise);
-      for(const k of regelKeys(ses)) if(standOf(k) > boden){
+      for(const k of regelKeys(ses)) if(standOf(k) > boden && !schon.has(k)){
         const sk = String(k).split("|")[1];
         const tiefer = ohneGeraete()
           ? verfuegbareStufen(ses.exercise, sk).filter(x => x.i < standOf(k) && x.i >= boden).pop() : null;
@@ -9190,7 +9515,7 @@ function finishWorkout(){
          Koerpersignal, kein Modus-Signal. */
       const heim = ses.modus && S.standMitGeraeten && S.standMitGeraeten.levels;
       if(heim) for(const k of regelKeys(ses))
-        if(Number.isFinite(heim[k]) && heim[k] > 0)
+        if(Number.isFinite(heim[k]) && heim[k] > 0 && !schon.has(k))
           heim[k] = sprosseUnter(ses.exercise, heim[k], String(k).split("|")[1]);
     }
     S.plan = null; S.planDay = null; ignoreRest = false; RUN = null; S.lauf = null; save();
@@ -9206,26 +9531,32 @@ function showWorkoutResult(gespeichert, painEnd){
         .toLocaleDateString("de-DE", {weekday:"long", day:"numeric", month:"long"});
   show("home");
   el("homeTitle").textContent = "Workout gespeichert";
-  el("homeSub").textContent = `${gespeichert.length} Block${
-    gespeichert.length===1?"":"e"} · Schmerzwert ${painEnd}`;
+  /* Der Teil nach einer Rueckstufung ist kein eigener Block. */
+  const bloecke = gespeichert.filter(x => !x.ses.nachSchmerz).length;
+  el("homeSub").textContent = `${anzahl(bloecke, "Block", "Blöcke")} · Schmerzwert ${painEnd}`;
   el("homeBody").innerHTML = `
     ${gespeichert.map(({ses})=>`
       <div class="card">
         <h3 style="margin-top:0">${labelOf(ses.exercise, ses.side, ses.level)}
-          ${ses.fresh === false ? '<span class="pill pRest">vorermüdet</span>' : ''}</h3>
-        <p class="tiny" style="margin:0 0 8px">${ses.levelName} · ${zName(ses.zone)}${
+          ${ses.nachSchmerz ? '<span class="pill pRest">eine Stufe leichter</span>'
+            : ses.fresh === false ? '<span class="pill pRest">vorermüdet</span>' : ''}</h3>
+        <p class="tiny" style="margin:0 0 8px">${ses.levelName}${
+          /* Die Zone gehoert dem gemessenen Teil, nicht dem nach der Rueckstufung. */
+          ses.nachSchmerz ? "" : ` · ${zName(ses.zone)}${
           (ses.zoneGezaehlt || ses.workoutZone) && (ses.zoneGezaehlt || ses.workoutZone) !== ses.zone
-            ? ` <span class="tiny">(geplant ${zName(ses.zoneGezaehlt || ses.workoutZone)} — zählt, wo er gelandet ist)</span>` : ""}${
+            ? ` <span class="tiny">(geplant ${zName(ses.zoneGezaehlt || ses.workoutZone)} — zählt, wo er gelandet ist)</span>` : ""}`}${
           ses.modus ? ` · ${MODUS_NAME[ses.modus]}` : ""}</p>
         <table><thead><tr><th>Satz</th><th class="n">gehalten</th><th class="n">Richtwert</th><th>Ende</th></tr></thead>
-        <tbody>${ses.sets.map((x,i)=>`<tr><td>${i+1}</td><td class="n">${fmt(x.time)}</td>
+        <tbody>${ses.sets.map((x,i)=>`<tr><td>${(ses.satzAb||0)+i+1}</td><td class="n">${fmt(x.time)}</td>
           <td class="n">${fmt(x.target)}</td>
-          <td>${x.pain?'<span style="color:var(--bad)">Schmerz</span>':"Ermüdung"}</td></tr>`).join("")}
+          <td>${x.pain?`<span style="color:var(--bad)">Schmerz${x.painWert ? ` ${x.painWert}/10` : ""}</span>`:"Ermüdung"}</td></tr>`).join("")}
         </tbody></table>
-        ${ses.sets.length>1 ? `<p class="tiny" style="margin-top:9px">Abfall Satz 1 → 2:
+        ${ses.sets.length>1 && !ses.nachSchmerz ? `<p class="tiny" style="margin-top:9px">Abfall Satz 1 → 2:
           <b>${Math.round(ses.sets[1].time/ses.sets[0].time*100)} %</b> — beschreibt, wie schnell
           sich dein Vorrat leert.</p>`:""}
-        ${ses.fresh === false ? `<p class="tiny">Nicht in der Kurve. Diese Seite war als hinteres
+        ${ses.nachSchmerz ? `<p class="tiny">Nach dem Schmerz eine Stufe leichter weitertrainiert –
+          zählt nicht für die Kurve.</p>`
+          : ses.fresh === false ? `<p class="tiny">Nicht in der Kurve. Diese Seite war als hinteres
           Bein vorbelastet — der Wert misst die Ermüdung mit, nicht die Belastbarkeit.</p>` : ""}
       </div>`).join("")}
     ${alle.map(m=>`<div class="note ${m.t==="ok"?"":m.t}">${m.x}</div>`).join("")}
@@ -9741,13 +10072,18 @@ function historySVG(pts){
    stufe_nr des B-Stance wechselt von 6 auf 10. Die Fersenbruecke heisst auf
    jeder zweiten Sprosse "Langer Hebel 170°" statt "Knie 135°"; Messungen
    der alten Sprossen tragen entfallen=1 und behalten ihre Last. */
-const EXPORT_SCHEMA = 10;
+/* 11 (06.11.2026, Build a): Zwei Spalten am Ende. schmerz_wert ist der
+   Schmerz 4–10 aus der Satzpause nach einem Abbruch wegen Schmerz, ohne
+   Eingabe 4; leer ohne Schmerz und bei Saetzen von vorher. nach_rueckstufung=1
+   markiert die Saetze, die nach einem Wert ab 5 auf der leichteren Stufe
+   liefen; satz zaehlt dort ueber den ganzen Block weiter. */
+const EXPORT_SCHEMA = 11;
 const EXPORT_SPALTEN = [
   "datum","workout","uebung","uebung_name","seite","variante","stufe_nr",
   "zusatz_kg","zusatz_seite","zusatz_position","koerpergewicht_kg","last","satz","saetze_geplant","sekunden","ziel_sekunden",
   "schmerz","frisch","in_kurve","zone_geplant","zone_erreicht",
   "selbst_gewaehlt","nachgetragen","fassung","zone_gezaehlt","modus","kurzeinheit",
-  "schmerz_ende","aus_kurve_grund","unterlage_cm"
+  "schmerz_ende","aus_kurve_grund","unterlage_cm","schmerz_wert","nach_rueckstufung"
 ];
 function messreihen(){
   const zeilen = [];
@@ -9775,7 +10111,7 @@ function messreihen(){
         zusatz_position: ses.lage || "",
         koerpergewicht_kg: ses.bw || "",
         last: ses.load,
-        satz: i + 1,
+        satz: (ses.satzAb || 0) + i + 1,
         /* Wie viele Saetze waren vorgesehen? Eine Reihe aus einem Satz kann ein
            geplanter Einzelsatz sein oder ein abgebrochener Fuenfer — ohne diese
            Spalte ist das im Nachhinein nicht mehr zu unterscheiden. */
@@ -9806,6 +10142,8 @@ function messreihen(){
         /* Hoehe der Auflage unter dem hinteren Fuss (Bank oder Sofa), aus der
            die Last dieser Sprosse kommt. Leer bei allen anderen. */
         unterlage_cm: ses.bankCm > 0 ? ses.bankCm : "",
+        schmerz_wert: satz.painWert || "",
+        nach_rueckstufung: ses.nachSchmerz ? 1 : 0,
         /* Nur im JSON: Die Sprosse dieser Messung gibt es nicht mehr (die
            Ringe der Fersenbruecke, Build 2026-10-15 a). stufe_nr zeigt dann
            die Sprosse, auf die sie umgezogen ist; Name und Last stimmen. */
@@ -9851,7 +10189,10 @@ function messreihenJSON(){
            + "hinteren Fuss, nur auf der Sprosse, deren Last aus dieser Hoehe kommt. "
            + "kniebeugung ist die Antwort auf den Selbsttest (normal, schmerz, tiefe; null = "
            + "nicht beantwortet); schmerz und tiefe geben dem Ausfallschritt Gewicht schon "
-           + "ab dem Stepper.",
+           + "ab dem Stepper. schmerz_wert ist der Schmerz (4-10) aus der Satzpause nach "
+           + "einem Abbruch wegen Schmerz, ohne Eingabe 4; leer ohne Schmerz und vor Build "
+           + "2026-11-06 a. nach_rueckstufung=1: Satz auf der leichteren Stufe nach einem "
+           + "Wert ab 5, nicht in der Kurve; satz zaehlt ueber den ganzen Block weiter.",
     rechnung: "last = grundlast_der_stufe * (1 + extra_k * zusatz_kg / koerpergewicht_kg). "
             + "extra_k steht je Uebung dabei — ohne den Faktor laesst sich die Spalte last "
             + "nicht nachrechnen. Ist zusatz_kg NEGATIV (zusatz_seite=innen), gilt "
@@ -10680,7 +11021,7 @@ function renderHistory(){
         <th class="n">Ziel</th><th class="n">Ampel</th></tr></thead>
       <tbody>${mine.slice().reverse().map(s=>`<tr${(s.fresh===false||s.ausKurve)?' style="opacity:.55"':""}>
         <td>${new Date(s.date).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"})}</td>
-        <td class="tiny">${s.levelName}${s.modus && MODUS_NAME[s.modus]?`<br><span class="tiny">${MODUS_NAME[s.modus]}</span>`:""}${s.fresh===false?'<br><span class="tiny">vorermüdet</span>':""}${s.ausKurve?`<br><span class="tiny">${s.ausKurve}</span>`:""}</td>
+        <td class="tiny">${s.levelName}${s.modus && MODUS_NAME[s.modus]?`<br><span class="tiny">${MODUS_NAME[s.modus]}</span>`:""}${s.nachSchmerz?'<br><span class="tiny">nach Schmerz leichter</span>':s.fresh===false?'<br><span class="tiny">vorermüdet</span>':""}${s.ausKurve?`<br><span class="tiny">${s.ausKurve}</span>`:""}</td>
         <td class="n">${s.sets[0]?fmt(s.sets[0].time):"–"}${s.sets[0]&&s.sets[0].pain
           ?' <span style="color:var(--bad)">!</span>':""}${s.sets[0]&&s.sets[0].time
             &&!messbar(s.sets[0].time)?' <span style="color:var(--warn)">×</span>':""}</td>

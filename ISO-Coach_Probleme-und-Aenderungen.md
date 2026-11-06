@@ -5321,11 +5321,143 @@ Luke, 05.11., nach Build 2026-11-05 c: „die neue ansicht sieht super aus kanns
 - `formSVG` neu geschrieben, mit gleicher Geometrie. `historySVG` unverändert.
 - Gespeichert wird wie bisher. `EX_VERSION` bleibt 36, Export Schema 10.
 
+### P107 · Schmerz-Balken am Timer und Schmerzskala in der Satzpause
+
+Auftrag vom 06.11.: Wer hält, jagt den Timer und rutscht über die Schmerzgrenze. Während der Übung
+soll der Schmerz bei höchstens 4 von 10 bleiben. Dabei kein Balken, der aus der letzten Einheit einen
+Schmerz vorhersagt und „in Richtung Rot steigt“: Erwartung kann Schmerz verstärken. Die App zeigt nur
+Fakten (die letzte Abbruchzeit) und echte Eingaben.
+
+Luke dazu: „Satz beendet wird wegen Schmerz, dann wird davon ausgegangen, dass der Satz mit 4 von 10 Schmerzpunkten beendet wurde. Du kannst aber nach dem Satz in der Pause auch nochmal die Schmerzskala anzeigen, ja, dass der Kunde die Möglichkeit hat, auch einen höheren Schmerz anzukreuzen, zum Beispiel 7 oder 8. Dann kann die App sofort eine Rückstufung der Schwierigkeit empfehlen. Halt zum Beispiel auf eine leichtere Sprosse, wenn das möglich ist.“
+Die Schwelle ist „Ab 5“, und heute heißt das: „Sofort auf leichtere sprosse zurück stufen“.
+
+**Gebaut in 2026-11-06 a.**
+
+- **Der Balken links.** Er erscheint nur in dem Satz, der beim letzten Training dieser Übung und
+  Seite mit „Schmerz“ endete. Einmal ohne Schmerz, und er ist weg. Nach Ermüdung erscheint nichts.
+  Er steht senkrecht am linken Rand, oben ein Smiley und die Sekunden, und füllt sich von unten weiß.
+  Er steht schon im Vorlauf da.
+- **Wo er voll ist:** gehaltene Zeit geteilt durch die Vorgabe vom letzten Mal, mal die heutige
+  Vorgabe desselben Satzes, gerundet. Letztes Mal 100 von 120 s, heute 154 s Vorgabe: voll bei
+  128 s. Das gilt auf jeder Sprosse. Die Regel aus dem Auftrag „nach dem Hochstufen keine alte
+  Markierung übernehmen“ ist damit erledigt: Der Punkt wandert mit der Vorgabe.
+- **Die Zeile unter der Uhr:** erst „Letztes Mal Abbruch wegen Schmerz“, 8 s vor dem Punkt „Achte
+  jetzt besonders auf deinen Schmerz.“ mit einem eigenen tiefen Doppelton. Liegt der Punkt unter
+  8 s, steht der Hinweis von Anfang an da, und der Ton kommt kurz nach dem Startton.
+- **Ist er voll,** werden Balken und Smiley grün: „Weiter als letztes Mal – nur weiter bis höchstens
+  4.“ Kein Abbruch und kein Rot. Uhr, Zeitbalken, Fortschrittsziel und Töne bleiben, wie sie waren.
+- **Die Skala in der Satzpause.** Nach „Schmerz“ fragt die Pause „Wie stark war der Schmerz?“ mit
+  4 bis 10. Die 4 ist vorgewählt und gelb, 5 bis 10 sind rot. Wer nichts tippt, bleibt bei 4. Beim
+  beidbeinigen Halt steht die Seitenfrage wie bisher darüber.
+- **Ab 5 geht es sofort leichter weiter.** Die restlichen Sätze von heute laufen eine Sprosse
+  leichter. Gibt es keine leichtere Sprosse, geht Gewicht weg. Unter der Skala steht, wohin: „Über 4
+  – ab jetzt eine Stufe leichter: „Beidbeinig · Langer Hebel 170° · Faszienrolle“.“ Die Pause läuft
+  weiter, der erste Satz auf der neuen Stufe beginnt mit dem Vorlauf zum Umbauen. Seine Vorgabe kommt
+  aus der Kurve der leichteren Stufe, im Test 63 s statt 51 s. Zurück auf 4 nimmt den Wechsel zurück.
+- **Geht es nicht leichter, oder tut auch die leichtere über 4 weh,** ist die Übung für heute
+  fertig: „Über 4, und leichter geht es nicht. Die Übung ist für heute fertig.“ bzw. „Auch die
+  leichtere Stufe geht über 4. Die Übung ist für heute fertig.“ Zurück auf 4 lässt die Pause dort
+  weiterlaufen, wo sie stand.
+- **Im letzten Satz** merkt ein Wert ab 5 es nur vor: „Über 4 – beim nächsten Mal eine Stufe
+  leichter: „…“.“
+- **Satz verwerfen** nimmt Wechsel und Ende mit, der Balken kommt wieder.
+- **Das nächste Mal:** eine Stufe zurück, gezählt von der Sprosse, auf der es wehgetan hat, oder vom
+  Stand, wenn der tiefer liegt. Tut auch die leichtere über 4 weh, sind es zwei Stufen. Die Ampel ab
+  7 am Workout-Ende stuft eine Übung, die schon in der Pause zurückging, nicht noch einmal zurück.
+  Beim beidbeinigen Halt geht nur die Leiter der genannten Seite zurück. Die Fersenbrücke fürs innere
+  Knie bleibt auf ihrer eigenen Leiter. Gibt es nichts Leichteres, sagt die App es: „… keine leichtere
+  Stufe mehr. Hier ist die App am Ende ihrer Mittel: Lass die Übung weg, bis es besser ist, oder lass
+  die Beschwerden abklären.“
+- **Gespeichert werden zwei Blöcke:** die Sätze bis zum Schmerz auf der alten Stufe, die danach als
+  eigener Block mit „eine Stufe leichter“ und dem Satz „Nach dem Schmerz eine Stufe leichter
+  weitertrainiert – zählt nicht für die Kurve.“ Die Satznummern laufen über beide weiter. Im
+  Ergebnis steht „Schmerz 7/10“ statt nur „Schmerz“, im Verlauf „nach Schmerz leichter“.
+
+**Stufe 2: entschieden, gebaut nach der Beta, bis 12.12.**
+
+- **Während des Haltens große Tasten + und −** für den Schmerz von 0 bis 10, nur als Möglichkeit.
+  Luke: „ist während einer Übung manchmal auch umständlich. Deswegen nur als Option lassen.“
+- **Farben an der Grenze 4:** 0 bis 3 grün, 4 gelb, ab 5 rot mit „Stopp – Abbruch wegen Schmerz“.
+- **Der Knopf „Schmerz“** neben „Satz beenden“ bleibt.
+- **Die Frage am Workout-Ende** „Wie stark war der Schmerz heute?“ fällt weg. Die Rückstufung ab 7
+  und der Hinweis nach dreimal 6 oder mehr rechnen dann aus den Werten im Satz.
+- **Ohne Eingabe** zählt ein Abbruch wegen Schmerz weiter als 4.
+
+**Der Preis.**
+
+- **Der Bildschirm rückt 46 px nach rechts,** sobald ein Satz der Übung den Balken hat, und zwar für
+  den ganzen Block. Sonst spränge er von Satz zu Satz.
+- **Die Sätze auf der leichteren Stufe zählen nicht für die Kurve,** weder für die alte noch für die
+  neue Sprosse. Sie sind vorermüdet.
+- **Bis Stufe 2 fragt die App zweimal:** in der Pause nach dem Satz und am Workout-Ende nach dem Tag.
+- **Auf dem Handy nicht geprüft,** auch nicht, ob der Doppelton bei stummem iPhone kommt.
+
+**Für den Nachbau:**
+
+- Konstanten `SCHMERZ_ANNAHME` 4, `SCHMERZ_STOPP` 5, `SCHMERZ_VORWARN` 8 s. Neuer Ton `cueAchtung`:
+  zweimal `beep(330,150,.24)`.
+- `schmerzVorlage(bl)` holt die Sätze des letzten Trainings dieser Übung und Seite, geteilte Blöcke
+  über `satzAb` zusammengesetzt. `schmerzPunkt(k, ziel)` rechnet den Punkt, `balkenZeigen`,
+  `balkenAus` und `schmerzBalkenTick(s)` zeichnen. HTML `#tSchmerzBalken`, `#tSchmerzZeile`,
+  `#tSchmerzWahl`; `#timerScreen.mitBalken` rückt ein.
+- Satz: `painWert` 4 bis 10. Laufender Block: `schmerzWechsel {ab, level, extra, target}` und
+  `schmerzEnde`. Dazu `schmerzWahl`, `schmerzFolge`, `schmerzWert`, `wechselZiel`,
+  `varianteNachziehen`, `wechselZuruecknehmen`, `schmerzVerworfen`. `pauseLaufen(rest)` kann mit
+  Restsekunden weiterlaufen.
+- `leichtereVariante(ex, level, kg, side)`: zuerst die Sprosse, dann Gewicht. Beim beidbeinigen Halt
+  nur beidbeinige Sprossen, bei der Fersenbrücke fürs innere Knie deren eigene Leiter.
+- `blockSichern` teilt in zwei Einträge, der zweite mit `fresh: false`, `nachSchmerz`, `satzAb`.
+  `blockEintrag` setzt `rueckstufung {satz, wert, seite}`. `applyRules` und `knieRegeln` stufen
+  daraus zurück, `regelnAnwenden` reicht sie beim beidbeinigen Halt nur an die genannte Seite.
+  `nachSchmerz` ohne `rueckstufung` bekommt keine Regel. `finishWorkout` lässt beim Schmerzwert ab 7
+  aus, was schon zurückging.
+- Export Schema 11 mit den Spalten `schmerz_wert` und `nach_rueckstufung`. `EX_VERSION` bleibt 36.
+- Nebenbei: „2 Blocke“ im Ergebnis heißt jetzt „2 Blöcke“.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-11-06 a — Schmerz-Balken am Timer und Schmerzskala in der Satzpause
+
+**Auftrag.** Schmerz-Feedback während der Übung, ohne Vorhersage: nur die letzte Abbruchzeit und
+echte Eingaben. Dazu Luke: „Satz beendet wird wegen Schmerz, dann wird davon ausgegangen, dass der Satz mit 4 von 10 Schmerzpunkten beendet wurde. Du kannst aber nach dem Satz in der Pause auch nochmal die Schmerzskala anzeigen, ja, dass der Kunde die Möglichkeit hat, auch einen höheren Schmerz anzukreuzen, zum Beispiel 7 oder 8. Dann kann die App sofort eine Rückstufung der Schwierigkeit empfehlen. Halt zum Beispiel auf eine leichtere Sprosse, wenn das möglich ist.“ Schwelle „Ab 5“, heute „Sofort auf leichtere sprosse
+zurück stufen“. (P107)
+
+**Gebaut.**
+
+- Balken links im Satz, der letztes Mal mit „Schmerz“ endete: voll bei gehalten durch Vorgabe mal
+  heutiger Vorgabe. 8 s vorher Hinweis und tiefer Doppelton, voll grün mit „Weiter als letztes Mal –
+  nur weiter bis höchstens 4.“
+- Skala 4 bis 10 in der Satzpause nach „Schmerz“, 4 vorgewählt. Ab 5 laufen die restlichen Sätze eine
+  Stufe leichter, und das nächste Mal beginnt eine Stufe tiefer. Geht es nicht leichter, ist die
+  Übung für heute fertig.
+- Die Sätze danach als eigener Block, nicht in der Kurve. Ergebnis mit „Schmerz 7/10“.
+- Export Schema 11 (`schmerz_wert`, `nach_rueckstufung`). `EX_VERSION` bleibt 36.
+- Stufe 2 entschieden und im Papier festgehalten, gebaut nach der Beta.
+
+**Geprüft.** Headless Chrome bei 390 × 844, mit Lukes Export vom 16.10.
+
+- Ladeprobe `2026-11-06 a` über `2026-11-05 d`: 15 von 15 Prüfungen bestanden, 69 von 69 Sitzungen
+  direkt und über die vorige Fassung.
+- Ablauftest Training: 53 von 53.
+- Ablauftest Schmerz, 42 Prüfungen, alle bestanden:
+  - Balken bei 128 s (100 von 120 s mal 154 s), am linken Rand, mit Zeile, Füllung, Hinweis und
+    zwei Tönen, grün ohne Abbruch, unsichtbar in Pause und bei „Übung fertig“.
+  - Schmerz ohne Eingabe 4, Skala „4 5 6 7 8 9 10“ mit der 4 vorgewählt.
+  - 6 wechselt die Stufe (Vorgabe 63 s), 4 nimmt es zurück, Satz verwerfen ebenso, der Balken kommt
+    wieder.
+  - 7 führt in den Vorlauf, Satz 2 läuft auf der leichteren Sprosse, 8 dort beendet die Übung.
+  - 4 nach dem Ende lässt die Pause weiterlaufen. Nach dem Neuladen sind beide Teile gespeichert.
+  - Hip Hinge, letzter Satz mit 5: nur vorgemerkt, keine leichtere Stufe.
+  - Ampel 7 am Ende: Fersenbrücke von 15 auf 8, zwei Stufen unter der Sprosse, auf der es wehtat,
+    nicht drei. „2 Blöcke · Schmerzwert 7“, Satznummern im zweiten Teil weitergezählt.
+  - Vorlage fürs nächste Mal und Export mit Schmerzwert und Markierung. Keine Konsolenfehler.
+- Fotos an Luke: Balken, Hinweis, grün, Pause mit Skala, Wechsel bei 6, Vorlauf, Ende auf der
+  leichteren Stufe, letzter Satz, Ergebnis.
+- **Nicht geprüft:** auf dem Handy, und der Doppelton bei stummem iPhone.
 
 ### 2026-11-05 d — Alle Kurven im Aussehen der Trainingskurve
 

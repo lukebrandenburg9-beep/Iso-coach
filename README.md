@@ -142,7 +142,10 @@ Rechenlogik:
   „Schmerz“. Die Pause zeigt nur die Sekunden, alles andere liegt hinter *Aktionen*. Seit
   `2026-11-05 d` (P106) sehen alle Kurven so aus: die Karte vor der Übung in der Farbe der Zone, mit
   Achse und der Zeit über jedem Punkt, im Profil Kraftkurve und Formtrend mit blassem Raster, Zahlen
-  in Mono und einer Fläche unter der Linie.
+  in Mono und einer Fläche unter der Linie. Seit `2026-11-06 a` (P107) steht im Satz, der letztes
+  Mal mit „Schmerz“ endete, links ein Balken bis zur damaligen Abbruchzeit, umgerechnet auf die
+  heutige Vorgabe. 8 s vorher kommt „Achte jetzt besonders auf deinen Schmerz.“ mit eigenem Ton,
+  danach wird er grün. Er bricht nichts ab.
 - **Erholung:** Dieselbe Muskelgruppe **dreimal pro Woche**, jedes Energiesystem — also jede
   Zone — **einmal pro Woche**. Beides zusammen ist genau eine Rotation: drei Zonen, drei
   Einheiten, ein Mo/Mi/Fr-Rhythmus. Umgesetzt als zwei Schranken: mindestens zwei Tage zwischen
@@ -187,8 +190,8 @@ Rechenlogik:
   Raster der Übung vor, meist 2,5 kg.
 - **Progressionsregeln 1–4** über zwei Bahnen: Leiter und Zusatzgewicht. Am oberen Ende der
   Leiter kommt Gewicht dazu statt gar nichts, am unteren geht erst Gewicht weg, bevor die Stufe
-  fällt. Zweimal Schmerzabbruch stuft zurück — und wenn nichts Leichteres mehr da ist, sagt die
-  App das ausdrücklich, statt zu schweigen.
+  fällt. Zweimal Schmerzabbruch stuft zurück, ein Schmerz ab 5 in der Satzpause sofort — und wenn
+  nichts Leichteres mehr da ist, sagt die App das ausdrücklich, statt zu schweigen.
 - **Die Kurve gilt nur, wo gemessen wurde.** Sie merkt sich die kleinste und größte Last, aus der
   sie stammt. Außerhalb zeichnet das Profil gestrichelt und schreibt „außerhalb" statt einer Zahl
   — keine Vorhersage über Lasten, bei denen du nie warst.
@@ -201,7 +204,9 @@ Rechenlogik:
   auseinander, gibt es **keine Kurve**, sondern einen Verlauf der Haltezeit über die Wochen. Zwei
   zu eng beieinander liegende Lasten ergeben rechnerisch keine Kurve — sie ergeben eine, die
   perfekt aussieht und falsch ist.
-- **Schmerz** als zweiter Knopf im Satz plus ein Ampelwert am Sessionende.
+- **Schmerz** als zweiter Knopf im Satz. In der Pause danach die Skala 4 bis 10, ohne Eingabe gilt 4.
+  Ab 5 laufen die restlichen Sätze eine Stufe leichter, als eigener Block außerhalb der Kurve, und
+  das nächste Mal beginnt eine Stufe tiefer. Dazu ein Ampelwert am Sessionende.
 - **Sicherheitsregel:** dreimal in Folge Ampelwert 6 oder höher → Hinweis auf ärztliche Abklärung.
 - Red-Flag-Abfrage im Onboarding, Timer mit Tonsignalen, 20-Sekunden-Pausen, Export/Import.
 - **Selbsttest zur Kniebeugung im Onboarding**, freiwillig. Die Antwort sagt, ab welcher Sprosse der
