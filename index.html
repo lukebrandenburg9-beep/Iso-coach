@@ -1241,7 +1241,12 @@ const DEFAULT_EX = {
      "Faszienrolle" der normalen Bruecke bei Knie 90 Grad, also tragen sie
      dieselben Platzhalter (0,258 und 0,708) — eine Annahme statt zwei.
      Aendern sich die dort, hier mitziehen. Die Kurve bleibt eine eigene.
-     Der Kniewinkel ist vorlaeufig 90 Grad, bis Luke ihn festlegt. */
+     Der Kniewinkel ist vorlaeufig 90 Grad, bis Luke ihn festlegt.
+     Seit Build 2026-11-06 d heissen beide Sprossen auch wie dort (bis dahin
+     "Beidbeinig · Fersen auf der Rolle" und "Ferse auf der Rolle"). Luke,
+     06.11.2026, vor der Liste mit Knie-Haekchen: "sind hier knie gestreckt
+     170° oder knie gebeugt 90° gemeint" — der Name sagt es jetzt. Namen kommen
+     immer aus dem Build, alte Sitzungen behalten ihr Etikett (levelName). */
   bridgeKnie: {
     name:"Fersenbrücke fürs innere Knie", region:"Kniekehle innen", group:"bridge",
     sides:["links","rechts"], teilVon:"bridge", ohneGewicht:true,
@@ -1255,8 +1260,8 @@ const DEFAULT_EX = {
         +"zu Ende.",
     knieWinkelVorlaeufig:true,
     levels:[
-      {name:"Beidbeinig · Fersen auf der Rolle", load:0.258, beid:true, platzhalter:true, geraet:"rolle", block:"hochkant"},
-      {name:"Ferse auf der Rolle",               load:0.708, platzhalter:true, geraet:"rolle", block:"hochkant"}
+      {name:"Beidbeinig · Knie 90° · Faszienrolle", load:0.258, beid:true, platzhalter:true, geraet:"rolle", block:"hochkant"},
+      {name:"Knie 90° · Faszienrolle",              load:0.708, platzhalter:true, geraet:"rolle", block:"hochkant"}
     ]
   },
 
@@ -2294,7 +2299,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-11-06 c";
+const BUILD = "2026-11-06 d";
 const KEY = "isocoach.v1";
 const KEY_GERETTET = "isocoach.v1.gerettet";
 /* Laufende Sicherung (Build 2026-10-27 c, nach P100): der gespeicherte Stand,
@@ -5978,14 +5983,25 @@ function knieListeHTML(q, t){
   const aufPfad = q.exercise === pfad;
   const sd = q.side || (beidJetzt(pfad) ? null : seitenAktiv(pfad)[0]);
   const ki = aufPfad ? q.level : knieStufe(pfad, beidJetzt(pfad) ? null : sd);
-  const kn = (S.ex[pfad].levels[ki] || {}).name || S.ex[pfad].name;
+  const kL = S.ex[pfad].levels[ki] || {};
+  /* Hier stehen beidbeinige und einbeinige Sprossen gemischt, und ueber der
+     Liste steht keine Seite. Darum "Einbeinig" ausgeschrieben, nur in dieser
+     Liste: Auf der normalen Karte steht LINKS oder RECHTS darueber, und dort
+     gibt es nur einbeinige (Luke, 06.11.2026: "stufen bei denen unklar ist ob
+     sie einbeinig oder beidbeinig ausgeführt werden sollen"). */
+  const nm = L => L.beid ? L.name : `Einbeinig · ${L.name}`;
   const lv = S.ex[host].levels;
-  const alle = lv.map((L, i) => Object.assign({i}, L)).filter(L => stufeErlaubt(host, L.i));
+  /* Die Sprosse des Knie-Pfads ist dieselbe Uebung wie die gleichnamige der
+     normalen Leiter. Sie steht nur einmal da, oben — ausser die gleichnamige
+     ist gerade auf der normalen Leiter gewaehlt, sonst fehlte die Wahl. */
+  const alle = lv.map((L, i) => Object.assign({i}, L)).filter(L => stufeErlaubt(host, L.i)
+    && (L.name !== kL.name || (!aufPfad && L.i === q.level)));
   return `<select data-t="${t}" data-a="kniestufe" aria-label="Variante">
-    <optgroup label="Mediales Knie"><option value="knie"${aufPfad ? " selected" : ""}>${kn}${
+    <optgroup label="Mediales Knie"><option value="knie"${aufPfad ? " selected" : ""}>${
+      kL.name ? nm(kL) : S.ex[pfad].name}${
       sprosseVorlaeufig(pfad, ki) ? VORLAEUFIG_KURZ : ""}</option></optgroup>
     <optgroup label="Alle Sprossen">${alle.map(L => `<option value="${L.i}"${
-      !aufPfad && L.i === q.level ? " selected" : ""}>${L.name}${
+      !aufPfad && L.i === q.level ? " selected" : ""}>${nm(L)}${
       sprosseVorlaeufig(host, L.i) ? VORLAEUFIG_KURZ : ""}</option>`).join("")}</optgroup>
   </select>`;
 }

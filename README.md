@@ -361,7 +361,8 @@ App wählt vor.
 **Der Pfad fürs innere Knie.** Auf der Karte der Fersenbrücke steht je Bein ein Häkchen
 „Probleme mediales Knie / Baker-Zyste", dieselben Häkchen stehen unter *Einstellungen*. Ein angehaktes Bein
 bekommt eine eigene Leiter auf der Faszienrolle mit eigener Kurve. Sie hat zwei Sprossen, beide mit
-der Ferse auf der Rolle: erst beidbeinig, dann einbeinig. Vorfuß und Fußstellung sind seit dem 16.10.
+Knie 90° auf der Faszienrolle: erst „Beidbeinig · Knie 90° · Faszienrolle“, dann „Knie 90° ·
+Faszienrolle“. Vorfuß und Fußstellung sind seit dem 16.10.
 raus (P83). Der Vorfuß geht auf die Wade, und die Fußstellung macht in der Brücke keinen Unterschied.
 Weiter geht es nach zwei Halten in Folge ohne Schmerz, zurück nach zwei Schmerzabbrüchen in Folge.
 Solange der Pfad beidbeinig läuft, ist das gesunde Bein dort mit drin und bekommt keinen eigenen
@@ -370,7 +371,8 @@ Trainingsblock. Ohne Faszienrolle wird das angehakte Bein nicht trainiert. Der K
 Berührungsregel. Mit Häkchen hat die Fersenbrücke seit Build `2026-11-06 c` eine Liste: oben
 „Mediales Knie“ mit der Sprosse des Pfads, darunter „Alle Sprossen“ der normalen Leiter. Die Wahl
 gilt für heute. Ohne Schmerz steht das angehakte Bein danach auf der gehaltenen Sprosse, der Pfad
-bleibt, wo er war (P109).
+bleibt, wo er war (P109). In dieser Liste trägt jede Zeile „Beidbeinig“ oder „Einbeinig“, und die
+Sprosse des Pfads steht nur oben (P110).
 
 Bei der **Hyperextension** beginnt die Leiter seit Build `2026-10-23 d` am **Gurt im Türrahmen**
 (Papier P97). Der Türanker klemmt oben in der Zarge, die Schlaufe liegt vorn knapp unter den

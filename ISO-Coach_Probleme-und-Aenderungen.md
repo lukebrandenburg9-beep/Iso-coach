@@ -5530,11 +5530,86 @@ Fersenbrücke fehlte deshalb ganz. Auf die Frage, welche Sprossen in die Liste g
   `knieBeine` und kam kein Schmerz, setzt sie `S.levels` auf die gehaltene Sprosse. `knieBeine`
   geht nicht in den Export. `EX_VERSION` bleibt 36, Export Schema 11.
 
+### P110 · Knie-Liste aufgeräumt: Kniewinkel im Namen, einbeinig ausgeschrieben
+
+Auftrag vom 06.11., mit vier Fotos der Liste aus Build c: „oben steht ferse auf der faszienrolle beidbeinig --> sind hier knie gestreckt 170° oder knie gebeugt 90° gemeint, dazu ergeben. Dazu gibt es unten stufen bei denen unklar ist ob sie einbeinig oder beidbeinig ausgeführt werden sollen. Räum das auf und korrigiere das“. Drei Mängel in der Liste der
+Fersenbrücke mit Knie-Häkchen (P109):
+
+- Oben unter „Mediales Knie“ stand „Beidbeinig · Fersen auf der Rolle“, ohne Kniewinkel.
+- Unter „Alle Sprossen“ trugen nur die beidbeinigen Sprossen einen Vorsatz. Dass eine Zeile ohne
+  Vorsatz einbeinig ist, musste man wissen.
+- Dieselbe Übung stand zweimal da: oben als Sprosse des Knie-Pfads, unten als „Beidbeinig · Knie 90° ·
+  Faszienrolle“ der normalen Leiter.
+
+Rückfragen: Wo soll „Einbeinig“ stehen? Luke: „Nur in der Knie-Liste (empfohlen)“. Was passiert mit der doppelten
+Sprosse? Luke: „Nur einmal zeigen (empfohlen)“.
+
+**Gebaut in 2026-11-06 d.**
+
+- **Die Sprossen des Knie-Pfads heißen wie auf der normalen Leiter:** „Beidbeinig · Knie 90° ·
+  Faszienrolle“ und „Knie 90° · Faszienrolle“. Gemeint ist das gebeugte Knie. Der Winkel bleibt
+  vorläufig, bis Luke ihn festlegt; die Karte zeigt weiter rot „Kniewinkel vorläufig 90°“.
+- **In der Knie-Liste sagt jede Zeile, wie sie läuft:** „Beidbeinig · …“ oder „Einbeinig · …“, oben
+  unter „Mediales Knie“ wie unten unter „Alle Sprossen“.
+- **Dieselbe Übung steht nur einmal da,** oben unter „Mediales Knie“. Unter „Alle Sprossen“ fehlt die
+  gleichnamige Sprosse. Läuft der Pfad einbeinig, fehlt unten „Knie 90° · Faszienrolle“, und die
+  beidbeinige Rolle bleibt wählbar. Ist die gleichnamige Sprosse heute schon auf der normalen Leiter
+  gewählt, bleibt sie unten stehen, damit die Wahl sichtbar ist.
+- **Unverändert:** die normale Liste der Fersenbrücke und die des gesunden Beins (unter „Links“ oder
+  „Rechts“ stehen nur einbeinige Sprossen, ohne Vorsatz), Verlauf und Export.
+
+**Der Preis.**
+
+- **Alte Sitzungen behalten die alten Namen** „Beidbeinig · Fersen auf der Rolle“ und „Ferse auf der
+  Rolle“, im Verlauf wie im Export. Neue Sitzungen tragen die neuen. Last und Kurve sind dieselben.
+- **Auf der Karte des Knie-Pfads** steht bei einem einbeinigen Block „Links“ und darunter
+  „Einbeinig · Knie 90° · Faszienrolle“. Die Seite steht damit zweimal da.
+- **Selten doppelt:** Wurde heute in Build c die gleichnamige Sprosse der normalen Leiter gewählt,
+  steht sie bis morgen oben und unten.
+- **Auf dem Handy nicht geprüft.**
+
+**Für den Nachbau:**
+
+- Die Namen stehen in `DEFAULT_EX.bridgeKnie.levels`. Sprossennamen kommen beim Laden immer aus dem
+  Build, deshalb kein Sprung bei `EX_VERSION` (bleibt 36), Export Schema 11.
+- `knieListeHTML`: `nm(L)` setzt „Einbeinig · “ vor jede Sprosse ohne `beid`, in beiden Gruppen.
+  „Alle Sprossen“ lässt die Sprosse mit dem Namen der Pfad-Sprosse weg (`L.name !== kL.name`),
+  außer sie ist auf der normalen Leiter gerade gewählt (`!aufPfad && L.i === q.level`).
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-11-06 d — Knie-Liste aufgeräumt: Kniewinkel im Namen, einbeinig ausgeschrieben
+
+**Auftrag (Luke).** „oben steht ferse auf der faszienrolle beidbeinig --> sind hier knie gestreckt 170° oder knie gebeugt 90° gemeint, dazu ergeben. Dazu gibt es unten stufen bei denen unklar ist ob sie einbeinig oder beidbeinig ausgeführt werden sollen. Räum das auf und korrigiere das“ Gewählt: „Nur in der Knie-Liste (empfohlen)“ und „Nur einmal zeigen (empfohlen)“. (P110)
+
+**Gebaut.**
+
+- Die Sprossen des Knie-Pfads heißen „Beidbeinig · Knie 90° · Faszienrolle“ und „Knie 90° ·
+  Faszienrolle“, wie auf der normalen Leiter. Vorher „Beidbeinig · Fersen auf der Rolle“ und „Ferse
+  auf der Rolle“.
+- In der Knie-Liste trägt jede Zeile „Beidbeinig“ oder „Einbeinig“. Die normale Liste bleibt, wie sie
+  war.
+- Die gleichnamige Sprosse steht nur oben unter „Mediales Knie“, außer sie ist auf der normalen
+  Leiter gerade gewählt. `EX_VERSION` bleibt 36, Export Schema 11.
+
+**Geprüft.** Headless Chrome bei 390 × 844, mit Lukes Export vom 16.10.
+
+- Ladeprobe `2026-11-06 d` über `2026-11-06 c`: 15 von 15 Prüfungen bestanden, 69 von 69 Sitzungen
+  direkt und über die vorige Fassung.
+- Ablauftest Training: 53 von 53. Schmerz: 42 von 42. Löschen: 16 von 16.
+- Ablauftest Knie-Sprossen: 30 von 30. Neu darin:
+  - Die gleichnamige Sprosse steht nur oben, „Alle Sprossen“ hat 19 statt 20.
+  - Jede Zeile beginnt mit „Beidbeinig · “ oder „Einbeinig · “, keine steht doppelt.
+  - Oben steht „Beidbeinig · Knie 90° · Faszienrolle“.
+  - Knie-Pfad einbeinig: oben „Einbeinig · Knie 90° · Faszienrolle“, unten bleibt die beidbeinige
+    Rolle, die einbeinige fehlt. Die Liste des gesunden Beins hat keinen Vorsatz.
+  - Keine Konsolenfehler.
+- Fotos an Luke: Liste offen, Knie-Pfad einbeinig.
+- **Nicht geprüft:** auf dem Handy.
 
 ### 2026-11-06 c — Sprossenwahl an der Fersenbrücke mit Knie-Häkchen
 
