@@ -2294,7 +2294,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-11-06 b";
+const BUILD = "2026-11-06 c";
 const KEY = "isocoach.v1";
 const KEY_GERETTET = "isocoach.v1.gerettet";
 /* Laufende Sicherung (Build 2026-10-27 c, nach P100): der gespeicherte Stand,
@@ -3536,6 +3536,9 @@ function fresh(){
     vorBlock:null,
     /* Von Hand gesetzte Zone, gilt nur fuer einen Tag: {tag, zone}. */
     zoneWahl:null, ausfWahl:null,
+    /* Sprosse der normalen Leiter fuer ein angehaktes Knie, nur heute:
+       {tag, je: {links: Sprosse}}. Siehe knieWahlHeute. */
+    knieWahl:null,
     /* Zusatzgewicht in kg, je Kurve gemerkt — wie die Stufe. */
     extra:{}, bw:BW_DEFAULT,
     /* Wo das Gewicht sitzt, je Uebung: {laeufer:"rack"}. Siehe lageOf. */
@@ -3822,6 +3825,9 @@ function normalize(d){
                                              ? d.haltung : {},
                                     knieInnen: {links: !!(d.knieInnen && d.knieInnen.links),
                                                 rechts: !!(d.knieInnen && d.knieInnen.rechts)},
+                                    knieWahl: (d.knieWahl && d.knieWahl.je
+                                               && typeof d.knieWahl.je === "object")
+                                              ? d.knieWahl : null,
                                     lungeEng: (d.lungeEng && typeof d.lungeEng === "object")
                                               ? d.lungeEng : {},
                                     bankCm: (d.bankCm && typeof d.bankCm === "object")
@@ -5892,15 +5898,114 @@ function offeneSeiteRoh(ex){
    steht: EIN Baker-Halt, beide Fuesse gleich — das gesunde Bein bekommt keinen
    eigenen Block (Luke, 15.10.2026: „Nur der beidbeinige Halt"). Ab einbeinig:
    je angehaktem Bein ein Baker-Block, dazu das gesunde Bein einbeinig auf der
-   Hoehenleiter. Fehlt die Rolle, faellt der Baker-Teil weg. */
+   Hoehenleiter. Fehlt die Rolle, faellt der Baker-Teil weg.
+   Steht ein angehaktes Bein heute auf einer Sprosse der normalen Leiter
+   (knieWahlHeute), haelt es dort, mit stufe als der gewaehlten Sprosse. Ist
+   sie beidbeinig, ist es EIN Halt fuer beide Beine. beine = die angehakten
+   Beine, die dieser Halt traegt. */
 function fersenTeile(host){
   const pfad = kniePfad(host), k = pfad ? seitenAktiv(pfad) : [];
   if(!k.length) return planSeiten(host).map(sd => ({ex: host, side: sd}));
-  const gesund = einStufe(host) != null
-    ? seitenAktiv(host).map(sd => ({ex: host, side: sd})) : [];
-  if(!ausfuehrbar(pfad)) return gesund;
+  const wahl = knieWahlHeute(host);
+  let frei = k.filter(sd => wahl[sd] != null);
+  /* Der beidbeinige Baker-Halt ist einer fuer beide Fuesse: Geht ein
+     angehaktes Bein auf die normale Leiter, gehen die anderen mit. */
+  if(frei.length && frei.length < k.length && ausfuehrbar(pfad) && beidJetzt(pfad)){
+    k.forEach(sd => { if(wahl[sd] == null) wahl[sd] = wahl[frei[0]]; });
+    frei = k;
+  }
+  const beid = frei.find(sd => (S.ex[host].levels[wahl[sd]] || {}).beid);
+  if(beid) return [{ex: host, side: null, stufe: wahl[beid], beine: frei}];
+  const normal = S.ex[host].sides
+    .filter(sd => frei.includes(sd) || (!k.includes(sd) && einStufe(host) != null))
+    .map(sd => frei.includes(sd) ? {ex: host, side: sd, stufe: wahl[sd], beine: [sd]} : {ex: host, side: sd});
+  const bleibt = k.filter(sd => !frei.includes(sd));
+  if(!bleibt.length || !ausfuehrbar(pfad)) return normal;
   if(beidJetzt(pfad)) return [{ex: pfad, side: null}];
-  return k.map(sd => ({ex: pfad, side: sd})).concat(gesund);
+  return bleibt.map(sd => ({ex: pfad, side: sd})).concat(normal);
+}
+/* ── Sprossenwahl mit Knie-Haekchen (Build 2026-11-06 c) ──────────────
+   Luke, 06.11.2026: „ich kann bei der fersenbrücke keine sprossen anwählen
+   sobald ich probleme am medialen knie angekreuz habe". Entschieden: die
+   ganze normale Leiter. In der Liste steht oben die Sprosse des Baker-Pfads,
+   schon gewaehlt, darunter alle Sprossen der Fersenbruecke. Waehlt er eine
+   davon, haelt das angehakte Bein heute dort statt auf dem Baker-Pfad. Die
+   Wahl gilt fuer heute, wie Zonen- und Ausfuehrungswahl (Luke: „Ja, so
+   bauen"); morgen plant die App das Bein wieder auf dem Baker-Pfad, solange
+   der Haken steht. Auf dem Baker-Pfad selbst waehlt man weiter nicht — dort
+   steigt die App nach dem Schmerz. Ein gesetzter oder geloester Haken loescht
+   die Wahl ganz: Sonst zoege die Sprosse des einen Beins ein frisch
+   angehaktes mit auf die normale Leiter (der beidbeinige Halt ist einer). */
+function knieWahlHeute(host){
+  const w = S.knieWahl, pfad = kniePfad(host);
+  if(!w || w.tag !== today() || !w.je || !pfad) return {};
+  const aus = {};
+  for(const sd of seitenAktiv(pfad))
+    if(Number.isInteger(w.je[sd]) && (S.ex[host].levels || [])[w.je[sd]]) aus[sd] = w.je[sd];
+  return aus;
+}
+/* k = Sprosse der normalen Leiter, null = zurueck auf den Baker-Pfad. */
+function knieWahlSetzen(seiten, k){
+  const alt = S.knieWahl;
+  const w = (alt && alt.tag === today() && alt.je) ? alt : {tag: today(), je: {}};
+  for(const sd of seiten){ if(k == null) delete w.je[sd]; else w.je[sd] = k; }
+  S.knieWahl = Object.keys(w.je).length ? w : null;
+}
+/* Die Sprosse, auf der der Baker-Pfad dieses Bein heute halten liesse —
+   dieselbe Regel wie in knieBlock. */
+function knieStufe(ex, side){
+  const stufen = stufenFuerSeite(ex, side);
+  let level = standOf(leiterKey(ex, side));
+  if(stufen.length && !stufen.some(st => st.i === level)){
+    const drunter = stufen.filter(st => st.i <= level);
+    level = (drunter.length ? drunter[drunter.length - 1] : stufen[0]).i;
+  }
+  return level;
+}
+/* Bekommt dieser Block die lange Liste? Jeder Block eines angehakten Beins:
+   der des Baker-Pfads und der, der heute auf der normalen Leiter steht. Das
+   gesunde Bein behaelt seine Liste. */
+function knieListe(q){
+  const host = einheitVon(q.exercise), pfad = kniePfad(host);
+  if(!pfad || !kniePfadAn(host)) return false;
+  if(q.exercise === pfad) return true;
+  return q.exercise === host && (q.side == null || knieSeiten().includes(q.side));
+}
+/* Die Liste: oben der Baker-Pfad, darunter alle Sprossen der Fersenbruecke,
+   die heute gehen. */
+function knieListeHTML(q, t){
+  const host = einheitVon(q.exercise), pfad = kniePfad(host);
+  const aufPfad = q.exercise === pfad;
+  const sd = q.side || (beidJetzt(pfad) ? null : seitenAktiv(pfad)[0]);
+  const ki = aufPfad ? q.level : knieStufe(pfad, beidJetzt(pfad) ? null : sd);
+  const kn = (S.ex[pfad].levels[ki] || {}).name || S.ex[pfad].name;
+  const lv = S.ex[host].levels;
+  const alle = lv.map((L, i) => Object.assign({i}, L)).filter(L => stufeErlaubt(host, L.i));
+  return `<select data-t="${t}" data-a="kniestufe" aria-label="Variante">
+    <optgroup label="Mediales Knie"><option value="knie"${aufPfad ? " selected" : ""}>${kn}${
+      sprosseVorlaeufig(pfad, ki) ? VORLAEUFIG_KURZ : ""}</option></optgroup>
+    <optgroup label="Alle Sprossen">${alle.map(L => `<option value="${L.i}"${
+      !aufPfad && L.i === q.level ? " selected" : ""}>${L.name}${
+      sprosseVorlaeufig(host, L.i) ? VORLAEUFIG_KURZ : ""}</option>`).join("")}</optgroup>
+  </select>`;
+}
+/* Gewaehlt: fuer das Bein dieses Blocks, beim Halt ohne Seite fuer alle
+   angehakten Beine. Zurueck auf den beidbeinigen Baker-Pfad heisst: alle —
+   er ist ein Halt fuer beide Fuesse. */
+function knieStufeWaehlen(q, wert){
+  const host = einheitVon(q.exercise), pfad = kniePfad(host);
+  const zurueck = wert === "knie";
+  const seiten = (q.side && !(zurueck && beidJetzt(pfad))) ? [q.side] : seitenAktiv(pfad);
+  knieWahlSetzen(seiten, zurueck ? null : +wert);
+}
+/* Ein Halt aus fersenTeile als Block. Steht das Bein heute auf einer selbst
+   gewaehlten Sprosse, ueber stufeSetzen: Die Zielzeit zieht nach, und der
+   Block gilt als selbst gewaehlt. knieBeine geht mit in die Sitzung: Ohne
+   Schmerz steht das angehakte Bein danach auf dieser Sprosse (applyRules). */
+function teilBlock(t, zf, fresh, onb){
+  const b = mkBlock(t.ex, t.side, zf.zone, zf.target, fresh, onb, zf.fest);
+  if(t.stufe != null){ stufeSetzen(b, t.stufe); b.knieBeine = t.beine; }
+  return b;
 }
 /* Die Halte einer Uebung heute, fuer jede Uebung gleich gebaut. */
 function planTeile(ex){
@@ -6522,12 +6627,7 @@ function zielKg(ex, level, f, anker, target, side){
    Zielzeit kommt aus der eigenen Kurve, wo sie die Sprosse kennt, sonst aus
    der Zonenmitte. Kein Gewicht, keine Lueckenlogik. */
 function knieBlock(ex, side, zone, target, fresh, fest){
-  const stufen = stufenFuerSeite(ex, side);
-  let level = standOf(leiterKey(ex, side));
-  if(stufen.length && !stufen.some(st => st.i === level)){
-    const drunter = stufen.filter(st => st.i <= level);
-    level = (drunter.length ? drunter[drunter.length - 1] : stufen[0]).i;
-  }
+  const level = knieStufe(ex, side);
   const f = curFit(ex, side);
   const last = lastVon(ex, level, 0, side);
   const tt = (f && imBereich(f, last)) ? predictTime(f, last) : NaN;
@@ -6855,7 +6955,7 @@ function vorwahlAnwenden(blocks){
     if(!v) continue;
     /* Ueber stufeSetzen: Fehlt heute das Geraet, rastet die Sprosse auf
        die naechste ausfuehrbare, und die Zielzeit zieht nach. */
-    if(v.level != null && v.level !== b.level) stufeSetzen(b, v.level);
+    if(v.level != null && v.level !== b.level && !b.knieBeine) stufeSetzen(b, v.level);
     /* Das Gewicht nur auf seiner Sprosse — und nicht, wo es der Zone folgt
        (gewichtFolgt): Dort rechnet die App es nach einem Zonen-Tipp neu. */
     if(v.kg && v.kg.level === b.level && b.level >= extraAbOf(b.exercise)
@@ -6934,8 +7034,7 @@ function planWorkout(){
       const teile = fersenTeile(u.ex);
       if(teile.length > 1 && points(teile[1].ex, teile[1].side).length
                            < points(teile[0].ex, teile[0].side).length) teile.reverse();
-      teile.forEach((t, j) => (j ? B : A).push(
-        mkBlock(t.ex, t.side, zf.zone, zf.target, !j, zf.onboarding, zf.fest)));
+      teile.forEach((t, j) => (j ? B : A).push(teilBlock(t, zf, !j, zf.onboarding)));
       continue;
     }
     /* Nachholfall: Eine Seite wurde zuletzt gemessen, die andere nicht — dann
@@ -7207,6 +7306,13 @@ function applyRules(session, etikett){
      gesetzt oder geloest), rechnen die Regeln von der Partner-Sprosse. */
   if(Number.isFinite(S.levels[key]))
     S.levels[key] = aufStellung(session.exercise, S.levels[key], session.side);
+  /* Mit Knie-Haekchen heute selbst gewaehlt (Build 2026-11-06 c): Ohne
+     Schmerz steht das angehakte Bein danach auf der gehaltenen Sprosse, wie
+     auf dem Baker-Pfad. Das gesunde Bein beim beidbeinigen Halt nicht — es
+     hat sich die Sprosse nicht ausgesucht. Bei Schmerz die Regeln wie immer. */
+  if(session.side && (session.knieBeine || []).includes(session.side)
+     && !first.pain && lv[session.level])
+    S.levels[key] = session.level;
   const lvNow = () => standOf(key);
   /* Quer zur Leiter: beidbeinig gehalten, waehrend die Seite einbeinig steht,
      oder umgekehrt — etwa weil Luke die beidbeinigen Sprossen gezielt misst.
@@ -8564,8 +8670,8 @@ function knieBloeckeNeu(plan, i){
   const teile = planTeile(einheit);
   if(teile.length > 1 && points(teile[1].ex, teile[1].side).length
                        < points(teile[0].ex, teile[0].side).length) teile.reverse();
-  const neu = teile.slice(0, 1).map(t => mkBlock(t.ex, t.side, zf.zone, zf.target, true, onb, zf.fest));
-  teile.slice(1).forEach(t => nach.push(mkBlock(t.ex, t.side, zf.zone, zf.target, false, onb, zf.fest)));
+  const neu = teile.slice(0, 1).map(t => teilBlock(t, zf, true, onb));
+  teile.slice(1).forEach(t => nach.push(teilBlock(t, zf, false, onb)));
   plan.blocks = vor.concat(neu, nach);
   if(plan.kurzMax)
     kurzSaetze(plan.blocks.slice(i).filter(b => einheitVon(b.exercise) === einheit), plan.kurzMax);
@@ -8686,12 +8792,16 @@ function kgReglerBinden(kgr, setzen){
   r.oninput  = () => zeigen(klemm(r.value));
   r.onchange = () => neu(r.value);
 }
-function teilHTML(q, t, mitKurve){
+/* knie = die lange Liste fuer ein angehaktes Knie ist hier erlaubt (siehe
+   knieListe) — vor der Uebung nur, solange von der Fersenbruecke noch nichts
+   gelaufen ist, wie bei den Haekchen. */
+function teilHTML(q, t, mitKurve, knie){
   const ex = S.ex[q.exercise];
   const zE     = ZONES.find(z => z.id === (q.zoneErwartet || q.zone)) || ZONES[0];
   /* Die beidbeinige Sprosse gehoert auf einen Block OHNE Seite und dort
      allein — sonst stuende "beidbeinig" unter "links". */
   const stufen = stufenZurWahl(q.exercise, q.side);
+  const kl     = !!knie && knieListe(q);
   const eb     = extraBereich(q.exercise, q.level);
   const mitKg  = q.level >= extraAbOf(q.exercise) && eb.hi > eb.lo;
   /* Zwei Richtungen: die Seite kommt in die drei Knoepfe, der Stepper traegt
@@ -8722,7 +8832,7 @@ function teilHTML(q, t, mitKurve){
   q.satzModell = {a: sm.a, q: sm.q};
   return `<div class="teil">
     <div class="kopf">
-      <span>${q.side ? `<b>${seitenKopf(q)}</b>` : ""}${stufen.length < 2
+      <span>${q.side ? `<b>${seitenKopf(q)}</b>` : ""}${!kl && stufen.length < 2
         ? `${q.side ? " · " : ""}${mitKg ? sprossenName(q.exercise, q.level, q.extra)
                                          : stufenName(q.exercise, q.level, q.extra, q.side)}` : ""}</span>
       <span>${zE.id !== q.zone ? `<span class="pill ${zE.cls}">${zE.name}</span> ` : ""}<b
@@ -8732,7 +8842,7 @@ function teilHTML(q, t, mitKurve){
     ${(!mitKurve && q.side && hatStellung(q.exercise)) ? `<label class="chk"><input type="checkbox"
       data-t="${t}" data-eng${engGewaehlt(q.exercise, q.side) ? " checked" : ""}><span>${
       STELLUNG_ENG_TEXT}</span></label>` : ""}
-    ${stufen.length < 2 ? "" : `<select data-t="${t}" data-a="stufe" aria-label="Variante">${
+    ${kl ? knieListeHTML(q, t) : stufen.length < 2 ? "" : `<select data-t="${t}" data-a="stufe" aria-label="Variante">${
       stufen.map(st => `<option value="${st.i}"${st.i === q.level ? " selected" : ""}${
         st.gesperrt ? " disabled" : ""}>${st.name}${st.gesperrt ? PREMIUM_GESPERRT
         : (sprosseVorlaeufig(q.exercise, st.i) ? VORLAEUFIG_KURZ : "")}</option>`).join("")}</select>`}
@@ -8773,6 +8883,9 @@ function teilBinden(wurzel, teile, neu){
     const q = teile[+b.getAttribute("data-t")], a = b.getAttribute("data-a");
     if(a === "stufe"){ b.onchange = e => { wahlMerken(q, +e.target.value); stufeSetzen(q, +e.target.value);
                                            neu(q, "stufe"); }; return; }
+    /* Die lange Liste baut die Bloecke um — das macht neu mit art "knie". */
+    if(a === "kniestufe"){ b.onchange = e => { knieStufeWaehlen(q, e.target.value); neu(q, "knie"); };
+                           return; }
     b.onclick = () => {
       q.saetze = Math.max(SETS_MIN, Math.min(SETS_MAX, q.saetze + (a === "s+" ? 1 : -1)));
       neu(q, "saetze");
@@ -8924,7 +9037,7 @@ function blockIntro(i){
       ${awZeigen ? ausfWahlKarte(exKey, bl.zone, "", true) : ""}
       ${(haltungen(exKey) && !schonDran) ? haltungWahlKarte(exKey) : ""}
       ${knieZeigen ? knieWahlKarte() : ""}
-      ${teile.map((q, t) => teilHTML(q, t, true)).join("")}
+      ${teile.map((q, t) => teilHTML(q, t, true, knieZeigen)).join("")}
       ${uebungsbild(bl.exercise, bl.level)}
       <button class="primary" style="width:100%;margin-top:14px;padding:16px" id="ivGo">
         Übung starten</button>
@@ -8943,7 +9056,7 @@ function blockIntro(i){
      Die Seiten werden nicht mehr gleichgezogen — beide stehen untereinander
      auf derselben Karte, und jede hat ihre eigene Kurve. */
   const zeichne = () => amOrt("ivKarte", () => blockIntro(i));
-  const neu = () => { laufSichern(); zeichne(); };
+  const neu = (q, art) => { if(art === "knie") knieUmbauen(i); else laufSichern(); zeichne(); };
   if(pauseRest > 0) kurzIv = setInterval(() => {
     const n = el("kurzUhr");
     if(!n || !RUN || !RUN.pauseAb){ clearInterval(kurzIv); kurzIv = null; return; }
@@ -8985,6 +9098,7 @@ function blockIntro(i){
     b.onchange = () => {
       if(!S.knieInnen) S.knieInnen = {links:false, rechts:false};
       S.knieInnen[b.getAttribute("data-knie")] = b.checked;
+      S.knieWahl = null;
       knieUmbauen(i);
       if(RUN.b >= RUN.plan.blocks.length){ workoutBeenden(); return; }
       zeichne();
@@ -9379,6 +9493,8 @@ function blockEintrag(bl, sets, mehr){
     /* Zone nach der ERREICHTEN Zeit — wer eine Stufe selbst waehlt, landet oft woanders. */
     zone: zoneOf(sets[0].time).id,
     fresh: bl.fresh, userPicked: !!bl.userPicked, nachhol: !!bl.nachhol,
+    /* Mit Knie-Haekchen auf der normalen Leiter: welche angehakten Beine. */
+    knieBeine: bl.knieBeine || undefined,
     /* Aus einer Kurzeinheit (20 Min) — dort stehen weniger Saetze und eine
        Minute Blockpause. */
     kurz: !!RUN.plan.kurzMax,
@@ -10576,15 +10692,20 @@ function renderListe(p){
       planDauer(bl)} min</b></div>
     ${folge.map(ex => `<div class="card">
       <h2 style="margin:0">${S.ex[ex].name}</h2>
-      ${bl.map((q, t) => q.exercise === ex ? teilHTML(q, t, false) : "").join("")}
+      ${bl.map((q, t) => q.exercise === ex ? teilHTML(q, t, false, true) : "").join("")}
     </div>`).join("")}
     <button class="primary" style="width:100%;margin-top:2px;padding:16px" id="dwGo">Workout
       starten</button>
     <button class="ghost" style="width:100%;margin-top:8px" id="dwZurueck">Zurück</button>
   </div>`;
   /* Jede Aenderung gesichert und am Ort neu gezeichnet, wie auf der Karte. */
+  /* Die lange Liste fuers Knie baut nur die Bloecke der Fersenbruecke um, an
+     Ort und Stelle — neu planen koennte eine andere Uebung herausschieben. */
   teilBinden("dwListe", bl, (q, art) => {
-    vorwahlMerken(q, art); save(); amOrt("dwListe", renderHome);
+    if(art === "knie")
+      knieBloeckeNeu(p, bl.findIndex(b => einheitVon(b.exercise) === einheitVon(q.exercise)));
+    else vorwahlMerken(q, art);
+    save(); amOrt("dwListe", renderHome);
   });
   el("dwGo").onclick = ()=>{ liste = false; beep(660,60,.05); startWorkout(); };
   el("dwZurueck").onclick = ()=>{ liste = false; render(); };
@@ -11662,6 +11783,7 @@ function renderSetup(){
     b.onchange = () => {
       if(!S.knieInnen) S.knieInnen = {links:false, rechts:false};
       S.knieInnen[b.getAttribute("data-knie")] = b.checked;
+      S.knieWahl = null;
       knieImLauf();
       S.plan = null; S.planDay = null; save();
       renderAmOrt(b.id);

@@ -367,7 +367,10 @@ Weiter geht es nach zwei Halten in Folge ohne Schmerz, zurück nach zwei Schmerz
 Solange der Pfad beidbeinig läuft, ist das gesunde Bein dort mit drin und bekommt keinen eigenen
 Trainingsblock. Ohne Faszienrolle wird das angehakte Bein nicht trainiert. Der Kniewinkel (vorläufig
 90°) ist noch offen und steht in der App rot. Der Yogablock steht dort hochkant, mit derselben
-Berührungsregel.
+Berührungsregel. Mit Häkchen hat die Fersenbrücke seit Build `2026-11-06 c` eine Liste: oben
+„Mediales Knie“ mit der Sprosse des Pfads, darunter „Alle Sprossen“ der normalen Leiter. Die Wahl
+gilt für heute. Ohne Schmerz steht das angehakte Bein danach auf der gehaltenen Sprosse, der Pfad
+bleibt, wo er war (P109).
 
 Bei der **Hyperextension** beginnt die Leiter seit Build `2026-10-23 d` am **Gurt im Türrahmen**
 (Papier P97). Der Türanker klemmt oben in der Zarge, die Schlaufe liegt vorn knapp unter den

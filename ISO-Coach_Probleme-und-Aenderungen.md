@@ -5479,11 +5479,99 @@ Luke wählte „Knopf in die App“ statt einer Löschung von Hand im Speicher.
 - `showWorkoutResult(gespeichert)` ohne Schmerzwert, `#scOk` entfällt. `EX_VERSION` bleibt 36,
   Export Schema 11.
 
+### P109 · Sprossenwahl an der Fersenbrücke mit Knie-Häkchen
+
+Auftrag vom 06.11.: „ich kann bei der fersenbrücke keine sprossen anwählen sobald ich probleme am medialen knie angekreuz habe“. Der Grund: Mit Häkchen läuft das Bein auf dem Pfad fürs innere
+Knie (P83), und dort wählt man keine Sprosse, die App steigt nach dem Schmerz. Die Liste der
+Fersenbrücke fehlte deshalb ganz. Auf die Frage, welche Sprossen in die Liste gehören, wählte Luke
+„Die ganze normale Leiter“. Nach dem Entwurf im Chat: „Ja, so bauen“.
+
+**Gebaut in 2026-11-06 c.**
+
+- **Mit Häkchen hat die Fersenbrücke wieder eine Liste.** Oben die Gruppe „Mediales Knie“ mit der
+  Sprosse des Knie-Pfads, schon gewählt. Darunter „Alle Sprossen“ mit allen Sprossen der
+  Fersenbrücke, für die das Gerät da ist, bei Luke 20.
+- **Einbeinige Sprosse gewählt:** Das angehakte Bein hält auf ihr, das andere Bein auf seiner
+  eigenen Sprosse, jedes mit eigener Liste.
+- **Beidbeinige Sprosse gewählt:** ein Halt für beide Beine.
+- **Zurück auf die Sprosse unter „Mediales Knie“:** Das Bein läuft wieder auf dem Knie-Pfad.
+- **Gewertet wird auf der normalen Leiter.** Ohne Schmerz steht das angehakte Bein danach auf der
+  gehaltenen Sprosse. Mit Schmerz gelten die Regeln wie immer. Der Knie-Pfad bleibt, wo er war.
+- **Das gesunde Bein** zählt beim beidbeinigen Halt wie bisher. Auf die gehaltene Sprosse springt es
+  nicht, es hat sie sich nicht ausgesucht.
+- **Beide Knie angehakt:** Beide Beine gehen auf die gewählte Sprosse.
+- **Wo die Liste steht:** auf der Karte vor der Übung, in der Startliste und im laufenden Workout,
+  solange von der Fersenbrücke noch nichts gelaufen ist.
+- **Die Wahl gilt für heute.** Morgen plant die App das Bein wieder auf dem Knie-Pfad, solange das
+  Häkchen steht. Ein gesetztes oder gelöstes Häkchen löscht die Wahl.
+
+**Der Preis.**
+
+- **Beidbeinig gewählt und ohne Schmerz gehalten:** Das angehakte Bein steht danach auf der
+  beidbeinigen Sprosse, auch wenn es einbeinig höher stand. Bei Luke ginge links von „Langer Hebel
+  170° · Kiste (~20 cm)“ auf „Beidbeinig · Langer Hebel 170° · Kiste (~20 cm)“. Wer wieder einbeinig
+  will, wählt die Sprosse in der Liste.
+- **Mit Schmerz** rechnen die Regeln vom alten Stand des Beins, nicht von der gehaltenen Sprosse.
+- **Einbeinig gewählt in Startliste oder laufendem Workout:** Der Block fürs zweite Bein rückt ans
+  Ende des Plans, wie beim Setzen des Häkchens.
+- **Auf dem Handy nicht geprüft.**
+
+**Für den Nachbau:**
+
+- `S.knieWahl {tag, je: {links|rechts: Sprosse}}`, nur für heute und nur für angehakte Beine
+  (`knieWahlHeute`, `knieWahlSetzen`). Beide Häkchen-Schalter setzen `S.knieWahl = null`.
+- `fersenTeile` gibt einem gewählten Bein `{ex: host, side, stufe, beine}`, beim beidbeinigen Halt
+  `side: null` mit allen gewählten Beinen. `teilBlock` setzt die Sprosse und `b.knieBeine`,
+  `vorwahlAnwenden` überschreibt sie dann nicht.
+- `knieListe`, `knieListeHTML` (`<select data-a="kniestufe">` mit den Gruppen „Mediales Knie“,
+  Wert `knie`, und „Alle Sprossen“), `knieStufeWaehlen`, `knieStufe`. Im laufenden Workout baut
+  `knieUmbauen` die Blöcke neu.
+- `blockEintrag` schreibt `knieBeine` in die Sitzung. `applyRules`: Steht die Seite der Sitzung in
+  `knieBeine` und kam kein Schmerz, setzt sie `S.levels` auf die gehaltene Sprosse. `knieBeine`
+  geht nicht in den Export. `EX_VERSION` bleibt 36, Export Schema 11.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-11-06 c — Sprossenwahl an der Fersenbrücke mit Knie-Häkchen
+
+**Auftrag (Luke).** „ich kann bei der fersenbrücke keine sprossen anwählen sobald ich probleme am medialen knie angekreuz habe“ Gewählt: „Die ganze normale Leiter“, dann „Ja, so bauen“. (P109)
+
+**Gebaut.**
+
+- Mit Häkchen hat die Fersenbrücke eine Liste: „Mediales Knie“ mit der Sprosse des Knie-Pfads,
+  vorgewählt, darunter „Alle Sprossen“.
+- Einbeinig gewählt hält das angehakte Bein dort, das andere auf seiner Sprosse. Beidbeinig gewählt
+  ein Halt für beide.
+- Ohne Schmerz steht das angehakte Bein danach auf der gehaltenen Sprosse, mit Schmerz die Regeln
+  wie immer. Der Knie-Pfad bleibt.
+- Karte, Startliste und laufendes Workout, solange von der Fersenbrücke nichts gelaufen ist. Gilt für
+  heute, ein Häkchen löscht die Wahl. `EX_VERSION` bleibt 36, Export Schema 11.
+
+**Geprüft.** Headless Chrome bei 390 × 844, mit Lukes Export vom 16.10.
+
+- Ladeprobe `2026-11-06 c` über `2026-11-06 b`: 15 von 15 Prüfungen bestanden, 69 von 69 Sitzungen
+  direkt und über die vorige Fassung.
+- Ablauftest Training: 53 von 53. Schmerz: 42 von 42. Löschen: 16 von 16.
+- Neuer Ablauftest Knie-Sprossen, 26 Prüfungen, alle bestanden:
+  - Häkchen links, Liste mit „Mediales Knie“ (1) und „Alle Sprossen“ (20).
+  - Einbeinig „Langer Hebel 170° · Boden“: links hält dort, rechts auf seiner eigenen Sprosse. Die
+    Wahl übersteht das Neuladen.
+  - Beidbeinig „Beidbeinig · Langer Hebel 170° · Kiste (~20 cm)“: ein Halt. Zurück auf den Knie-Pfad.
+  - Die Wahl von gestern verfällt, ein Häkchen löscht sie. Beide Knie angehakt: beide auf der gewählten Sprosse. Ohne
+    Häkchen keine lange Liste.
+  - Im laufenden Workout auf der Karte: Liste, Wahl, zwei Seiten, zurück.
+  - Ohne Schmerz auf „Langer Hebel 170° · Boden“: links steht danach dort, rechts bleibt auf „Langer
+    Hebel 170° · Kiste (~20 cm)“, der Knie-Pfad bleibt. Beidbeinig ohne Schmerz: links auf der
+    beidbeinigen Sprosse, rechts bleibt. Mit Schmerz: Schmerzzähler links von 0 auf 1, der Knie-Pfad
+    bleibt.
+  - Keine Konsolenfehler.
+- Fotos an Luke: Startliste mit Häkchen, Liste offen, einbeinig gewählt, beidbeinig gewählt, Karte
+  im laufenden Workout.
+- **Nicht geprüft:** auf dem Handy.
 
 ### 2026-11-06 b — Frage am Workout-Ende gestrichen, letzten Block löschen
 
