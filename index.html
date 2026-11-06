@@ -2299,7 +2299,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-11-06 d";
+const BUILD = "2026-11-06 e";
 const KEY = "isocoach.v1";
 const KEY_GERETTET = "isocoach.v1.gerettet";
 /* Laufende Sicherung (Build 2026-10-27 c, nach P100): der gespeicherte Stand,
@@ -3592,7 +3592,9 @@ function fresh(){
        ein Schalter unter Mehr — siehe premiumAn. */
     premium:true,
     /* Fersenbruecke: Probleme inneres Knie / Baker-Zyste, je Bein. Ein Haken
-       schickt dieses Bein auf die eigene Leiter bridgeKnie (Luke, 15.10.2026). */
+       schickt dieses Bein auf die eigene Leiter bridgeKnie (Luke, 15.10.2026).
+       Seit Build 2026-11-06 e gibt es den Haken nicht mehr, er bleibt aus
+       (siehe normalize). */
     knieInnen:{links:false, rechts:false},
     /* Ausfallschritt (Build 2026-10-23 c): Haken "Es zieht am hinteren Bein"
        je Seite, {"lunge|links": true}, und die Hoehe der Bank je Seite in cm,
@@ -3828,11 +3830,13 @@ function normalize(d){
                                     lage: knie ? knie.lage : (d.lage || {}),
                                     haltung: (d.haltung && typeof d.haltung === "object")
                                              ? d.haltung : {},
-                                    knieInnen: {links: !!(d.knieInnen && d.knieInnen.links),
-                                                rechts: !!(d.knieInnen && d.knieInnen.rechts)},
-                                    knieWahl: (d.knieWahl && d.knieWahl.je
-                                               && typeof d.knieWahl.je === "object")
-                                              ? d.knieWahl : null,
+                                    /* Build 2026-11-06 e: Die Knie-Haekchen sind raus
+                                       (Luke: „es unterstellt sowieso eine diagnose").
+                                       Ein angehaktes Bein geht beim Laden zurueck auf
+                                       die normale Leiter, auf seinen Stand dort. Der
+                                       Baker-Pfad bleibt im Code, laeuft aber nie. */
+                                    knieInnen: {links:false, rechts:false},
+                                    knieWahl: null,
                                     lungeEng: (d.lungeEng && typeof d.lungeEng === "object")
                                               ? d.lungeEng : {},
                                     bankCm: (d.bankCm && typeof d.bankCm === "object")
@@ -8659,6 +8663,8 @@ function ausfUmbauen(i){
   save(); laufSichern();
 }
 /* ── Baker-Haekchen auf der Karte der Fersenbruecke ───────────────────
+   Seit Build 2026-11-06 e ohne Aufrufer: Karte und Einstellungen zeigen die
+   Haken nicht mehr. Die Funktion bleibt liegen, falls sie zurueckkommen.
    Je Bein ein Haken (Luke, 15.10.2026: „je bein"). Ist einer gesetzt, steht
    der Satz zur Abklaerung darunter — der Hinweis gehoert laut Handoff in die
    App, und er gilt, solange ein Knie angehakt ist. */
@@ -9026,8 +9032,10 @@ function blockIntro(i){
      die zweite Seite laege in einer anderen Zone als die erste. */
   const schonDran = bloecke.slice(0, i).some(b => b.exercise === exKey);
   const awZeigen  = ausfWaehlbar(exKey) && !schonDran;
-  /* Die Baker-Haekchen stehen, solange von der Fersenbruecke — auf welcher
-     Leiter auch immer — noch nichts gelaufen ist. */
+  /* Die Knie-Liste steht, solange von der Fersenbruecke — auf welcher Leiter
+     auch immer — noch nichts gelaufen ist. Die Haekchen dazu sind seit Build
+     2026-11-06 e raus (Luke, 06.11.2026: „das menü vor der übung verschlanken
+     und dort die anwahl zur bakerzyste rausnehmen"), ohne sie gibt es keine. */
   const knieZeigen = !!kniePfad(einheit)
     && !bloecke.slice(0, i).some(b => einheitVon(b.exercise) === einheit);
   const gemessen  = RUN.fertig.length > 0;
@@ -9052,7 +9060,6 @@ function blockIntro(i){
       ${schonDran ? "" : zonenWahlKarte(gr)}
       ${awZeigen ? ausfWahlKarte(exKey, bl.zone, "", true) : ""}
       ${(haltungen(exKey) && !schonDran) ? haltungWahlKarte(exKey) : ""}
-      ${knieZeigen ? knieWahlKarte() : ""}
       ${teile.map((q, t) => teilHTML(q, t, true, knieZeigen)).join("")}
       ${uebungsbild(bl.exercise, bl.level)}
       <button class="primary" style="width:100%;margin-top:14px;padding:16px" id="ivGo">
@@ -9216,11 +9223,16 @@ function afterSet(time, tgt, schmerz){
   if(satz.pain) satz.painWert = SCHMERZ_ANNAHME;
   /* Beim beidbeinigen Halt zaehlt der Satz fuer BEIDE Kurven — dann muss der
      Schmerz eine Seite haben, sonst stuft eine Meldung aus dem linken Fuss
-     auch die rechte Leiter zurueck. Vorbelegt ist "beide": das ist die
-     vorsichtigere Antwort und das bisherige Verhalten. Gefragt wird nur
-     nach einem Tipp auf "Schmerz". */
+     auch die rechte Leiter zurueck. Vorbelegt ist beim ersten Schmerz im
+     Block "beide": das ist die vorsichtigere Antwort. Danach steht die letzte
+     Antwort vor (Luke, 06.11.2026: „Jedes Mal, aber vorgewählt"), getippt
+     wird nur, wenn die Seite wechselt. Gefragt wird nur nach einem Tipp auf
+     "Schmerz". */
   const beidFrage = satz.pain && beidBlock(curBlock());
-  if(beidFrage) satz.painSeite = "beide";
+  if(beidFrage){
+    const vor = RUN.sets.filter(x => x.painSeite).pop();
+    satz.painSeite = vor ? vor.painSeite : "beide";
+  }
   RUN.sets.push(satz);
   RUN.i++;
   laufSichern();
@@ -11435,7 +11447,10 @@ function renderSetup(){
   el("setupBody").innerHTML = `
     <div class="card">
       <h3 style="margin-top:0">Übung</h3>
-      <select id="exSel">${Object.entries(S.ex).map(([k,v])=>
+      <!-- Den Baker-Pfad gibt es seit Build 2026-11-06 e nur noch als alte Kurve:
+           Er steht hier nur, solange es Einheiten auf ihm gibt. -->
+      <select id="exSel">${Object.entries(S.ex).filter(([k]) => !istKniePfad(k) || k === S.exercise
+        || S.sessions.some(x => x.exercise === k)).map(([k,v])=>
         `<option value="${k}" ${k===S.exercise?"selected":""}>${v.name} · ${v.region}</option>`).join("")}</select>
       <p class="tiny" style="margin-top:8px">Jede Übung hat ihre eigene Kurve.</p>
     </div>
@@ -11487,10 +11502,8 @@ function renderSetup(){
         KNIEBEUGUNG_ANTWORTEN.map(a => `<option value="${a.id}"${S.kniebeugung === a.id
           ? " selected" : ""}>${a.text}</option>`).join("")}</select>
     </div>
-    ${kniePfad("bridge") ? `<div class="card">
-      <h3 style="margin-top:0">Fersenbrücke</h3>
-      ${knieWahlKarte("knM")}
-    </div>` : ""}
+    <!-- Luke, 06.11.2026: Die Karte "Fersenbrücke" mit den Knie-Haekchen ist raus
+         (Build 2026-11-06 e). -->
     <div class="card">
       <h3 style="margin-top:0">Länge einer Sitzung</h3>
       <p class="tiny" style="margin-top:0">Höchstens so viele Blöcke pro Sitzung. Eine

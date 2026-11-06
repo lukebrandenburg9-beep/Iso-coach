@@ -5576,11 +5576,88 @@ Sprosse? Luke: „Nur einmal zeigen (empfohlen)“.
   „Alle Sprossen“ lässt die Sprosse mit dem Namen der Pfad-Sprosse weg (`L.name !== kL.name`),
   außer sie ist auf der normalen Leiter gerade gewählt (`!aufPfad && L.i === q.level`).
 
+### P111 · Knie-Häkchen raus, Seitenfrage vorgewählt
+
+Auftrag vom 06.11., mit zwei Fotos der Satzpause an der Fersenbrücke beidbeinig. Das Problem: „ich bin in der satzpause dazu angehalten die seite auszuwählen die weh tut, und das ganze nicht nur nach dem ersten sazu (wo es noch passen würde), sondern auch nach dem zweiten satz“.
+Lukes Lösung: „Ich würde deswegen das menü vor der übung verschlanken und dort die anwahl zur bakerzyste rausnehmen, es unterstellt sowieso eine diagnose und wir müssten noch mehr kästchen zum anwählen hinzufügen z.B auch schmerzen am sitzbein, kniekehle etc... was wir garnicht wollen so sparen wir uns unnötige komplexität und vereinfachen alles“.
+
+Rückfragen: Wo sollen die Häkchen weg? Luke: „unter einstellungen und im menü zum übungen anwahlen bevor der timer losgeht“. Was wird aus der Frage nach der Seite?
+Luke: „Jedes Mal, aber vorgewählt“. Nach dem Entwurf im Chat: „Okay push“.
+
+**Gebaut in 2026-11-06 e.**
+
+- **Das Häkchen „Probleme mediales Knie / Baker-Zyste“ ist weg,** auf der Karte vor der Übung und
+  unter *Einstellungen*. Mit ihm gehen der Satz zur ärztlichen Abklärung darunter, die Knie-Liste
+  aus Build c und d und das rote „Kniewinkel vorläufig 90°“.
+- **Ein angehaktes Bein geht beim Laden zurück auf die normale Leiter,** auf seinen Stand dort. Die
+  Fersenbrücke hat damit wieder nur eine Liste.
+- **Alte Einheiten auf dem Pfad bleiben** in Verlauf und Export. „Fersenbrücke fürs innere Knie“
+  steht unter *Einstellungen* in der Übungsauswahl nur noch, solange es solche Einheiten gibt.
+- **Die Frage nach der Seite kommt weiter nach jedem Schmerz im beidbeinigen Halt, aber vorgewählt.**
+  Beim ersten Schmerz im Block steht „beide“, danach die letzte Antwort im selben Block. Getippt wird
+  nur, wenn die Seite wechselt. Das gilt für alle beidbeinigen Übungen.
+
+**Der Preis.**
+
+- **Die Regeln des Pfads sind weg.** Dort ging es nach zwei Halten ohne Schmerz hinauf und nach zwei
+  Schmerzabbrüchen hinunter. Jetzt gelten auch bei Beschwerden am inneren Knie die normalen
+  Schmerzregeln der Leiter.
+- **Der Hinweis auf die Baker-Zyste ist weg.** Die Sicherheitsregel bleibt: dreimal in Folge Schmerz 6
+  oder höher in der Satzpause führt zum Hinweis auf ärztliche Abklärung.
+- **Der Stand auf der normalen Leiter kann älter sein.** Halte auf dem Pfad zählen dort nicht, die
+  Leiter steht, wo das Bein sie zuletzt verlassen hat.
+- **Ein neues Workout beginnt wieder bei „beide“.** Die Vorwahl merkt sich nur den laufenden Block.
+- **Der Code des Pfads bleibt liegen,** damit alte Einheiten laden. Er läuft nie, solange kein Bein
+  angehakt ist.
+- **Auf dem Handy nicht geprüft.**
+
+**Für den Nachbau:**
+
+- `normalize()` setzt `knieInnen` auf `{links:false, rechts:false}` und `knieWahl` auf `null`, egal was
+  gespeichert war. Damit ist `knieSeiten()` leer und der ganze Pfad ruht.
+- `knieWahlKarte()` hat keinen Aufrufer mehr. Die Karte „Fersenbrücke“ unter *Einstellungen* ist raus.
+- `#exSel` filtert: `!istKniePfad(k) || k === S.exercise || S.sessions.some(x => x.exercise === k)`.
+- `afterSet()`: Bei Schmerz im beidbeinigen Block nimmt `satz.painSeite` die letzte `painSeite` aus
+  `RUN.sets`, sonst „beide“. `RUN.sets` beginnt je Block leer.
+- `EX_VERSION` bleibt 36, Export Schema 11.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-11-06 e — Knie-Häkchen raus, Seitenfrage vorgewählt
+
+**Auftrag (Luke).** „ich bin in der satzpause dazu angehalten die seite auszuwählen die weh tut, und das ganze nicht nur nach dem ersten sazu (wo es noch passen würde), sondern auch nach dem zweiten satz“. „Ich würde deswegen das menü vor der übung verschlanken und dort die anwahl zur bakerzyste rausnehmen, es unterstellt sowieso eine diagnose und wir müssten noch mehr kästchen zum anwählen hinzufügen z.B auch schmerzen am sitzbein, kniekehle etc... was wir garnicht wollen so sparen wir uns unnötige komplexität und vereinfachen alles“ Gewählt: „unter einstellungen und im menü zum übungen anwahlen bevor der timer losgeht“ und „Jedes Mal, aber vorgewählt“. (P111)
+
+**Gebaut.**
+
+- Das Häkchen „Probleme mediales Knie / Baker-Zyste“ ist weg, auf der Karte vor der Übung und unter
+  *Einstellungen*. Mit ihm gehen der Satz zur Abklärung, die Knie-Liste und „Kniewinkel vorläufig 90°“.
+- Ein angehaktes Bein steht nach dem Laden auf der normalen Leiter, auf seinem Stand dort.
+- „Fersenbrücke fürs innere Knie“ steht in der Übungsauswahl nur, solange es Einheiten darauf gibt.
+- Die Frage nach der Seite kommt nach jedem Schmerz im beidbeinigen Halt. Beim ersten steht „beide“,
+  danach die letzte Antwort im Block. `EX_VERSION` bleibt 36, Export Schema 11.
+
+**Geprüft.** Headless Chrome bei 390 × 844, mit Lukes Export vom 16.10.
+
+- Ladeprobe `2026-11-06 e` über `2026-11-06 d`: 15 von 15 Prüfungen bestanden, 69 von 69 Sitzungen
+  direkt und über die vorige Fassung.
+- Ablauftest Training: 53 von 53. Schmerz: 42 von 42. Löschen: 16 von 16.
+- Ablauftest Häkchen, neu: 16 von 16. Darin:
+  - Ein Stand mit angehaktem linken Bein lädt ohne Häkchen und ohne Wahl.
+  - Die Startliste hat nur die normale Liste, keinen Pfad.
+  - Die Karte hat kein Häkchen, keinen Satz zur Abklärung, keinen Kniewinkel.
+  - Beidbeinig, fünf Sätze: Schmerz in Satz 1 fragt mit „beide“ gewählt, getippt „rechts“. Schmerz
+    in Satz 2 fragt mit „rechts“ gewählt, getippt „links“. Satz 3 ohne Schmerz fragt nicht. Schmerz in
+    Satz 4 steht auf „links“. Gespeichert: rechts, links, keine, links.
+  - *Einstellungen* ohne Häkchen und ohne Karte „Fersenbrücke“. In der Übungsauswahl steht der Pfad
+    mit Lukes Einheit vom 16.10. (14 Übungen), ohne Einheiten nicht (13).
+  - Keine Konsolenfehler.
+- Der Ablauftest Knie-Sprossen aus Build c und d ist stillgelegt: Er prüfte die Häkchen.
+- Fotos an Luke: Karte ohne Häkchen, Pause mit „rechts“ vorgewählt.
+- **Nicht geprüft:** auf dem Handy.
 
 ### 2026-11-06 d — Knie-Liste aufgeräumt: Kniewinkel im Namen, einbeinig ausgeschrieben
 

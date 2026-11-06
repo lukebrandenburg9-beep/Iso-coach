@@ -205,6 +205,8 @@ Rechenlogik:
   zu eng beieinander liegende Lasten ergeben rechnerisch keine Kurve — sie ergeben eine, die
   perfekt aussieht und falsch ist.
 - **Schmerz** als zweiter Knopf im Satz. In der Pause danach die Skala 4 bis 10, ohne Eingabe gilt 4.
+  Beim beidbeinigen Halt fragt die Pause auch nach der Seite: beim ersten Schmerz im Block steht
+  „beide“, danach die letzte Antwort (P111).
   Ab 5 laufen die restlichen Sätze eine Stufe leichter, als eigener Block außerhalb der Kurve, und
   das nächste Mal beginnt eine Stufe tiefer. Am Workout-Ende fragt die App seit `2026-11-06 b`
   nicht mehr nach dem Schmerz.
@@ -234,7 +236,7 @@ aus — Arbeitsplatte, Tisch, Stuhl, Hocker, Stepper, Kiste, Kissen, Sofa. Gerä
 | Gerät | wofür | voreingestellt |
 |---|---|---|
 | Etwas zum Daranziehen | Schrägzug, **die ganze Übung** | an — eine stabile Tischkante zählt mit |
-| Faszienrolle | Fersenbrücke, die zwei obersten Stufen beidbeinig und einbeinig (Knie 90° und langer Hebel 170°), dazu der ganze Pfad fürs innere Knie | aus |
+| Faszienrolle | Fersenbrücke, die zwei obersten Stufen beidbeinig und einbeinig (Knie 90° und langer Hebel 170°) | aus |
 | Kettlebell oder Kurzhantel | Aufrechter Läufer, Zusatzgewicht. Außenrotation im hohen Seitsitz, **die ganze Übung**, in 0,5-kg-Schritten | aus |
 | Klimmzugbänder | Dip-Halt, die drei Band-Stufen. Nur an einem echten Barren, nicht an zwei Stuhllehnen. Ohne Bänder geht die Leiter vom Stuhl unter den Füßen direkt zum vollen Halt | aus |
 | Personenwaage mit Zeiger (analog) | Isometrisches und endgradiges Wadenheben, einbeinig mit Entlastung | aus |
@@ -358,21 +360,12 @@ stark wie beidbeinig, die reine Gewichtsrechnung (halbe Last) unterschätzt das.
 kommen aus gemessenen Haltezeiten. Auf der Karte lässt sich beidbeinig oder einbeinig wählen; die
 App wählt vor.
 
-**Der Pfad fürs innere Knie.** Auf der Karte der Fersenbrücke steht je Bein ein Häkchen
-„Probleme mediales Knie / Baker-Zyste", dieselben Häkchen stehen unter *Einstellungen*. Ein angehaktes Bein
-bekommt eine eigene Leiter auf der Faszienrolle mit eigener Kurve. Sie hat zwei Sprossen, beide mit
-Knie 90° auf der Faszienrolle: erst „Beidbeinig · Knie 90° · Faszienrolle“, dann „Knie 90° ·
-Faszienrolle“. Vorfuß und Fußstellung sind seit dem 16.10.
-raus (P83). Der Vorfuß geht auf die Wade, und die Fußstellung macht in der Brücke keinen Unterschied.
-Weiter geht es nach zwei Halten in Folge ohne Schmerz, zurück nach zwei Schmerzabbrüchen in Folge.
-Solange der Pfad beidbeinig läuft, ist das gesunde Bein dort mit drin und bekommt keinen eigenen
-Trainingsblock. Ohne Faszienrolle wird das angehakte Bein nicht trainiert. Der Kniewinkel (vorläufig
-90°) ist noch offen und steht in der App rot. Der Yogablock steht dort hochkant, mit derselben
-Berührungsregel. Mit Häkchen hat die Fersenbrücke seit Build `2026-11-06 c` eine Liste: oben
-„Mediales Knie“ mit der Sprosse des Pfads, darunter „Alle Sprossen“ der normalen Leiter. Die Wahl
-gilt für heute. Ohne Schmerz steht das angehakte Bein danach auf der gehaltenen Sprosse, der Pfad
-bleibt, wo er war (P109). In dieser Liste trägt jede Zeile „Beidbeinig“ oder „Einbeinig“, und die
-Sprosse des Pfads steht nur oben (P110).
+**Der Pfad fürs innere Knie ist seit Build `2026-11-06 e` raus** (P111). Bis dahin stand auf der
+Karte der Fersenbrücke und unter *Einstellungen* je Bein ein Häkchen „Probleme mediales Knie /
+Baker-Zyste“, das ein Bein auf eine eigene Leiter auf der Faszienrolle schickte (P83, P109, P110). Ein
+angehaktes Bein steht nach dem Laden wieder auf der normalen Leiter, auf seinem Stand dort. Alte
+Einheiten auf dem Pfad bleiben in Verlauf und Export, und „Fersenbrücke fürs innere Knie“ steht unter
+*Einstellungen* in der Übungsauswahl, solange es solche Einheiten gibt.
 
 Bei der **Hyperextension** beginnt die Leiter seit Build `2026-10-23 d` am **Gurt im Türrahmen**
 (Papier P97). Der Türanker klemmt oben in der Zarge, die Schlaufe liegt vorn knapp unter den
