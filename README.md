@@ -106,7 +106,9 @@ Rechenlogik:
 - **Gespreiztes Onboarding** über drei Stufen (leicht / mittel / schwer) statt einer. Der
   Einstieg hängt an der **Kurve**, nicht am Workout: Eine Übung, die später dazukommt, holt ihre
   fehlenden Zonen nach. Gezählt werden dabei leere Zonen, nicht Messungen — zwei gespreizte
-  Punkte sind mehr wert als fünf aus derselben Zone.
+  Punkte sind mehr wert als fünf aus derselben Zone. Im Profil zeigt „Bis zum vollständigen Profil“
+  je Übung und Seite, wie viele Zonen gemessen sind. Die Karte ist eingeklappt, im Kopf steht, wie
+  viele schon vollständig sind (seit Build `2026-11-07 a`).
 - **Die Stufe wählst du**, nicht die App. Sie schlägt eine vor und zeigt je Stufe die erwartete
   Haltezeit sowie die Zone, in der sie voraussichtlich landet — entscheiden tust du. Der
   Messpunkt zählt so, wie er herauskommt: Er wird der Zone zugeordnet, in der er tatsächlich
@@ -182,6 +184,8 @@ Rechenlogik:
   Zielzeit im Kopf, dazu beidbeinig oder einbeinig und die Haltung. Oben springt die Dauer mit. Die
   Wahl gilt bis Mitternacht und bleibt stehen, wenn du etwas an- oder abhakst. Mit der Kurzeinheit
   verfallen nur die gewählten Sätze. *Workout starten* geht direkt in den Vorlauf der ersten Übung.
+  Das Auswahlfeld der Sprosse ist in der Farbe des Häkchens gerahmt und leuchtet leicht, hier wie im
+  wartenden Timer (seit Build `2026-11-07 a`, P113).
 - **Der Timer wartet zwischen den Übungen.** Vor jeder weiteren Übung steht er still: oben Kopf und
   Kurve, groß die Zielzeit von Satz 1, *Start* an der Stelle von *Satz beenden*. Darunter Sprosse,
   Gewicht, Sätze und beidbeinig oder einbeinig, darunter das Übungsbild, wo es eins gibt. Zone und

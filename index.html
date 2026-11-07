@@ -66,6 +66,20 @@ details.hilfe[open]>summary{color:var(--tx2)}
 details.hilfe[open]>summary::before{transform:rotate(45deg)}
 details.hilfe>summary:focus-visible{outline:2px solid var(--acc);outline-offset:3px;border-radius:7px}
 details.hilfe>p:first-of-type{margin-top:0}
+/* Einklappbare Karte (Build 2026-11-07 a, Luke: „Mach das menü zum
+   einklappen"): zu, bis man sie aufmacht. Im Kopf steht die Zahl, fuer die
+   man sonst die ganze Liste las; der Winkel rechts zeigt, dass sie aufgeht. */
+details.klapp>summary{list-style:none;display:flex;align-items:center;gap:10px;
+  user-select:none;-webkit-tap-highlight-color:transparent}
+details.klapp>summary::-webkit-details-marker{display:none}
+details.klapp>summary h3{margin:0;flex:1}
+details.klapp>summary .tiny{color:var(--tx3);white-space:nowrap;font-weight:400}
+details.klapp>summary::after{content:"";flex:0 0 auto;width:7px;height:7px;margin:0 3px 4px 0;
+  border-right:1.6px solid var(--tx3);border-bottom:1.6px solid var(--tx3);
+  transform:rotate(45deg);transition:transform .16s}
+details.klapp[open]>summary::after{transform:rotate(-135deg);margin:4px 3px 0 0}
+details.klapp[open]>summary{margin-bottom:2px}
+details.klapp>summary:focus-visible{outline:2px solid var(--acc);outline-offset:3px;border-radius:7px}
 details.hilfe>p:last-child{margin-bottom:0}
 button{font:inherit;cursor:pointer;border:0;border-radius:11px;padding:13px 16px;
   background:var(--panel2);color:var(--tx);border:1px solid var(--line)}
@@ -336,6 +350,12 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .teil .zeit{font-family:var(--mono);font-size:20px;font-weight:500;
   font-variant-numeric:tabular-nums;white-space:nowrap}
 .teil select{margin-top:9px}
+/* Die Sprossenwahl leuchtet (Build 2026-11-07 a, Luke: „lasse die
+   sprossenwahl leuchten, damit die leute besser erkennen das sie noch
+   sprossen anwählen können/sollen"). Zwischen Kuchen und Saetzen ging das
+   Feld unter. Rahmen und Schein in der Farbe des Haekchens, auf Start wie
+   im wartenden Timer — teilHTML steht nur dort. */
+.teil select{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc),0 0 14px rgba(63,191,174,.38)}
 /* Satzkurve je Seite (Build 2026-10-06 h) */
 .skurve{margin:8px 0 0}
 .skGes{text-align:right;font-size:11.5px;color:var(--tx3);margin-top:1px}
@@ -2315,7 +2335,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-11-06 f";
+const BUILD = "2026-11-07 a";
 const KEY = "isocoach.v1";
 const KEY_GERETTET = "isocoach.v1.gerettet";
 /* Laufende Sicherung (Build 2026-10-27 c, nach P100): der gespeicherte Stand,
@@ -10851,22 +10871,28 @@ function formKarte(ex){
 }
 /* Wie weit jede Kurve ist — stand bis 24.09.2026 unter dem Workout auf Heute.
    Dort war es eine dritte Liste derselben Übungen; es gehört zum Profil. */
+/* Seit Build 2026-11-07 a eingeklappt (Luke, 07.11.: „Mach das menü zum
+   einklappen oder entferne es komplett"). Die Zahl im Kopf zaehlt dieselben
+   Haken wie die Liste darunter. */
 function profilRestKarte(){
   const offen = allKeys().filter(k => !profileReady(k.ex, k.side));
   if(!offen.length) return "";
-  return `<div class="card flat">
-    <h3 style="margin-top:0">Bis zum vollständigen Profil</h3>
+  const zeilen = allKeys().map(k => {
+    const cov = zoneCoverage(k.ex, k.side);
+    return {k, n: Object.values(cov).filter(v=>v>0).length};
+  });
+  const fertig = zeilen.filter(z => z.n === 3).length;
+  return `<details class="card flat klapp" data-h="profilrest-liste">
+    <summary><h3>Bis zum vollständigen Profil</h3>
+      <span class="tiny">${fertig} von ${zeilen.length} vollständig</span></summary>
     ${hilfe("profilrest", "Warum gespreizte Messungen zählen", `
       <p class="tiny">Die Kurve entsteht nicht durch viele Messungen, sondern durch
       <b>gespreizte</b>. Solange eine Zone leer ist, bleibt die Kurve dort eine
       Vermutung.</p>`)}
-    <table><tbody>${allKeys().map(k=>{
-      const cov = zoneCoverage(k.ex, k.side);
-      const n = Object.values(cov).filter(v=>v>0).length;
-      return `<tr><td>${labelOf(k.ex, k.side)}</td>
+    <table><tbody>${zeilen.map(({k, n}) => `<tr><td>${labelOf(k.ex, k.side)}</td>
         <td class="n">${n===3 ? '<span style="color:var(--ok);white-space:nowrap">✓ alle 3 Zonen</span>'
-          : `<span style="color:var(--tx3);white-space:nowrap">${n} von 3 Zonen</span>`}</td></tr>`;
-    }).join("")}</tbody></table></div>`;
+          : `<span style="color:var(--tx3);white-space:nowrap">${n} von 3 Zonen</span>`}</td></tr>`
+    ).join("")}</tbody></table></details>`;
 }
 
 /* Waehler ueber alle Kurven: Liegestuetz, Ausfallschritt links, Ausfallschritt rechts. */
@@ -12039,7 +12065,7 @@ function show(name){
   if(name==="profile") renderProfile();
   if(name==="history") renderHistory();
   if(name==="setup")   renderSetup();
-  document.querySelectorAll("details.hilfe[data-h]").forEach(d=>{
+  document.querySelectorAll("details.hilfe[data-h], details.klapp[data-h]").forEach(d=>{
     if(offeneHilfen[d.dataset.h]) d.open = true;
     d.ontoggle = () => { offeneHilfen[d.dataset.h] = d.open; };
   });

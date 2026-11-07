@@ -5683,11 +5683,67 @@ Nach dem Entwurf im Chat: „Mach es so das ich zwischen Übungen noch sprrosse,
 - Kurzeinheit: `kurzIv` rechnet die Minute aus `RUN.pauseAb`, jedes Neuzeichnen von vorn.
 - `EX_VERSION` bleibt 36, Export Schema 11.
 
+### P113 · Die Sprossenwahl leuchtet, die Profil-Liste klappt ein
+
+Auftrag vom 07.11., mit einem Foto von *Start* (Seitstütz, beide Seiten): „Rahme anwählen der übung da aufklapp menü ein oder lasse die sprossenwahl leuchten, damit die leute besser erkennen das sie noch sprossen anwählen können/sollen, das geht aktuell etwas unter“.
+Dazu, mit zwei Fotos der Liste im Profil: „Mach das menü zum einklappen oder entferne es komplett, es kann ggf. am anfang bei den einzelen Übungen als kurzer hinweis eingeblendet werden“.
+
+**Gebaut in 2026-11-07 a.**
+
+- **Die Sprossenwahl ist gerahmt und leuchtet.** Das Auswahlfeld der Sprosse trägt einen Rahmen in der
+  Farbe des Häkchens und einen leichten Schein, auf *Start* unter jeder angehakten Übung und im
+  wartenden Timer. Das gilt auch für die Liste der Fersenbrücke mit dem medialen Knie.
+- **„Bis zum vollständigen Profil“ ist eingeklappt.** Im Kopf steht, wie viele Übungen und Seiten schon
+  alle drei Zonen haben, etwa „4 von 24 vollständig“, rechts ein Winkel. Ein Tipp klappt die Liste auf.
+  Offen bleibt sie, bis die App geschlossen wird.
+- **Kein Hinweis auf *Start*.** Dort zeigt der Kuchen je Seite schon, welche Zonen zuletzt gelaufen sind,
+  und die Zonenrotation fordert eine leere Zone von selbst an. Ein weiterer Satz machte *Start* länger,
+  und dort ging eben erst die Sprossenwahl unter.
+
+**Der Preis.**
+
+- **Der Schein steht immer da,** auch wenn die Sprosse schon passt. Er sagt nur: Hier lässt sich wählen.
+- **Die Liste im Profil braucht einen Tipp mehr.**
+- **Die Zahl im Kopf zählt wie die Haken der Liste:** alle drei Zonen gemessen. Ob die Karte überhaupt
+  erscheint, entscheidet weiter `profileReady()`, also die erreichbaren Zonen.
+- **Auf dem Handy nicht geprüft.**
+
+**Für den Nachbau:**
+
+- CSS `.teil select`: `border-color:var(--acc)`, `box-shadow:0 0 0 1px var(--acc), 0 0 14px rgba(63,191,174,.38)`.
+  `teilHTML()` steht nur auf *Start* (`einstellZeile`) und im wartenden Timer (`#tEinstellen`).
+- `profilRestKarte()`: `<details class="card flat klapp" data-h="profilrest-liste">`, im `<summary>` die
+  Überschrift und „n von m vollständig“. `show()` merkt sich offen und zu für `details.hilfe[data-h]` und
+  `details.klapp[data-h]` in `offeneHilfen`, nur im Speicher.
+- `EX_VERSION` bleibt 36, Export Schema 11.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-11-07 a — Die Sprossenwahl leuchtet, die Profil-Liste klappt ein
+
+**Auftrag (Luke).** „Rahme anwählen der übung da aufklapp menü ein oder lasse die sprossenwahl leuchten, damit die leute besser erkennen das sie noch sprossen anwählen können/sollen, das geht aktuell etwas unter“ und „Mach das menü zum einklappen oder entferne es komplett, es kann ggf. am anfang bei den einzelen Übungen als kurzer hinweis eingeblendet werden“. (P113)
+
+**Gebaut.**
+
+- Das Auswahlfeld der Sprosse ist auf *Start* und im wartenden Timer in der Farbe des Häkchens gerahmt
+  und leuchtet leicht.
+- „Bis zum vollständigen Profil“ ist eingeklappt, im Kopf „n von m vollständig“. Kein Hinweis auf *Start*.
+- `EX_VERSION` bleibt 36, Export Schema 11.
+
+**Geprüft.** Headless Chrome bei 390 × 844, mit Lukes Export vom 16.10.
+
+- Ladeprobe `2026-11-07 a` über `2026-11-06 f`: 15 von 15 Prüfungen bestanden.
+- Ablauftests: Training 54 von 54, Schmerz 42 von 42, Löschen 16 von 16, Häkchen 16 von 16,
+  Startbildschirm 34 von 34.
+- Neu, Sprossenwahl 7 von 7: sechs Felder auf *Start* und zwei im wartenden Timer vor der Fersenbrücke
+  gerahmt und leuchtend, keine Konsolenfehler.
+- Neu, Profil-Liste 5 von 5: zu und 74 px hoch, „4 von 24 vollständig“ gleich den Haken der Liste, geht
+  per Tipp auf und bleibt beim Wechsel zwischen den Reitern offen.
+- Nicht geprüft: auf dem Handy.
 
 ### 2026-11-06 f — Ein Bildschirm bis zur Uhr, der Timer wartet zwischen den Übungen
 
