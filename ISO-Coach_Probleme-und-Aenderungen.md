@@ -5621,11 +5621,113 @@ Luke: „Jedes Mal, aber vorgewählt“. Nach dem Entwurf im Chat: „Okay push�
   `RUN.sets`, sonst „beide“. `RUN.sets` beginnt je Block leer.
 - `EX_VERSION` bleibt 36, Export Schema 11.
 
+### P112 · Ein Bildschirm bis zur Uhr, der Timer wartet zwischen den Übungen
+
+Auftrag vom 06.11., mit fünf Fotos vom Weg bis zur Uhr: „Ich muss mich aktuell durch 3 Bildschirme klicke um ein workout zu beginnen, können wir das auf einen reduzieren? Bei grip gains ändert sich der bilschirm kaum ich kann per deopdown menü die sprossen whlen und unten am kuchen den wnergievereich maximlkraft hyperthrophie kraftausdauer.“ Bis dahin waren es drei
+Bildschirme: *Start*, „Dein Workout“, die Karte „Übung 1 von 4“, erst dann die Uhr.
+
+Rückfragen: Wo wird eingestellt? Luke: „Start-Liste (empfohlen)“. Was steht zwischen den Übungen? Luke: „Timer wartet (empfohlen)“.
+Das Kästchen „Es zieht am hinteren Bein in der Hüfte oder im Knie“ beim Ausfallschritt sollte erst raus, dann: „Ne lass das kästchen das war für leute mit mangelnder hüftrotstion und hat diensprossen geändert,oder?“ und „Lass das erstmal“.
+Nach dem Entwurf im Chat: „Mach es so das ich zwischen Übungen noch sprrosse,gewicht und einbeinig oder zweibeinig wählen kann“.
+
+**Gebaut in 2026-11-06 f.**
+
+- **Start ist der eine Bildschirm.** Unter dem Kuchen jeder angehakten Übung stehen beidbeinig oder
+  einbeinig, die Haltung und je Seite die Zeile mit Sprosse, Gewicht und Sätzen, die Zielzeit im Kopf.
+  Das Kästchen beim Ausfallschritt bleibt. Oben springt die Dauer mit. Die Wahl gilt bis Mitternacht.
+- **„Workout starten“ statt „Weiter“** geht direkt in den Vorlauf der ersten Übung. „Dein Workout“
+  und die Karte vor der Übung sind weg.
+- **Vor jeder weiteren Übung wartet der Timer.** Oben Kopf und Kurve, groß die Zielzeit von Satz 1,
+  „Start“ an der Stelle von „Satz beenden“. Darunter Sprosse, Gewicht, Sätze und beidbeinig oder
+  einbeinig, darunter das Übungsbild, wo es eins gibt. Jede Änderung rechnet Ziel, Kurve und
+  Gesamtzeit sofort neu, der Bildschirm bleibt an der Stelle.
+- **Zone und Haltung stehen nur auf Start.**
+- **Unter *Aktionen* im Warten:** „Übung auslassen“ (beide Seiten, solange danach noch eine andere
+  Übung kommt), „Workout beenden und speichern“, „Für später unterbrechen“.
+- **Die zweite Seite derselben Übung läuft direkt an,** wie bisher.
+- **Kurzeinheit:** Die Minute Pause zählt groß im wartenden Timer. „Start“ geht auch vorher, bei 0
+  kommt ein Ton und die Zielzeit steht da.
+- **Ein unterbrochener Lauf** ohne Satz in der Übung landet beim Fortsetzen im wartenden Timer.
+- **Die Sicherheitsfrage und die Frage zur Kniebeugung** vor der ersten Ausführung bleiben eigene
+  Karten. Nach der Antwort geht es weiter wie ohne sie.
+- **Das Übungsbild steht auch im Vorlauf,** im Satz nicht.
+- **Beim Test gefunden und behoben:** Sprosse, Sätze und Gewicht, auf *Start* geändert, kamen nicht im
+  Plan an. Die Zeilen unter dem Kuchen hingen an einem Plan, den die Minutenrechnung an den Häkchen
+  schon ersetzt hatte.
+
+**Der Preis.**
+
+- **Kein eigener Überblick mehr vor dem Start.** Die Reihenfolge steht oben auf *Start*, die
+  Einstellungen stehen unter den Übungen. *Start* wird dadurch länger.
+- **Zone und Haltung lassen sich nach „Workout starten“ nicht mehr ändern.**
+- **Die erste Übung beginnt sofort,** mit 8 s Vorlauf zum In-Position-Gehen.
+- **Bei einbeinig steht die zweite Seite oft weit hinten,** etwa Fersenbrücke links vorn und rechts am
+  Ende. Das ist die Reihenfolge des Plans, wie bisher.
+- **Übungsbilder gibt es bisher nur für Schrägzug und Handtuch.**
+- **Das Kästchen beim Ausfallschritt steht auch im wartenden Timer,** solange von der Übung noch nichts
+  gelaufen ist.
+- **Auf dem Handy nicht geprüft.**
+
+**Für den Nachbau:**
+
+- `renderListe()` („Dein Workout“), die Variable `liste` und die Karte `#ivKarte` mit `#ivGo` sind raus.
+- `renderHome()`: `einstellZeile(u)` steht unter `kuchenZeile(u)`, in `.kzE#ke-<ex>`: `ausfWahlKarte`,
+  `haltungWahlKarte`, je Block `teilHTML(q, t, false, true)`. Änderungen laufen über
+  `teilBinden("heuteListe", …)` in `vorwahlMerken()`, also nach `S.vorwahl` (je Tag, Schlüssel
+  `exercise|side`).
+- `listeBinden()` setzt zuerst `S.plan = p`. `dauerMitHaekchen()` rechnet über `aufProbe()`, und das legt
+  `S` danach als Kopie zurück, `S.plan` mit. Ohne die Zeile ging jede Änderung in den alten Plan.
+- `#goSess` → `startWorkout()` → `blockIntro(0, true)`: `sofort` überspringt das Warten.
+- `blockIntro(i)`: `wartend = true`, `#tEinstellen` (`ausfWahlKarte` und `teilHTML` ohne Kurve), `#tBild`
+  (`uebungsbild`), `tWeiter` startet. `menueAuf()` bietet im Warten `uebungAuslassen()`.
+- Kurzeinheit: `kurzIv` rechnet die Minute aus `RUN.pauseAb`, jedes Neuzeichnen von vorn.
+- `EX_VERSION` bleibt 36, Export Schema 11.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-11-06 f — Ein Bildschirm bis zur Uhr, der Timer wartet zwischen den Übungen
+
+**Auftrag (Luke).** „Ich muss mich aktuell durch 3 Bildschirme klicke um ein workout zu beginnen, können wir das auf einen reduzieren? Bei grip gains ändert sich der bilschirm kaum ich kann per deopdown menü die sprossen whlen und unten am kuchen den wnergievereich maximlkraft hyperthrophie kraftausdauer.“ Gewählt: „Start-Liste (empfohlen)“ und „Timer wartet (empfohlen)“. Das Kästchen beim
+Ausfallschritt bleibt. „Mach es so das ich zwischen Übungen noch sprrosse,gewicht und einbeinig oder zweibeinig wählen kann“. (P112)
+
+**Gebaut.**
+
+- *Start* ist der eine Bildschirm: unter dem Kuchen jeder angehakten Übung beidbeinig oder einbeinig,
+  die Haltung und je Seite Sprosse, Gewicht und Sätze. „Dein Workout“ und die Karte vor der Übung sind weg.
+- „Workout starten“ geht direkt in den Vorlauf der ersten Übung.
+- Vor jeder weiteren Übung wartet der Timer mit Kopf, Kurve, großer Zielzeit und „Start“, darunter
+  Sprosse, Gewicht, Sätze, beidbeinig oder einbeinig und das Übungsbild. Zone und Haltung nur auf *Start*.
+- Im Warten unter *Aktionen*: „Übung auslassen“. Die Kurzeinheit zählt ihre Minute im wartenden Timer.
+- Beim Test gefunden und behoben: Änderungen auf *Start* hingen an einem schon ersetzten Plan.
+- `EX_VERSION` bleibt 36, Export Schema 11.
+
+**Geprüft.** Headless Chrome bei 390 × 844, mit Lukes Export vom 16.10.
+
+- Ladeprobe `2026-11-06 f` über `2026-11-06 e`: 15 von 15 Prüfungen bestanden, 69 von 69 Sitzungen
+  direkt und über die vorige Fassung.
+- Ablauftests auf den neuen Weg umgestellt: Training 54 von 54 (neu: der Timer wartet vor der zweiten
+  Übung), Schmerz 42 von 42, Löschen 16 von 16, Häkchen 16 von 16.
+- Ablauftest Startbildschirm, neu: 34 von 34. Darin:
+  - *Start* zeigt unter dem Kuchen Sprosse, Sätze und beidbeinig oder einbeinig. Eine andere Sprosse
+    und ein Satz mehr stehen sofort im Plan und nach dem Neuladen noch da.
+  - „Workout starten“ führt in einem Tipp in den Vorlauf, eingestellt wie auf *Start*.
+  - Nach der ersten Übung wartet der Timer vor der Fersenbrücke links: „Start“, Zielzeit groß,
+    darunter beidbeinig oder einbeinig und zwei Seiten, keine Zone, keine Haltung, Kopf mit Kurve.
+  - Im Warten: ein Satz mehr (Kopf von 3 auf 4 Sätze), eine Sprosse höher (Zielzeit neu, Bildschirm
+    bleibt an der Stelle), 0,5 kg mehr, auf beidbeinig und zurück auf einbeinig.
+  - *Aktionen* im Warten: „Übung auslassen“, „Workout beenden und speichern“, „Für später
+    unterbrechen“. Auslassen nimmt beide Seiten heraus, danach wartet der Schrägzug mit Bild.
+  - Unterbrechen, Neuladen, Fortsetzen: der Timer wartet wieder.
+  - Kurzeinheit: 60 „Sekunden Pause“, bei 0 die Zielzeit. „Start“ mitten in der Minute führt in den
+    Vorlauf, mit Bild.
+  - Workout beenden speichert. Keine Konsolenfehler.
+- Fotos an Luke: Start, Vorlauf, Warten, Einstellungen, Gewicht, Aktionen, Warten mit Bild,
+  Kurzeinheit, Vorlauf mit Bild.
+- **Nicht geprüft:** auf dem Handy.
 
 ### 2026-11-06 e — Knie-Häkchen raus, Seitenfrage vorgewählt
 

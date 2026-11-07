@@ -212,6 +212,14 @@ td.n,.kpi b{font-family:var(--mono)}
 #tStop:disabled{opacity:1;background:var(--panel2);border-color:var(--panel2);color:var(--tx3);
   box-shadow:none}
 #tSchmerz{flex:0 0 30%;color:#e8917f;border-color:#5a2b28;background:transparent}
+/* Der wartende Timer vor einer Uebung (Build 2026-11-06 f): unter "Start"
+   Sprosse, Gewicht, Saetze und beidbeinig/einbeinig. Das Uebungsbild steht
+   dort und im Vorlauf. */
+#tEinstellen:not(:empty){background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:2px 13px 13px;margin-top:12px}
+#tEinstellen>.zw:first-child{margin-top:11px}
+#tEinstellen>.teil:first-child{border-top:0;margin-top:0;padding-top:11px}
+#tBild:empty{display:none}
 #tSatzNr{text-align:center;color:var(--tx2);font-size:14px;margin-top:10px}
 #tSatzNr b{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--tx);font-size:16px;
   font-weight:600;margin-left:4px}
@@ -290,6 +298,12 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .kz{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:2px 13px 13px;
   background:var(--panel2);border:1px solid var(--line);border-top:0;
   border-radius:0 0 11px 11px;margin-bottom:7px}
+/* Unter dem Kuchen Sprosse, Gewicht und Saetze je Seite (Build 2026-11-06 f):
+   Start ist der eine Bildschirm vor dem Timer. */
+.kz:has(+ .kzE){border-radius:0;margin-bottom:0}
+.kzE{background:var(--panel2);border:1px solid var(--line);border-top:0;border-radius:0 0 11px 11px;
+  padding:0 13px 13px;margin-bottom:7px}
+.kzE>.zw:first-child{margin-top:2px}
 .kzK{display:flex;gap:10px}
 .kzKu{display:flex;flex-direction:column;align-items:center;gap:2px}
 .kzKu svg{display:block}
@@ -476,6 +490,8 @@ code{background:var(--panel2);padding:1.5px 5px;border-radius:5px;font-size:12.5
     <button id="tSchmerz">Schmerz</button>
     <button id="tStop">Satz beenden</button>
   </div>
+  <div id="tEinstellen"></div>
+  <div id="tBild"></div>
   <div id="tSatzNr"></div>
   <div class="tAktZeile">
     <button id="tAkt" aria-haspopup="true" aria-expanded="false">Aktionen</button>
@@ -2299,7 +2315,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-11-06 e";
+const BUILD = "2026-11-06 f";
 const KEY = "isocoach.v1";
 const KEY_GERETTET = "isocoach.v1.gerettet";
 /* Laufende Sicherung (Build 2026-10-27 c, nach P100): der gespeicherte Stand,
@@ -3951,9 +3967,6 @@ window.addEventListener("storage", e=>{
 let DB = null, dbTimer = null, dbState = "prüfen";
 /* Nur für diesen Seitenaufruf: Pausentag bewusst übergangen. Nicht gespeichert. */
 let ignoreRest = false;
-/* Nur für diesen Seitenaufruf: "Weiter" auf Start getippt, also steht statt
-   Start die Liste "Dein Workout" (renderListe). Die Leiste setzt es zurück. */
-let liste = false;
 async function initDB(){
   let cap = null;
   try{
@@ -4456,9 +4469,10 @@ function ausfWahlKarte(ex, zone, klasse, knapp){
 }
 /* fn = was nach der Umstellung passieren soll. Ohne Angabe wird der Plan
    verworfen und neu gezeichnet; im laufenden Workout baut blockIntro den
-   Ablauf stattdessen an Ort und Stelle um. */
-function ausfWahlBinden(fn){
-  document.querySelectorAll("[data-aw]").forEach(b => {
+   Ablauf stattdessen an Ort und Stelle um. wurzel: nur die Knoepfe darunter —
+   unter dem Timer liegt Start mit denselben Knoepfen. */
+function ausfWahlBinden(fn, wurzel){
+  (wurzel ? el(wurzel) : document).querySelectorAll("[data-aw]").forEach(b => {
     b.onclick = () => {
       const ex = b.getAttribute("data-awx");
       const w  = b.getAttribute("data-aw");
@@ -8005,6 +8019,9 @@ function trainingSchliessen(){
   clearInterval(leadIv); leadIv = null;
   clearInterval(pauseIv); pauseIv = null;
   T = null; tWeiter = null;
+  clearInterval(kurzIv); kurzIv = null; wartend = false;
+  el("tEinstellen").innerHTML = "";
+  el("tBild").innerHTML = "";
   el("timerScreen").classList.remove("on");
   menueZu();
   uhrLeeren();
@@ -8101,12 +8118,19 @@ async function runSet(cfg){
   trainingOeffnen();
   uhrLeeren();
   knopfStand(false);
+  /* Aus dem Warten heraus: Die Einstellungen gehen weg, im Vorlauf steht das
+     Uebungsbild unter der Uhr, mit dem Satz geht es auch weg. */
+  wartend = false;
+  el("tEinstellen").innerHTML = "";
+  el("tBild").innerHTML = cfg.lead ? uebungsbild(curBlock().exercise, curBlock().level) : "";
+  if(cfg.lead) el("timerScreen").scrollTop = 0;
   el("tSeiteWahl").innerHTML = "";
   el("tSchmerzWahl").innerHTML = "";
   const bei = schmerzPunkt(RUN.i, cfg.target);
   balkenZeigen(bei);
   const starten = ()=>{
     el("tLabel").textContent = "";
+    el("tBild").innerHTML = "";
     el("tClock").style.color = "var(--ok)";
     el("tBar").classList.remove("aus");
     const zi = (RUN.i === 0 && RUN.ziele && RUN.ziele.b === RUN.b) ? RUN.ziele : null;
@@ -8219,9 +8243,16 @@ function menueAuf(){
   if(!RUN) return;
   const laeuft = !!T;
   const punkte = [];
-  if(laeuft) punkte.push(["verwerfen", "Satz verwerfen"]);
-  else if(RUN.sets.length) punkte.push(["verwerfen", `Satz ${RUN.sets.length} verwerfen`]);
-  if(RUN.i < curSets() && RUN.b + 1 < RUN.plan.blocks.length) punkte.push(["uebung", "Übung beenden"]);
+  if(wartend){
+    /* Vor der Uebung: auslassen, solange danach noch eine andere kommt. */
+    const ein = einheitVon(curBlock().exercise);
+    if(RUN.plan.blocks.some((b, j) => j > RUN.b && einheitVon(b.exercise) !== ein))
+      punkte.push(["auslassen", "Übung auslassen"]);
+  } else {
+    if(laeuft) punkte.push(["verwerfen", "Satz verwerfen"]);
+    else if(RUN.sets.length) punkte.push(["verwerfen", `Satz ${RUN.sets.length} verwerfen`]);
+    if(RUN.i < curSets() && RUN.b + 1 < RUN.plan.blocks.length) punkte.push(["uebung", "Übung beenden"]);
+  }
   punkte.push(["ende", "Workout beenden und speichern"], ["spaeter", "Für später unterbrechen"]);
   m.innerHTML = (laeuft && !T.lead ? `<div class="tiny">Der laufende Satz zählt dabei nicht.</div>` : "")
     + punkte.map(([k, t]) => `<button data-akt="${k}">${t}</button>`).join("");
@@ -8244,9 +8275,21 @@ function trainingsAktion(k){
     return;
   }
   trainingSchliessen();
-  if(k === "uebung") endBlock();
+  if(k === "auslassen") uebungAuslassen();
+  else if(k === "uebung") endBlock();
   else if(k === "ende") workoutBeenden();
   else if(k === "spaeter") workoutUnterbrechen();
+}
+
+/* Auslassen nimmt die ganze Uebung heraus, beide Seiten. Ohne Satz gibt es
+   nichts zu verlieren — die Uebung rueckt beim naechsten Mal nach vorn, weil
+   sie am laengsten wartet. Danach wartet der Timer vor der naechsten. */
+function uebungAuslassen(){
+  const i = RUN.b, einheit = einheitVon(curBlock().exercise);
+  RUN.plan.blocks = RUN.plan.blocks.filter((b, j) => j < i || einheitVon(b.exercise) !== einheit);
+  RUN.sets = []; RUN.i = 0; laufSichern();
+  if(RUN.b >= RUN.plan.blocks.length){ workoutBeenden(); return; }
+  blockIntro(RUN.b);
 }
 
 /* ═══════════ Sessionablauf ═══════════ */
@@ -8278,8 +8321,8 @@ function laufFortsetzen(){
   /* Unterbrochen zwischen letztem Satz und Blockwechsel: nachholen. */
   /* Die Minute der Kurzeinheit zaehlt ab der Unterbrechung, nicht ab jetzt. */
   if(RUN.i >= curSets() || curBlock().schmerzEnde){ endBlock(false, L.stand); return; }
-  /* Kein Satz im laufenden Block — also steht die Karte VOR der Übung an.
-     Nicht sofort die Uhr starten: die Variante will erst bestätigt werden. */
+  /* Kein Satz im laufenden Block — also wartet der Timer VOR der Übung auf
+     Start. Nicht sofort die Uhr starten: man steht noch nicht in Position. */
   if(!RUN.sets.length){ blockIntro(RUN.b); return; }
   const bl = curBlock();                    /* mitten im Block weiter */
   RUN.load = lastVon(bl.exercise, bl.level, bl.extra, bl.side);
@@ -8299,7 +8342,8 @@ function startWorkout(){
   if(!p.blocks || !p.blocks.length){ S.plan = null; S.planDay = null; save(); render(); return; }
   RUN = {plan:p, b:0, fertig:[], sets:[], i:0, start: Date.now()};
   laufSichern();
-  blockIntro(0);
+  /* Eingestellt ist auf Start: Die erste Uebung geht direkt in den Vorlauf. */
+  blockIntro(0, true);
 }
 /* Stufenbezeichnung inklusive Zusatzgewicht. Die Zahl gehoert an den Namen,
    sonst steht im Verlauf zweimal dieselbe Stufe bei verschiedenen Lasten. */
@@ -8563,7 +8607,7 @@ function uebungsbild(key, level){
    tat schlicht nichts. Aufgefallen ist es erst beim Durchklicken am 18.09.2026.
    Wer hier etwas umbaut: blockIntro() ruft warnKarte() auf, warnKarte() ruft
    blockIntro() zurueck — die beiden gehoeren zusammen. */
-function warnKarte(i, bl, ex){
+function warnKarte(i, bl, ex, sofort){
   show("home");
   el("homeTitle").textContent = ex.warnung.titel;
   el("homeSub").textContent = labelOf(bl.exercise, bl.side, bl.level);
@@ -8585,7 +8629,7 @@ function warnKarte(i, bl, ex){
   /* Beim Baker-Pfad gilt die Frage der Fersenbruecke, fuer beide Leitern. */
   const einheit = einheitVon(bl.exercise);
   el("wkNein").onclick = ()=>{
-    S.gefragt[einheit] = true; laufSichern(); blockIntro(i);
+    S.gefragt[einheit] = true; laufSichern(); blockIntro(i, sofort);
   };
   el("wkJa").onclick = ()=>{
     /* Die Uebung fliegt dauerhaft raus und der laufende Block mit ihr —
@@ -8595,14 +8639,14 @@ function warnKarte(i, bl, ex){
     RUN.plan.blocks = RUN.plan.blocks.filter(b => einheitVon(b.exercise) !== einheit);
     save();
     if(RUN.b >= RUN.plan.blocks.length){ workoutBeenden(); return; }
-    blockIntro(Math.min(i, RUN.plan.blocks.length - 1));
+    blockIntro(Math.min(i, RUN.plan.blocks.length - 1), sofort);
   };
 }
 /* Die Frage aus dem Onboarding, falls sie dort offen blieb (Build
    2026-10-25 a). Wie warnKarte: blockIntro ruft sie, sie ruft blockIntro
    zurueck. Die Bloecke des Ausfallschritts ruecken danach auf das, was die
    Antwort erlaubt (Tiefengrenze, Gewicht ab welcher Sprosse). */
-function kniebeugungKarte(i, bl){
+function kniebeugungKarte(i, bl, sofort){
   show("home");
   el("homeTitle").textContent = "Bevor du den Ausfallschritt machst";
   el("homeSub").textContent = labelOf(bl.exercise, bl.side, bl.level);
@@ -8620,7 +8664,7 @@ function kniebeugungKarte(i, bl){
         if(!q.userPicked) q.levelVorschlag = neu;
         stufeSetzen(q, neu);
       }
-      laufSichern(); blockIntro(i);
+      laufSichern(); blockIntro(i, sofort);
     };
   });
 }
@@ -8737,7 +8781,9 @@ function knieImLauf(){
    Was hier früher stand und bewusst fehlt: der Ausführungstext, die
    Erklärabsätze (Einstieg, Anker, außerhalb des Bereichs, Kontrollposition,
    zweite Seite), der Haken „Beide Seiten gleich" und „trotzdem messen", die
-   −/+-Knöpfe neben der Variante. Keine Erklärkästen für Endkunden. */
+   −/+-Knöpfe neben der Variante. Keine Erklärkästen für Endkunden.
+   Seit Build 2026-11-06 f ist die Karte weg: Eingestellt wird auf Start, vor
+   jeder weiteren Übung wartet der Timer (siehe blockIntro). */
 /* ── Satzkurve auf der Karte vor der Uebung ──────────────────────────
    Je Seite eine kleine Kurve wie bei Grip Gains. Luke, 06.10.2026: "Cool
    waere auf dem menue auch die Satzzeiten oben zu sehen also als curve
@@ -8766,7 +8812,9 @@ function satzKurveSVG(zeiten, zone){
    Liste "Dein Workout" (renderListe) und rechnet an beiden Stellen ueber
    dieselben Funktionen (stufeSetzen, gewichtSetzen, lageSetzen, zielNeu).
    mitKurve: die Satzkurve, nur auf der Karte. In der Liste machte sie jede
-   Zeile doppelt so hoch, und die Zielzeit steht ohnehin im Kopf. */
+   Zeile doppelt so hoch, und die Zielzeit steht ohnehin im Kopf.
+   Seit Build 2026-11-06 f gibt es weder Karte noch Liste: Die Zeile steht auf
+   Start und im wartenden Timer, beide ohne Kurve (die zeigt der Timer oben). */
 /* ── Gewichtswahl (Build 2026-10-25 a) ──────────────────────────────────
    Luke, 25.10.2026: "Bedienung nur über Slider plus Plus-/Minus-Tasten an
    der Seite. Der Slider ist für schnelle Sprünge in 5er- und 10er-Schritten,
@@ -8997,26 +9045,32 @@ function bankSetzen(q, wert, teile){
     if(b.exercise === q.exercise && bankVon(b.exercise, b.level)) zielNeu(b);
 }
 let kurzIv = null;   /* Uhr der Kurzeinheit zwischen zwei Bloecken */
-function blockIntro(i){
+let wartend = false; /* Der Timer steht vor einer Uebung und wartet auf "Start" */
+/* ── Vor der Uebung: der wartende Timer (Build 2026-11-06 f) ─────────────
+   Luke, 06.11.2026: „Ich muss mich aktuell durch 3 Bildschirme klicken um ein
+   workout zu beginnen" — Start, „Dein Workout", die Karte „Übung 1 von 4",
+   erst dann die Uhr. Vorbild Grip Gains: Der Bildschirm ändert sich kaum.
+   Jetzt wird auf Start eingestellt, und „Workout starten" geht mit sofort
+   direkt in den Vorlauf der ersten Übung. Vor jeder weiteren steht der Timer
+   still: oben Kopf und Kurve, groß die Zielzeit von Satz 1, „Start" an der
+   Stelle von „Satz beenden", darunter Sprosse, Gewicht, Sätze und
+   beidbeinig/einbeinig (Luke: „das ich zwischen Übungen noch sprosse, gewicht
+   und einbeinig oder zweibeinig wählen kann"). Zone und Haltung stehen nur
+   auf Start. Auslassen und Unterbrechen liegen unter Aktionen. */
+function blockIntro(i, sofort){
   RUN.b = i;
   const bl = curBlock(), ex = S.ex[bl.exercise], bloecke = RUN.plan.blocks;
-  /* Sicherheitsfrage vor der ersten Ausfuehrung — sie steht VOR der Karte,
-     nicht daneben, weil sie beantwortet gehoert, bevor gehalten wird. */
+  /* Sicherheitsfrage vor der ersten Ausfuehrung — sie steht VOR der Uhr,
+     weil sie beantwortet gehoert, bevor gehalten wird. */
   /* Der Baker-Pfad ist ein Teil der Fersenbruecke: Ihre Frage gilt fuer ihn mit. */
   const einheit = einheitVon(bl.exercise), wEx = S.ex[einheit] || ex;
-  if(wEx.warnung && !S.gefragt[einheit]){ warnKarte(i, bl, wEx); return; }
+  if(wEx.warnung && !S.gefragt[einheit]){ warnKarte(i, bl, wEx, sofort); return; }
   /* Kniebeugung im Onboarding offen gelassen: einmal vor dem Ausfallschritt. */
   if((DEFAULT_EX[bl.exercise] || {}).kniebeugungBis != null && S.kniebeugung == null){
-    kniebeugungKarte(i, bl); return;
+    kniebeugungKarte(i, bl, sofort); return;
   }
-  /* Kurzeinheit: die Minute vor diesem Block, oben auf der Karte. Sie laeuft
-     nur ab und sperrt nichts — gestartet wird per Tipp, auch vorher. Bei 0
-     ein Ton. Nach einer langen Unterbrechung ist sie laengst um und fehlt.
-     Jedes Neuzeichnen der Karte rechnet sie aus pauseAb neu. */
   clearInterval(kurzIv); kurzIv = null;
-  const pauseRest = (RUN.plan.kurzMax && i > 0 && RUN.pauseAb)
-    ? PAUSE_KURZ_S - Math.floor((Date.now() - RUN.pauseAb) / 1000) : 0;
-  const exKey = bl.exercise, gr = groupOf(exKey);
+  const exKey = bl.exercise;
   const teile = bloecke.filter((b, j) => j >= i && b.exercise === exKey);
   for(const q of teile){
     /* Ein Plan aus einer aelteren Fassung kennt Satzzahl und erwartete Zone
@@ -9027,9 +9081,26 @@ function blockIntro(i){
     if(q.saetze == null) q.saetze = SETS_ZONE[q.zone] || SETS;
     if(q.zoneErwartet == null) q.zoneErwartet = q.zone;
   }
-  /* Zone und Ausfuehrung stehen nur, solange von dieser Uebung noch nichts
-     gelaufen ist. Danach wuerden sie eine schon gemessene Seite entwerten:
-     die zweite Seite laege in einer anderen Zone als die erste. */
+  /* Mit dem Start wird die Vorauswahl zur festen Wahl: Beim naechsten Mal
+     steht dieselbe Haltung vorn. Folgt die zweite Seite direkt, laeuft sie
+     nach dem letzten Satz der ersten ohne Halt an (eingestellt, endBlock). */
+  const los = () => {
+    clearInterval(kurzIv); kurzIv = null; RUN.pauseAb = null; wartend = false;
+    teile.forEach(q => { q.eingestellt = true; });
+    if(haltungen(exKey)){ if(!S.haltung) S.haltung = {}; S.haltung[exKey] = bl.side; }
+    laufSichern(); startBlock();
+  };
+  if(sofort){ los(); return; }
+
+  /* Kurzeinheit: die Minute vor diesem Block, gross auf der Uhr. Sie laeuft
+     nur ab und sperrt nichts — gestartet wird per Tipp, auch vorher. Bei 0
+     ein Ton, danach steht die Zielzeit da. Nach einer langen Unterbrechung
+     ist sie laengst um und fehlt. Jedes Neuzeichnen rechnet sie aus pauseAb
+     neu. */
+  const pauseRest = (RUN.plan.kurzMax && i > 0 && RUN.pauseAb)
+    ? PAUSE_KURZ_S - Math.floor((Date.now() - RUN.pauseAb) / 1000) : 0;
+  /* Die Ausfuehrung steht nur, solange von dieser Uebung noch nichts gelaufen
+     ist. Danach wuerde sie eine schon gemessene Seite entwerten. */
   const schonDran = bloecke.slice(0, i).some(b => b.exercise === exKey);
   const awZeigen  = ausfWaehlbar(exKey) && !schonDran;
   /* Die Knie-Liste steht, solange von der Fersenbruecke — auf welcher Leiter
@@ -9038,120 +9109,58 @@ function blockIntro(i){
      und dort die anwahl zur bakerzyste rausnehmen"), ohne sie gibt es keine. */
   const knieZeigen = !!kniePfad(einheit)
     && !bloecke.slice(0, i).some(b => einheitVon(b.exercise) === einheit);
-  const gemessen  = RUN.fertig.length > 0;
-  const danach    = bloecke.some((b, j) => j > i && b.exercise !== exKey);
-  /* Gezaehlt werden Uebungen, nicht Bloecke: Wade links und rechts direkt
-     hintereinander sind EINE Uebung und EINE Karte. */
-  const neuAb = j => j === 0 || bloecke[j-1].exercise !== bloecke[j].exercise;
-  const von = bloecke.filter((_, j) => neuAb(j)).length;
-  const nr  = bloecke.slice(0, i + 1).filter((_, j) => neuAb(j)).length;
 
-  show("home");
-  el("homeTitle").textContent = `Übung ${nr} von ${von}`;
-  el("homeSub").textContent = "";
-  el("homeBody").innerHTML = `
-    <div class="card" id="ivKarte">
-      <h2 style="margin:0">${ex.name}</h2>
-      ${(DEFAULT_EX[exKey] || {}).knieWinkelVorlaeufig
-        ? `<p class="tiny vorl" style="margin:4px 0 0">Kniewinkel vorläufig 90°</p>` : ""}
-      ${pauseRest > 0 ? `<div style="text-align:center;margin:12px 0 2px">
-        <div class="big" id="kurzUhr" style="font-size:48px;line-height:1">${pauseRest}</div>
-        <p class="tiny" style="margin:4px 0 0">Sekunden Pause</p></div>` : ""}
-      ${schonDran ? "" : zonenWahlKarte(gr)}
-      ${awZeigen ? ausfWahlKarte(exKey, bl.zone, "", true) : ""}
-      ${(haltungen(exKey) && !schonDran) ? haltungWahlKarte(exKey) : ""}
-      ${teile.map((q, t) => teilHTML(q, t, true, knieZeigen)).join("")}
-      ${uebungsbild(bl.exercise, bl.level)}
-      <button class="primary" style="width:100%;margin-top:14px;padding:16px" id="ivGo">
-        Übung starten</button>
-      <div class="row" style="margin-top:8px">
-        ${danach ? `<button class="ghost" style="flex:1 1 140px" id="ivSkip">Übung
-          auslassen</button>` : ""}
-        <button class="ghost" style="flex:1 1 140px" id="ivEnde">Workout beenden</button>
-        ${gemessen ? `<button class="ghost" style="flex:1 1 140px" id="ivPause">Später
-          weitermachen</button>` : ""}
-      </div>
-    </div>`;
+  /* Unter dem Timer liegt Start mit denselben Kennungen (aw-…, data-aw) —
+     der Bildschirm darunter wird deshalb geleert. */
+  if(!el("timerScreen").classList.contains("on")) show("home");
+  el("homeBody").innerHTML = "";
+  wartend = true;
+  RUN.load = lastVon(bl.exercise, bl.level, bl.extra, bl.side);
+  RUN.levelName = stufenName(bl.exercise, bl.level, bl.extra, bl.side);
+  /* Sprosse und Gewicht koennen sich hier aendern — die Ziele neu rechnen. */
+  RUN.ziele = null;
+  trainingOeffnen();
+  uhrLeeren();
+  balkenAus();
+  el("tSeiteWahl").innerHTML = "";
+  el("tSchmerzWahl").innerHTML = "";
+  trainingKopf();
+  zieleNachreichen();
+  const ziel = () => {
+    el("tClock").style.color = "var(--tx2)";
+    el("tClock").textContent = Math.round(bl.target);
+    el("tLabel").textContent = "Zielzeit Satz 1";
+  };
+  if(pauseRest > 0){
+    el("tClock").style.color = "var(--tx2)";
+    el("tClock").textContent = pauseRest;
+    el("tLabel").textContent = "Sekunden Pause";
+    kurzIv = setInterval(() => {
+      if(!RUN || !RUN.pauseAb || !wartend){ clearInterval(kurzIv); kurzIv = null; return; }
+      const rest = PAUSE_KURZ_S - Math.floor((Date.now() - RUN.pauseAb) / 1000);
+      if(rest > 0){ el("tClock").textContent = rest; if(rest <= 3) cueTick(); return; }
+      clearInterval(kurzIv); kurzIv = null; beep(880, 300, .25); ziel();
+    }, 1000);
+  } else ziel();
+  knopfStand(false, "Start");
+  tWeiter = () => { beep(660,60,.05); los(); };
+  el("tEinstellen").innerHTML = (awZeigen ? ausfWahlKarte(exKey, bl.zone, "", true) : "")
+    + teile.map((q, t) => teilHTML(q, t, false, knieZeigen)).join("");
+  el("tBild").innerHTML = uebungsbild(bl.exercise, bl.level);
 
-  /* Jede Änderung wird sofort gesichert und die Karte AM ORT neu gezeichnet:
-     show("home") scrollt nach oben, und beim Tippen auf Plus oder Minus stuende
-     die Zahl dann am oberen Rand, der Finger aber auf halber Hoehe.
-     Die Seiten werden nicht mehr gleichgezogen — beide stehen untereinander
-     auf derselben Karte, und jede hat ihre eigene Kurve. */
-  const zeichne = () => amOrt("ivKarte", () => blockIntro(i));
+  /* Jede Aenderung wird sofort gesichert und der Timer an derselben Stelle
+     neu gezeichnet. Er scrollt fuer sich, amOrt greift hier nicht. */
+  const zeichne = () => {
+    const vorher = el("tEinstellen").getBoundingClientRect().top;
+    blockIntro(i);
+    if(!wartend) return;
+    el("timerScreen").scrollTop += el("tEinstellen").getBoundingClientRect().top - vorher;
+  };
   const neu = (q, art) => { if(art === "knie") knieUmbauen(i); else laufSichern(); zeichne(); };
-  if(pauseRest > 0) kurzIv = setInterval(() => {
-    const n = el("kurzUhr");
-    if(!n || !RUN || !RUN.pauseAb){ clearInterval(kurzIv); kurzIv = null; return; }
-    const rest = PAUSE_KURZ_S - Math.floor((Date.now() - RUN.pauseAb) / 1000);
-    n.textContent = Math.max(0, rest);
-    if(rest > 0 && rest <= 3) cueTick();
-    if(rest <= 0){ clearInterval(kurzIv); kurzIv = null; beep(880, 300, .25); }
-  }, 1000);
-  teilBinden("ivKarte", teile, neu);
-  /* Zone im laufenden Workout umstellen. Die Bloecke dieser Uebung werden neu
-     gebaut statt der ganze Plan neu geplant — Neuplanen wuerde den laufenden
-     Lauf verwerfen. mkBlock bekommt die Wahl als FEST mit, damit die
-     Lueckenlogik sie nicht wieder wegdreht. Beide Seiten gehen mit: Erholung
-     und Zonenalter zaehlen je Muskelgruppe. */
-  document.querySelectorAll("#ivKarte [data-zw]").forEach(b => {
-    b.onclick = () => {
-      const zw = b.getAttribute("data-zw");
-      zoneWahlSetzen(gr, zoneWahlHeute(gr) === zw ? "" : zw);
-      const z = zoneFuer(gr);
-      for(const q of teile){
-        const n = mkBlock(q.exercise, q.side, z.zone, z.target, q.fresh,
-                          !!z.onboarding, !!z.fest);
-        n.zweiteSeite = q.zweiteSeite;
-        if(q.nachhol) n.nachhol = true;
-        Object.keys(q).forEach(k => delete q[k]);
-        Object.assign(q, n);
-      }
-      if(RUN.plan.kurzMax) kurzSaetze(teile, RUN.plan.kurzMax);
-      save(); laufSichern(); zeichne();
-    };
-  });
+  teilBinden("tEinstellen", teile, neu);
   /* Umstellung beidbeinig/einbeinig: Der Ablauf wird umgebaut, danach steht
-     die Karte an derselben Stelle wieder da — bei einbeinig mit zwei Seiten. */
-  if(awZeigen) ausfWahlBinden(() => { ausfUmbauen(i); zeichne(); });
-  /* Baker-Haekchen: Die Bloecke der Fersenbruecke werden neu gebaut. Bleibt
-     keiner uebrig (keine Rolle, und das andere Bein ist auch angehakt), geht
-     es mit der naechsten Uebung weiter. */
-  document.querySelectorAll("#ivKarte [data-knie]").forEach(b => {
-    b.onchange = () => {
-      if(!S.knieInnen) S.knieInnen = {links:false, rechts:false};
-      S.knieInnen[b.getAttribute("data-knie")] = b.checked;
-      S.knieWahl = null;
-      knieUmbauen(i);
-      if(RUN.b >= RUN.plan.blocks.length){ workoutBeenden(); return; }
-      zeichne();
-    };
-  });
-  /* Haltung gestreckt/rund: Der Block wird mit der Kurve der neuen Haltung neu
-     gebaut, die Karte steht an derselben Stelle wieder da. */
-  document.querySelectorAll("#ivKarte [data-hl]").forEach(b => {
-    b.onclick = () => { haltungWechseln(exKey, b.getAttribute("data-hl"), teile); zeichne(); };
-  });
-  el("ivGo").onclick = () => {
-    clearInterval(kurzIv); kurzIv = null; RUN.pauseAb = null;
-    teile.forEach(q => { q.eingestellt = true; });
-    /* Mit dem Start wird die Vorauswahl zur festen Wahl: Beim naechsten Mal
-       steht dieselbe Haltung vorn. */
-    if(haltungen(exKey)){ if(!S.haltung) S.haltung = {}; S.haltung[exKey] = bl.side; }
-    beep(660,60,.05); laufSichern(); startBlock();
-  };
-  /* Auslassen nimmt die ganze Uebung heraus, beide Seiten. Ohne Satz gibt es
-     nichts zu verlieren — die Uebung rueckt beim naechsten Mal nach vorn,
-     weil sie am laengsten wartet. Die naechste Uebung bekommt eine neue
-     Karte, also darf show() hier nach oben scrollen. */
-  if(el("ivSkip")) el("ivSkip").onclick = () => {
-    RUN.plan.blocks = bloecke.filter((b, j) => j < i || einheitVon(b.exercise) !== einheit);
-    RUN.sets = []; RUN.i = 0; laufSichern();
-    if(RUN.b >= RUN.plan.blocks.length){ workoutBeenden(); return; }
-    blockIntro(RUN.b);
-  };
-  el("ivEnde").onclick = () => workoutBeenden();
-  if(el("ivPause")) el("ivPause").onclick = () => workoutUnterbrechen();
+     der Timer wieder da — bei einbeinig mit zwei Seiten. */
+  if(awZeigen) ausfWahlBinden(() => { ausfUmbauen(i); zeichne(); }, "tEinstellen");
 }
 /* Zielzeit des naechsten Satzes.
    Satz 1  — aus der Kurve (oder der Zone, solange es keine gibt).
@@ -10465,8 +10474,12 @@ function renderHome(){
 
   const p = (S.plan && S.planDay === today()) ? S.plan : planWorkout();
   S.plan = p; S.planDay = today(); save();
-  if(liste && p.blocks.length) return renderListe(p);
-  liste = false;
+  /* Ein Plan aus einer aelteren Fassung kennt Satzzahl und erwartete Zone
+     noch nicht (siehe blockIntro). */
+  for(const q of p.blocks){
+    if(q.saetze == null) q.saetze = SETS_ZONE[q.zone] || SETS;
+    if(q.zoneErwartet == null) q.zoneErwartet = q.zone;
+  }
   const g = gate();
   /* Die Dauer steht in der Plankarte, gross, und springt mit jedem
      Haekchen. Bis Build 2026-10-01 c stand sie klein als "rund 55 min"
@@ -10557,7 +10570,7 @@ function renderHome(){
           tal ? `<br><span class="tiny" style="color:var(--warn)">Formtal ·
           entlasten empfohlen</span> <span class="pill pPrem">Premium</span>` : ""}</span>${
           minText ? `<span class="chkMin">${minText}</span>` : ""}</label>${
-        an ? kuchenZeile(u) : ""}`;
+        an ? kuchenZeile(u) + einstellZeile(u) : ""}`;
     }).join("")}
   </div>`;
   /* Unter einer angehakten Uebung: je Seite ein Kuchen der letzten Einheiten,
@@ -10600,6 +10613,19 @@ function renderHome(){
       <p class="kzRuht">${zName(u.tor.gewaehlt)} erst ${tage(ruht)} erholt</p>` : ""}
     </div>`;
   };
+  /* Unter dem Kuchen alles, was vor der Uhr eingestellt wird (Build
+     2026-11-06 f, Luke: „Start-Liste"): beidbeinig/einbeinig, die Haltung und
+     je Block bzw. Seite die Zeile von teilHTML — Sprosse, Gewicht, Saetze.
+     data-t zeigt in p.blocks. */
+  const einstellZeile = u => {
+    const teile = p.blocks.map((q, t) => [q, t]).filter(([q]) => einheitVon(q.exercise) === u.ex);
+    if(!teile.length) return "";
+    return `<div class="kzE" id="ke-${u.ex}">
+      ${ausfWahlKarte(u.ex, teile[0][0].zone, "", true)}
+      ${haltungen(u.ex) ? haltungWahlKarte(u.ex) : ""}
+      ${teile.map(([q, t]) => teilHTML(q, t, false, true)).join("")}
+    </div>`;
+  };
   /* Training ohne Geraete: EIN Griff im Startmenue (Luke, 01.10.2026). Gilt,
      bis man ihn zuruecksetzt. Nicht auf der Karte "Workout laeuft noch":
      kein Wechsel mitten im Lauf. Zwei Knoepfe; unter "Nur Koerpergewicht"
@@ -10639,6 +10665,12 @@ function renderHome(){
     if(w) w.onchange = () => { modusSetzen(w.checked ? "wand" : "boden"); render(); };
   };
   const listeBinden = () => {
+    /* Die Minuten an jedem Haekchen rechnet dauerMitHaekchen auf Probe, und
+       aufProbe legt S danach als Kopie zurueck — S.plan mit. Die Zeilen unter
+       den Kuchen zeigen p und binden an p: Ohne diese Zeile aenderte ein Tipp
+       auf Sprosse oder Saetze einen Plan, den es nicht mehr gibt (gefunden im
+       Test zu Build 2026-11-06 f). */
+    if(S.plan) S.plan = p;
     modusBinden();
     uebungslage().forEach(u => {
       const b = el("ak-" + u.ex); if(!b) return;
@@ -10650,6 +10682,23 @@ function renderHome(){
     document.querySelectorAll("#heuteListe [data-hz]").forEach(b => b.onclick = () => {
       const ex = b.getAttribute("data-hzx");
       if(heuteZoneTippen(ex, b.getAttribute("data-hz"))){ save(); renderAmOrt("kz-" + ex); }
+    });
+    /* Jede Aenderung gilt fuer heute (vorwahlMerken) und ueberlebt so ein
+       Haekchen, das den Plan neu baut. Die lange Liste fuers Knie baut nur
+       die Bloecke der Fersenbruecke um, an Ort und Stelle. */
+    teilBinden("heuteListe", p.blocks, (q, art) => {
+      if(art === "knie")
+        knieBloeckeNeu(p, p.blocks.findIndex(b => einheitVon(b.exercise) === einheitVon(q.exercise)));
+      else vorwahlMerken(q, art);
+      save(); renderAmOrt("ke-" + einheitVon(q.exercise));
+    });
+    ausfWahlBinden(ex => { S.plan = null; S.planDay = null; save(); renderAmOrt("ke-" + ex); },
+                   "heuteListe");
+    document.querySelectorAll("#heuteListe [data-hl]").forEach(b => b.onclick = () => {
+      const ex = b.getAttribute("data-hlx");
+      if(!S.haltung) S.haltung = {};
+      S.haltung[ex] = b.getAttribute("data-hl");
+      S.plan = null; S.planDay = null; save(); renderAmOrt("ke-" + ex);
     });
   };
 
@@ -10683,7 +10732,7 @@ function renderHome(){
         <div class="planDauer"><span>Dauer</span><b id="planDauer">${dauer} min</b></div>
         ${kurzKarte()}
         <button class="primary" style="width:100%;margin-top:14px;padding:16px"
-          id="goSess">Weiter</button>`
+          id="goSess">Workout starten</button>`
       : `<h2 style="margin:0">Nichts angehakt</h2>`}
     </div>
     ${listeKarte()}`;
@@ -10696,48 +10745,11 @@ function renderHome(){
     S.plan = null; S.planDay = null; save();
     renderAmOrt("kurzAn");
   };
-  if(el("goSess")) el("goSess").onclick = ()=>{ liste = true; render(); };
+  if(el("goSess")) el("goSess").onclick = ()=>{ beep(660,60,.05); startWorkout(); };
 }
-/* ── Dein Workout (Build 2026-10-22 c) ─────────────────────────────
-   Luke, 22.10.2026: nach Start „nochmal alle Übungen als Auflistung …
-   dass ich für jede Übung vorher schon Satzzahl und Sprosse auswählen kann".
-   Nur was angehakt ist, in der Reihenfolge des Plans. Eine Karte je Uebung
-   wie vor der Uebung (der Baker-Pfad also mit eigenem Namen), darin je
-   Block bzw. Seite die Zeile von dort (teilHTML), ohne Satzkurve. Die Karte
-   vor der Uebung bleibt; sie ist mit dieser Wahl vorbelegt, weil
-   startWorkout denselben Plan (S.plan) nimmt. */
-function renderListe(p){
-  const bl = p.blocks;
-  for(const q of bl){
-    if(q.saetze == null) q.saetze = SETS_ZONE[q.zone] || SETS;
-    if(q.zoneErwartet == null) q.zoneErwartet = q.zone;
-  }
-  const folge = [...new Set(bl.map(b => b.exercise))];
-  el("homeTitle").textContent = "Dein Workout";
-  el("homeSub").textContent = "";
-  el("homeBody").innerHTML = `<div id="dwListe">
-    <div class="planDauer" style="margin:0 0 12px"><span>Dauer</span><b>${
-      planDauer(bl)} min</b></div>
-    ${folge.map(ex => `<div class="card">
-      <h2 style="margin:0">${S.ex[ex].name}</h2>
-      ${bl.map((q, t) => q.exercise === ex ? teilHTML(q, t, false, true) : "").join("")}
-    </div>`).join("")}
-    <button class="primary" style="width:100%;margin-top:2px;padding:16px" id="dwGo">Workout
-      starten</button>
-    <button class="ghost" style="width:100%;margin-top:8px" id="dwZurueck">Zurück</button>
-  </div>`;
-  /* Jede Aenderung gesichert und am Ort neu gezeichnet, wie auf der Karte. */
-  /* Die lange Liste fuers Knie baut nur die Bloecke der Fersenbruecke um, an
-     Ort und Stelle — neu planen koennte eine andere Uebung herausschieben. */
-  teilBinden("dwListe", bl, (q, art) => {
-    if(art === "knie")
-      knieBloeckeNeu(p, bl.findIndex(b => einheitVon(b.exercise) === einheitVon(q.exercise)));
-    else vorwahlMerken(q, art);
-    save(); amOrt("dwListe", renderHome);
-  });
-  el("dwGo").onclick = ()=>{ liste = false; beep(660,60,.05); startWorkout(); };
-  el("dwZurueck").onclick = ()=>{ liste = false; render(); };
-}
+/* "Dein Workout" (renderListe, Build 2026-10-22 c) ist mit Build 2026-11-06 f
+   weg: Sprosse, Gewicht und Saetze stehen jetzt direkt auf Start, unter dem
+   Kuchen der Uebung. */
 /* Die Reihenfolge als nummerierte Liste, jeder Block mit vollem Namen und
    Seite. Luke, 06.10.2026: „1) seitstütz rechts 2) fersenbrücke rechts usw.
    Und alles kleiner untereinander als Liste in normaler Schrift ohne
@@ -12180,8 +12192,6 @@ function renderLadefehler(){
    Einstellungen bleiben offen; der Lauf wartet. */
 document.querySelectorAll("nav button").forEach(b=> b.onclick = ()=>{
   if(RUN && b.dataset.go === "home" && aktiverScreen !== "home"){ laufFortsetzen(); return; }
-  /* Ohne Lauf fuehrt "Start" immer auf Start, auch aus "Dein Workout". */
-  if(!RUN && b.dataset.go === "home") liste = false;
   show(b.dataset.go);
 });
 el("tStop").onclick    = ()=> tWeiter ? tWeiter() : endSet(false);

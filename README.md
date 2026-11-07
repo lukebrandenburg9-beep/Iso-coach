@@ -123,7 +123,7 @@ Rechenlogik:
   andere antippt; ein Tipp darauf führt zurück zur Empfehlung. Eine Zone, die noch ruht, lässt
   sich trotzdem wählen;
   die App sagt dann, wann sie erholt wäre. Was die Übung nicht erreicht, ist ausgegraut.
-- **Satzkurve je Seite.** Auf der Karte vor jeder Übung steht unter der Kopfzeile eine kleine
+- **Satzkurve je Seite.** Im Timer vor jeder Übung steht unter der Kopfzeile eine kleine
   Kurve: Haltezeit je Satz, vom ersten bis zum letzten, dazu die Gesamtzeit mit Pausen. Satz *n*
   hält `a + (1−a)·q^(n−1)` mal so lange wie Satz 1. Am Anfang rechnet die App mit dem Studienwert
   (nach 20 s Pause ist rund ein Drittel der Reserve zurück, Chorley 2022), danach mit den eigenen
@@ -140,7 +140,7 @@ Rechenlogik:
   wird. Das **PR-Ziel** sagt, ab wann die Kurve über ihrem Bestwert liegt (Mittel der Lasten bei 40,
   90 und 150 s), und erscheint nur bis 20 % über dem Ziel. Neben „Satz beenden“ steht ein Knopf
   „Schmerz“. Die Pause zeigt nur die Sekunden, alles andere liegt hinter *Aktionen*. Seit
-  `2026-11-05 d` (P106) sehen alle Kurven so aus: die Karte vor der Übung in der Farbe der Zone, mit
+  `2026-11-05 d` (P106) sehen alle Kurven so aus: der Kopf des Timers in der Farbe der Zone, mit
   Achse und der Zeit über jedem Punkt, im Profil Kraftkurve und Formtrend mit blassem Raster, Zahlen
   in Mono und einer Fläche unter der Linie. Seit `2026-11-06 a` (P107) steht im Satz, der letztes
   Mal mit „Schmerz“ endete, links ein Balken bis zur damaligen Abbruchzeit, umgerechnet auf die
@@ -163,12 +163,12 @@ Rechenlogik:
   nächste Sitzung zurück; dort stehen sie oben. Wer selbst entscheiden will, benutzt auf der
   Startseite *Heute selbst zusammenstellen* — das gilt nur für diese eine Sitzung und hebt den
   Deckel auf.
-- **Kurzeinheit (20 Min).** Ein Häkchen in der Plankarte über *Weiter*, gültig bis
+- **Kurzeinheit (20 Min).** Ein Häkchen in der Plankarte über *Workout starten*, gültig bis
   Mitternacht. Die App kürzt dann so, dass die Einheit mit allen Pausen höchstens 20 Minuten
   dauert: erst die Satzzahl, für alle Übungen gleich, vom Zonen-Standard bis auf einen Satz, dann
   ganze Übungen, links und rechts immer zusammen. Zuerst fallen Übungen weg, die in den letzten
   7 Tagen trainiert wurden, zuletzt die heute selbst angehakten und der Nachholblock. Zwischen den
-  Blöcken läuft eine Minute Pause als Countdown auf der nächsten Karte, gestartet wird per Tipp.
+  Blöcken läuft eine Minute Pause als Countdown im wartenden Timer, gestartet wird per Tipp auf *Start*, auch vorher.
   Die Kurve nimmt wie immer nur den ersten Satz. Der Export markiert solche Sätze in der Spalte
   `kurzeinheit`.
 - **Nachholblock zum Abwählen.** Wer die offene Seite nicht mehr nachholen will, nimmt das Häkchen
@@ -177,14 +177,18 @@ Rechenlogik:
   Schulterblattebene steht auf *Start* ausgegraut mit „nur bei Schulterschmerzen“ und ist nicht im
   Plan, bis man es anhakt. Dann läuft es in der Rotation wie jede andere Übung, auch an den
   folgenden Tagen. Haken ab heißt wieder aus. Ein neues Gerät startet ohne diese Übung.
-- **Dein Workout.** *Weiter* auf *Start* führt auf eine Liste der angehakten Übungen in der
-  Reihenfolge des Plans. Dort stellst du für jede Übung schon vorher Sprosse, Zusatzgewicht und
-  Sätze ein, je Seite eine Zeile mit der Zielzeit im Kopf. Oben springt die Dauer mit. Die Karte vor
-  jeder Übung ist damit vorbelegt und lässt sich weiter ändern. Die Wahl gilt bis Mitternacht und
-  bleibt stehen, wenn du auf *Start* etwas an- oder abhakst. Mit der Kurzeinheit verfallen nur die
-  gewählten Sätze.
-- **Gewicht mit Schieber und Tasten.** Zusatzgewicht und Körpergewicht wählst du überall gleich, in
-  *Dein Workout*, im Nachtrag, im Onboarding und unter *Einstellungen → Messung*: oben der Wert,
+- **Start ist der eine Bildschirm** (seit Build `2026-11-06 f`, P112). Unter dem Kuchen jeder
+  angehakten Übung stellst du Sprosse, Zusatzgewicht und Sätze ein, je Seite eine Zeile mit der
+  Zielzeit im Kopf, dazu beidbeinig oder einbeinig und die Haltung. Oben springt die Dauer mit. Die
+  Wahl gilt bis Mitternacht und bleibt stehen, wenn du etwas an- oder abhakst. Mit der Kurzeinheit
+  verfallen nur die gewählten Sätze. *Workout starten* geht direkt in den Vorlauf der ersten Übung.
+- **Der Timer wartet zwischen den Übungen.** Vor jeder weiteren Übung steht er still: oben Kopf und
+  Kurve, groß die Zielzeit von Satz 1, *Start* an der Stelle von *Satz beenden*. Darunter Sprosse,
+  Gewicht, Sätze und beidbeinig oder einbeinig, darunter das Übungsbild, wo es eins gibt. Zone und
+  Haltung stehen nur auf *Start*. Unter *Aktionen* lässt sich die Übung auslassen, beide Seiten. Die
+  zweite Seite derselben Übung läuft direkt an.
+- **Gewicht mit Schieber und Tasten.** Zusatzgewicht und Körpergewicht wählst du überall gleich, auf
+  *Start* und im wartenden Timer, im Nachtrag, im Onboarding und unter *Einstellungen → Messung*: oben der Wert,
   darunter ein Schieber mit − und + an der Seite. Der Schieber rastet auf vollen Fünfern, für
   schnelle Sprünge um 5 und 10 kg, die Tasten gehen 0,5 kg. Planer und Regeln schlagen weiter im
   Raster der Übung vor, meist 2,5 kg.
@@ -196,7 +200,7 @@ Rechenlogik:
   sie stammt. Außerhalb zeichnet das Profil gestrichelt und schreibt „außerhalb" statt einer Zahl
   — keine Vorhersage über Lasten, bei denen du nie warst.
 - **Vorläufige Sprossen stehen in Rot.** Solange eine Sprosse nicht gemessen ist, steht unter
-  der Auswahl auf der Karte „Sprossenwert noch vorläufig, muss noch gemessen werden", in der
+  der Auswahl „Sprossenwert noch vorläufig, muss noch gemessen werden", in der
   Auswahl selbst und im Profil das Kürzel „· vorläufig". Das Rot verschwindet, sobald die Sprosse
   in der Liste der nachgemessenen Sprossen steht (sie wächst mit jedem Build) oder auf diesem
   Gerät ein gültiger Halt darauf liegt: frisch, in der Kurve, 20 bis 300 s, egal welche Seite.
@@ -274,7 +278,7 @@ Progression. Der Liegestütz folgt der Stufenfolge aus dem Handoff, nur feiner u
 Unter jeder Tiefe des Kniestands steht der enge Kniestand derselben Tiefe, bei dem das hintere Knie
 am tiefsten Punkt in einer Linie mit den Zehen des vorderen Fußes steht. Er trägt vorerst dieselbe
 Last, bis die ersten Messungen da sind. Welche Stellung gilt, sagt das Kästchen „Es zieht am hinteren
-Bein in der Hüfte oder im Knie“ in „Dein Workout“, je Seite. Die oberste Sprosse ist der hintere Fuß
+Bein in der Hüfte oder im Knie“ auf *Start* und im wartenden Timer, je Seite. Die oberste Sprosse ist der hintere Fuß
 mit dem Spann auf Hantelbank oder Sofa. Ihre Höhe trägst du an der Sprosse ein, die Last folgt aus
 ihr: 0,90 × (1 + 0,18 × Höhe / 42 cm), also 1,06 bei 42 cm. Die alte Sprosse mit dem Fuß auf dem
 Stepper ist raus, ihre Messungen bleiben mit 1,25 in der Kurve.
@@ -357,7 +361,7 @@ Winkeln, von beidbeinig Stuhl 90° bis beidbeinig Rolle 170°. Wer neu anfängt,
 hinauf und steigt erst dann auf einbeinig Stuhl um. Alle beidbeinigen Sprossen liegen unter
 einbeinig Stuhl, ihre Lasten sind **Platzhalter**: Einbeinig belastet ein Bein mehr als doppelt so
 stark wie beidbeinig, die reine Gewichtsrechnung (halbe Last) unterschätzt das. Die echten Werte
-kommen aus gemessenen Haltezeiten. Auf der Karte lässt sich beidbeinig oder einbeinig wählen; die
+kommen aus gemessenen Haltezeiten. Auf *Start* und im wartenden Timer lässt sich beidbeinig oder einbeinig wählen; die
 App wählt vor.
 
 **Der Pfad fürs innere Knie ist seit Build `2026-11-06 e` raus** (P111). Bis dahin stand auf der
@@ -390,7 +394,7 @@ beginnt die Leiter am Stepper. Zeigefinger, Arme in V, T und Y sind raus, ihre M
 mit Last und Namen in der Kurve.
 
 Die Übung hat **zwei Haltungen** mit je eigener Kurve, **gestreckt** mit langem Rücken
-und **rund** mit eingerolltem Rücken. Pro Workout läuft nur eine; auf der Karte vor der Übung
+und **rund** mit eingerolltem Rücken. Pro Workout läuft nur eine; auf *Start*
 lässt sie sich wechseln. Vorgewählt ist gestreckt, und das passt zur Mehrheit: Rund 90 % der
 Ischialgien gehen von der Bandscheibe aus (Koes 2007), und dann ziehen Sitzen und Vorbeugen ins
 Bein. Beim engen Wirbelkanal ist es umgekehrt, dort ziehen Stehen und Gehen ins Bein (Inufusa
