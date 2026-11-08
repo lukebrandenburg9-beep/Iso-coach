@@ -5717,11 +5717,164 @@ Dazu, mit zwei Fotos der Liste im Profil: „Mach das menü zum einklappen oder 
   `details.klapp[data-h]` in `offeneHilfen`, nur im Speicher.
 - `EX_VERSION` bleibt 36, Export Schema 11.
 
+### P114 · Schmerzabbrüche fallen aus der Kurve, eine eigene Schmerzkurve, Punkte nachträglich markieren
+
+Auftrag vom 07.11., mit einem Foto der Fersenbrücke im Profil: „Was bedeutet der rote punkt? Wichtig wäre mir das Punkte die wegen Schmerz abgebrochen werden entsprechend markiert werden auf stufe 12 ist ein auffälliger ausreißer“. Auf drei Vorschläge dazu (Schmerz
+aus der Kurve, Punkt antippen und markieren, Legende): „Bau alle drei“. Und während des Baus: „Außerdem will ich das aus den schmerzpunkten eine extra kurve gebaut wird die auch im diagramm eingezeichnet wird entweder im vergleich zu schmerzfreien seite oder im vergleich zu historischen datenpunkten ohne schmerzen, also sozusagen als 3te kurve“.
+
+**Gebaut in 2026-11-07 b.**
+
+- **Ein Schmerzabbruch fällt aus der Kurve.** Er sagt nur, dass die Kraft mindestens so lange gereicht
+  hätte. Weil er meist kurz ist, zog er die Kurve nach unten: Auf der rechten Seite der Fersenbrücke
+  begann die durchgezogene Linie an der Schmerzraute. Jetzt rechnet keine Kurve mehr mit ihm, auch nicht
+  die Satzquoten. In der Zeichnung bleibt er stehen, rot und offen. Der Timer rechnete den nächsten Satz
+  noch aus ihm weiter; das ändert P115.
+- **Die Schmerzkurve ist die dritte Linie.** Aus den Schmerzabbrüchen allein rechnet die App eine eigene
+  Kurve und zeichnet sie rot in dasselbe Bild wie die schmerzfreien Kurven beider Seiten. So steht sie
+  neben der schmerzfreien Kurve der eigenen Seite und neben der anderen Seite zugleich, ohne Rückfrage
+  so entschieden. Links ist sie gestrichelt wie die linke Kurve. Sie erscheint ab zwei Schmerzabbrüchen
+  auf verschiedenen Lasten und nur über dem Bereich, in dem Schmerzpunkte liegen. Ein beidbeiniger
+  Schmerzhalt zählt für beide Seiten; tragen beide Seiten dieselben Schmerzpunkte, steht eine Linie da,
+  durchgezogen.
+- **Ein Tipp auf einen Punkt.** Der Punkt bekommt einen Ring, unter der Zeichnung steht Stufe, Zeit,
+  Datum und Seite, daneben „Als Schmerzabbruch markieren“ oder „Schmerzabbruch zurücknehmen“. Das geht
+  in beide Richtungen, auch bei einem Punkt, der mit „Schmerz“ gespeichert ist. Ein zweiter Tipp auf
+  denselben Punkt oder auf leere Fläche schließt die Zeile, ebenso ein Wechsel der Kurve oder des
+  Bildschirms. Zweimal tippen hinterlässt nichts.
+- **Die Marke ändert Zeichnung, Kurve und Export,** die Sprossenregeln von damals rechnet sie nicht nach.
+  Im Test gibt die markierte Stufe 12 die rechte Kurve genau so zurück, wie sie vor dem Ausreißer war.
+- **Die Legende** sagt „Rot und offen heißt Schmerzabbruch, mit ihm rechnet die Kurve nicht.“ Steht eine
+  Schmerzkurve da, folgt „Die rote Linie ist die Kurve aus deinen Schmerzabbrüchen.“ Danach „Tippst du
+  einen Punkt an, kannst du ihn nachträglich als Schmerzabbruch markieren.“
+
+**Der Preis.**
+
+- **Die Kurve hat weniger Punkte.** Eine Seite mit vielen Schmerzabbrüchen beginnt später oder fällt
+  unter die nötige Zahl und zeigt dann Schätzpunkte.
+- **Schmerzabbrüche zählen weiter für die Zonen und belegen Plätze unter den letzten 30.** Die
+  Zonenrotation sieht eine Zone mit einem Schmerzabbruch als gemessen an.
+- **Eine nachträgliche Marke rechnet nichts nach.** Kein „Letztes Mal Abbruch wegen Schmerz“ im nächsten
+  Satz, keine Sperre der Übungsgruppe für den Tag, keine Rückstufung. Das alles hing am Schmerz im
+  Moment des Satzes.
+- **Die Schmerzkurve braucht zwei Schmerzabbrüche auf verschiedenen Lasten** und verlängert sich nicht
+  über ihre Punkte hinaus. Sie ist ein Bild der Abbrüche, keine Vorhersage, wann Schmerz kommt.
+- **Als untere Schranke rechnet noch niemand mit ihnen.** Die Kurve lässt sie weg, statt „mindestens so
+  lange“ zu verwenden.
+- **Liegen zwei Punkte übereinander, trifft der Finger den neueren.**
+- **Die Liste „Was du auf jeder Stufe schaffst“ färbt Schmerz nicht ein.**
+- **Auf dem Handy nicht geprüft.**
+
+**Für den Nachbau:**
+
+- `fit(points)` filtert `p.pain` heraus und ruft `fitGespeichert()`, den bisherigen Fit mit Zwischenspeicher.
+  `schmerzFit(ex, side)` = `fitGespeichert()` über die Schmerzpunkte aus `messKurvenPunkte()`.
+- `ersterSchmerz(s)`: `s.schmerzMarke`, wenn gesetzt, sonst `s.sets[0].pain`. `points()`, `satzQuoten()`,
+  Verlauf und Export lesen nur noch sie. `schmerzUmschalten(s)` setzt die Marke oder löscht sie, wenn sie
+  mit dem Gespeicherten übereinstimmt.
+- `curveSVG`: Schmerzkurven je eigener Kurve aus `k.pts` mit `pain` und ohne `geschaetzt`, gleiche
+  Punktfolge (Last:Zeit) einmal, `stroke="var(--bad)"`, links `stroke-dasharray="7 5"`, gezeichnet nur, wo
+  `imBereich()`. Die Blässe eines Punktes zählt nur neuere Punkte derselben Art (Schmerz oder nicht).
+  Zuoberst je echter Messung ein unsichtbarer Kreis `data-si` mit 13 Punkten Radius, der gewählte trägt
+  einen Ring mit 10. `schmerzKurveZuletzt` sagt der Legende, ob eine rote Linie dasteht.
+- `pktWahl` hält die gewählte Sitzung, nur im Speicher; `punktWahlHTML()` und `wirePunktWahl()` unter
+  `#kurveWahl`, neu gezeichnet mit `renderAmOrt("kurveWahl")`.
+- Export Schema 12: `in_kurve` ohne Schmerzabbruch, neue letzte Spalte `schmerz_markiert` auf Satz 1
+  (1 markiert, 0 zurückgenommen, leer wie gespeichert). Die Spalte `schmerz` bleibt, wie der Satz endete.
+- `EX_VERSION` bleibt 36, Export Schema 12.
+
+### P115 · Nach einem Schmerzabbruch rechnet der Timer vom Plan weiter, die rote Kurve zeigt den Abbruch
+
+Auftrag vom 07.11., nach P114: „Doch die datzquote ziehen weiterhin schmerzabbrüche mit ein! Baue aus den schmerzabbrüchen eine eigene kurve!“ Auf die Rückfrage, ob die Kurve im Timer oder im Profil stehen soll: „Rote Kurve im Timer“.
+
+**Gebaut in 2026-11-07 b.**
+
+- **Luke hatte recht.** P114 nahm Schmerzabbrüche aus dem Lernen der Satzquoten. Der Timer aber rechnete
+  den nächsten Satz weiter aus der Zeit davor, auch wenn der Satz wegen Schmerz endete. Im Test,
+  Fersenbrücke links, Vorgabe 154 s, Abbruch bei 61 s mit Schmerz 4: Satz 2 bekam 24 s.
+- **Jetzt rechnet die Vorgabe weiter, als hätte der Satz seine Vorgabe gehalten.** Im selben Beispiel
+  bekommt Satz 2 61 s und Satz 3 35 s, genau die Zahlen der Karte vor der Übung. Hielt ein Satz trotz
+  Schmerz länger als verlangt, zählt das Gehaltene. Uhr, Kurve, Ziel und Gesamtzeit im Kopf rechnen gleich.
+- **Die rote Kurve im Timer** zeigt, was die Satzquote aus dem Abbruch gerechnet hätte: ab dem Satz mit
+  Schmerz Satz für Satz aus dessen Zeit, im Beispiel 61, 24 und 14 s. Sie liegt unter der gestrichelten
+  Vorgabe. Der Schmerzsatz selbst steht rot und offen da wie auf der Karte im Profil, seine Zahl rot.
+  Die Legende bekommt „Schmerz“ mit roter Linie, solange die Kurve dasteht.
+- **Keine rote Kurve,** wenn nach dem Schmerzsatz kein Satz mehr kommt, die Übung wegen Schmerz endete,
+  an diesem Satz die Stufe wechselte (die leichtere Stufe rechnet wie bisher aus ihrer eigenen Kurve) oder
+  der Satz trotz Schmerz seine Vorgabe hielt.
+
+**Der Preis.**
+
+- **Nach einem Abbruch ist der nächste Satz oft deutlich länger als bisher,** im Beispiel 61 statt 24 s.
+  Die Bremse bleiben Schmerzbalken und Skala: Wer bei 5 oder mehr landet, wird wie bisher leichter
+  gestuft oder hört für heute auf.
+- **Die rote Kurve trägt nur das Wort „Schmerz“ in der Legende,** keinen Satz dazu, was sie bedeutet.
+- **Bei mehreren Schmerzsätzen zeigt sie nur den letzten,** gerechnet ab dessen Zeit, und sie rechnet aus
+  ihren eigenen Werten weiter, nicht aus den Sätzen, die danach wirklich gehalten wurden.
+- **Gespeichert wird sie nicht** und steht nicht im Export. Dort stehen weiter Zeit, Vorgabe und Schmerz
+  je Satz, aus denen sie sich nachrechnen lässt.
+- **Auf dem Handy nicht geprüft.**
+
+**Für den Nachbau:**
+
+- `kettenZeit(s)`: bei `s.pain` `max(s.time, s.target)`, sonst `s.time`. `setTarget()` und `blockPlan()`
+  rechnen `naechsterSatz()` aus der `kettenZeit` des Satzes davor; `blockPlan()` führt dafür neben den
+  angezeigten Zeiten eine zweite Reihe `kette`. Der erste Satz nach einem Stufenwechsel nimmt wie bisher
+  `schmerzWechsel.target`.
+- `schmerzKette(b, n)`: p ist der letzte Satz mit Schmerz. `null` bei p = −1, p ≥ n − 1, `b.schmerzEnde`,
+  `b.schmerzWechsel.ab === p + 1` oder `time >= target`. Sonst Länge n, `null` vor p, ab p
+  `naechsterSatz()` aus dem Wert davor.
+- `trainingsKurveSVG(…, {schmerz, schmerzSaetze})`: Pfad `path.tkS` (`glattPfad`, `var(--bad)`, 2 px)
+  nach der grünen Linie, Punkte `circle.tkSP` mit Radius 3,5 ab dem zweiten roten Wert, gehaltene
+  Schmerzsätze `circle.tkG.sz` mit Füllung `var(--panel)` und Rand `var(--bad)`, Zahl `text.tkW.sz` rot.
+  Die rote Reihe zählt für die Achsenhöhe und steht im Vorlesetext. `#tLgS` in `#tLegende`, `hidden`
+  ohne rote Kurve.
+- Die Karte vor der Übung ruft ohne `schmerz` und bleibt, wie sie war. `EX_VERSION` bleibt 36, Export
+  Schema 12.
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-11-07 b — Schmerzabbrüche fallen aus der Kurve, eine eigene Schmerzkurve, Punkte nachträglich markieren
+
+**Auftrag (Luke).** „Was bedeutet der rote punkt? Wichtig wäre mir das Punkte die wegen Schmerz abgebrochen werden entsprechend markiert werden auf stufe 12 ist ein auffälliger ausreißer“, dann „Bau alle drei“ und „Außerdem will ich das aus den schmerzpunkten eine extra kurve gebaut wird die auch im diagramm eingezeichnet wird entweder im vergleich zu schmerzfreien seite oder im vergleich zu historischen datenpunkten ohne schmerzen, also sozusagen als 3te kurve“. (P114) Danach „Doch die datzquote ziehen weiterhin schmerzabbrüche mit ein! Baue aus den schmerzabbrüchen eine eigene kurve!“ und „Rote Kurve im Timer“. (P115)
+
+**Gebaut.**
+
+- Ein Schmerzabbruch fällt aus jeder Kurve und steht rot und offen in der Zeichnung.
+- Aus den Schmerzabbrüchen allein zeichnet die App eine rote Schmerzkurve neben die schmerzfreien Kurven
+  beider Seiten, links gestrichelt.
+- Ein Tipp auf einen Punkt markiert ihn nachträglich als Schmerzabbruch oder nimmt das zurück. Das ändert
+  Zeichnung, Kurve und Export, nicht die Sprossenregeln von damals.
+- Die Legende erklärt Rot und offen, die rote Linie und das Antippen.
+- Im Timer rechnet die Vorgabe nach einem Schmerzabbruch weiter, als hätte der Satz seine Vorgabe
+  gehalten. Was die Satzquote aus dem Abbruch gerechnet hätte, steht als rote Kurve in der
+  Trainingskurve, der Schmerzsatz rot und offen.
+- `EX_VERSION` bleibt 36, Export Schema 12 mit neuer Spalte `schmerz_markiert`.
+
+**Geprüft.** Headless Chrome bei 390 × 844, mit Lukes Export vom 16.10. Er hat keine Schmerzabbrüche,
+der Test spielt an der Fersenbrücke zwei beidbeinige (Stufe 10 und 8), einen rechts (Stufe 14) und einen
+Ausreißer ohne Schmerz auf Stufe 12 rechts ein.
+
+- Ladeprobe `2026-11-07 b` über `2026-11-07 a`: 15 von 15 Prüfungen bestanden.
+- Ablauftests: Training 54 von 54, Schmerz 42 von 42 (Export-Prüfung auf Schema 12 und die Vorgabe
+  nach dem Stufenwechsel auf die neue Rechnung nachgezogen), Löschen 16 von 16, Häkchen 16 von 16,
+  Startbildschirm 34 von 34. Der ältere Knie-Test aus `2026-11-06 d` fällt beim Vorgänger genauso
+  durch und ist überholt.
+- Neu, Satzkette 22 von 22: Abbruch in Satz 1 bei 61 von 154 s mit Schmerz 4, Satz 2 bekommt 61 s
+  statt 24 s, Uhr und Kurve gleich, der Rest wie auf der Karte; rote Werte 61, 24, 14 s, rote Linie,
+  zwei rote Punkte unter der Vorgabe, Schmerzsatz rot und offen, Legende und Vorlesetext; bei 6 und
+  Stufenwechsel keine rote Kurve, zurück auf 4 wieder da; trotz Schmerz länger gehalten keine; Satz 3
+  aus dem gehaltenen Satz 2; Karte vor der Übung ohne rote Kurve; keine Konsolenfehler. Drei Fotos an
+  Luke.
+- Neu, Schmerzkurve 35 von 35: Schmerzpunkte ändern keine Kurve; zwei beidbeinige geben eine
+  durchgezogene rote Linie, ein dritter nur rechts zwei, links gestrichelt; der Ausreißer zieht die
+  rechte Kurve, markiert ist sie wieder genau wie vorher; Zeile, Ring, Zurücknehmen, Schließen per
+  zweitem Tipp, leerer Fläche und Bildschirmwechsel; Marke übersteht Neuladen; Export-Kopf und Werte;
+  keine Konsolenfehler. Drei Fotos an Luke.
+- Nicht geprüft: auf dem Handy, mit Lukes eigenen Schmerzabbrüchen.
 
 ### 2026-11-07 a — Die Sprossenwahl leuchtet, die Profil-Liste klappt ein
 
@@ -9400,7 +9553,7 @@ täglich mit dieser Fassung trainiert.
 | Timer bei gesperrtem Display | Kann eine Webseite nicht (P13) |
 | Konten, Sync, Push, Videos, Bezahlung | Außerhalb des MVP |
 | Trainingsfortschritt vom Modell trennen | Verbesserung über die Zeit und falsch geschätzte Variantenlast sind aus Haltezeiten allein nicht trennbar — **offen, auch für die echte App** |
-| Schmerzabbrüche als untere Schranke | Werden derzeit als volle Messung behandelt, obwohl sie nur sagen „mindestens so lange" — **offen** |
+| Schmerzabbrüche als untere Schranke | Fallen seit `2026-11-07 b` aus der Kurve und bekommen eine eigene Schmerzkurve (P114). Im Timer rechnet der nächste Satz seit P115 mit der Vorgabe des Schmerzsatzes, die Zeit davor steht als rote Kurve daneben. Als „mindestens so lange" rechnet noch keine Kurve mit ihnen — **offen** |
 
 ---
 

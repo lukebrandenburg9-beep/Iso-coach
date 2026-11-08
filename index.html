@@ -163,11 +163,13 @@ td.n,.kpi b{font-family:var(--mono)}
 .kurve text.tkW,.kurve text.tkZ{font-size:10.5px;font-weight:600;stroke:var(--panel);stroke-width:3px;
   stroke-linejoin:round;paint-order:stroke}
 .kurve text.tkW{fill:var(--ok)}
+.kurve text.tkW.sz{fill:var(--bad)}
 .kurve text.tkZ{fill:var(--tx)}
 #tLegende{display:flex;gap:16px;padding:3px 8px 0;font-size:11px;color:var(--tx3);letter-spacing:.04em}
 #tLegende i{display:inline-block;vertical-align:middle;margin:-2px 6px 0 0}
 #tLegende .lgV{width:16px;border-top:2px dashed var(--plan)}
 #tLegende .lgG{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+#tLegende .lgS{width:16px;border-top:2px solid var(--bad)}
 .tUhr{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
   cursor:pointer;user-select:none;-webkit-user-select:none;border-radius:16px;margin:8px 0;
   min-height:180px;text-align:center}
@@ -494,7 +496,8 @@ code{background:var(--panel2);padding:1.5px 5px;border-radius:5px;font-size:12.5
   </div>
   <div class="tKurveKarte">
     <div id="tKurve"></div>
-    <div id="tLegende"><span><i class="lgV"></i>Vorgabe</span><span><i class="lgG"></i>Gehalten</span></div>
+    <div id="tLegende"><span><i class="lgV"></i>Vorgabe</span><span><i class="lgG"></i>Gehalten</span><span id="tLgS" hidden><i
+      class="lgS"></i>Schmerz</span></div>
   </div>
   <div class="tUhr" id="tTap">
     <div id="tClock"></div>
@@ -2335,7 +2338,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-11-07 a";
+const BUILD = "2026-11-07 b";
 const KEY = "isocoach.v1";
 const KEY_GERETTET = "isocoach.v1.gerettet";
 /* Laufende Sicherung (Build 2026-10-27 c, nach P100): der gespeicherte Stand,
@@ -4040,7 +4043,7 @@ const curEx = () => S.ex[S.exercise];
    ist genau das, also bleibt das Ergebnis richtig, egal was sich zwischen
    zwei Aufrufen an den Sitzungen aendert. Jeder Aufrufer bekommt eine Kopie. */
 const _fitSpeicher = new Map();
-function fit(points){
+function fitGespeichert(points){
   if(!points || points.length < 2) return null;
   const key = points.map(p => p.load + ":" + p.time).join(",");
   if(!_fitSpeicher.has(key)){
@@ -4049,6 +4052,17 @@ function fit(points){
   }
   const f = _fitSpeicher.get(key);
   return f && Object.assign({}, f);
+}
+/* Ein Abbruch wegen Schmerz ist keine Maximalhaltezeit. Er sagt nur, dass die
+   Kraft mindestens so lange gereicht haette. Bis Build 2026-11-07 a rechnete
+   die Kurve mit ihm wie mit jedem anderen Punkt, und weil er meist kurz ist,
+   zog er sie nach unten: Auf der rechten Seite der Fersenbruecke begann die
+   durchgezogene Kurve an der Schmerzraute, dem leichtesten Punkt (Luke,
+   07.11.2026). Jetzt faellt er hier heraus, fuer jeden Aufrufer. Die
+   Zeichnung behaelt ihn rot und offen, und aus den Schmerzpunkten allein
+   rechnet schmerzFit eine eigene Kurve. */
+function fit(points){
+  return fitGespeichert(points && points.filter(p => !p.pain));
 }
 function fitRechnen(points){
   if(!points || points.length < 2) return null;
@@ -4754,19 +4768,41 @@ function messpunktGueltig(s){
      sondern eine Aussage ueber die Stufenwahl — siehe MESS_MIN/MESS_MAX. */
   return messbar(first.time);
 }
+/* War der erste Satz ein Abbruch wegen Schmerz? Gespeichert ist er so, wie er
+   im Workout endete. schmerzMarke setzt Luke nachtraeglich, indem er den
+   Punkt in der Kurve antippt (Build 2026-11-07 b): Stufe 12 der
+   Fersenbruecke stand als normaler Halt da, war aber ein Schmerzabbruch, der
+   mit "Satz beenden" statt "Schmerz" endete. Die Marke aendert Zeichnung,
+   Kurve und Export. Die Sprossenregeln, die damals schon entschieden haben,
+   rechnet sie nicht nach. */
+function ersterSchmerz(s){
+  if(s && s.schmerzMarke != null) return !!s.schmerzMarke;
+  return !!(s && s.sets && s.sets[0] && s.sets[0].pain);
+}
+/* Setzt oder nimmt die Marke. Stimmt sie danach mit dem Gespeicherten
+   ueberein, faellt sie weg: Zweimal tippen hinterlaesst nichts. */
+function schmerzUmschalten(s){
+  if(!s || !s.sets || !s.sets[0]) return;
+  const neu = !ersterSchmerz(s);
+  if(neu === !!s.sets[0].pain) delete s.schmerzMarke;
+  else s.schmerzMarke = neu;
+}
 function points(ex, side){
   ex = ex === undefined ? S.exercise : ex;
   side = side === undefined ? S.side : side;
   const out = [];
-  for(const s of S.sessions){
+  for(let si = 0; si < S.sessions.length; si++){
+    const s = S.sessions[si];
     if(s.exercise !== ex) continue;
     if(!zaehltFuer(s, ex, side)) continue;
     if(!messpunktGueltig(s)) continue;
     const first = s.sets[0];
     /* beid: der beidbeinige Halt steht in der linken UND der rechten Kurve.
        Liegen beide in einer Zeichnung, wird er nur einmal gezeichnet. */
-    out.push({load: s.load, time: first.time, pain: !!first.pain, date: s.date, level: s.level,
-              extra: +s.extra || 0, beid: !s.side && beidStufe(ex, s.level)});
+    /* si: die Stelle in S.sessions, damit ein angetippter Punkt seine
+       Sitzung findet. */
+    out.push({load: s.load, time: first.time, pain: ersterSchmerz(s), date: s.date, level: s.level,
+              extra: +s.extra || 0, beid: !s.side && beidStufe(ex, s.level), si});
   }
   return out;
 }
@@ -4828,6 +4864,14 @@ function kurvenPunkte(ex, side){
   return sz.length ? sz.concat(echt) : echt;
 }
 const curFit = (ex, side) => fit(kurvenPunkte(ex, side));
+/* Die Schmerzkurve (Luke, 07.11.2026: "das aus den schmerzpunkten eine extra
+   kurve gebaut wird die auch im diagramm eingezeichnet wird [...] also
+   sozusagen als 3te kurve"). Dasselbe Modell, nur aus den Abbruechen wegen
+   Schmerz derselben Seite. Sie zeigt, wie lange dich der Schmerz auf einer
+   Last halten liess, neben der schmerzfreien Kurve derselben Seite und mit
+   zwei Seiten neben der anderen. Es gilt dieselbe Regel wie fuer jede Kurve:
+   zwei Punkte auf verschiedenen Lasten. */
+const schmerzFit = (ex, side) => fitGespeichert(messKurvenPunkte(ex, side).filter(p => p.pain));
 
 /* ── Geschaetzte Startkurve, nur auf Lukes Geraet (Build 2026-11-02 a) ──
    Luke, 02.11.2026: "baue für mich eine geschätzte kurve auf ich schaffe
@@ -4907,6 +4951,11 @@ function satzZeiten(t1, n, m){
   for(let k = 2; k <= n; k++) out.push(naechsterSatz(m, k, out[k - 2]));
   return out;
 }
+/* Ein Satz, der wegen Schmerz endete, rechnet die Vorgabe weiter, als haette
+   er seine Zeit gehalten: Der Abbruch misst den Schmerz, nicht die Kraft
+   (Luke, 07.11.2026: „Doch die Satzquote ziehen weiterhin Schmerzabbrüche
+   mit ein!"). Hielt er laenger als verlangt, zaehlt das Gehaltene. */
+function kettenZeit(s){ return s.pain ? Math.max(s.time, s.target || 0) : s.time; }
 /* Ein Block taugt fuer die Satzkurve, wenn er frisch war, Satz 1 im
    Messfenster lag und mindestens ein Folgesatz ohne Schmerz kam. Ab dem
    ersten Satz mit Schmerz zaehlt nichts mehr — der Abbruch misst nicht die
@@ -4915,7 +4964,7 @@ function satzZeiten(t1, n, m){
 function satzQuoten(s){
   if(!s || s.fresh === false || !s.sets || s.sets.length < 2) return null;
   const e = s.sets[0], t1 = e && e.time;
-  if(!e || e.pain || !(t1 >= MESS_MIN && t1 <= MESS_MAX)) return null;
+  if(!e || ersterSchmerz(s) || !(t1 >= MESS_MIN && t1 <= MESS_MAX)) return null;
   const out = [];
   for(let n = 2; n <= Math.min(s.sets.length, SETS_MAX); n++){
     const z = s.sets[n - 1];
@@ -7881,14 +7930,34 @@ function zieleNachreichen(){
 /* ═══════════ Der Trainingsbildschirm ═══════════ */
 /* Die Haltezeiten des Blocks: gehaltene Saetze, wie sie waren, die offenen
    aus dem zuletzt gehaltenen weitergerechnet — dieselbe Rechnung wie
-   setTarget, also zeigen Kurve und Uhr dieselbe Zahl. */
+   setTarget, also zeigen Kurve und Uhr dieselbe Zahl. Ein Satz mit Schmerz
+   rechnet mit seiner Vorgabe weiter (kettenZeit). */
 function blockPlan(){
   const b = curBlock(), n = curSets();
   const m = b.satzModell || satzModell(b.exercise, b.side);
   if(!RUN.sets.length) return satzZeiten(b.target, n, m);
-  const out = RUN.sets.map(s => s.time), w = b.schmerzWechsel;
-  for(let k = out.length + 1; k <= n; k++)
-    out.push((w && w.target && k === w.ab + 1) ? w.target : naechsterSatz(m, k, out[k - 2]));
+  const out = RUN.sets.map(s => s.time), kette = RUN.sets.map(kettenZeit), w = b.schmerzWechsel;
+  for(let k = out.length + 1; k <= n; k++){
+    const t = (w && w.target && k === w.ab + 1) ? w.target : naechsterSatz(m, k, kette[k - 2]);
+    out.push(t); kette.push(t);
+  }
+  return out;
+}
+/* Die rote Kurve im Timer: was die Satzquote aus dem Schmerzabbruch
+   gerechnet haette, ab dem letzten Satz mit Schmerz Satz fuer Satz aus
+   dessen Zeit. Keine, wenn danach kein Satz mehr kommt, die Uebung wegen
+   Schmerz endete, an diesem Satz die Stufe wechselte (die leichtere Stufe
+   rechnet aus ihrer eigenen Kurve) oder der Satz seine Zeit trotzdem hielt. */
+function schmerzKette(b, n){
+  let p = -1;
+  RUN.sets.forEach((x, i) => { if(x.pain) p = i; });
+  if(p < 0 || p >= n - 1 || b.schmerzEnde) return null;
+  const s = RUN.sets[p], w = b.schmerzWechsel;
+  if((w && w.ab === p + 1) || s.time >= s.target) return null;
+  const m = b.satzModell || satzModell(b.exercise, b.side);
+  const out = Array(n).fill(null);
+  out[p] = s.time;
+  for(let k = p + 1; k < n; k++) out[k] = naechsterSatz(m, k + 1, out[k - 1]);
   return out;
 }
 const mmss = s => `${Math.floor(s / 60)}:${String(Math.round(s) % 60).padStart(2, "0")}`;
@@ -7922,7 +7991,10 @@ function trainingKopf(){
      lag genau auf dem Vorgabepunkt, und 60 s gegen 40 s sah aus wie Plan
      erfuellt (Luke, 05.11.2026). */
   const vorgabe = zeiten.map((t, i) => RUN.sets[i] ? RUN.sets[i].target : t);
-  el("tKurve").innerHTML = trainingsKurveSVG(vorgabe, RUN.sets.map(s => s.time), offen ? RUN.i : -1);
+  const rot = schmerzKette(b, n);
+  el("tKurve").innerHTML = trainingsKurveSVG(vorgabe, RUN.sets.map(s => s.time), offen ? RUN.i : -1,
+    {schmerz: rot, schmerzSaetze: RUN.sets.map(s => s.pain)});
+  el("tLgS").hidden = !rot;
   el("tSatzNr").innerHTML = `Satz <b>${Math.min(RUN.i + 1, n)} / ${n}</b>`;
   el("tKacheln").innerHTML = zeiten.map((t, i) => {
     const s = RUN.sets[i];
@@ -7955,18 +8027,22 @@ function verlauf(farbe, staerke = .38){
 }
 /* o.farbe: Farbe der Vorgabe, sonst blau. o.hoehe: Hoehe der Zeichnung.
    o.zahlen: Ueber jedem Vorgabepunkt steht seine Zeit (Karte vor der
-   Uebung, Build 2026-11-05 d). */
+   Uebung, Build 2026-11-05 d). o.schmerz: die rote Kurve (schmerzKette),
+   null vor dem Satz mit Schmerz. o.schmerzSaetze: welche gehaltenen Saetze
+   wegen Schmerz endeten — sie stehen rot und offen da wie auf der Karte. */
 function trainingsKurveSVG(vorgabe, gehalten, aktiv, o = {}){
   const farbe = o.farbe || "var(--plan)";
   const W = 340, H = o.hoehe || 172, L = 36, R = 14, TP = 20, BASE = H - 20;
   const n = vorgabe.length;
-  const hoch = Math.max(1, ...vorgabe, ...gehalten);
+  const rot = o.schmerz ? o.schmerz.filter(t => t != null) : [];
+  const hoch = Math.max(1, ...vorgabe, ...gehalten, ...rot);
   const schritt = [5, 10, 20, 25, 50, 100].find(st => hoch / st <= 5) || 100;
   const top = Math.ceil(hoch / schritt) * schritt;
   const X = i => n === 1 ? (L + W - R) / 2 : L + i * (W - L - R) / (n - 1);
   const Y = v => TP + (1 - v / top) * (BASE - TP);
   const pkt = (t, i) => [+X(i).toFixed(1), +Y(t).toFixed(1)];
   const plan = vorgabe.map(pkt), held = gehalten.map(pkt);
+  const sk = o.schmerz ? o.schmerz.map((t, i) => t == null ? null : pkt(t, i)).filter(Boolean) : [];
   const gerade = q => "M" + q.map(([x, y]) => `${x},${y}`).join("L");
   const flaeche = (q, linie) => `${linie(q)}L${q[q.length - 1][0]},${BASE}L${q[0][0]},${BASE}Z`;
   /* Am ersten und letzten Satz zeigt eine Zahl nach innen, sonst ragt sie
@@ -7987,6 +8063,7 @@ function trainingsKurveSVG(vorgabe, gehalten, aktiv, o = {}){
     fill="none" stroke="${farbe}" stroke-width="2" stroke-dasharray="5 4"/>`;
   if(held.length > 1) g += `<path d="${flaeche(held, gerade)}" fill="url(#${vG.id})"/><path d="${gerade(held)}"
     fill="none" stroke="var(--ok)" stroke-width="2.5"/>`;
+  if(sk.length > 1) g += `<path class="tkS" d="${glattPfad(sk)}" fill="none" stroke="var(--bad)" stroke-width="2"/>`;
   plan.forEach(([x, y], i) => {
     g += `<circle class="tkV" cx="${x}" cy="${y}" r="${i === aktiv ? 5.5 : 4}" fill="${farbe}"${
       i === aktiv ? ` stroke="var(--tx)" stroke-width="1.5"` : ""}/>`;
@@ -7995,18 +8072,20 @@ function trainingsKurveSVG(vorgabe, gehalten, aktiv, o = {}){
       g += `<text class="tkZ" x="${xa}" y="${y - 10}" text-anchor="${a}">${fmt(vorgabe[i])}</text>`;
     }
   });
+  sk.slice(1).forEach(([x, y]) => { g += `<circle class="tkSP" cx="${x}" cy="${y}" r="3.5" fill="var(--bad)"/>`; });
   /* Die Zahl steht ueber dem gruenen Punkt, liegt er unter der Vorgabe
      darunter — so verdeckt sie den Vorgabepunkt nicht. */
   held.forEach(([x, y], i) => {
     const oben = gehalten[i] >= vorgabe[i] || y + 18 > BASE;
-    const [a, xa] = anker(x, i);
-    g += `<circle class="tkG" cx="${x}" cy="${y}" r="5.5" fill="var(--ok)" stroke="#dff5e3"
-      stroke-width="1.5"/><text class="tkW" x="${xa}" y="${oben ? y - 10 : y + 18}" text-anchor="${a}">${
-      fmt(gehalten[i])}</text>`;
+    const [a, xa] = anker(x, i), sz = o.schmerzSaetze && o.schmerzSaetze[i] ? " sz" : "";
+    g += `<circle class="tkG${sz}" cx="${x}" cy="${y}" r="5.5" ${sz ? `fill="var(--panel)" stroke="var(--bad)"
+      stroke-width="2"` : `fill="var(--ok)" stroke="#dff5e3" stroke-width="1.5"`}/><text class="tkW${sz}" x="${xa}" y="${
+      oben ? y - 10 : y + 18}" text-anchor="${a}">${fmt(gehalten[i])}</text>`;
   });
   return `<svg class="kurve ks" viewBox="0 0 ${W} ${H}" role="img" aria-label="Vorgabe je Satz: ${
     vorgabe.map(t => Math.round(t)).join(", ")} Sekunden${gehalten.length ? `, gehalten: ${
-    gehalten.map(t => Math.round(t)).join(", ")} Sekunden` : ""}">${g}</svg>`;
+    gehalten.map(t => Math.round(t)).join(", ")} Sekunden` : ""}${rot.length ? `, nach Schmerz gerechnet: ${
+    rot.map(t => Math.round(t)).join(", ")} Sekunden` : ""}">${g}</svg>`;
 }
 /* Glatte Linie durch die Punkte, ohne Ueberschwinger: monotone kubische
    Interpolation (Fritsch-Carlson). Zwischen zwei Saetzen geht die Linie nie
@@ -9198,7 +9277,7 @@ function setTarget(){
   const w = b.schmerzWechsel;
   if(w && w.target && s.length === w.ab) return w.target;
   const m = b.satzModell || satzModell(b.exercise, b.side);
-  return naechsterSatz(m, s.length + 1, s[s.length - 1].time);
+  return naechsterSatz(m, s.length + 1, kettenZeit(s[s.length - 1]));
 }
 
 /* Seit Build 2026-11-05 a ohne Aufrufer: Die Uhr misst "+8 %" an der
@@ -9803,6 +9882,13 @@ let zuLeichtZuletzt = new Set(), grenzeZuletzt = false;
 /* Und ob eine Raute (beidbeiniger Halt) im Bild steht — nur dann erklaert
    der Satz darunter sie. */
 let rauteZuletzt = false;
+/* Und ob eine Schmerzkurve drinsteht. */
+let schmerzKurveZuletzt = false;
+/* Der angetippte Punkt in der Kurve (Build 2026-11-07 b). Gemerkt wird die
+   Sitzung selbst, nicht ihre Stelle: Loescht Luke den letzten Block oder
+   kommt ein anderer Stand vom Server, zeigt eine Stelle auf eine andere
+   Messung. Das Objekt ist dann einfach weg, und mit ihm die Auswahl. */
+let pktWahl = null;
 /* paar: die Seiten aus seitenPaar. Dann liegen links und rechts in einer
    Zeichnung (Luke, 23.10.2026): links gestrichelt mit Quadraten, rechts
    durchgezogen mit Kreisen, ein beidbeiniger Halt einmal als Raute. Ohne
@@ -9829,11 +9915,12 @@ function curveSVG(f, pts, paar, nur){
   if(paar && paar.length > 1 && !nur && !gleicheAchse(exK, paar)){
     const teile = paar.map(sd => {
       const svg = curveSVG(f, pts, paar, sd);
-      return {sd, svg, achse: achseZuletzt, raute: rauteZuletzt};
+      return {sd, svg, achse: achseZuletzt, raute: rauteZuletzt, schmerz: schmerzKurveZuletzt};
     });
     const mit = teile.find(t => t.achse && t.achse.marken) || teile[teile.length - 1];
     achseZuletzt = mit.achse && Object.assign({}, mit.achse, {doppelt: true});
     rauteZuletzt = teile.some(t => t.raute);
+    schmerzKurveZuletzt = teile.some(t => t.schmerz);
     return teile.map((t, j) => {
       const lg = lageOf(exK, t.sd);
       return `<div style="font-weight:600;font-size:14px;margin:${j ? 16 : 0}px 0 4px">${
@@ -10024,6 +10111,36 @@ function curveSVG(f, pts, paar, nur){
                  k.links ? ` stroke-dasharray="7 5"` : ""}
                  stroke-linecap="round" stroke-linejoin="round"/>`;
   }
+  /* Die Schmerzkurve: rot, duenner als die schmerzfreie und nur, wo
+     Schmerzpunkte liegen. Eine Verlaengerung bekommt sie nicht, die waere
+     eine Kurve aus Vermutungen. Links ist sie wie die schmerzfreie
+     gestrichelt. Ein beidbeiniger Schmerzhalt steht in beiden Seiten; tragen
+     beide Seiten dieselben Schmerzpunkte, steht sie einmal da, durchgezogen. */
+  const schmerzKurven = [];
+  for(const k of eigene){
+    const sp = k.pts.filter(p => p.pain && !p.geschaetzt);
+    const sf = fitGespeichert(sp);
+    if(!sf) continue;
+    const sig = sp.map(p => p.load + ":" + p.time).join(",");
+    const da = schmerzKurven.find(x => x.sig === sig);
+    if(da){ da.links = da.links && k.links; continue; }
+    schmerzKurven.push({sig, sf, links: k.links});
+  }
+  schmerzKurveZuletzt = false;
+  for(const sk of schmerzKurven){
+    let d = "", on = false;
+    for(let i=0;i<=240;i++){
+      const P = x0 + (x1-x0)*i/240;
+      if(P <= sk.sf.cp*1.001 || !imBereich(sk.sf, P)){ on=false; continue; }
+      const t = predictTime(sk.sf, P);
+      if(t > y1*1.001){ on=false; continue; }
+      d += (on?"L":"M") + X(P).toFixed(1) + " " + Y(t).toFixed(1) + " "; on = true;
+    }
+    if(!d) continue;
+    schmerzKurveZuletzt = true;
+    g += `<path d="${d}" fill="none" stroke="var(--bad)" stroke-width="2"${
+           sk.links ? ` stroke-dasharray="7 5"` : ""} stroke-linecap="round" stroke-linejoin="round"/>`;
+  }
   if(grenzeZuletzt){
     g += `<line x1="${X(grenze)}" y1="${TP}" x2="${X(grenze)}" y2="${H-B}"
            stroke="var(--tx2)" stroke-dasharray="4 3" stroke-width="1.4"/>
@@ -10042,11 +10159,13 @@ function curveSVG(f, pts, paar, nur){
      die Zahlen weiter vom neuesten Punkt aus vergeben werden. Das Gewicht
      im Fit zaehlt jede Seite fuer sich; ein beidbeiniger Halt steht nur
      einmal da, mit dem hoeheren der beiden Gewichte. */
+  /* Seit Build 2026-11-07 b rechnet jeder Punkt in seiner eigenen Kurve:
+     ein Schmerzpunkt in der Schmerzkurve, jeder andere in der schmerzfreien.
+     Gezaehlt werden deshalb nur die neueren Punkte derselben Art. */
   const alle = [];
   eigene.forEach(k => {
-    const m = k.pts.length;
     k.pts.forEach((p, i) => {
-      const w = Math.pow(DECAY, m - 1 - i);
+      const w = Math.pow(DECAY, k.pts.slice(i + 1).filter(q => !q.pain === !p.pain).length);
       const doppelt = paar && p.beid
         && alle.find(q => q.beid && q.date === p.date && q.level === p.level);
       if(doppelt){ doppelt.w = Math.max(doppelt.w, w); return; }
@@ -10139,6 +10258,23 @@ function curveSVG(f, pts, paar, nur){
            opacity="${deck(wichte[i])}" fill="var(--tx3)" stroke="var(--bg)" stroke-width="1.6"
            paint-order="stroke">${z.txt}</text>`;
   });
+  /* Antippen (Build 2026-11-07 b): Jede echte Messung traegt eine unsichtbare
+     Flaeche von 13 Punkten Radius, groesser als der Punkt, damit der Finger
+     ihn trifft. Sie liegen zuoberst, die neueste ganz oben. Der gewaehlte
+     Punkt bekommt einen Ring, was er anbietet, steht unter der Zeichnung
+     (punktWahlHTML). */
+  pts.forEach((p, i) => {
+    const o = lage[i];
+    if(!o.da || p.geschaetzt || p.si == null) return;
+    if(pktWahl && S.sessions[p.si] === pktWahl)
+      g += `<circle cx="${o.xb}" cy="${o.y}" r="10" fill="none" stroke="var(--tx)" stroke-width="1.6"/>`;
+  });
+  pts.forEach((p, i) => {
+    const o = lage[i];
+    if(!o.da || p.geschaetzt || p.si == null) return;
+    g += `<circle data-si="${p.si}" cx="${o.xb}" cy="${o.y}" r="13" fill="none"
+           pointer-events="all" style="cursor:pointer"/>`;
+  });
   return `<svg class="kurve" viewBox="0 0 ${W} ${H}" role="img"
     aria-label="Force Curve: Haltezeit über Last${nur ? ` \u00b7 ${nur}` : ""}">${g}</svg>`;
 }
@@ -10212,13 +10348,18 @@ function historySVG(pts){
    Eingabe 4; leer ohne Schmerz und bei Saetzen von vorher. nach_rueckstufung=1
    markiert die Saetze, die nach einem Wert ab 5 auf der leichteren Stufe
    liefen; satz zaehlt dort ueber den ganzen Block weiter. */
-const EXPORT_SCHEMA = 11;
+/* 12 (07.11.2026, Build b): in_kurve ist 0 fuer einen Schmerzabbruch, die
+   Kurve rechnet seitdem ohne ihn. schmerz_markiert am Ende: 1 oder 0, wenn
+   Luke den ersten Satz nachtraeglich als Schmerzabbruch markiert oder die
+   Markierung genommen hat; leer, wo die Spalte schmerz gilt, wie sie ist. */
+const EXPORT_SCHEMA = 12;
 const EXPORT_SPALTEN = [
   "datum","workout","uebung","uebung_name","seite","variante","stufe_nr",
   "zusatz_kg","zusatz_seite","zusatz_position","koerpergewicht_kg","last","satz","saetze_geplant","sekunden","ziel_sekunden",
   "schmerz","frisch","in_kurve","zone_geplant","zone_erreicht",
   "selbst_gewaehlt","nachgetragen","fassung","zone_gezaehlt","modus","kurzeinheit",
-  "schmerz_ende","aus_kurve_grund","unterlage_cm","schmerz_wert","nach_rueckstufung"
+  "schmerz_ende","aus_kurve_grund","unterlage_cm","schmerz_wert","nach_rueckstufung",
+  "schmerz_markiert"
 ];
 function messreihen(){
   const zeilen = [];
@@ -10256,7 +10397,7 @@ function messreihen(){
         schmerz: satz.pain ? 1 : 0,
         frisch: ses.fresh === false ? 0 : 1,
         in_kurve: (i === 0 && ses.fresh !== false && !ses.ausKurve
-                   && messbar(satz.time)) ? 1 : 0,
+                   && messbar(satz.time) && !ersterSchmerz(ses)) ? 1 : 0,
         zone_geplant: ses.workoutZone || "",
         zone_erreicht: ses.zone || "",
         selbst_gewaehlt: ses.userPicked ? 1 : 0,
@@ -10279,6 +10420,9 @@ function messreihen(){
         unterlage_cm: ses.bankCm > 0 ? ses.bankCm : "",
         schmerz_wert: satz.painWert || "",
         nach_rueckstufung: ses.nachSchmerz ? 1 : 0,
+        /* Nur auf Satz 1: nachtraeglich im Profil markiert (1) oder die
+           Markierung genommen (0). Leer: schmerz gilt, wie gespeichert. */
+        schmerz_markiert: i === 0 && ses.schmerzMarke != null ? (ses.schmerzMarke ? 1 : 0) : "",
         /* Nur im JSON: Die Sprosse dieser Messung gibt es nicht mehr (die
            Ringe der Fersenbruecke, Build 2026-10-15 a). stufe_nr zeigt dann
            die Sprosse, auf die sie umgezogen ist; Name und Last stimmen. */
@@ -10314,7 +10458,10 @@ function messreihenJSON(){
     fassung: BUILD,
     kniebeugung: S.kniebeugung || null,
     hinweis: "Eine Zeile je gehaltenem Satz. in_kurve=1 markiert die Punkte, aus denen "
-           + "sich CP und W' fitten lassen (Satz 1 einer nicht vorermuedeten Messung). "
+           + "sich CP und W' fitten lassen (Satz 1 einer nicht vorermuedeten Messung, ab "
+           + "Schema 12 ohne Schmerzabbruch). schmerz_markiert steht nur auf Satz 1: 1 = "
+           + "nachtraeglich als Schmerzabbruch markiert, 0 = Markierung genommen, leer = "
+           + "schmerz gilt wie gespeichert. "
            + "last ist ein Lastverhaeltnis INNERHALB einer Uebung, nicht zwischen Uebungen. "
            + "schmerz_ende ist der Schmerzwert (0-10) am Ende des Workouts und steht in "
            + "jeder Zeile dieses Workouts; je Workout zaehlen, nicht je Zeile. Leer bei "
@@ -10917,7 +11064,7 @@ function curveSelectHTML(id, paare){
 function wireCurveSelect(id){
   el(id).onchange = e => {
     const [ex, sd] = e.target.value.split("|");
-    S.exercise = ex; S.side = sd || null; save(); render2();
+    S.exercise = ex; S.side = sd || null; pktWahl = null; save(); render2();
   };
 }
 /* Nach dem Wechsel neu zeichnen, ohne auf die Startseite zu springen. */
@@ -11081,11 +11228,12 @@ function renderProfile(){
   };
   el("profBody").innerHTML = waehler + `
     <div class="card">
-      ${curveSVG(f, kurve, paar)}
-      <p class="tiny" style="margin-top:8px">${paar
-      ? `Punkte sind deine Messungen. ${stilText()} Offen heißt Schmerzabbruch.`
-      : `Punkte sind deine Messungen, ein offener Ring bedeutet
-      Schmerzabbruch.`} Ein Pfeil führt von der Stufe zu einer Messung mit Gewicht. Ältere Punkte
+      <div id="kurveWahl">${curveSVG(f, kurve, paar)}</div>
+      ${punktWahlHTML(paar)}
+      <p class="tiny" style="margin-top:8px">Punkte sind deine Messungen.${paar ? ` ${stilText()}` : ""}
+      Rot und offen heißt Schmerzabbruch, mit ihm rechnet die Kurve nicht.${schmerzKurveZuletzt
+      ? " Die rote Linie ist die Kurve aus deinen Schmerzabbrüchen." : ""} Tippst du einen
+      Punkt an, kannst du ihn nachträglich als Schmerzabbruch markieren. Ein Pfeil führt von der Stufe zu einer Messung mit Gewicht. Ältere Punkte
       werden blasser, ${paar && paar.length > 1 ? "jede Seite rechnet mit ihren" : "die Kurve rechnet mit deinen"} letzten ${PUNKTE_GRENZE}.${
       !grenzeZuletzt ? "" : paar
       ? ` Bis zur senkrechten Linie hältst du${paar.length > 1 ? " auf beiden Seiten" : ""} länger als ${
@@ -11144,7 +11292,35 @@ function renderProfile(){
       hochgerechnete Zahl sähe genauso aus wie eine gemessene, und das wäre der Fehler.</p>
     </div>
     ${profilRestKarte()}`;
-  wireCurveSelect("profCurve"); wireSeitenHaken();
+  wireCurveSelect("profCurve"); wireSeitenHaken(); wirePunktWahl();
+}
+/* Was der angetippte Punkt anbietet: Stufe, Zeit, Datum, mit zwei Seiten die
+   Seite, und den einen Knopf, der den Schmerzabbruch setzt oder nimmt. */
+function punktWahlHTML(paar){
+  const s = pktWahl;
+  if(!s || S.sessions.indexOf(s) < 0 || s.exercise !== S.exercise || !s.sets || !s.sets[0]) return "";
+  const schmerz = ersterSchmerz(s);
+  const seite = !paar ? "" : s.side ? ` · ${s.side}` : " · beidbeinig";
+  const datum = new Date(s.date).toLocaleDateString("de-DE", {day:"2-digit", month:"2-digit"});
+  return `<div id="pktPanel" style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;
+      margin-top:8px;padding:10px 12px;border:1px solid var(--line);border-radius:11px">
+      <div style="flex:1 1 160px"><b>Stufe ${s.level + 1}</b> · ${fmt(s.sets[0].time)} · ${datum}${seite}${
+        schmerz ? ` · <span style="color:var(--bad)">Schmerzabbruch</span>` : ""}</div>
+      <button class="ghost" id="pktSchmerz" style="padding:9px 13px">${
+        schmerz ? "Schmerzabbruch zurücknehmen" : "Als Schmerzabbruch markieren"}</button>
+    </div>`;
+}
+function wirePunktWahl(){
+  const k = el("kurveWahl"); if(!k) return;
+  k.onclick = e => {
+    const t = e.target.closest && e.target.closest("[data-si]");
+    const s = t ? S.sessions[+t.getAttribute("data-si")] : null;
+    if(!s && !pktWahl) return;
+    pktWahl = s && s !== pktWahl ? s : null;
+    renderAmOrt("kurveWahl");
+  };
+  const b = el("pktSchmerz");
+  if(b) b.onclick = () => { schmerzUmschalten(pktWahl); save(); renderAmOrt("kurveWahl"); };
 }
 
 function renderHistory(){
@@ -11172,7 +11348,7 @@ function renderHistory(){
       <tbody>${mine.slice().reverse().map(s=>`<tr${(s.fresh===false||s.ausKurve)?' style="opacity:.55"':""}>
         <td>${new Date(s.date).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"})}</td>
         <td class="tiny">${s.levelName}${s.modus && MODUS_NAME[s.modus]?`<br><span class="tiny">${MODUS_NAME[s.modus]}</span>`:""}${s.nachSchmerz?'<br><span class="tiny">nach Schmerz leichter</span>':s.fresh===false?'<br><span class="tiny">vorermüdet</span>':""}${s.ausKurve?`<br><span class="tiny">${s.ausKurve}</span>`:""}</td>
-        <td class="n">${s.sets[0]?fmt(s.sets[0].time):"–"}${s.sets[0]&&s.sets[0].pain
+        <td class="n">${s.sets[0]?fmt(s.sets[0].time):"–"}${ersterSchmerz(s)
           ?' <span style="color:var(--bad)">!</span>':""}${s.sets[0]&&s.sets[0].time
             &&!messbar(s.sets[0].time)?' <span style="color:var(--warn)">×</span>':""}</td>
         <td class="n">${fmt(s.target)}</td>
@@ -12057,6 +12233,7 @@ function show(name){
      der speicherte den leeren Stand (P100). */
   if(LADEFEHLER){ render(); return; }
   aktiverScreen = name;
+  if(name !== "profile") pktWahl = null;
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));
   el("s-"+name).classList.add("on");
   document.querySelectorAll("nav button").forEach(b=>

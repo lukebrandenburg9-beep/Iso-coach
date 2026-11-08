@@ -102,7 +102,11 @@ Rechenlogik:
   schwächeren Seite, die Tabelle hat je eine Spalte für links und rechts. Haltungen wie bei der
   Hyperextension bleiben getrennt. Unter dem Feld „Kurve“ lassen sich beide Seiten an- und
   abhaken. Sitzt das Gewicht links und rechts verschieden (Läufer), stehen zwei Zeichnungen
-  untereinander, jede mit ihren Gewichtsmarken.
+  untereinander, jede mit ihren Gewichtsmarken. Ein Schmerzabbruch steht rot und offen in der
+  Zeichnung, mit ihm rechnet die Kurve nicht. Aus den Schmerzabbrüchen allein zieht die App eine
+  rote Schmerzkurve, sobald zwei auf verschiedenen Lasten liegen. Ein Tipp auf einen Punkt zeigt
+  Stufe, Zeit und Datum und markiert ihn nachträglich als Schmerzabbruch oder nimmt das zurück
+  (seit Build `2026-11-07 b`, P114).
 - **Gespreiztes Onboarding** über drei Stufen (leicht / mittel / schwer) statt einer. Der
   Einstieg hängt an der **Kurve**, nicht am Workout: Eine Übung, die später dazukommt, holt ihre
   fehlenden Zonen nach. Gezählt werden dabei leere Zonen, nicht Messungen — zwei gespreizte
@@ -147,7 +151,9 @@ Rechenlogik:
   in Mono und einer Fläche unter der Linie. Seit `2026-11-06 a` (P107) steht im Satz, der letztes
   Mal mit „Schmerz“ endete, links ein Balken bis zur damaligen Abbruchzeit, umgerechnet auf die
   heutige Vorgabe. 8 s vorher kommt „Achte jetzt besonders auf deinen Schmerz.“ mit eigenem Ton,
-  danach wird er grün. Er bricht nichts ab.
+  danach wird er grün. Er bricht nichts ab. Endet ein Satz wegen Schmerz, rechnet die Vorgabe
+  weiter, als hätte er seine Vorgabe gehalten. Was die Satzquote aus der Abbruchzeit gerechnet
+  hätte, steht als rote Kurve daneben, der Schmerzsatz rot und offen (seit `2026-11-07 b`, P115).
 - **Erholung:** Dieselbe Muskelgruppe **dreimal pro Woche**, jedes Energiesystem — also jede
   Zone — **einmal pro Woche**. Beides zusammen ist genau eine Rotation: drei Zonen, drei
   Einheiten, ein Mo/Mi/Fr-Rhythmus. Umgesetzt als zwei Schranken: mindestens zwei Tage zwischen
