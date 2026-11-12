@@ -234,7 +234,9 @@ Rechenlogik:
 - **Sicherheitsfrage, wenn eine Übung eine neue Körperregion öffnet.** Der Fragebogen läuft sonst
   nur im Onboarding — vor der ersten Fersenbrücke wird die Frage zur proximalen Hamstring-Sehne
   nachgeholt, vor dem ersten Hip Hinge die nach Ausstrahlen ins Bein, Taubheit und plötzlichem
-  Beginn.
+  Beginn. Neu seit Build `2026-11-12 a`: Liegestütz, Schrägzug, Krabbe und Hyperextension fragen
+  vor dem ersten Mal, einmal auch bei allen, die sie schon lange machen. Beim Schrägzug ist die Frage
+  vorläufig.
 
 **Bewusst nicht drin:** CMF. Die Begründung stand bis zum 17.09. auch in der App und ist dort
 wieder raus — sie erklärt ein Verfahren, das der Nutzer nie zu sehen bekommt. Nachzulesen als
@@ -244,22 +246,29 @@ P3 in [ISO-Coach_Probleme-und-Aenderungen.md](ISO-Coach_Probleme-und-Aenderungen
 
 ## Was du an Gerät brauchst
 
-Unter **Einstellungen → Geräte** hakst du an, was du hast. Die meisten Übungen kommen mit Möbeln
-aus — Arbeitsplatte, Tisch, Stuhl, Hocker, Stepper, Kiste, Kissen, Sofa. Gerät braucht es hierfür:
+Unter **Einstellungen → Geräte** hakst du an, was du hast. Möbel setzt die App voraus — Arbeitsplatte,
+Tisch, Stuhl, Bank — und einen Stepper mit drei Stufen (10, 15 und 20 cm). Hocker, Kiste und Kissen
+braucht seit Build `2026-11-12 a` keine Sprosse mehr. Gerät braucht es hierfür:
 
 | Gerät | wofür | voreingestellt |
 |---|---|---|
 | Etwas zum Daranziehen | Schrägzug, **die ganze Übung** | an — eine stabile Tischkante zählt mit |
 | Faszienrolle | Fersenbrücke, die zwei obersten Stufen beidbeinig und einbeinig (Knie 90° und langer Hebel 170°) | aus |
-| Kettlebell oder Kurzhantel | Aufrechter Läufer, Zusatzgewicht. Außenrotation im hohen Seitsitz, **die ganze Übung**, in 0,5-kg-Schritten | aus |
-| Klimmzugbänder | Dip-Halt, die drei Band-Stufen. Nur an einem echten Barren, nicht an zwei Stuhllehnen. Ohne Bänder geht die Leiter vom Stuhl unter den Füßen direkt zum vollen Halt | aus |
-| Personenwaage mit Zeiger (analog) | Isometrisches und endgradiges Wadenheben, einbeinig mit Entlastung | aus |
-| Spanngurt mit Türanker | Hyperextension, die zwei leichten Stufen im Türrahmen. Ohne Gurt beginnt die Leiter am Stepper | aus |
+| Kettlebell oder Kurzhantel | Aufrechter Läufer, Zusatzgewicht auf der Seite des freien Knies | aus |
+| Personenwaage mit Zeiger (analog) | Isometrisches Wadenheben, einbeinig mit Entlastung, sobald beidbeinig mehr als 30 kg Rucksack bräuchte | aus |
+| Spanngurt mit Türanker | Hyperextension, **die ganze Übung**. Ohne Gurt steht sie nicht im Plan | aus |
 
 Stufen, die ein fehlendes Gerät brauchen, erscheinen nicht in der Auswahl — aber die
 **Nummerierung bleibt stehen**. Sonst verschöbe sich die gespeicherte Stufe deiner alten
 Messungen, sobald du ein Gerät anhakst. Eine Übung, von der keine einzige Stufe ausführbar ist,
 taucht im Workout gar nicht erst auf.
+
+Den Haken bei „Kettlebell oder Kurzhantel“ braucht nur der aufrechte Läufer. Alle anderen Übungen setzen
+ihr Zusatzgewicht voraus wie den Stepper, seit Build `2026-11-12 a` auch Seitheben und Außenrotation.
+Dort reicht eine Wasserflasche: 0,5 l wiegt 0,5 kg, 1 l 1 kg, 1,5 l 1,5 kg. Liegestütz und Schrägzug
+rechnen mit einer Gewichtsweste, Hip Hinge und Hyperextension mit Kurzhantel oder Kettlebell. Das
+endgradige Wadenheben mit Handtuchrolle steigt seit diesem Build über die Höhe unter der Ferse und
+braucht die Waage nicht mehr. Die Klimmzugbänder ruhen mit dem Dip-Halt, ihr Haken bleibt gespeichert.
 
 ---
 
@@ -282,7 +291,9 @@ einem Lastverhältnis von etwa 1,15 zwischen benachbarten Stufen. Wenn du die St
 prüfe unter **Profil → „Was du auf jeder Stufe schaffst"**, ob noch alle drei Zonen vorkommen.
 
 Der Ausfallschritt ist mein Vorschlag und nicht abgestimmt — Tiefe und Unterstützungsgrad als
-Progression. Der Liegestütz folgt der Stufenfolge aus dem Handoff, nur feiner unterteilt.
+Progression. Der Liegestütz folgt der Stufenfolge aus dem Handoff, nur feiner unterteilt. Seit Build
+`2026-11-12 a` endet seine Leiter bei „Boden“, sechs Sprossen: Die zwei Sprossen mit erhöhten Füßen
+ruhen, ihre Sätze stehen auf „Boden“ mit ihrer alten Last. Darüber geht es mit der Gewichtsweste weiter.
 
 **Der Ausfallschritt hat seit Build `2026-10-23 c` zwei Stellungen in einer Leiter** (Papier P96).
 Unter jeder Tiefe des Kniestands steht der enge Kniestand derselben Tiefe, bei dem das hintere Knie
@@ -332,6 +343,10 @@ Oberhalb des Standards endet die Leiter. Zusatzlast ginge rechnerisch nur nah an
 (10 kg an der Hüfte sind +25 %, am Brustkorb +3 %), aber der Seitstütz bleibt bewusst eine reine
 Körpergewichtsübung. Die App bietet bei ihm kein Gewicht an.
 
+Am Boden liegt seit Build `2026-11-12 a` ein Yogablock unter dem großen Rollhügel, dem Knochen außen an
+der Hüfte, als Anschlag: Die Hüfte schwebt knapp darüber, und kann man den Rollhügel nicht mehr vom
+Block abheben, ist der Halt zu Ende.
+
 **Der Schrägzug folgt demselben Gesetz.** Last = 0,746 · cos θ, wobei θ der Körperwinkel über der
 Waagerechten ist — gegen vier publizierte Kraftmessungen am Gurt geprüft, größte Abweichung 5,1 %.
 Die Stufen sind deshalb **Winkelmarken**, getroffen über Fußabstand (trägt bis etwa 37°) und
@@ -343,30 +358,40 @@ Der **einarmige** Schrägzug ist keine Stufe davon, sondern eine andere Übung: 
 Körpergewichte pro Arm plus ein Drehmoment um die Längsachse, das der Rumpf gegenhält.
 
 Die **Fersenbrücke** skaliert über zwei Dinge: die Höhe der Unterlage unter der Ferse (Stuhlsitz,
-Hocker, Kiste, Boden, Faszienrolle) und den Kniewinkel. Es gibt zwei Stellungen, **Knie 90° und
+Stepper mit 3, 2 und 1 Stufe, Boden, Faszienrolle) und den Kniewinkel. Es gibt zwei Stellungen, **Knie 90° und
 langer Hebel 170°**, und jede Unterlage in beiden: erst 90°, dann 170°. Langer Hebel 170° heißt: Das
 Bein ist fast gestreckt, das Knie bleibt leicht gebeugt und wird nicht durchgedrückt. Seit Build
 `2026-10-25 a` steht er an der Stelle von Knie 135° (Papier P98). Er ist etwas schwerer als 90° auf
 derselben Unterlage und leichter als 90° auf der nächsten: 90° auf dieser Unterlage × (90° auf der
-nächsten / 90° auf dieser) hoch 0,75. Stuhl 90° und Hocker 90° tragen ihre alten, gerechneten Werte,
+nächsten / 90° auf dieser) hoch 0,75. Einbeinig Stuhl 90° trägt seinen alten, gerechneten Wert,
 alle übrigen Sprossen sind **Platzhalter** und stehen in der App rot als vorläufig, bis gemessene
 Haltezeiten da sind. Messungen auf den alten 135°-Sprossen bleiben mit Last und Namen in der
 Kurve. Ein Segmentmodell sagt, dass die Höhe bei gleichem Winkel kaum etwas ändert und der Winkel
 fast alles. Die Messungen entscheiden, ob die Leiter so bleibt.
 
-Unter den Sitzbeinen steht ein **Yogablock** (22,5 × 12 × 7,5 cm), damit das Becken nicht
+**Seit Build `2026-11-12 a` steht der Stepper an der Stelle von Hocker und Kiste** (Papier P116), mit
+3, 2 und 1 Stufe (20, 15 und 10 cm), 24 Sprossen statt 20. Der Hocker-Wert geht nicht auf eine
+Stepper-Stufe über. Sätze auf Hocker und Kiste stehen jetzt auf der Stepper-Sprosse mit der nächsten
+Last, mit ihrer alten Last und der Marke der entfallenen Sprosse, und bleiben in der Kurve. Die
+Begründung der Sicherheitsfrage sagt seit diesem Build, was die Übung trifft: vor allem die knienahe
+Beinrückseite, die Kniekehle, die Wade und etwas die Hüfte. Die Sehne am Sitzbein trifft der Hip
+Hinge gezielter.
+
+Unter dem Kreuzbein liegt ein **Yogablock** (22,5 × 12 × 7,5 cm), damit das Becken nicht
 unbemerkt absinkt. Abgesunken wird die Oberschenkelrückseite länger und stärker, und derselbe Halt
-auf derselben Sprosse würde etwas anderes messen. Die Karte sagt je Sprosse, wie der Block steht.
-Bei 90°: Stuhl aufrecht, Hocker hochkant auf einem 5 cm dicken Buch, Kiste hochkant, Boden flach,
-Rolle hochkant. Beim langen Hebel liegt das Becken tiefer: Stuhl hochkant, Hocker flach, auf Kiste,
-Boden und Rolle steht keiner. Leichte Berührung wird korrigiert, Druck auf dem Block beendet den Halt.
+auf derselben Sprosse würde etwas anderes messen. Bis Build `2026-11-07 b` stand er unter den
+Sitzbeinen. Die Karte sagt je Sprosse, wie der Block steht: am Stuhl in beiden Stellungen aufrecht, am
+Boden bei 90° flach, auf der Rolle bei 90° hochkant. Am Boden mit langem Hebel passt kein Block mehr,
+dort liegt eine Thera-Band FlexBar (etwa 5 cm). Auf der Rolle mit langem Hebel steht keiner, und an den
+Stepper-Sprossen steht noch keine Stellung, bis sie festgelegt ist. Leichte Berührung wird korrigiert,
+Druck auf dem Block beendet den Halt.
 
 **Die Faszienrolle ist geschätzt:** Ob die Rolle die Last wirklich hebt oder nur den
 Stabilisierungsaufwand, ist offen. Bei gleicher Fersenhöhe ist das Hüftmoment dasselbe. Das ist
 genau das Muster, an dem beim Seitstütz die Fußerhöhung als Scheinstufe aufgeflogen ist. Die
 Ringe sind seit dem 15.10. raus, sie waren zu viel Gerät.
 
-Vor den zehn einbeinigen Sprossen steht eine **beidbeinige Rampe** auf denselben Unterlagen und
+Vor den zwölf einbeinigen Sprossen steht eine **beidbeinige Rampe** auf denselben Unterlagen und
 Winkeln, von beidbeinig Stuhl 90° bis beidbeinig Rolle 170°. Wer neu anfängt, klettert sie ganz
 hinauf und steigt erst dann auf einbeinig Stuhl um. Alle beidbeinigen Sprossen liegen unter
 einbeinig Stuhl, ihre Lasten sind **Platzhalter**: Einbeinig belastet ein Bein mehr als doppelt so
@@ -381,27 +406,24 @@ angehaktes Bein steht nach dem Laden wieder auf der normalen Leiter, auf seinem 
 Einheiten auf dem Pfad bleiben in Verlauf und Export, und „Fersenbrücke fürs innere Knie“ steht unter
 *Einstellungen* in der Übungsauswahl, solange es solche Einheiten gibt.
 
-Bei der **Hyperextension** beginnt die Leiter seit Build `2026-10-23 d` am **Gurt im Türrahmen**
-(Papier P97). Der Türanker klemmt oben in der Zarge, die Schlaufe liegt vorn knapp unter den
-Hüftknochen und läuft rechtwinklig zum Körper. Man lehnt sich gestreckt hinein, bis der Körper 45°
-geneigt ist. Am Gurt gibt es zwei Sprossen: den Oberkörper in Verlängerung der Beine und den
-Oberkörper waagerecht. Danach kommt der **Stepper** mit Kissen: Die Kante liegt auf Höhe des
-Bauchnabels, die Füße stehen hinten an der Wand, und der Oberkörper wird frei und waagerecht
-gehalten. Am Stepper bleiben zwei Armhaltungen. Die Last ist das Moment des Oberkörpers um den
-Drehpunkt, bezogen auf die frühere Sprosse „Arme in Y“ am Stepper = 1,00:
+Die **Hyperextension** läuft seit Build `2026-11-12 a` nur noch am **Gurt im Türrahmen** (Papier P97,
+P116). Der Türanker klemmt oben in der Zarge, die Schlaufe liegt vorn knapp unter den Hüftknochen und
+läuft rechtwinklig zum Körper. Man geht von oben in den Halt: in den Gurt hinein und über die Hüfte
+langsam nach vorn ablassen, bis der Oberkörper 45° geneigt ist oder waagerecht steht. Die Arme hängen
+locker. Die Last ist das Moment des Oberkörpers um den Drehpunkt, bezogen auf die frühere Sprosse
+„Arme in Y“ am Stepper = 1,00:
 
 | Sprosse | Last | Herkunft |
 |---|---|---|
 | Gurt · Oberkörper 45° in Verlängerung der Beine | 0,44 | Platzhalter, der waagerechte Gurt mal sin 45° |
-| Gurt · Oberkörper waagerecht | 0,62 | Platzhalter, eine Torstufe (1,25) unter dem Stepper |
-| Stepper · Hände in der Hüfte | 0,78 | gerechnet, Segmentmodell von de Leva (1996) |
-| Stepper · Hände vor der Brust | 0,85, mit Gewicht mehr | gerechnet, Armhaltung angenommen |
+| Gurt · Oberkörper waagerecht | 0,62, mit Gewicht mehr | Platzhalter, eine Torstufe (1,25) unter der früheren Stepper-Sprosse „Hände in der Hüfte“ (0,78) |
 
-Der Gurt ist nach Lukes Erfahrung wesentlich leichter als der Stepper. Das Segmentmodell sagt das
-Gegenteil: Am Gurt hält der Rücken den ganzen Oberkörper über der Hüfte, am Stepper nur den über
-dem Nabel. Was stimmt, zeigt die Messung, bis dahin stehen beide Gurt-Sprossen rot. Ohne Spanngurt
-beginnt die Leiter am Stepper. Zeigefinger, Arme in V, T und Y sind raus, ihre Messungen bleiben
-mit Last und Namen in der Kurve.
+Beide Sprossen stehen rot, bis gemessene Haltezeiten da sind. Die Stepper-Sprossen sind raus: Ihre
+Sätze stehen auf „waagerecht“, mit ihrer alten Last und der Marke der entfallenen Sprosse. Ohne
+Spanngurt steht die Übung nicht im Plan, ebenso im Modus ohne Geräte. Zeigefinger, Arme in V, T und Y
+sind schon länger raus, ihre Messungen bleiben mit Last und Namen in der Kurve. Vor dem ersten Mal
+fragt die App seit diesem Build nach Taubheit oder Kraftverlust im Bein, nach Blase, Darm oder
+Taubheit im Gesäß- und Intimbereich und nach einem Sturz oder Unfall.
 
 Die Übung hat **zwei Haltungen** mit je eigener Kurve, **gestreckt** mit langem Rücken
 und **rund** mit eingerolltem Rücken. Pro Workout läuft nur eine; auf *Start*
@@ -418,16 +440,16 @@ arbeitendem Bein, stehend beidbeinig ist 0,50:
 
 | Sprosse | Last | Herkunft |
 |---|---|---|
-| Sitzend, aus der Hüfte nach vorn gekippt | 0,32 | Platzhalter |
-| Sitzend, Gesäß knapp über der Sitzfläche | 0,40 | Platzhalter |
+| Sitzend, auf der Stuhlkante aus der Hüfte nach vorn gekippt | 0,32, mit Gewicht mehr | Platzhalter |
+| Sitzend, Gesäß knapp über der Sitzfläche (Lift-Off) | 0,40, mit Gewicht mehr | Platzhalter |
 | Stehend, Körpergewicht | 0,50 | gerechnet |
 | Stehend, Gewicht in beiden Händen | ab 0,63, mit Mindestgewicht | gerechnet |
-| Camporini, Bein hinten, ganze Sohle auf dem Keil | 0,65 | Gewichtsanteil hinten, einmal gemessen |
-| Camporini, beide Füße flach, Gewicht in der Hand gegenüber | 0,65 | wie Camporini, nur Premium |
-| Camporini, beide Füße flach, Gewicht in derselben Hand | 0,65 | wie Camporini, nur Premium |
-| Camporini, ganze Sohle auf dem Keil, Gewicht in der Hand gegenüber | 0,65 | wie Camporini, nur Premium |
-| Camporini, Zehen auf dem Keil, Ferse unten, Gewicht in der Hand gegenüber | 0,65 | wie Camporini, nur Premium |
-| B-Stance, Bein vorn, hinterer Fuß nur auf den Zehen | 0,75 | angenommen |
+| Camporini, Bein hinten, ganze Sohle auf dem Keil | 0,65 | Gewichtsanteil hinten, einmal gemessen; nur nach Freischaltung |
+| Camporini, beide Füße flach, Gewicht in der Hand gegenüber | 0,65 | wie Camporini, nur nach Freischaltung |
+| Camporini, beide Füße flach, Gewicht in derselben Hand | 0,65 | wie Camporini, nur nach Freischaltung |
+| Camporini, ganze Sohle auf dem Keil, Gewicht in der Hand gegenüber | 0,65 | wie Camporini, nur nach Freischaltung |
+| Camporini, Zehen auf dem Keil, Ferse unten, Gewicht in der Hand gegenüber | 0,65 | wie Camporini, nur nach Freischaltung |
+| B-Stance, Bein vorn, hinterer Fuß nur auf den Zehen | 0,75, mit Gewicht in beiden Händen mehr | angenommen |
 
 Im Sitzen ist das Hüftmoment bei gleicher Neigung dasselbe wie im Stehen. Leichter ist es, weil
 das stark gebeugte Knie die Oberschenkelrückseite entspannt, und das rechnet kein Hebelmodell —
@@ -442,9 +464,12 @@ P98). Das arbeitende Bein steht etwa einen halben Fuß zurückversetzt. „Gegen
 der Seite, deren Fuß vorn steht. Alle fünf Camporini-Sprossen tragen etwa dieselbe Hüftlast, die
 Leiter ist an dieser Stelle flach. Sie sind deshalb eine Stufe: Je Seite gilt die, die du in *Dein
 Workout* gewählt hast, Planer und Regeln wechseln nicht zwischen ihnen, und das Gewicht teilen sich
-die fünf. Die vier Varianten gehören zu Premium. Ohne Premium stehen sie sichtbar, aber gesperrt in
-der Auswahl, mit dem Zusatz „· im Medical Fitness System freigeschaltet“, und der Planer nimmt sie
-nicht.
+die fünf. Seit Build `2026-11-12 a` gibt es alle fünf nur nach persönlicher Freischaltung, nicht mehr
+über Premium (Papier P116). Ohne sie stehen sie sichtbar, aber gesperrt in der Auswahl, mit dem Zusatz
+„· nur nach persönlicher Freischaltung“, der Planer nimmt sie nicht, und die Leiter geht von „Stehend,
+Gewicht in beiden Händen“ direkt auf den B-Stance. Wie die Freischaltung ausgelöst wird, ist offen. Bis
+dahin steht unter *Einstellungen* der Haken „Camporini freigeschaltet“. Wer die Camporini-Sprossen schon
+benutzt hat, behält sie.
 
 Zwei Dinge sind offen und stehen deshalb alle zehn Sprossen rot. **Erstens** liegen zwei
 Abstände nach Rechnung unter dem Mindestabstand ×1,25: stehend mit Gewicht zum Camporini und
@@ -452,31 +477,34 @@ Camporini zum B-Stance. **Zweitens** misst die Waage Gewicht, nicht Hebel. Das H
 Beins ist seine Bodenkraft mal dem Abstand vom Fuß zur Hüfte, und beim Hinge liegt der hintere
 Fuß näher an der Hüfte. Im Modell trägt beim Camporini ab etwa 15 cm Fußabstand das vordere Bein
 das größere Hüftmoment, obwohl das hintere mehr Gewicht trägt. Die Messung mit zwei Waagen
-schreibt deshalb den Fußabstand mit. Die Haltetiefe muss in allen Sprossen gleich sein: 45° statt
-60° Rumpfneigung sind schon ×1,22. Am einfachsten mit dem Rücken zur Wand, die Fersen eine feste
-Zahl Fußlängen davor, das Gesäß knapp vor der Wand.
+schreibt deshalb den Fußabstand mit. Die Haltetiefe muss in allen Sprossen ungefähr gleich sein: 45°
+statt 60° Rumpfneigung sind schon ×1,22. Seit Build `2026-11-12 a` kontrolliert man sie im Spiegel und
+geht so tief, wie es der Reiz zulässt, nicht zwingend bis in die Waagerechte. Die Methode mit dem
+Rücken zur Wand steht nicht mehr im Hinweistext. Mit Gewicht im Stehen nimmt man es aus der Hocke auf.
 
 **Zusatzgewicht ist eine eigene Achse, keine Leitersprosse.** Die Leiter bleibt reines
 Körpergewicht; Kilogramm kommen ab einer Stufe je Übung dazu (Liegestütz ab „Boden", Ausfallschritt
 je nach Selbsttest, siehe oben, Fersenbrücke nur auf der obersten Sprosse „Langer Hebel 170° ·
 Faszienrolle“). Der Seitstütz bleibt reines Körpergewicht,
 seine Leiter endet bei „Standard". Wie stark ein Kilo wirkt, ist übungsabhängig: Bei Liegestütz
-und Ausfallschritt wächst die Last mit `X/BW`. Beim Schrägzug sind es `1,3·X/BW` (Rucksack hoch auf den
-Schulterblättern; rutscht er aufs Becken, wirkt dasselbe Gewicht nur zu drei Vierteln), bei der
-Fersenbrücke `1,4·X/BW` (Gewicht auf dem Becken, dicht am Hüftgelenk). Bei der Hyperextension
-kommt Gewicht nur auf der obersten Sprosse dazu, mit beiden Armen eng vor der Brust: `2,12·X/BW`,
-bezogen auf diese Sprosse (30 cm Hebel vom Nabel bis zur Mitte des Brustbeins). Bis Build
-`2026-10-23 d` lag Y darunter, und ohne Gewicht war die Sprosse leichter als Y. Die App begann
-deshalb mit einem Mindestgewicht, 7,5 kg bei 80 kg Körpergewicht. Jetzt liegt „Hände in der Hüfte“
-darunter, und die ist leichter als die Brust ohne Gewicht: Das Mindestgewicht ist 0 kg. Die Regel
-bleibt stehen und greift wieder, sobald eine Messung die Brust leichter zeigt. Für die Last mit
-Gewicht braucht die App das Körpergewicht: *Einstellungen → Messung*.
+(Gewichtsweste) und Ausfallschritt wächst die Last mit `X/BW`. Beim Schrägzug sind es `1,3·X/BW` mit der
+Gewichtsweste; der Faktor stammt aus der Zeit des Rucksacks hoch auf den Schulterblättern und bleibt
+vorläufig. Bei der Fersenbrücke `1,4·X/BW` (Gewicht auf dem Becken, dicht am Hüftgelenk). Bei der Hyperextension
+kommt Gewicht nur auf der obersten Sprosse dazu, „Oberkörper waagerecht“ am Gurt. Seit Build
+`2026-11-12 a` hängt es an den Händen, die Arme hängen locker unter den Schultern: `2,1·X/BW`. Der
+Oberkörper wirkt mit 0,24 m je Kilo Körpergewicht um die Hüftachse (Rumpf, Kopf und hängende Arme,
+Segmentdaten nach Winter), das Gewicht hängt 0,50 m vor ihr: 2,05. Liegt der Drehpunkt 5 cm höher,
+sind es 2,15, eingebaut ist die Mitte. Vorher lag das Gewicht am Stepper vor der Brust, mit
+`2,12·X/BW`. Für die Last mit Gewicht braucht die App das Körpergewicht: *Einstellungen → Messung*.
 Beim Hip Hinge hängt das Gewicht in den Händen senkrecht unter den Schultern: `2,12·X/BW` (52 cm
 von der Hüfte zur Schulter). Dort gibt es ein Mindestgewicht, denn „Stehend, Gewicht in beiden
 Händen" ist ohne Gewicht dieselbe Stellung wie „Stehend, Körpergewicht": das kleinste Gewicht, mit
-dem die Sprosse mindestens ×1,25 schwerer ist, 10 kg bei 80 kg Körpergewicht. Die fünf
-Camporini-Sprossen teilen sich ein Gewicht, der B-Stance hat ein eigenes. Getragen wird es in der Hand
-der Seite, deren Fuß hinten steht, bei den Varianten mit „gegenüber“ in der anderen.
+dem die Sprosse mindestens ×1,25 schwerer ist, 10 kg bei 80 kg Körpergewicht. Seit Build
+`2026-11-12 a` gibt es Gewicht auch im Sitzen, auf beiden Sitz-Sprossen bis 20 kg in 1-kg-Schritten,
+mit demselben Hebel wie im Stehen. Kurzhantel oder Kettlebell, ein Rucksack geht nicht mehr. Die fünf
+Camporini-Sprossen teilen sich ein Gewicht, der B-Stance hat ein eigenes. Im Sitzen, im Stehen und im
+B-Stance liegt es in beiden Händen, eingetragen wird das Gesamtgewicht. Beim Camporini liegt es in der
+Hand der Seite, deren Fuß hinten steht, bei den Varianten mit „gegenüber“ in der anderen.
 Beim aufrechten Läufer trägt das Gewicht die ganze Leiter: Die einzige Sprosse heißt bei 0 kg
 „Ohne Zusatzlast" und mit Kettlebell „Mit Zusatzgewicht". Wo die Kettlebell sitzt — Front Rack
 `2,33·X/BW` oder Suitcase `3,22·X/BW` —, wählst du je Seite, denn links und rechts brauchen oft
@@ -486,13 +514,16 @@ Hand – links". Wechselst du, bleibt die Last gleich und die App rechnet das Ki
 
 **Die Außenrotation im hohen Seitsitz** (seit Build `2026-11-02 a`, Papier P101) trainiert die
 Rotatorenmanschette. Man sitzt auf einer Hüfte, stützt sich auf die Hand und legt den Ellbogen des
-oberen Arms aufs Knie. Gehalten wird mit waagerechtem Unterarm. „Links“ heißt: Der linke Arm ist oben
+oberen Arms aufs Knie. Gehalten wird mit waagerechtem Unterarm, und seit Build `2026-11-12 a` geht man
+von oben hinein: Start mit dem Unterarm senkrecht, dann langsam nach vorn ablassen bis in die
+Waagerechte, nicht von unten hochdrehen. „Links“ heißt: Der linke Arm ist oben
 und arbeitet. Beide Seiten kommen direkt nacheinander dran, beide werden gemessen, und die Übung hat
 eine eigene Erholungsgruppe. Auch hier ist das Gewicht die ganze Leiter: eine Sprosse, 0 bis 15 kg in
 0,5-kg-Schritten. Unterarm und Hand wirken wie 1,21 % des Körpergewichts in der Faust (de Leva 1996),
 das Gewicht mit `83·X/BW`. Bei 80 kg verdoppelt jedes Kilo die Last. Beides ist gerechnet, die Sprosse
-steht rot. Ohne angehakte Kettlebell oder Kurzhantel bietet die App die Übung nicht an, denn der
-Unterarm allein hielte Minuten. Wer noch nie gemessen hat, beginnt mit 2, dann 3,5, dann 5 kg.
+steht rot. Ein angehaktes Gewicht braucht sie seit Build `2026-11-12 a` nicht mehr, eine Wasserflasche
+hat jeder. Gewicht braucht sie trotzdem, denn der Unterarm allein hielte Minuten. Wer noch nie gemessen
+hat, beginnt mit der vollen 1,5-Liter-Flasche, dann 3, dann 5 kg.
 
 Für Luke steht in dieser Übung eine geschätzte Kurve, bis er selbst misst. Er schafft 12
 Wiederholungen mit 5 kg. Daraus rechnet die App nach Brzycki das Maximum, nimmt fürs Halten 10 % mehr
@@ -502,27 +533,37 @@ Stand, sie stehen nicht im Export, und sie fallen weg, sobald zwei Messungen mit
 eine eigene Kurve tragen.
 
 **Das Seitheben in der Schulterblattebene** (seit Build `2026-11-02 b`, Papier P102) ist für die
-gereizte Schulter da und läuft nur, wenn man es anhakt. Man steht aufrecht und hält den gestreckten
-Arm schräg vor der Seite auf Schulterhöhe, Daumen oben. Eine Marke an der Wand für die Fingerspitzen
-hält die Höhe gleich. „Links“ heißt: Der linke Arm arbeitet. Beide Seiten kommen direkt nacheinander
-dran, beide werden gemessen, die Übung hat eine eigene Erholungsgruppe. Zwei Sprossen: „Ellbogen
-rechtwinklig gebeugt“ und „Arm gestreckt“, Gewicht nur auf dem gestreckten Arm, 0 bis 10 kg in
-0,5-kg-Schritten, etwa eine Wasserflasche. Gestreckt wirkt der Arm wie 2,39 % des Körpergewichts in
-der Faust (de Leva 1996), das Gewicht mit `42·X/BW`, gebeugt sind es 1,73 %. Alles gerechnet, beide
-Sprossen stehen rot. Im Modus ohne Geräte bleiben beide Sprossen, nur ohne Gewicht.
+gereizte Schulter da und läuft nur, wenn man es anhakt. Man steht aufrecht und hält den Arm schräg
+vor der Seite auf Schulterhöhe, leicht gebeugt (etwa 170°), den Daumen leicht nach innen gedreht und den
+Arm aktiv in die Außenrotation gezogen. Eine Marke an der Wand für die Fingerspitzen hält die Höhe gleich. „Links“ heißt: Der linke Arm arbeitet. Beide Seiten kommen direkt nacheinander
+dran, beide werden gemessen, die Übung hat eine eigene Erholungsgruppe. Seit Build
+`2026-11-12 a` eine Sprosse, „Arm leicht gebeugt (170°)“ (Papier P116). Die Sprosse mit rechtwinklig
+gebeugtem Ellbogen ist raus, ihre Sätze behalten ihre Last und tragen die Marke der entfallenen Sprosse.
+Gewicht 0 bis 10 kg in 0,5-kg-Schritten: zuerst ohne, dann eine Wasserflasche, danach eine
+Gewichtsscheibe oder Kurzhantel, ohne angehaktes Gerät. Der Arm wirkt wie 2,39 % des Körpergewichts in
+der Faust (de Leva 1996), bei 170° nachgerechnet 2,40 %, der Wert bleibt. Das Gewicht wirkt mit
+`42·X/BW`. Alles gerechnet, die Sprosse steht rot. Im Modus ohne Geräte bleibt sie, nur ohne Gewicht.
 
-**Der Dip-Halt** (seit Build `2026-11-05 b`, Papier P104) ist für die vordere Schulter da, die
-Hauptlast tragen die lange Bizepssehne und die vordere Kapsel in Schulterstreckung. Er läuft im
-normalen Training, beide Arme gleichzeitig, und gehört mit dem Liegestütz in eine Gruppe: Die
-beiden teilen sich die Ruhe und laufen nie am selben Tag. Neun Sprossen: zwei Krabben am Boden mit
-gestreckten Armen (Gesäß abgelegt, dann Tischposition), dann mit Ellbogen 90° der Stuhl (Knie 90°,
-dann gestreckte Beine) und der Barren, erst mit dem Fußspann auf einem Stuhl, dann im grünen,
-violetten und roten Band, zuletzt mit dem vollen Körpergewicht. Ohne Barren dienen zwei Stuhllehnen
-als Barren. Die Bänder gehen nur am echten Barren, ohne Haken bei „Klimmzugbänder“ geht die Leiter
-von Sprosse 5 auf 9. Die Sprossen 1 bis 5 sind gerechnet (de Leva 1996), die Band-Sprossen tragen
-1 − Bandzug ÷ Körpergewicht mit der Mitte der Herstellerspanne: Grün 40 kg, Violett 27,5 kg, Rot
-11 kg. Ein Dipgürtel gibt nur auf der letzten Sprosse Gewicht dazu, 0 bis 40 kg in 2,5-kg-Schritten.
-Alles steht rot. Im Modus ohne Geräte bleiben die beiden Krabben, ohne Gewicht.
+**Die Krabbe** (seit Build `2026-11-12 a`, Papier P116) ist für die vordere Schulter da und löst den
+Dip-Halt ab. Beide Arme arbeiten gleichzeitig und bleiben gestreckt, die Hände liegen eine Handlänge
+hinter dem Gesäß, und man geht von oben in den Halt. Zwölf Sprossen in drei Stellungen: Knie 90° mit
+abgelegtem Gesäß, Knie 90° mit schwebendem Gesäß, Beine gestreckt, je auf dem Boden und auf dem Stepper
+mit 1, 2 und 3 Stufen. Je höher der Stepper, desto weiter geht die Schulter nach hinten. Kein
+Zusatzgewicht. Die Krabbe hat eine eigene Erholungsgruppe und darf am selben Tag laufen wie der
+Liegestütz. Im Modus ohne Geräte bleiben die drei Sprossen am Boden, wer noch nie gemessen hat, beginnt
+auf Sprosse 1.
+
+Alle Lasten sind **Platzhalter** und stehen rot. Die Sprossen 1, 5 und 12 kommen aus dem
+Gleichgewichtsmodell des Dip-Halts (39, 64 und 89 % des Körpergewichts in den Händen), dazwischen
+stehen gleichmäßige Schritte. Das Modell selbst ordnet anders: Mit dem Gesäß auf dem Stepper lägen die
+abgelegten Sprossen schon bei 77 bis 96 %, über den schwebenden. Es weiß aber nicht, wie viel der
+Stepper trägt, und die Hüftbeuger, die den Rumpf halten, fehlen ihm ganz. Die Messung entscheidet die
+Reihenfolge.
+
+**Der Dip-Halt** (Papier P104) ruht seit Build `2026-11-12 a` im Archiv der App: keine Auswahl, kein
+Plan, keine Kurve. Messungen, Leiterstand und Gewicht bleiben gespeichert und tragen weiter, sobald er
+zurückkommt. Mit ihm ruhen die Klimmzugbänder. Wer bisher am Dip-Halt trainiert hat, beginnt die Krabbe
+ohne Messung auf Sprosse 1, die Messungen auf den beiden alten Krabben am Boden ziehen nicht mit um.
 
 ---
 

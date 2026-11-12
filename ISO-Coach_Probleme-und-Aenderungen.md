@@ -5831,11 +5831,190 @@ Auftrag vom 07.11., nach P114: „Doch die datzquote ziehen weiterhin schmerzabb
 - Die Karte vor der Übung ruft ohne `schmerz` und bleibt, wie sie war. `EX_VERSION` bleibt 36, Export
   Schema 12.
 
+### P116 · Übungsrunde vom 11. und 12.11.: Stepper an der Fersenbrücke, Krabbe statt Dip-Halt, Fersenhöhe statt Waage, ein Clip je Sprosse
+
+Auftrag vom 12.11.: „Hier sind weitere Änderungen für die Medical Fitness Coach App. Bitte, ja, entsprechend überarbeiten.“ Dazu Lukes Handoff vom 11. und 12.11. und seine Skripte vom 12.11.: Stichpunkt-Skripte und Übungstutorials für Liegestütz, Schrägzug und Seitstütz.
+
+**Gebaut in 2026-11-12 a, Fassung 37.**
+
+**Fersenbrücke.**
+
+- Hocker und Kiste sind weg, an ihrer Stelle steht der Stepper mit 3, 2 und 1 Stufe (20, 15 und 10 cm).
+  Die Reihenfolge ist Stuhl, Stepper 3, 2, 1, Boden, Faszienrolle, auf jeder Unterlage erst Knie 90°,
+  dann Langer Hebel 170°. 24 Sprossen statt 20: 1 bis 12 beidbeinig, 13 bis 24 einbeinig. Zusatzgewicht
+  weiter nur auf der letzten Sprosse, Faktor 1,40.
+- Die Stepper-Sprossen sind Platzhalter, „· vorläufig“ und rot. Gemessen bleibt einbeinig
+  „Knie 90° · Stuhlsitz“. Der Hocker-Messwert geht nicht auf eine Stepper-Stufe über, so steht es im Handoff.
+- Sätze auf Hocker und Kiste ziehen auf die Stepper-Sprosse mit der nächsten Last, behalten ihre Last und
+  bleiben in der Kurve, wie bei der Umstellung auf 170° am 25.10.
+- Der Yogablock liegt jetzt unter dem Kreuzbein. An den Stepper-Sprossen steht keine Stellung, bis Luke
+  sie festlegt.
+- Die Sicherheitsabfrage begründet mit der knienahen Beinrückseite: Kniekehle, Wade, etwas Hüfte. Die
+  Sehne am Sitzbein trifft der Hip Hinge gezielter. Der Pfad fürs innere Knie bleibt, wie er war.
+- Das Gerätefeld in den Einstellungen setzt den Stepper mit drei Stufen voraus.
+
+**Seitheben und Außenrotation.**
+
+- Seitheben hat eine Sprosse statt zwei. Die gebeugte fällt weg, Einstieg ist der leicht gebeugte Arm
+  (etwa 170°) ohne Gewicht. Der Hinweistext sagt 170°, Daumen leicht nach innen, Arm aktiv in die
+  Außenrotation. Die Wandmarke bleibt. Die Last bei 170° ist nachgerechnet: 2,40 statt 2,39 %, sie bleibt.
+  Sätze auf der gebeugten Sprosse behalten ihre Last und tragen die Marke der entfallenen Sprosse.
+- Außenrotation: Der Hinweistext folgt Lukes Ausführung, Start mit dem Unterarm senkrecht, dann langsam
+  in die Waagerechte ablassen, „Nicht von unten hochdrehen.“ Der Hebel bleibt.
+- Beide brauchen kein angehaktes Gewicht mehr: Eine Wasserflasche hat jeder. Die Außenrotation beginnt
+  den ersten Test mit der vollen 1,5-Liter-Flasche. Die Texte nennen Flasche 0,5 l, 1 l, 1,5 l, dann
+  Hantelscheibe oder Kurzhantel.
+- Nicht eingebaut: Haltewinkel 45, 60, 70 und 90° als eigene Sprossen. Luke entscheidet noch.
+
+**Hip Hinge und Ausfallschritt.**
+
+- Hip Hinge: Gewicht auch im Sitzen. Die Sprossen 1 und 2 tragen 1 bis 20 kg in 1-kg-Schritten, Hebel wie
+  im Stehen. Kein Rucksack mehr, nur Kurzhantel oder Kettlebell.
+- Die fünf Camporini-Sprossen 5 bis 9 sind nicht mehr Premium, sondern nur nach persönlicher
+  Freischaltung. Bis klar ist, wie Luke sie auslöst, steht unter Einstellungen ein Haken „Camporini
+  freigeschaltet“. Ohne Freischaltung geht die Leiter von Sprosse 4 direkt auf den B-Stance. Wer die
+  Camporini-Sprossen schon benutzt hat, behält sie.
+- B-Stance mit Gewicht in beiden Händen, eingetragen wird das Gesamtgewicht.
+- Der Hinweistext streicht die Wand-Methode: Tiefe im Spiegel, so tief, wie der Reiz es zulässt. Neu ist
+  der Einstieg mit Gewicht aus der Hocke.
+- Ausfallschritt: Leiter und Lasten bleiben. Neu im Text sind die Zehen an der Wand auf jeder Sprosse, die
+  Stellung des Steppers, der Einstieg von oben und der leicht vorgeneigte Oberkörper. Die Wand ändert die
+  Kniestand-Lasten nicht.
+- Erklärvideos: Hip Hinge und Ausfallschritt haben je drei, eins je Sprossenblock (Sitzen, Stehen,
+  B-Stance bzw. Wand, Kniestand, Bank).
+
+**Endgradiges Wadenheben mit Handtuchrolle.**
+
+- Die Waage ist raus und liegt im Archiv, wiederherstellbar.
+- Die Höhe unter der Ferse ist die Sprosse: 1 bis 7 cm Bücher, 7,5 cm Yogablock flach, 8 bis 10 cm. Erst
+  die ganze Höhenleiter beidbeinig, auf der höchsten Höhe der Rucksack, dann einbeinig 3 bis 4 cm tiefer
+  als zuletzt beidbeinig. 22 Sprossen. Die App bleibt von selbst bei 7,5 cm stehen, 8 bis 10 cm wählt man
+  in der Liste selbst.
+- Einbeinig schlägt die App vor, wenn die Kurve einen Punkt bei 40 bis 50 s braucht und beidbeinig ihn
+  mit vollem Rucksack nicht mehr erreicht.
+- Lasten vorläufig aus einem Modell: rund 5 % je cm. Die Gegenprobe gibt Lukes 3 bis 4 cm von selbst.
+- Einbeinig zeigt die App den beidbeinigen Clip derselben Höhe.
+- Fasciitis Fighter als Alternative zur Handtuchrolle, mit Lukes Link exakt so, gekennzeichnet als
+  Anzeige mit dem Satz zum Affiliate-Link. Er steht beim Einstellen, unter dem Erklärvideo.
+
+**Krabbe statt Dip-Halt.**
+
+- Der Dip-Halt ruht im Archiv der App: keine Liste, kein Plan, keine Kurve. Messungen, Leiterstand und
+  Gewicht bleiben gespeichert und tragen weiter, sobald er zurückkommt.
+- Die Krabbe ist eine eigene Übung mit zwölf Sprossen: Knie 90° mit abgelegtem Gesäß, Knie 90° mit
+  schwebendem Gesäß, Beine gestreckt, je auf dem Boden und dem Stepper mit 1, 2 und 3 Stufen. Kein
+  Zusatzgewicht, Einstieg von oben, Sicherheitsabfrage wie beim Dip-Halt. Am selben Tag wie der Liegestütz
+  erlaubt.
+- Lasten vorläufig: Sprossen 1, 5 und 12 aus dem Gleichgewichtsmodell des Dip-Halts, dazwischen
+  gleichmäßige Schritte in Lukes Reihenfolge.
+
+**Hyperextension.**
+
+- Nur noch am Gurt im Türrahmen, 45° und waagerecht. Die Stepper-Sprossen sind raus, ihre Sätze ziehen
+  auf „waagerecht“ und tragen die Marke der entfallenen Sprosse. Ohne Gurt steht die Übung nicht im Plan.
+- Einstieg von oben, die Arme hängen locker. Gewicht erst auf Sprosse 2, es hängt an den Händen. Faktor
+  neu gerechnet: 2,1 statt 2,12.
+- Neue Sicherheitsabfrage mit Lukes drei Zeichen: Taubheit oder Kraftverlust im Bein, Blase, Darm oder
+  Taubheit im Gesäß- und Intimbereich, Schmerz nach Sturz oder Unfall.
+
+**Liegestütz, Seitstütz, Schrägzug.**
+
+- Liegestütz: Gewichtsweste statt Rucksack. Die beiden Sprossen mit erhöhten Füßen ruhen im Archiv, die
+  Leiter endet bei „Boden“, sechs Sprossen. Ihre Sätze ziehen auf „Boden“ und behalten ihre Last.
+- Der Hinweistext nennt die Tiefe je Aufbau: Stirn knapp vor der Wand, Brust knapp über Arbeitsplatte oder
+  Stuhlkante, am Boden Yogablock flach unter der Brust. Einstieg von oben, Ellbogen eng.
+- Neue Sicherheitsabfrage wie bei Seitheben und Außenrotation.
+- Seitstütz: Am Boden liegt ein Yogablock unter dem großen Rollhügel, als Anschlag. Kein Einstieg von oben,
+  keine Sicherheitsabfrage.
+- Schrägzug: Gewichtsweste statt Rucksack, Einstieg von oben (ganz hoch, dann bis in die Mitte ablassen).
+  Neue Sicherheitsabfrage wie bei den Schulterübungen, vorläufig.
+
+**Ein Clip je Sprosse.**
+
+- Die App zeigt auf jeder Sprosse ihren eigenen Clip: `clips/<übung>-NN.mp4`, NN die Sprosse, zweistellig.
+  Fehlt er, nimmt sie den einen Clip der Übung. Fehlt auch der, steht das Foto oder nichts da, ohne
+  Fehlermeldung. Ein neuer Clip im Ordner reicht, am Code ändert sich nichts.
+- Die Fersenbrücke fürs innere Knie zeigt die Clips der Fersenbrücke auf derselben Stellung, Sprosse 11
+  beidbeinig und 23 einbeinig. Luke im Skript vom 12.11.: „Faszienrolle 90° deckt auch den Pfad fürs
+  innere Knie ab“.
+
+**Der Preis.**
+
+- **Viele Lasten sind Platzhalter,** und an ihnen hängt, wann die App eine Stufe vorschlägt: Stepper an der
+  Fersenbrücke, alle zwölf Krabbe-Sprossen, die Höhenleiter der Handtuchrolle, Hyperextension am Gurt.
+- **Die Krabbe läuft nach Lukes Reihenfolge, das Modell ordnet anders:** Dort liegen die abgelegten
+  Sprossen auf dem Stepper bei 77 bis 96 %, also über den schwebenden. Es weiß nicht, wie viel der Stepper
+  trägt, und die Hüftbeuger fehlen ihm. Die Messung entscheidet.
+- **Wer bisher am Dip-Halt trainiert hat, beginnt die Krabbe ohne Messung,** auf Sprosse 1. Die Messungen
+  am Boden ziehen nicht mit um.
+- **Die neue Sicherheitsabfrage kommt einmal,** auch für alle, die Liegestütz, Schrägzug oder
+  Hyperextension schon lange machen.
+- **Ohne Gewichtsweste endet der Liegestütz am Boden.** Die Weste steht nicht in der Geräteliste, die App
+  setzt sie voraus wie vorher den Rucksack.
+- **Der Faktor 1,3 am Schrägzug** galt für den Rucksack. Er bleibt vorläufig, seine Herkunft war nicht zu
+  finden.
+- **Die Handtuch-Lasten hängen an der Fußlänge,** das Modell rechnet mit einer festen. Bei größerem Fuß
+  ist jede Höhe etwas leichter.
+- **Auf dem Handy nicht geprüft.**
+
+**Für den Nachbau:**
+
+- `EX_VERSION` 37. Die Umzüge laufen über `leiterUmzug(ex, umzug, entfallen)`: Sätze auf entfallenen
+  Sprossen bekommen `entfalleneSprosse`, behalten ihre Last und bleiben in der Kurve. Fassung 37:
+  `BRIDGE_STEPPER`, `SEITHEBEN_EINS`, `HANDTUCH_HOEHE`, `HYPER_NUR_GURT`, `PUSH_OHNE_ERHOEHT`.
+- `UEBUNG_ARCHIV` hält den Dip-Halt, `STUFEN_ARCHIV` die zwei Liegestütz-Sprossen, `HANDTUCH_ARCHIV_WAAGE`
+  die Waage. `normalize()` nimmt Archiviertes aus Übungen, Tagesauswahl und laufendem Workout.
+- Sprossen mit `coaching:true` sperrt `stufeErlaubt()` ohne `S.coachingFrei`; der Zusatz heißt
+  „ · nur nach persönlicher Freischaltung“.
+- `kgSpanne` je Sprosse gibt dem Hip Hinge im Sitzen 1 bis 20 kg in 1-kg-Schritten.
+- Handtuchrolle: `hoeheZuerst` steigt erst über die Höhe, `einEinstieg()` setzt einbeinig 3 bis 4 cm
+  tiefer an, `beidPerKurve()` entscheidet den Wechsel.
+- Clips: `clipSprosse()` und `clipDatei()`; `clip:<Index>` an einer Sprosse zeigt auf eine andere.
+  `clipVon` an der Übung leiht die Clips einer anderen (`bridgeKnie` von `bridge`), `clip` zählt dann in
+  deren Leiter.
+  `erklaerUrl` ist Text oder ein Objekt je Block, die Sprosse sagt mit `erklaer:"<block>"`, welches.
+  `anzeige` an der Übung gibt den gekennzeichneten Link (`anzeigeLink()`).
+- `extraLabelVon()` liest `extraLabel` aus der Übungsdefinition, deshalb steht „Gewichtsweste“ auch in
+  alten Ständen.
+
+**Geprüft.** Im Browser mit Lukes Export vom 16.10.: 69 von 69 Sitzungen geladen, der Dip-Halt ist weg, die
+Krabbe da. Die Liegestütz-Sätze von den erhöhten Füßen stehen auf „Boden“ mit Marke und alter Last.
+Sicherheitsabfrage bei Liegestütz, Schrägzug und Krabbe; nach „weiter“ kommt sie nicht wieder. Regler
+„Gewichtsweste“ bei Liegestütz und Schrägzug. Hip Hinge im Sitzen 0 bis 20 kg in 1-kg-Schritten,
+Camporini gesperrt. Hyperextension ohne Gurt nicht im Plan. Handtuch-Leiter mit 22 Sprossen. Keine
+Konsolenfehler außer den noch nicht gedrehten Clips. Ladeprobe `2026-11-12 a` über `2026-11-07 b`: 15 von 15.
+
+---
+
 ---
 
 ## Teil 2 — Änderungsprotokoll
 
 Die Fassung steht unten in der App und wird bei jeder Änderung hochgezählt.
+
+### 2026-11-12 a — Stepper an der Fersenbrücke, Krabbe statt Dip-Halt, Fersenhöhe statt Waage, ein Clip je Sprosse
+
+**Auftrag (Luke).** „Hier sind weitere Änderungen für die Medical Fitness Coach App. Bitte, ja, entsprechend überarbeiten.“ Mit dem Handoff vom 11. und 12.11. und den Skripten vom 12.11. (P116)
+
+**Gebaut.**
+
+- Fersenbrücke mit Stepper in drei Stufen statt Hocker und Kiste, 24 Sprossen, Yogablock unter dem
+  Kreuzbein, neue Begründung der Sicherheitsabfrage.
+- Seitheben mit einer Sprosse (Arm etwa 170°), Außenrotation von oben abgelassen, beide mit Wasserflasche
+  ohne angehaktes Gewicht.
+- Hip Hinge mit Gewicht im Sitzen in 1-kg-Schritten, Camporini nur nach persönlicher Freischaltung,
+  B-Stance mit Gewicht in beiden Händen, Tiefe im Spiegel. Ausfallschritt mit Zehen an der Wand, Stepper,
+  Einstieg von oben. Je drei Erklärvideos.
+- Handtuchrolle nach Höhe unter der Ferse, 22 Sprossen, Waage im Archiv, Fasciitis Fighter als
+  gekennzeichnete Anzeige.
+- Dip-Halt im Archiv, Krabbe als eigene Übung mit zwölf Sprossen.
+- Hyperextension nur am Gurt, Gewicht an den Händen, neue Sicherheitsabfrage.
+- Liegestütz mit Gewichtsweste, sechs Sprossen, Tiefe je Aufbau, neue Sicherheitsabfrage. Seitstütz mit
+  Yogablock am Boden. Schrägzug mit Gewichtsweste, Einstieg von oben, vorläufige Sicherheitsabfrage.
+- Ein Clip je Sprosse, Rückfall auf den Clip der Übung.
+- `EX_VERSION` 37.
+
+**Geprüft.** Im Browser mit Lukes Export vom 16.10., Ladeprobe über `2026-11-07 b` 15 von 15. Einzelheiten in P116.
 
 ### 2026-11-07 b — Schmerzabbrüche fallen aus der Kurve, eine eigene Schmerzkurve, Punkte nachträglich markieren
 

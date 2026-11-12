@@ -738,6 +738,9 @@ const KUCHEN_EINHEITEN = 30;
    darueber. Das laesst sich nicht durch noch mehr Positionen loesen, sondern
    nur durch ZUSATZLAST: ein Rucksack verstellt stufenlos und ist deshalb die
    eigentliche Feinjustierung. Steht so in beiden hint-Texten.
+   Seit Build 2026-11-12 a ruhen die erhoehten Fuesse (STUFEN_ARCHIV): Der
+   Liegestuetz endet am Boden, darueber fuehrt die Gewichtsweste weiter, der
+   Rucksack ist raus.
 
    Laut Handoff 4.2 lernt die echte App diese Werte aus der Population. Ein
    einzelner Nutzer kann das nicht (siehe Probleme-Dokument P2) — deshalb
@@ -773,10 +776,42 @@ const DEFAULT_EX = {
        Stufe hoch. extraK sagt, wie stark ein Kilo wirkt, gemessen in
        Koerpergewichts-Anteilen — siehe Kommentar bei lastVon(). */
     extraAb:5, extraK:1,
-    extraHint:"Rucksack, körpernah zwischen den Schulterblättern.",
+    /* Seit Build 2026-11-12 a Gewichtsweste statt Rucksack (Luke, Handoff
+       vom 12.11.2026: "Der Rucksack ist beim Liegestütz nicht geeignet").
+       extraK 1 bleibt: Die Weste sitzt wie der Rucksack am Rumpf, ihr Kilo
+       verteilt sich wie eines vom Koerper. */
+    extraLabel:"Gewichtsweste",
+    extraHint:"Gewichtsweste. Es zählt, was sie wiegt.",
+    /* Ausfuehrung, Tiefe je Aufbau und Yogablock: Luke, Handoff und
+       Uebungstutorial vom 12.11.2026. Der Block liegt nur am Boden (Knie
+       abgelegt und Boden), nicht an Wand, Arbeitsplatte und Stuhl. */
     hint:"Körper eine gerade Linie von der Ferse bis zum Kopf, Schulterblätter stabil. "
-        +"Füße so weit zurück, dass du die Last in den Händen spürst. Liegt eine Stufe zwischen "
-        +"zwei Zonen, hilft ein Rucksack — das ist die feinste Verstellung, die du hast.",
+        +"Füße so weit zurück, dass du die Last in den Händen spürst. Geh von oben in den Halt: "
+        +"Start mit gestreckten Armen, dann langsam ablassen, die Ellbogen bleiben eng neben dem "
+        +"Körper. Halte genau dort, keine Wiederholungen. Wie tief, sagt der Aufbau: An der Wand "
+        +"schwebt die Stirn knapp vor der Wand. An der Arbeitsplatte liegen die Hände flach auf, "
+        +"die Brust schwebt knapp über der Platte. Am Stuhl liegen die Hände auf der Sitzfläche, "
+        +"die Brust schwebt knapp über der Kante. Am Boden liegt ein Yogablock flach (7,5 cm) "
+        +"unter der Brust, die Brust schwebt knapp darüber und berührt ihn nicht. Liegt eine "
+        +"Stufe zwischen zwei Zonen, hilft eine Gewichtsweste — das ist die feinste Verstellung, "
+        +"die du hast.",
+    /* Seit Build 2026-11-12 a (Luke, Handoff vom 12.11.2026: "wie bei
+       Seitheben/Außenrotation"). Punkte wortgleich, Titel und erster Satz
+       der Begruendung angepasst. */
+    warnung:{
+      titel:"Bevor du den Liegestütz zum ersten Mal machst",
+      frage:"Trifft eines davon auf dich zu?",
+      punkte:[
+        "Deine Schulter ist schon einmal ausgekugelt oder herausgesprungen",
+        "Seit einem Sturz kannst du den Arm nicht mehr aus eigener Kraft heben",
+        "Der Schmerz zieht vom Nacken bis in die Hand, mit Kribbeln",
+        "Die Schulter ist seit Wochen rundum steif, auch wenn jemand anderes deinen Arm bewegt"
+      ],
+      warum:"Dann lässt du das zuerst ärztlich abklären. Einer gereizten Schulter tut "
+           +"isometrisches Halten gut. Eine Schulter, die schon einmal ausgekugelt war, ein "
+           +"Sehnenriss nach einem Sturz, ein gereizter Nerv aus der Halswirbelsäule oder eine "
+           +"Schultersteife brauchen aber zuerst eine Diagnose, und die kann keine App stellen."
+    },
     /* 16.10.2026 (Fassung 28): "Wand · Fuesse 4 Fusslaengen weg" (0,39) ist
        raus. Luke: "die übung ist extrem unergonomisch und schwer eigenlich
        schrägbankdrücken und der kopf ist im weg". Seine Messung dort (12.10.,
@@ -790,16 +825,20 @@ const DEFAULT_EX = {
        61-cm-Ablage liegt dort bei 55 %, 90 cm muss leichter sein.
        HERKUNFT 0,40: Mitte dieser Spanne, VORLAEUFIG, bis Luke auf der
        Platte neu misst. Seine Sitzung vom 28.09. zieht mit (PUSH_NEU_AT).
-       Alle anderen Lasten unveraendert. Zusatzgewicht weiter ab "Boden". */
+       Alle anderen Lasten unveraendert. Zusatzgewicht weiter ab "Boden".
+       Seit Build 2026-11-12 a (EX_VERSION 37) endet die Leiter bei "Boden",
+       danach kommt die Gewichtsweste. Die beiden Sprossen mit erhoehten
+       Fuessen stehen in STUFEN_ARCHIV, der Umzug in PUSH_OHNE_ERHOEHT.
+       Lukes Tutorial vom 12.11. zaehlt neun Sprossen in eigener Reihenfolge
+       (Wand mit 4 Fusslaengen, Knie abgelegt vor der Arbeitsplatte). Die App
+       bleibt bei ihrer Reihenfolge von Fassung 28, siehe oben. */
     levels:[
       {name:"Wand, Hände schulterhoch · Füße 2 Fußlängen weg", load:0.23, ort:"wand"},
       {name:"Wand · Füße 3 Fußlängen weg",                     load:0.32, ort:"wand"},
       {name:"Küchenarbeitsplatte (~90 cm)",                    load:0.40},
       {name:"Boden, Knie abgelegt",                            load:0.49, ort:"boden"},
       {name:"Stuhlsitz / Sofakante (~45 cm)",                  load:0.61},
-      {name:"Boden",                                           load:0.68, ort:"boden"},
-      {name:"Boden, Füße auf einer Stufe (~20 cm)",            load:0.78},
-      {name:"Boden, Füße auf einem Stuhl (~45 cm)",            load:0.88}
+      {name:"Boden",                                           load:0.68, ort:"boden"}
     ]
   },
   lunge: {
@@ -835,21 +874,31 @@ const DEFAULT_EX = {
              +"dem vorderen Bein, der Arm hängt seitlich neben dem Körper. Steht der linke Fuß vorn, "
              +"hältst du es rechts, und umgekehrt. Es gehen auch Kurzhanteln in beiden Händen, Front "
              +"Rack mit einer oder zwei Kettlebells oder eine Gewichtsweste. Trag das Gesamtgewicht ein.",
-    hint:"»Links« heißt: der LINKE Fuß steht vorne. "
+    hint:"»Links« heißt: der LINKE Fuß steht vorne. Auf jeder Sprosse steht der vordere Fuß "
+        +"mit den Zehen an der Wand. "
         +"Zwei Stellungen in einer Leiter — die Sprosse sagt, welche. STEHEND AN DER WAND: "
-        +"vorderer Fuß mit den Zehen an die Wand, hinterer Fuß im angegebenen Abstand dahinter, "
-        +"in eigenen Fußlängen von der Wand weg abgezählt; absenken, bis die Kniescheibe des "
-        +"vorderen Beins die Wand fast berührt, hinteres Bein gestreckt, Ferse hoch. "
-        +"KNIESTAND: aufgebrochener Kniestand, vorderes Knie rechtwinklig, Rumpf aufrecht, das "
-        +"hintere Knie senkt sich bis knapp über die genannte Höhe und berührt sie nicht. "
+        +"hinterer Fuß im angegebenen Abstand dahinter, in eigenen Fußlängen von der Wand weg "
+        +"abgezählt; absenken, bis die Kniescheibe des vorderen Beins die Wand fast berührt, "
+        +"hinteres Bein gestreckt, Ferse hoch. "
+        +"KNIESTAND: aufgebrochener Kniestand, vorderes Knie rechtwinklig, das hintere Knie "
+        +"senkt sich bis knapp über die genannte Höhe und berührt sie nicht. Der Stepper steht "
+        +"direkt hinter dem vorderen Fuß. "
         +"ENGER KNIESTAND: wie der Kniestand, nur kürzer gestellt — am tiefsten Punkt steht das "
-        +"hintere Knie genau in einer Linie mit den Zehen des vorderen Fußes. "
+        +"hintere Knie genau in einer Linie mit den Zehen des vorderen Fußes. Der Stepper steht "
+        +"neben dem vorderen Fuß, direkt an der Wand. "
         +"BANK: der hintere Fuß liegt mit dem Fußspann auf der Hantelbank oder dem Sofa, nicht "
         +"auf den Zehen. Miss die Höhe der Auflage und trag sie an der Sprosse ein. "
-        +"Jedes Mal: keine Handstütze; ein Fingerkontakt an der Wand fürs Gleichgewicht ist in "
-        +"Ordnung. Gesteigert wird zuerst über Stellung und Tiefe, erst dann über Gewicht. "
+        +"Jedes Mal: Komm erst hoch, gern mit den Händen über das vordere Knie, und lass dich "
+        +"dann langsam bis in die Halteposition ab. Im Halt keine Handstütze; ein Fingerkontakt "
+        +"an der Wand fürs Gleichgewicht ist in Ordnung. Der Oberkörper darf etwas schräg nach "
+        +"vorn kommen – lehn dich nur nicht mit der Stirn an die Wand. Gesteigert wird zuerst "
+        +"über Stellung und Tiefe, erst dann über Gewicht. "
         +"Standard ist Suitcase, ein Gewicht in der Hand gegenüber dem vorderen Bein; Kurzhanteln "
         +"in beiden Händen, Front Rack oder eine Gewichtsweste gehen auch.",
+    /* Drei Erklaervideos, eins je Sprossenblock (Handoff 12.11.2026): Stand
+       an der Wand (Sprossen 1 und 2), Kniestand normal und eng (3 bis 10),
+       Bank (11). Leer, bis Luke sie hochlaedt. */
+    erklaerUrl:{wand:"", kniestand:"", bank:""},
     /* 21.09.2026: Leiter neu gebaut. Sie traegt jetzt ZWEI Stellungen, weil Lukes
        Messpunkte in der einen liegen und seine neue Sprosse in der anderen.
        Frueher stufte die Tiefe ueber eine Ablage unter dem hinteren Knie; Luke hat
@@ -932,20 +981,36 @@ const DEFAULT_EX = {
        eine eingeschraenkte Kniebeugung angibt, bekommt Gewicht schon auf den
        Stepperhoehen, und die App plant bis zu einer Tiefengrenze, die sie aus
        Schmerz und Wahl lernt. Siehe kniebeugungEingeschraenkt. Leiter und
-       Lasten unveraendert. */
+       Lasten unveraendert.
+
+       12.11.2026 (Build 2026-11-12 a, Fassung 37): Leiter und Lasten
+       unveraendert, elf Sprossen (Luke, 11.11.). Neu im Text: vorderer Fuss
+       auf JEDER Sprosse mit den Zehen an der Wand, die Stellung des Steppers,
+       der Einstieg von oben, und der Oberkoerper darf leicht nach vorn.
+       Gepruefte Lastfrage: Die Wand aendert die Kniestand-Lasten nicht. Im
+       normalen Kniestand steht das vordere Knie rechtwinklig ueber dem
+       Sprunggelenk, die Kniescheibe bleibt um die Laenge des Vorfusses vor
+       der Wand und erreicht sie nie — die Wand legt nur den Aufbau fest. Im engen
+       Kniestand wandert das Knie nach vorn; die Wand begrenzt das jetzt auf
+       "Kniescheibe schwebt vor der Wand", wie im Stand. Das ist die Stellung,
+       die das Kniewinkel-Modell oben fuer eng annimmt (0,82 bis 1,22, nicht in
+       der Rechnung). Die engen Sprossen tragen weiter die Lasten der normalen,
+       bis gemessen ist. Der leicht vorgeneigte Oberkoerper verschiebt etwas
+       Arbeit vom Knie zur Huefte; ob das die Lasten verschiebt, zeigen erst
+       Messungen in der neuen Ausfuehrung. */
     levels:[
-      {name:"Stehend an der Wand · 2 Fußlängen",                 load:0.41, ort:"wand"},
-      {name:"Stehend an der Wand · 3 Fußlängen",                 load:0.52, ort:"wand"},
-      {name:"Kniestand · Knie bis Stepper, 3 Stufen (20 cm)",    load:0.55, stellung:"normal"},
-      {name:"Enger Kniestand · Knie bis Stepper, 3 Stufen (20 cm)", load:0.55, stellung:"eng"},
-      {name:"Kniestand · Knie bis Stepper, 2 Stufen (15 cm)",    load:0.63, stellung:"normal"},
-      {name:"Enger Kniestand · Knie bis Stepper, 2 Stufen (15 cm)", load:0.63, stellung:"eng"},
-      {name:"Kniestand · Knie bis Stepper, 1 Stufe (10 cm)",     load:0.72, stellung:"normal"},
-      {name:"Enger Kniestand · Knie bis Stepper, 1 Stufe (10 cm)", load:0.72, stellung:"eng"},
-      {name:"Kniestand · Knie knapp über den Boden",             load:0.90, ort:"boden", stellung:"normal"},
-      {name:"Enger Kniestand · Knie knapp über den Boden",       load:0.90, ort:"boden", stellung:"eng"},
+      {name:"Stehend an der Wand · 2 Fußlängen",                 load:0.41, ort:"wand", erklaer:"wand"},
+      {name:"Stehend an der Wand · 3 Fußlängen",                 load:0.52, ort:"wand", erklaer:"wand"},
+      {name:"Kniestand · Knie bis Stepper, 3 Stufen (20 cm)",    load:0.55, stellung:"normal", erklaer:"kniestand"},
+      {name:"Enger Kniestand · Knie bis Stepper, 3 Stufen (20 cm)", load:0.55, stellung:"eng", erklaer:"kniestand"},
+      {name:"Kniestand · Knie bis Stepper, 2 Stufen (15 cm)",    load:0.63, stellung:"normal", erklaer:"kniestand"},
+      {name:"Enger Kniestand · Knie bis Stepper, 2 Stufen (15 cm)", load:0.63, stellung:"eng", erklaer:"kniestand"},
+      {name:"Kniestand · Knie bis Stepper, 1 Stufe (10 cm)",     load:0.72, stellung:"normal", erklaer:"kniestand"},
+      {name:"Enger Kniestand · Knie bis Stepper, 1 Stufe (10 cm)", load:0.72, stellung:"eng", erklaer:"kniestand"},
+      {name:"Kniestand · Knie knapp über den Boden",             load:0.90, ort:"boden", stellung:"normal", erklaer:"kniestand"},
+      {name:"Enger Kniestand · Knie knapp über den Boden",       load:0.90, ort:"boden", stellung:"eng", erklaer:"kniestand"},
       {name:"Hinterer Fuß mit dem Spann auf Bank oder Sofa · Knie knapp über den Boden",
-       load:1.062, ort:"boden", bank:{basis:0.90, anteil:0.18, cm:42}}
+       load:1.062, ort:"boden", bank:{basis:0.90, anteil:0.18, cm:42}, erklaer:"bank"}
     ]
   },
   /* Seitstuetz. Die Leiter ist gerechnet, nicht geschaetzt: Das Biegemoment an
@@ -984,8 +1049,18 @@ const DEFAULT_EX = {
         +"ODER AM BODEN: Ellenbogen senkrecht unter der Schulter, Hüfte nach oben gedrückt. "
         +"Beides Mal ist der Körper eine gerade Linie — auch von vorne gesehen: die obere "
         +"Hüfte darf nicht nach hinten kippen. Oberer Arm liegt an der Hüfte, Kopf in "
-        +"Verlängerung. Zwischen zwei Stufen stellst du am feinsten nach: an der Wand über "
-        +"den Fußabstand, sonst über die Höhe der Auflage.",
+        +"Verlängerung. Am Boden liegt ein Yogablock unter dem großen Rollhügel, dem Knochen "
+        +"außen an der Hüfte. Die Hüfte schwebt knapp darüber. Kannst du den Rollhügel nicht "
+        +"mehr vom Block abheben, ist der Halt zu Ende. Zwischen zwei Stufen stellst du am "
+        +"feinsten nach: an der Wand über den Fußabstand, sonst über die Höhe der Auflage.",
+    /* Yogablock seit Build 2026-11-12 a (Luke, Handoff vom 12.11.2026):
+       "Yogablock als Anschlag bei den Bodenvarianten" — Knie abgelegt und
+       Beine gestreckt am Boden. Hochkant oder auf der langen Seite testet
+       Luke noch, deshalb nennt der Text keine Stellung. Kein exzentrischer
+       Einstieg und keine Sicherheitsfrage (Lukes Tutorial vom 12.11.).
+       "Dem Knochen aussen an der Huefte" ist meine Ergaenzung. Die
+       Reihenfolge der Sprossen ist laut Luke vorlaeufig, bis die Messpunkte
+       der Beta zeigen, was leichter und was schwerer ist. */
     /* 22.10.2026 (Fassung 33): Die drei Sprossen "Knie abgelegt · Unterarm auf
        Arbeitsplatte / Tischplatte / Stuhlsitz" sind raus. Luke: "im kurzen
        unterarmstütz komme ich nicht auf die arbeitsplatte oder den tisch,
@@ -1089,19 +1164,44 @@ const DEFAULT_EX = {
   row: {
     name:"Schrägzug", region:"Rücken", group:"pull", sides:null,
     extraAb:4, extraK:1.3,
-    extraHint:"Rucksack ganz normal auf dem Rücken — er hängt frei, weil dein Rücken in der "
-             +"Luft ist. Hoch schnallen, auf Höhe der Schulterblätter: rutscht er aufs Becken, "
-             +"wirkt dasselbe Gewicht nur zu drei Vierteln.",
+    /* Seit Build 2026-11-12 a Gewichtsweste statt Rucksack (Luke, Handoff
+       vom 12.11.2026). extraK 1,3 bleibt vorlaeufig: Er galt fuer den
+       Rucksack auf Hoehe der Schulterblaetter, die Weste sitzt am Oberkoerper
+       etwa auf derselben Hoehe. Nachmessen, sobald Saetze mit Weste da sind. */
+    extraLabel:"Gewichtsweste",
+    extraHint:"Gewichtsweste. Es zählt, was sie wiegt.",
+    /* Einstieg von oben seit Build 2026-11-12 a (Luke, Handoff vom
+       12.11.2026: "hochziehen, dann langsam bis in die Mitte ablassen und
+       halten"). */
     hint:"Griffe des Schlingentrainers fassen, Körper eine gerade Linie von der Ferse bis zum "
-        +"Kopf. Schulterblätter VOR dem Zug nach unten-hinten setzen und dort halten. Gehalten "
-        +"wird in der Mitte: Ellenbogen etwa rechtwinklig, Oberarme rund 45° vom Rumpf weg — "
-        +"nicht mit gestreckten Armen hängen und nicht oben am Griff kleben. Den Winkel "
+        +"Kopf. Schulterblätter VOR dem Zug nach unten-hinten setzen und dort halten. Geh von "
+        +"oben in den Halt: Zieh dich ganz hoch und lass dich dann langsam bis in die Mitte ab. "
+        +"Gehalten wird in der Mitte: Ellenbogen etwa rechtwinklig, Oberarme rund 45° vom Rumpf "
+        +"weg — nicht mit gestreckten Armen hängen und nicht oben am Griff kleben. Halte genau "
+        +"dort, keine Wiederholungen. Den Winkel "
         +"stellst du über den Fußabstand ein: je weiter die Füße nach vorn, desto flacher "
         +"liegst du und desto schwerer wird es. Gezählt wird in Fußlängen, Ferse an Zehen. "
         +"Ab Sprosse 5 liegst du und zählst nicht mehr von deinem Standpunkt: Dann misst du "
         +"gegen die Aufhängung — erst ein Fuß davor, dann die Füße darunter, dann die "
         +"Schultern darunter. Die Ringe hängen dabei auf 85 cm; hängst du sie um, stimmen "
         +"die vier liegenden Sprossen nicht mehr.",
+    /* Seit Build 2026-11-12 a, VORLAEUFIG. Lukes Schraegzug-Tutorial vom
+       12.11.2026: "Neue Sicherheitsabfrage wie bei den Schulteruebungen",
+       zu finalisieren am 13.11. Punkte wortgleich mit dem Liegestuetz. */
+    warnung:{
+      titel:"Bevor du den Schrägzug zum ersten Mal machst",
+      frage:"Trifft eines davon auf dich zu?",
+      punkte:[
+        "Deine Schulter ist schon einmal ausgekugelt oder herausgesprungen",
+        "Seit einem Sturz kannst du den Arm nicht mehr aus eigener Kraft heben",
+        "Der Schmerz zieht vom Nacken bis in die Hand, mit Kribbeln",
+        "Die Schulter ist seit Wochen rundum steif, auch wenn jemand anderes deinen Arm bewegt"
+      ],
+      warum:"Dann lässt du das zuerst ärztlich abklären. Einer gereizten Schulter tut "
+           +"isometrisches Halten gut. Eine Schulter, die schon einmal ausgekugelt war, ein "
+           +"Sehnenriss nach einem Sturz, ein gereizter Nerv aus der Halswirbelsäule oder eine "
+           +"Schultersteife brauchen aber zuerst eine Diagnose, und die kann keine App stellen."
+    },
     levels:[
       {name:"2 Füße vor · stehend",                       load:0.072, geraet:"zug"},
       {name:"3 Füße vor · stehend",                       load:0.191, geraet:"zug"},
@@ -1193,25 +1293,48 @@ const DEFAULT_EX = {
      nicht vom Boden (-2,3 cm bei 1,80 m): Gehalten wird dort mit etwas
      Hueftbeugung. Saetze von vor Fassung 36 auf den 135-Grad-Nummern tragen
      die Marke entfalleneSprosse, siehe BRIDGE_170_AT.
+
+     Seit Build 2026-11-12 a (EX_VERSION 37) sind Hocker und Kiste weg, an
+     ihrer Stelle steht der Stepper mit 3, 2 und 1 Stufe (20, 15, 10 cm;
+     Lukes Handoff vom 12.11.2026). Je Unterlage erst Knie 90°, dann Langer
+     Hebel 170°, Sprossen 1 bis 12 beidbeinig, 13 bis 24 einbeinig. Gemessen
+     bleibt nur einbeinig Stuhl 90 (0,296). Die Stepper-Sprossen sind
+     PLATZHALTER, geometrisch zwischen Stuhl und Boden; die alte Hocker-90-
+     Messung wird laut Handoff bewusst nicht auf den Stepper uebertragen.
+     Beidbeinig weiter 0,148 * 2^(k/10) mit dem
+     Halbschritt fuer 170 Grad. Der Yogablock liegt jetzt unter dem
+     Kreuzbein, nicht unter den Sitzbeinen: Stuhl aufrecht, Boden 90 flach,
+     Boden 170 mit der Thera-Band FlexBar (etwa 5 cm), Rolle 90 hochkant.
+     Am Stepper testet Luke die Stellung noch, bis dahin steht dort keine.
+     Zusatzgewicht nur auf der letzten Sprosse (extraAb 23, Faktor 1,40).
+     Saetze auf Hocker und Kiste behalten ihre Last und tragen die Marke
+     entfalleneSprosse, siehe BRIDGE_STEPPER.
    */
   bridge: {
     name:"Fersenbrücke", region:"Oberschenkelrückseite", group:"bridge",
-    sides:["links","rechts"], extraAb:19, extraK:1.4,
+    sides:["links","rechts"], extraAb:23, extraK:1.4,
     /* Neue Nutzer beginnen beidbeinig auf dem Stuhl. */
     startStufe:0,
     seitenRuf:{links:"LINKES BEIN TRÄGT", rechts:"RECHTES BEIN TRÄGT"},
     extraHint:"Auf dem Becken, nicht auf dem Bauch — über dem Hüftgelenk wirkt es am "
              +"stärksten. Eine Hantelscheibe oder ein Rucksack quer über die Hüftknochen.",
-    hint:"»Links« heißt: das LINKE Bein trägt, das rechte ist angehoben. Ferse auf die "
-        +"Unterlage, Zehen zeigen nach oben, Becken hoch drücken, bis Schulter, Hüfte und "
-        +"Knie eine Linie bilden. Das freie Bein bleibt angewinkelt in der Luft — nicht "
-        +"abstützen. Gearbeitet wird in der Ferse, nicht im Fußballen. Wenn es vorne im "
-        +"Oberschenkel krampft, ist das Becken zu tief. Knie 90° heißt rechtwinklig. Langer "
-        +"Hebel 170° heißt: Das Bein ist fast gestreckt, das Knie bleibt leicht gebeugt und "
-        +"wird nicht durchgedrückt. Wo die Sprosse einen Yogablock nennt, steht er unter den "
-        +"Sitzbeinen. Berührst du ihn leicht, drück das Becken wieder hoch. Liegt das Becken "
-        +"mit Druck auf dem Block, ist der Halt zu Ende. Kein Block da? Ein Stapel Bücher in "
-        +"derselben Höhe geht genauso.",
+    hint:"»Links« heißt: das LINKE Bein trägt, das rechte ist angehoben. Leg dich auf den "
+        +"Rücken, die Arme in V-Form vom Körper weg. Die Fersen liegen nah an der Kante der "
+        +"Unterlage, die Zehen zeigen nach oben. Drück dich aus dem Po und etwas aus dem oberen "
+        +"Rücken hoch, Ellbogen, Unter- und Oberarme drücken in den Boden. Komm locker hoch, "
+        +"bis das Kreuzbein über dem Yogablock schwebt. Richte das Becken nicht übertrieben "
+        +"auf, kipp nicht ins Hohlkreuz und streck die Hüfte nicht übertrieben durch. Berührst "
+        +"du den Block leicht, drück das Becken wieder hoch. Liegt das Becken mit Druck auf dem "
+        +"Block, ist der Halt zu Ende. Einbeinig bleibt das freie Bein angewinkelt in der Luft "
+        +"— nicht abstützen. Gearbeitet wird in der Ferse, nicht im Fußballen. Krampft es vorne "
+        +"im Oberschenkel, ist das Becken zu tief. Drückt es im unteren Rücken, spiel mit der "
+        +"Beckenposition. Knie 90° heißt rechtwinklig. Langer Hebel 170° heißt: Das Bein ist "
+        +"fast gestreckt, das Knie bleibt leicht gebeugt und wird nicht durchgedrückt. Am Boden "
+        +"mit langem Hebel liegt statt des Blocks eine Thera-Band FlexBar (etwa 5 cm) unter dem "
+        +"Kreuzbein. Spürst du dort den mittleren Rücken, brich ab. Den Fuß darfst du strecken "
+        +"(mehr Wade) oder anziehen (mehr Beinrückseite) — trainier möglichst immer gleich. Kein "
+        +"Block da? Ein Stapel Bücher in derselben Höhe geht genauso. Ab 4 von 10 Schmerz "
+        +"brichst du ab.",
     seitenHinweis:"Dieses Bein hat eben noch das Becken gehalten, während die andere Seite "
                  +"gearbeitet hat — beide Oberschenkelrückseiten stabilisieren mit.",
     /* Der Red-Flag-Fragebogen laeuft nur im Onboarding. Eine Uebung, die
@@ -1228,32 +1351,38 @@ const DEFAULT_EX = {
         "Taubheit, Kribbeln oder Kraftverlust im Bein",
         "Der Schmerz hat nach einem plötzlichen Ereignis angefangen (Sprint, Ausrutschen, Riss)"
       ],
-      warum:"Beschwerden an der Oberschenkelrückseite können von der Sehne am Sitzbein kommen — "
-           +"dann ist isometrisches Training genau richtig. Sie können aber auch vom Rücken "
-           +"ausstrahlen oder ein Sehnenriss sein, und dann wäre Belastung falsch. Das lässt "
-           +"sich nicht über eine App unterscheiden."
+      warum:"Die Fersenbrücke trainiert vor allem die knienahe Beinrückseite. Sie hilft bei "
+           +"Knieschmerzen, besonders in der Kniekehle, bei verspannten Waden und etwas an der "
+           +"Hüfte. Die Sehne am Sitzbein trainiert mit, gezielter trifft sie der Hip Hinge. "
+           +"Die Zeichen oben können aber vom Rücken ausstrahlen oder auf einen Sehnenriss "
+           +"hinweisen, und dann wäre Belastung falsch. Das lässt sich nicht über eine App "
+           +"unterscheiden."
     },
     /* gemessen:true = Luke hat diese Sprosse gemessen; dann steht sie nicht
        mehr rot da (siehe sprosseVorlaeufig). Nachgezogen mit jedem Build. */
     levels:[
       {name:"Beidbeinig · Knie 90° · Stuhlsitz (~45 cm)", load:0.148, beid:true, platzhalter:true, block:"aufrecht"},
-      {name:"Beidbeinig · Langer Hebel 170° · Stuhlsitz (~45 cm)", load:0.164, beid:true, platzhalter:true, block:"hochkant"},
-      {name:"Beidbeinig · Knie 90° · Hocker (~30 cm)", load:0.170, beid:true, platzhalter:true, block:"hocker"},
-      {name:"Beidbeinig · Langer Hebel 170° · Hocker (~30 cm)", load:0.189, beid:true, platzhalter:true, block:"flach"},
-      {name:"Beidbeinig · Knie 90° · Kiste (~20 cm)", load:0.195, beid:true, platzhalter:true, block:"hochkant"},
-      {name:"Beidbeinig · Langer Hebel 170° · Kiste (~20 cm)", load:0.217, beid:true, platzhalter:true},
-      {name:"Beidbeinig · Knie 90° · Boden", load:0.224, beid:true, platzhalter:true, block:"flach", ort:"boden"},
-      {name:"Beidbeinig · Langer Hebel 170° · Boden", load:0.249, beid:true, platzhalter:true, ort:"boden"},
-      {name:"Beidbeinig · Knie 90° · Faszienrolle", load:0.258, beid:true, platzhalter:true, block:"hochkant", geraet:"rolle"},
-      {name:"Beidbeinig · Langer Hebel 170° · Faszienrolle", load:0.286, beid:true, platzhalter:true, geraet:"rolle"},
+      {name:"Beidbeinig · Langer Hebel 170° · Stuhlsitz (~45 cm)", load:0.161, beid:true, platzhalter:true, block:"aufrecht"},
+      {name:"Beidbeinig · Knie 90° · Stepper, 3 Stufen (20 cm)", load:0.166, beid:true, platzhalter:true},
+      {name:"Beidbeinig · Langer Hebel 170° · Stepper, 3 Stufen (20 cm)", load:0.181, beid:true, platzhalter:true},
+      {name:"Beidbeinig · Knie 90° · Stepper, 2 Stufen (15 cm)", load:0.186, beid:true, platzhalter:true},
+      {name:"Beidbeinig · Langer Hebel 170° · Stepper, 2 Stufen (15 cm)", load:0.203, beid:true, platzhalter:true},
+      {name:"Beidbeinig · Knie 90° · Stepper, 1 Stufe (10 cm)", load:0.209, beid:true, platzhalter:true},
+      {name:"Beidbeinig · Langer Hebel 170° · Stepper, 1 Stufe (10 cm)", load:0.228, beid:true, platzhalter:true},
+      {name:"Beidbeinig · Knie 90° · Boden", load:0.235, beid:true, platzhalter:true, block:"flach", ort:"boden"},
+      {name:"Beidbeinig · Langer Hebel 170° · Boden", load:0.256, beid:true, platzhalter:true, block:"flexbar", ort:"boden"},
+      {name:"Beidbeinig · Knie 90° · Faszienrolle", load:0.264, beid:true, platzhalter:true, block:"hochkant", geraet:"rolle"},
+      {name:"Beidbeinig · Langer Hebel 170° · Faszienrolle", load:0.288, beid:true, platzhalter:true, geraet:"rolle"},
       {name:"Knie 90° · Stuhlsitz (~45 cm)", load:0.296, block:"aufrecht"},
-      {name:"Langer Hebel 170° · Stuhlsitz (~45 cm)", load:0.381, platzhalter:true, block:"hochkant"},
-      {name:"Knie 90° · Hocker (~30 cm)", load:0.415, block:"hocker"},
-      {name:"Langer Hebel 170° · Hocker (~30 cm)", load:0.474, platzhalter:true, block:"flach"},
-      {name:"Knie 90° · Kiste (~20 cm)", load:0.496, platzhalter:true, block:"hochkant"},
-      {name:"Langer Hebel 170° · Kiste (~20 cm)", load:0.567, platzhalter:true},
+      {name:"Langer Hebel 170° · Stuhlsitz (~45 cm)", load:0.395, platzhalter:true, block:"aufrecht"},
+      {name:"Knie 90° · Stepper, 3 Stufen (20 cm)", load:0.435, platzhalter:true},
+      {name:"Langer Hebel 170° · Stepper, 3 Stufen (20 cm)", load:0.461, platzhalter:true},
+      {name:"Knie 90° · Stepper, 2 Stufen (15 cm)", load:0.470, platzhalter:true},
+      {name:"Langer Hebel 170° · Stepper, 2 Stufen (15 cm)", load:0.498, platzhalter:true},
+      {name:"Knie 90° · Stepper, 1 Stufe (10 cm)", load:0.508, platzhalter:true},
+      {name:"Langer Hebel 170° · Stepper, 1 Stufe (10 cm)", load:0.571, platzhalter:true},
       {name:"Knie 90° · Boden", load:0.593, platzhalter:true, block:"flach", ort:"boden"},
-      {name:"Langer Hebel 170° · Boden", load:0.677, platzhalter:true, ort:"boden"},
+      {name:"Langer Hebel 170° · Boden", load:0.677, platzhalter:true, block:"flexbar", ort:"boden"},
       {name:"Knie 90° · Faszienrolle", load:0.708, platzhalter:true, block:"hochkant", geraet:"rolle"},
       {name:"Langer Hebel 170° · Faszienrolle", load:0.809, platzhalter:true, geraet:"rolle"}
     ]
@@ -1278,7 +1407,8 @@ const DEFAULT_EX = {
      (fersenTeile) und steht in keiner Uebungsauswahl.
      Lasten: Beide Sprossen sind dieselbe Ausfuehrung wie die Sprossen
      "Faszienrolle" der normalen Bruecke bei Knie 90 Grad, also tragen sie
-     dieselben Platzhalter (0,258 und 0,708) — eine Annahme statt zwei.
+     dieselben Platzhalter (0,264 und 0,708; beidbeinig bis Fassung 36
+     0,258) — eine Annahme statt zwei.
      Aendern sich die dort, hier mitziehen. Die Kurve bleibt eine eigene.
      Der Kniewinkel ist vorlaeufig 90 Grad, bis Luke ihn festlegt.
      Seit Build 2026-11-06 d heissen beide Sprossen auch wie dort (bis dahin
@@ -1291,16 +1421,20 @@ const DEFAULT_EX = {
     sides:["links","rechts"], teilVon:"bridge", ohneGewicht:true,
     schmerzGefuehrt:true, startStufe:0,
     seitenRuf:{links:"LINKES BEIN TRÄGT", rechts:"RECHTES BEIN TRÄGT"},
-    hint:"Rücken am Boden, Knie etwa rechtwinklig (90°), die Ferse auf der Faszienrolle. "
-        +"Becken hoch, bis Schulter, Hüfte und Knie eine Linie bilden. "
-        +"Zieht es innen hinten am Knie mehr als ein Ziehen, eine Sprosse zurück. "
-        +"Unter den Sitzbeinen steht ein Yogablock hochkant. Berührst du ihn leicht, drück "
-        +"das Becken wieder hoch. Liegt das Becken mit Druck auf dem Block, ist der Halt "
-        +"zu Ende.",
+    hint:"Rücken am Boden, Arme in V-Form vom Körper weg, Knie etwa rechtwinklig (90°), die "
+        +"Ferse auf der Faszienrolle. Unter dem Kreuzbein steht ein Yogablock hochkant. Komm "
+        +"locker hoch, bis das Kreuzbein über dem Block schwebt — kein Hohlkreuz, die Hüfte "
+        +"nicht übertrieben durchstrecken. Zieht es innen hinten am Knie mehr als ein Ziehen, "
+        +"eine Sprosse zurück. Berührst du den Block leicht, drück das Becken wieder hoch. "
+        +"Liegt das Becken mit Druck auf dem Block, ist der Halt zu Ende.",
     knieWinkelVorlaeufig:true,
+    /* Clips aus der Fersenbruecke, Sprossen 11 und 23 (Build 2026-11-12 a).
+       Luke im Skript vom 12.11.: "Faszienrolle 90° deckt auch den Pfad fürs
+       innere Knie ab". */
+    clipVon:"bridge",
     levels:[
-      {name:"Beidbeinig · Knie 90° · Faszienrolle", load:0.258, beid:true, platzhalter:true, geraet:"rolle", block:"hochkant"},
-      {name:"Knie 90° · Faszienrolle",              load:0.708, platzhalter:true, geraet:"rolle", block:"hochkant"}
+      {name:"Beidbeinig · Knie 90° · Faszienrolle", load:0.264, beid:true, platzhalter:true, geraet:"rolle", block:"hochkant", clip:10},
+      {name:"Knie 90° · Faszienrolle",              load:0.708, platzhalter:true, geraet:"rolle", block:"hochkant", clip:22}
     ]
   },
 
@@ -1370,25 +1504,54 @@ const DEFAULT_EX = {
      ohnehin, bis Luke sie misst (sprosseVorlaeufig).
      Ohne Geraete: Stuhl, Gewicht und Keil fallen weg, es bleiben stehend und
      B-Stance (ort).
-     Alle Texte sind Entwurf — Luke formuliert um. */
+     Alle Texte sind Entwurf — Luke formuliert um.
+
+     Seit Build 2026-11-12 a (EX_VERSION 37, Lukes Handoff vom 12.11.2026):
+       - Gewicht auch im Sitzen: Sprossen 1 und 2 tragen 1 bis 20 kg in
+         1-kg-Schritten (kgSpanne), in beiden Haenden, Arme senkrecht. Der
+         Hebel ist derselbe wie im Stehen, extraK 2,12: Das Gewicht haengt
+         unter den Schultern, sein Moment um die Huefte waechst mit der
+         Neigung genau wie das des Oberkoerpers, das Verhaeltnis bleibt. Mit
+         20 kg bei 80 kg wird Sitzen 0,320 zu 0,490 und Lift-Off 0,400 zu
+         0,612. "Stehend · Koerpergewicht" bleibt ohne Gewicht (kgSpanne
+         max 0), mit Gewicht ist es Sprosse 4. Dafuer steht extraAb jetzt
+         auf 0; die Felder der Sprossen 4 bis 9 bleiben dieselben (kgKey).
+       - Die fuenf Camporini-Sprossen 5 bis 9 sind nicht mehr Premium,
+         sondern nur nach persoenlicher Freischaltung (coaching, siehe
+         coachingFrei): Luke schaltet sie je Nutzer frei, wie genau, ist
+         offen. Ohne Freischaltung geht die Leiter von Sprosse 4 direkt auf
+         den B-Stance, ohne Zwischenstufe (Luke, 11.11.2026).
+       - B-Stance mit Gewicht in beiden Haenden, Gesamtgewicht wie
+         beidbeinig. extraK bleibt 2,12: Das Modell kennt keinen seitlichen
+         Hebel, es teilt das Gewicht wie den Oberkoerper auf die Beine auf.
+         Mit einer Hand hinten lag ein Teil davon auf dem hinteren Bein; in
+         beiden Haenden traegt das vordere bei gleichem Gewicht eher mehr.
+       - Kein Rucksack mehr, nur Kurzhantel oder Kettlebell. Die Wand-
+         Methode fuer die Tiefe ist raus, die Tiefe kommt aus dem Spiegel. */
   hinge: {
     name:"Hip Hinge", region:"Sitzbein", group:"hinge",
-    sides:["links","rechts"], extraAb:3, extraK:2.12,
-    /* Kein extraGeraet: Ein Rucksack an den Griffen geht immer. */
+    sides:["links","rechts"], extraAb:0, extraK:2.12,
+    /* Kein extraGeraet: Eine Kurzhantel oder Kettlebell setzt die App
+       voraus, wie bisher den Rucksack (Haken waere ein Umbau fuer alle). */
     gewichtMindestens:true, mindestText:"Stehend mit Gewicht", kgJeSprosse:true,
     startStufe:0,
     seitenRuf:{links:"LINKES BEIN TRÄGT", rechts:"RECHTES BEIN TRÄGT"},
-    extraHint:"Kurzhantel, Kettlebell oder Rucksack an den Griffen, die Arme hängen senkrecht "
-             +"unter den Schultern. Beidbeinig in beiden Händen — trag das Gesamtgewicht ein. "
-             +"Camporini und B-Stance: in der Hand der Seite, deren Fuß hinten steht. Nennt die "
-             +"Sprosse »gegenüber«, in der anderen Hand, der Seite, deren Fuß vorn steht.",
-    hint:"»Links« heißt: Das LINKE Bein arbeitet — beim Camporini steht es hinten, etwa einen "
-        +"halben Fuß zurückversetzt, beim B-Stance vorn. Rücken neutral, die Bewegung kommt aus "
-        +"der Hüfte: Gesäß nach hinten, Oberkörper nach vorn. Im Stehen sind die Knie leicht "
-        +"gebeugt und bleiben in diesem Winkel. Halte jedes Mal dieselbe Tiefe, zum Beispiel "
-        +"mit dem Rücken zur Wand, die Fersen eine feste Zahl Fußlängen davor und das Gesäß "
-        +"knapp vor der Wand. Im versetzten Stand bleibt das Becken waagerecht: Die Hüfte der "
-        +"hinteren Seite sackt nicht ab.",
+    extraHint:"Kurzhantel oder Kettlebell, die Arme hängen senkrecht unter den Schultern. Im "
+             +"Sitzen, im Stehen und im B-Stance in beiden Händen — trag das Gesamtgewicht ein. "
+             +"Camporini: in der Hand der Seite, deren Fuß hinten steht. Nennt die Sprosse "
+             +"»gegenüber«, in der anderen Hand, der Seite, deren Fuß vorn steht.",
+    hint:"»Links« heißt: Das LINKE Bein arbeitet — beim B-Stance steht es vorn. Rücken neutral, "
+        +"die Bewegung kommt aus der Hüfte: Gesäß nach hinten, Oberkörper nach vorn. Im Stehen "
+        +"sind die Knie leicht gebeugt und bleiben in diesem Winkel. Mit Gewicht im Stehen: Nimm "
+        +"das Gewicht aus der Hocke auf und komm aufrecht hoch. Dann kipp langsam aus der Hüfte "
+        +"nach vorn, Gesäß nach hinten, und halte dort. Geh so tief, wie es der Reiz zulässt, und "
+        +"kontrollier die Tiefe am besten im Spiegel. Du musst nicht bis in die Waagerechte "
+        +"kommen. Halte jedes Mal ungefähr dieselbe Tiefe. Im versetzten Stand bleibt das Becken "
+        +"waagerecht: Die Hüfte der hinteren Seite sackt nicht ab.",
+    /* Drei Erklaervideos, eins je Sprossenblock (Handoff 12.11.2026): Sitzen
+       (Sprossen 1 und 2), Stehen (3 und 4), B-Stance (10). Leer, bis Luke
+       sie hochlaedt; die Camporini-Sprossen haben keins. */
+    erklaerUrl:{sitzen:"", stehen:"", bstance:""},
     /* Wie bei der Fersenbruecke eine eigene Frage beim ersten Mal — aber hier
        ist der Sitzbeinschmerz beim Sitzen die Beschwerde, fuer die die Uebung
        da ist, und steht deshalb NICHT unter den Warnzeichen. */
@@ -1408,22 +1571,28 @@ const DEFAULT_EX = {
            +"App nicht unterscheiden."
     },
     levels:[
-      {name:"Sitzend · auf der Stuhlkante aus der Hüfte nach vorn gekippt", load:0.320, beid:true, platzhalter:true},
-      {name:"Sitzend · Gesäß knapp über der Sitzfläche (Lift-Off)",       load:0.400, beid:true, platzhalter:true},
-      {name:"Stehend · Körpergewicht",                                     load:0.500, beid:true, platzhalter:true, ort:"boden"},
-      {name:"Stehend · Gewicht in beiden Händen",                          load:0.500, beid:true, platzhalter:true, mindSprung:1.25},
+      {name:"Sitzend · auf der Stuhlkante aus der Hüfte nach vorn gekippt", load:0.320, beid:true, platzhalter:true,
+       kgSpanne:{max:20, schritt:1}, erklaer:"sitzen"},
+      {name:"Sitzend · Gesäß knapp über der Sitzfläche (Lift-Off)",       load:0.400, beid:true, platzhalter:true,
+       kgSpanne:{max:20, schritt:1}, erklaer:"sitzen"},
+      {name:"Stehend · Körpergewicht",                                     load:0.500, beid:true, platzhalter:true, ort:"boden",
+       kgSpanne:{max:0}, erklaer:"stehen"},
+      {name:"Stehend · Gewicht in beiden Händen",                          load:0.500, beid:true, platzhalter:true, mindSprung:1.25,
+       erklaer:"stehen"},
       {name:"Camporini · Bein hinten, ganze Sohle auf dem Keil",           load:0.650, platzhalter:true, gruppe:"camporini",
+       coaching:true,
        nameMitGewicht:"Camporini · Bein hinten, ganze Sohle auf dem Keil · Gewicht in derselben Hand"},
       {name:"Camporini · Bein hinten, beide Füße flach · Gewicht in der Hand gegenüber",
-       load:0.650, platzhalter:true, gruppe:"camporini", premium:true},
+       load:0.650, platzhalter:true, gruppe:"camporini", coaching:true},
       {name:"Camporini · Bein hinten, beide Füße flach · Gewicht in derselben Hand",
-       load:0.650, platzhalter:true, gruppe:"camporini", premium:true},
+       load:0.650, platzhalter:true, gruppe:"camporini", coaching:true},
       {name:"Camporini · Bein hinten, ganze Sohle auf dem Keil · Gewicht in der Hand gegenüber",
-       load:0.650, platzhalter:true, gruppe:"camporini", premium:true},
+       load:0.650, platzhalter:true, gruppe:"camporini", coaching:true},
       {name:"Camporini · Bein hinten, Zehen auf dem Keil, Ferse unten · Gewicht in der Hand gegenüber",
-       load:0.650, platzhalter:true, gruppe:"camporini", premium:true},
+       load:0.650, platzhalter:true, gruppe:"camporini", coaching:true},
       {name:"B-Stance · Bein vorn, hinterer Fuß nur auf den Zehen",        load:0.750, platzhalter:true, ort:"boden",
-       nameMitGewicht:"B-Stance · Bein vorn, hinterer Fuß nur auf den Zehen · Gewicht in der Hand der hinteren Seite"}
+       erklaer:"bstance",
+       nameMitGewicht:"B-Stance · Bein vorn, hinterer Fuß nur auf den Zehen · Gewicht in beiden Händen"}
     ]
   },
 
@@ -1743,52 +1912,75 @@ const DEFAULT_EX = {
      Streckung laesst sich schlecht vorgeben, durchgestreckt zu halten ist zu
      anstrengend, man beugt ohnehin nach, und mehr Material wuerde die Uebung
      zu umstaendlich machen. Ob das Knie fuer die Wade gestreckt sein muss,
-     klaert eine eigene Recherche (Recherche_Wade-Kniewinkel.md). */
+     klaert eine eigene Recherche (Recherche_Wade-Kniewinkel.md).
+
+     Seit Build 2026-11-12 a ist die Hoehe unter der Ferse die Sprosse (Luke,
+     12.11.2026): 1 bis 7 cm Buecher, 7,5 cm Yogablock flach, 8 bis 10 cm je
+     nach Schuhgroesse. "7,5 cm ist für die meisten das Ziel; Obergrenze
+     vorerst 10 cm." Die ganze Hoehenleiter laeuft zuerst beidbeinig, mit dem
+     Rucksack vorn an der Brust, danach einbeinig, Einstieg "etwa 3–4 cm unter
+     der zuletzt beidbeinig geschafften Höhe". Die Waage ist raus ("zu
+     aufwendig und nicht praktikabel") und liegt im Archiv
+     (HANDTUCH_ARCHIV_WAAGE), wiederherstellbar.
+     Lasten vorlaeufig, aus einem Modell: Ferse bis Ballen 20 cm, die Hoehe h
+     verlangt den Winkel asin(h/20); je Grad naeher am Anschlag verliert die
+     Wade 1,6 % Kraft. Schwierigkeit ~ cos(Winkel) / (1 - 0,016 x Grad),
+     bezogen auf 7,5 cm (dort die alten 0,50 und 1,00). Je cm rund 5 % mehr.
+     Gegenprobe: beidbeinig mit 75 % Koerpergewicht im Rucksack traegt fast
+     genau so viel wie einbeinig 3 cm tiefer — Lukes 3 bis 4 cm kommen von
+     selbst heraus. Die Fusslaenge (Schuhgroesse) steckt im Modell als fester
+     Wert; bei groesserem Fuss sind alle Hoehen etwas leichter. */
   handtuch: {
     name:"Endgradiges Wadenheben mit Handtuchrolle", region:"Fußsohle", group:"arch",
     sides:["links","rechts"], seitenParallel:true, nichtMit:["wade"],
     seitenRuf:{links:"LINKES BEIN STEHT", rechts:"RECHTES BEIN STEHT"},
     /* Einbeinig wie beim Wadenheben, beidbeinig nicht — siehe huefteHeute. */
     huefteStandbein:true,
-    /* Der Rucksack traegt beide Sprossen, mit derselben Spanne wie beim
-       Wadenheben ohne Handtuch. */
+    /* Der Rucksack, mit derselben Spanne wie beim Wadenheben ohne Handtuch.
+       Die Waage ist seit Build 2026-11-12 a archiviert: HANDTUCH_ARCHIV_WAAGE. */
     extraAb:0, extraK:1, extraMax:60, extraReal:60, extraAnteil:0.75,
-    /* Mit Waage: beidbeinig nur bis 40 kg, darueber einbeinig mit Entlastung —
-       siehe waageSpanne. Ohne Waage gelten beide Felder nicht. */
-    beidBis:40, extraMinGeraet:"waage",
-    /* Beidbeinig und einbeinig merken sich ihr Gewicht getrennt — siehe kgKey. */
+    /* Jede Sprosse merkt sich ihr eigenes Gewicht — siehe kgKey. */
     kgJeSprosse:true,
+    /* Erst die Hoehe, dann der Rucksack, dann einbeinig tiefer — siehe
+       hoeheZuerst, fersenGrenzeOf und einEinstieg. */
+    hoeheZuerst:true, fersenZiel:7.5, einbeinigTiefer:3,
     extraLabel:"Rucksack",
-    extraSeiten:{plus:"Rucksack", minus:"entlastet", plusKurz:"Rucksack", minusKurz:"Waage",
-                 amStufenNamen:true, waage:true},
+    extraSeiten:{plus:"Rucksack", plusKurz:"Rucksack", amStufenNamen:true},
     extraHint:"Der Rucksack sitzt vorne an der Brust, eng geschnallt und mittig. So zieht er "
              +"weder nach vorn noch zur Seite. Beidbeinig teilen sich beide Fußgewölbe dein "
-             +"Körpergewicht und den Rucksack, einbeinig trägt eines alles. Mit Waage endet "
-             +"beidbeinig bei 40 kg — schwerer geht es einbeinig weiter.",
+             +"Körpergewicht und den Rucksack, einbeinig trägt eines alles.",
     hint:"Du stehst auf dem Boden, mit dem Gesicht zur Wand. Unter den Zehen liegt ein fest "
         +"zusammengerolltes Handtuch, sodass die Zehen nach oben gedrückt bleiben. Nur die "
         +"Ballen tragen, die Zehen liegen auf der Rolle. Diese Zehenstellung ist der ganze Zweck "
         +"der Übung — rutschen die Zehen von der Rolle, trainierst du wieder die Wade statt die "
-        +"Fußsohle. Unter den Fersen liegt ein Yogablock flach (etwa 7,5 cm). Gehalten wird "
-        +"OBEN: Du drückst die Ferse so weit hoch, wie das Sprunggelenk hergibt, und die Zehen "
-        +"stehen dabei fast maximal aufgestellt. Das Knie bleibt die ganze Zeit leicht gebeugt. "
+        +"Fußsohle. Unter den Fersen liegt der Anschlag: Bücher oder ein Yogablock, so hoch, wie "
+        +"die Sprosse sagt. Du gehst einfach hoch, ohne besonderen Einstieg. Gehalten wird OBEN: "
+        +"Du drückst die Ferse so weit hoch, wie das Sprunggelenk hergibt, und die Zehen stehen "
+        +"dabei fast maximal aufgestellt. Das Knie bleibt die ganze Zeit leicht gebeugt. "
         +"Durchgestreckt hältst du es ohnehin nicht über den ganzen Satz, und mehr Material für "
-        +"den Kniewinkel macht die Übung nur umständlich. Berührt "
-        +"die Ferse den Block leicht, drück sie wieder hoch. Liegt sie mit Druck auf dem Block, "
-        +"ist der Halt zu Ende. Kein Block da? Ein Stapel Bücher in derselben Höhe geht genauso. "
+        +"den Kniewinkel macht die Übung nur umständlich. Berührt die Ferse den Anschlag leicht, "
+        +"drück sie wieder hoch. Liegt sie mit Druck darauf, ist der Halt zu Ende. "
         +"Das isometrische Wadenheben wird waagerecht gehalten — zusammen decken die beiden zwei "
         +"verschiedene Gelenkstellungen ab. Auch hier: keine Wiederholungen. "
+        +"Schwerer wird es zuerst über die Höhe unter der Ferse: 1 bis 7 cm mit Büchern, 7,5 cm "
+        +"mit dem Yogablock flach, darüber Block und Bücher zusammen. Je höher der Anschlag, desto "
+        +"weiter muss die Ferse hoch. Vielen fehlt dafür die Beweglichkeit im Großzehengelenk, "
+        +"deshalb beginnt die Leiter bei 1 cm. 7,5 cm ist für die meisten das Ziel, und dort "
+        +"bleibt die App von selbst stehen. 8 bis 10 cm gehen je nach Schuhgröße — die wählst du "
+        +"in der Liste selbst. Kommst du auf einer Höhe gar nicht hoch, geht die App eine Höhe "
+        +"zurück und bleibt dort. Auf der höchsten Höhe kommt der Rucksack dazu, vorne an der "
+        +"Brust, eng geschnallt und mittig. "
         +"Beidbeinig ist die Grundform: Du stehst auf beiden Füßen, das ist EIN Halt für links "
-        +"und rechts. Schwerer wird es mit einem Rucksack voller Gewichte, vorne an die Brust "
-        +"geschnallt. Hast du eine Waage, endet beidbeinig bei 40 kg, und es geht einbeinig "
-        +"weiter: Die Waage liegt unter dem Vorfuß des Standbeins, das Handtuch darauf. Unter "
-        +"den Block kommt etwas in der Höhe der Waage, ein Buch etwa, damit die Ferse dieselbe "
-        +"Grenze hat. Das andere Bein ist in der Luft, und du nimmst dir über die Hände auf "
-        +"einer Auflage so viel Gewicht ab, bis die Anzeige die Zahl zeigt, die auf der Karte "
-        +"steht. Einbeinig "
-        +"kommen beide Seiten nacheinander dran, beide Sätze werden gemessen. Einbeinig hält "
-        +"die äußere Hüfte des Standbeins das Becken, wie beim aufrechten Läufer — die App legt "
-        +"die beiden nach Möglichkeit nicht auf denselben Tag. Beidbeinig gilt das nicht.",
+        +"und rechts. Reicht auch der volle Rucksack beidbeinig nicht mehr, geht es einbeinig "
+        +"weiter, 3 bis 4 cm tiefer als zuletzt beidbeinig. Einbeinig kommen beide Seiten "
+        +"nacheinander dran, beide Sätze werden gemessen. Einbeinig hält die äußere Hüfte des "
+        +"Standbeins das Becken, wie beim aufrechten Läufer — die App legt die beiden nach "
+        +"Möglichkeit nicht auf denselben Tag. Beidbeinig gilt das nicht.",
+    /* Werbung, als solche gekennzeichnet, nur im Schritt Einstellen (siehe
+       anzeigeLink). Luke, 12.11.2026: Link exakt so, nicht kuerzen. Offen:
+       nur Empfehlung, oder eine eigene Variante in der Leiter? */
+    anzeige:{vor:"Statt der Handtuchrolle geht auch der", name:"Fasciitis Fighter",
+             url:"https://link.amazon/B0f0Wius5"},
     /* Kein seitenHinweis mehr — dieselbe Bewegung wie beim Wadenheben ohne
        Handtuch, also dieselbe Begruendung: siehe seitenParallel. */
     warnung:{
@@ -1805,9 +1997,34 @@ const DEFAULT_EX = {
            +"deuten aber auf einen Nerv, einen Bruch oder ein entzündliches Geschehen — und "
            +"dann wäre Belastung falsch."
     },
+    /* Die ganze Hoehenleiter erst beidbeinig (0-10), dann einbeinig (11-21).
+       Clips gibt es vorerst nur beidbeinig, einer je Hoehe; die einbeinige
+       Sprosse zeigt den Clip derselben Hoehe (clip). Lasten vorlaeufig, siehe
+       der Kommentar ueber dieser Uebung. */
+    startStufe:0,
     levels:[
-      {name:"Beidbeinig", load:0.50, beid:true},
-      {name:"Einbeinig",  load:1.00}
+      {name:"Beidbeinig · 1 cm unter der Ferse", load:0.366, beid:true, hoehe:1, platzhalter:true},
+      {name:"Beidbeinig · 2 cm unter der Ferse", load:0.383, beid:true, hoehe:2, platzhalter:true},
+      {name:"Beidbeinig · 3 cm unter der Ferse", load:0.401, beid:true, hoehe:3, platzhalter:true},
+      {name:"Beidbeinig · 4 cm unter der Ferse", load:0.420, beid:true, hoehe:4, platzhalter:true},
+      {name:"Beidbeinig · 5 cm unter der Ferse", load:0.440, beid:true, hoehe:5, platzhalter:true},
+      {name:"Beidbeinig · 6 cm unter der Ferse", load:0.462, beid:true, hoehe:6, platzhalter:true},
+      {name:"Beidbeinig · 7 cm unter der Ferse", load:0.487, beid:true, hoehe:7, platzhalter:true},
+      {name:"Beidbeinig · Yogablock flach (7,5 cm)", load:0.500, beid:true, hoehe:7.5},
+      {name:"Beidbeinig · 8 cm unter der Ferse", load:0.514, beid:true, hoehe:8, platzhalter:true},
+      {name:"Beidbeinig · 9 cm unter der Ferse", load:0.545, beid:true, hoehe:9, platzhalter:true},
+      {name:"Beidbeinig · 10 cm unter der Ferse", load:0.582, beid:true, hoehe:10, platzhalter:true},
+      {name:"Einbeinig · 1 cm unter der Ferse", load:0.731, hoehe:1, clip:0, platzhalter:true},
+      {name:"Einbeinig · 2 cm unter der Ferse", load:0.765, hoehe:2, clip:1, platzhalter:true},
+      {name:"Einbeinig · 3 cm unter der Ferse", load:0.801, hoehe:3, clip:2, platzhalter:true},
+      {name:"Einbeinig · 4 cm unter der Ferse", load:0.839, hoehe:4, clip:3, platzhalter:true},
+      {name:"Einbeinig · 5 cm unter der Ferse", load:0.880, hoehe:5, clip:4, platzhalter:true},
+      {name:"Einbeinig · 6 cm unter der Ferse", load:0.925, hoehe:6, clip:5, platzhalter:true},
+      {name:"Einbeinig · 7 cm unter der Ferse", load:0.974, hoehe:7, clip:6, platzhalter:true},
+      {name:"Einbeinig · Yogablock flach (7,5 cm)", load:1.000, hoehe:7.5, clip:7},
+      {name:"Einbeinig · 8 cm unter der Ferse", load:1.028, hoehe:8, clip:8, platzhalter:true},
+      {name:"Einbeinig · 9 cm unter der Ferse", load:1.090, hoehe:9, clip:9, platzhalter:true},
+      {name:"Einbeinig · 10 cm unter der Ferse", load:1.163, hoehe:10, clip:10, platzhalter:true}
     ]
   },
 
@@ -1898,7 +2115,32 @@ const DEFAULT_EX = {
      sagen, woran man die andere Gruppe erkennt.
 
      VORLAEUFIG, bis Luke misst: alle vier Lasten, extraK und damit das
-     Mindestgewicht. Die beiden am Gurt sind Platzhalter. */
+     Mindestgewicht. Die beiden am Gurt sind Platzhalter.
+
+     Seit Build 2026-11-12 a (EX_VERSION 37) NUR NOCH AM GURT (Lukes Handoff
+     vom 12.11.2026). Die Stepper-Sprossen sind raus (HYPER_NUR_GURT), es
+     bleiben 45° und waagerecht. Der Gurt ist damit Pflicht: Ohne Haken steht
+     die Uebung nicht im Plan. Weiter von Luke:
+       - Einstieg exzentrisch: in den Gurt gehen, ueber die Huefte langsam
+         nach vorn ablassen;
+       - die Arme haengen locker nach unten (statt Haende in der Huefte);
+       - Gewicht erst auf Sprosse 2 (waagerecht), und es haengt an den
+         Haenden: Kurzhantel oder Kettlebell.
+     extraK neu, Segmentdaten nach Winter wie in scratchpad/rueckenhalt.mjs
+     (1,80 m, Hebel waagerecht ueber der Hueftachse): Rumpf 49,7 % KG bei
+     0,28 m, Kopf 8,1 % bei 0,67 m, die haengenden Arme 10 % unter der
+     Schulter bei 0,50 m. Das sind 0,2435 m je kg Koerpergewicht. Das Gewicht
+     haengt ebenfalls unter der Schulter, 0,50 m: extraK = 0,50 / 0,2435 =
+     2,05. Liegt der Drehpunkt 5 cm hoeher (wie im Modell oben), sind es
+     2,15; eingebaut ist die Mitte, 2,1. Fast derselbe Wert wie vorher am
+     Stepper (2,12): Dort sass das Gewicht naeher am Drehpunkt, trug aber auch
+     weniger Rumpf.
+     Die beiden Lasten bleiben: Haengen die Arme statt der Haende in der
+     Huefte, waechst das Moment bei 45° und waagerecht gleich (die Arme
+     kippen mit dem Rumpf), das Verhaeltnis Wurzel 2 bleibt. Ob 0,439 und
+     0,621 selbst stimmen, zeigt Lukes Messung.
+     Mindestgewicht (gewichtMindestens): waagerecht ist schon ohne Gewicht
+     schwerer als 45°, es bleibt also 0 kg. */
   hyper: {
     name:"Hyperextension", region:"Unterer Rücken", group:"spine",
     /* Die erste Haltung ist die Vorauswahl, siehe haltungOf. */
@@ -1909,30 +2151,46 @@ const DEFAULT_EX = {
        ist (haltungWahlKarte). */
     haltungUnter:{gestreckt:"Sitzen und Vorbeugen ziehen ins Bein – wie bei den meisten mit Ischias",
                   rund:"Stehen und Gehen ziehen ins Bein – typisch für einen engen Wirbelkanal"},
-    /* Kein extraGeraet: Ein Rucksack mit Buechern geht immer, wie bei der
-       Fersenbruecke. Kein extraMax und kein extraReal: Es gelten der Deckel
-       von einem halben Koerpergewicht und die 20 kg fuer zuhause. */
-    extraAb:3, extraK:2.12, gewichtMindestens:true,
-    extraLabel:"Gewicht",
-    extraHint:"Rucksack, Hantelscheibe oder Kurzhantel mit beiden Armen eng vor der Brust halten, "
-             +"mittig auf dem Brustbein.",
-    hint:"Am Gurt: Türanker oben in die Zarge klemmen, Tür zu. Rücken zur Tür, die Schlaufe liegt "
-        +"vorn knapp unter den Hüftknochen und läuft rechtwinklig zum Körper. Die Füße stehen bei "
-        +"1,80 m Größe etwa 65 cm vor der Tür, bei 1,60 m etwa 80 cm. Gestreckt in den Gurt lehnen, "
-        +"bis der Körper 45° geneigt ist, die Hände in der Hüfte. Am Stepper: Stepper mit Kissen, die "
-        +"Kante liegt auf Höhe des Bauchnabels, die Füße stehen hinten an der Wand, der Oberkörper "
-        +"hängt frei über die Kante und wird waagerecht gehalten. In beiden Aufbauten: gestreckt mit "
-        +"langem Rücken, rund mit eingerolltem Rücken.",
-    /* Am Gurt mit geraet:"gurt", der Stepper ohne ort: Stepper und Kissen
-       sind Moebel, im Modus ohne Geraete faellt die Uebung deshalb ganz weg
-       (siehe ohneGeraete). Ohne Gurt beginnt die Leiter am Stepper. */
+    /* Kein extraGeraet: Eine Kurzhantel oder Kettlebell setzt die App
+       voraus wie beim Hip Hinge (seit Build 2026-11-12 a haengt das Gewicht
+       an den Haenden, vorher ging auch ein Rucksack vor der Brust). Kein
+       extraMax und kein extraReal: Es gelten der Deckel von einem halben
+       Koerpergewicht und die 20 kg fuer zuhause. */
+    extraAb:1, extraK:2.1, gewichtMindestens:true,
+    extraLabel:"Kurzhantel oder Kettlebell",
+    extraHint:"Erst wenn der Oberkörper waagerecht steht. Nimm die Kurzhantel oder Kettlebell in "
+             +"die Hände, bevor du in den Gurt gehst. Die Arme hängen locker nach unten, das "
+             +"Gewicht hängt an den Händen. Es zählt, was es wiegt.",
+    hint:"Türanker oben in die Zarge klemmen, Tür zu. Rücken zur Tür, die Schlaufe liegt vorn "
+        +"knapp unter den Hüftknochen und läuft rechtwinklig zum Körper. Die Füße stehen bei "
+        +"1,80 m Größe etwa 65 cm vor der Tür, bei 1,60 m etwa 80 cm. Geh von oben in den Halt: "
+        +"in den Gurt hinein und über die Hüfte langsam nach vorn ablassen, bis der Oberkörper "
+        +"45° geneigt ist oder waagerecht steht, so wie die Stufe sagt. Die Arme hängen locker "
+        +"nach unten. Halte genau dort, keine Wiederholungen. Gestreckt mit langem Rücken, rund "
+        +"mit eingerolltem Rücken, und die Haltung bleibt während des ganzen Halts dieselbe.",
+    /* Luke, Handoff vom 12.11.2026, die Zeichen wortgleich aus seinem
+       Skript, die Begruendung aus dem Handoff. Bis dahin hatte die
+       Hyperextension keine eigene Sicherheitsfrage. */
+    warnung:{
+      titel:"Bevor du die Hyperextension zum ersten Mal machst",
+      frage:"Trifft eines davon auf dich zu?",
+      punkte:[
+        "Taubheit oder Kraftverlust im Bein",
+        "Probleme mit Blase oder Darm oder Taubheit im Gesäß- oder Intimbereich: Dann sofort zum Arzt",
+        "Der Schmerz fing nach einem Sturz oder Unfall an"
+      ],
+      warum:"Dann lässt du das zuerst ärztlich abklären. Rückenschmerz ohne diese Zeichen "
+           +"verträgt dosiertes isometrisches Halten gut. Diese Zeichen können aber auf einen "
+           +"eingeklemmten Nerv oder eine Verletzung hinweisen und brauchen zuerst eine Diagnose."
+    },
+    /* Beide mit geraet:"gurt": Ohne Gurt hat die Leiter keine Sprosse, die
+       Uebung faellt aus dem Plan (ausfuehrbar), ebenso im Modus ohne
+       Geraete. */
     levels:[
       {name:"Gurt im Türrahmen · Oberkörper 45° in Verlängerung der Beine", load:0.439,
        platzhalter:true, geraet:"gurt"},
       {name:"Gurt im Türrahmen · Oberkörper waagerecht", load:0.621,
-       platzhalter:true, geraet:"gurt"},
-      {name:"Stepper · Hände in der Hüfte",              load:0.776},
-      {name:"Stepper · Hände vor der Brust",             load:0.847}
+       platzhalter:true, geraet:"gurt"}
     ]
   },
 
@@ -1964,24 +2222,31 @@ const DEFAULT_EX = {
     seitenKopf:{links:"linker Arm oben", rechts:"rechter Arm oben"},
     extraAb:0, extraK:83,
     extraMin:0, extraMax:15, extraSchritt:0.5, extraReal:10,
-    extraGeraet:["gewicht"],
-    extraLabel:"Kurzhantel",
+    extraLabel:"Flasche oder Gewicht",
     /* Ohne Hantel traegt der Unterarm bei 80 kg grob ein Achtel der
        Maximalkraft; so ein Halt liegt fuer die meisten ueber dem Messfenster.
        Der erste Test beginnt deshalb bei 2 kg statt ohne Gewicht (siehe
        mkBlock). Grob geschaetzt landen Maenner dort bei 40 %, Frauen bei 65 %
-       der Maximalkraft, beide im Fenster. */
-    startKg:[2, 3.5, 5],
-    extraHint:"Eine Kurzhantel, eine kleine Kettlebell oder eine gefüllte Wasserflasche, fest in "
-             +"der Faust. Es zählt, was sie wiegt. Hast du das vorgeschlagene Gewicht nicht, stell "
-             +"ein, was du hast.",
+       der Maximalkraft, beide im Fenster.
+       Seit Build 2026-11-12 a beginnt der erste Test bei 1,5 kg, der vollen
+       1,5-Liter-Flasche: Die Uebung braucht kein angehaktes Geraet mehr,
+       eine Wasserflasche hat jeder (Lukes Handoff vom 12.11.2026). Bei 80 kg
+       sind das grob 35 statt 40 % der Maximalkraft, noch im Fenster. Die
+       Plaetze 3 und 5 kg brauchen eine Hantelscheibe oder Kurzhantel; wer
+       die nicht hat, stellt ein, was er hat. */
+    startKg:[1.5, 3, 5],
+    extraHint:"Eine Wasserflasche fest in der Faust: 0,5 l wiegt 0,5 kg, 1 l 1 kg, 1,5 l 1,5 kg. "
+             +"Danach eine Hantelscheibe oder eine Kurzhantel. Es zählt, was sie wiegt. Hast du "
+             +"das vorgeschlagene Gewicht nicht, stell ein, was du hast.",
     hint:"»Links« heißt: Der LINKE Arm ist oben und arbeitet. Setz dich auf die rechte Hüfte, die "
         +"Beine angewinkelt zur Seite abgelegt, und stütz dich mit gestrecktem Arm auf die rechte "
         +"Hand, sodass der Oberkörper aufrecht steht — das ist der hohe Seitsitz. Der linke "
-        +"Ellbogen liegt auf dem oberen Knie und ist rechtwinklig gebeugt. Die Kurzhantel in der "
-        +"linken Faust: Dreh den Unterarm nach außen, bis er waagerecht steht, und halte ihn genau "
-        +"dort. Der Ellbogen bleibt auf dem Knie. Keine Wiederholungen. Beide Seiten kommen direkt "
-        +"nacheinander dran, und beide werden gemessen.",
+        +"Ellbogen liegt auf dem oberen Knie und ist rechtwinklig gebeugt, das Gewicht in der "
+        +"linken Faust. Zieh das Schulterblatt locker nach hinten unten. Starte mit dem Unterarm "
+        +"senkrecht nach oben, der Ellbogen liegt auf dem Knie. Lass das Gewicht langsam nach vorn "
+        +"ab, bis der Unterarm waagerecht steht, und halte ihn genau dort. Nicht von unten "
+        +"hochdrehen. Der Ellbogen bleibt auf dem Knie. Keine Wiederholungen. Beide Seiten kommen "
+        +"direkt nacheinander dran, und beide werden gemessen.",
     /* Wortlaut der Punkte: Luke, 02.11.2026. */
     warnung:{
       titel:"Bevor du die Außenrotation zum ersten Mal machst",
@@ -1997,13 +2262,15 @@ const DEFAULT_EX = {
            +"Sehnenriss nach einem Sturz, ein gereizter Nerv aus der Halswirbelsäule oder eine "
            +"Schultersteife brauchen aber zuerst eine Diagnose, und die kann keine App stellen."
     },
-    /* geraet:"gewicht" auf der Sprosse: Ohne Gewicht bleibt nur der Unterarm,
-       1,21 % des Koerpergewichts — so eine Haltezeit laeuft weit ueber
-       MESS_MAX und misst nichts. Ohne angehakte Kurzhantel bietet die App die
-       Uebung deshalb gar nicht an (stufeErlaubt, ausfuehrbar), wie die
-       Sprossen am Zug oder auf der Rolle. */
+    /* Ohne Gewicht bleibt nur der Unterarm, 1,21 % des Koerpergewichts — so
+       eine Haltezeit laeuft weit ueber MESS_MAX und misst nichts. Bis Build
+       2026-11-11 bot die App die Uebung deshalb nur mit angehakter Kurzhantel
+       an (geraet:"gewicht"). Seit 2026-11-12 a ohne Haken: Eine Wasserflasche
+       hat jeder, wie beim Seitheben, und startKg legt den ersten Test auf die
+       volle Flasche. Der Hebel bleibt bei 83, der Halt in der Waagerechten
+       ist derselbe, nur der Einstieg kommt jetzt von oben. */
     levels:[
-      {name:"Nur der Unterarm", nameMitGewicht:"Mit Kurzhantel", load:0.0121, platzhalter:true, geraet:"gewicht"}
+      {name:"Nur der Unterarm", nameMitGewicht:"Mit Gewicht", load:0.0121, platzhalter:true}
     ]
   },
 
@@ -2046,26 +2313,42 @@ const DEFAULT_EX = {
      dauert vermutlich laenger als MESS_MAX. Die Uebung ist aber fuer die
      gereizte Schulter da, die weniger Kraft hat.
      VORLAEUFIG, bis Luke misst: load, extraK, Hinweistext und
-     Sicherheitsfrage. */
+     Sicherheitsfrage.
+
+     Seit Build 2026-11-12 a (EX_VERSION 37) eine Sprosse (Lukes Handoff vom
+     12.11.2026): Die gebeugte Sprosse faellt weg, der Einstieg ist der leicht
+     gebeugte Arm (etwa 170°) ohne Gewicht, Empty Can mit dem Daumen leicht
+     nach innen, der Arm aktiv in die Aussenrotation gezogen. Gewicht danach:
+     Flasche 0,5 l, 1 l, 1,5 l, dann Gewichtsscheibe oder Kurzhantel. Last bei
+     170° nachgerechnet, mit demselben Modell: Der Unterarm ist um 10° aus der
+     Linie, sein Hebel und der des Griffs werden um cos 10° kuerzer. Das gibt
+     2,40 % statt 2,39 % KG in der Faust, unter einem Prozent Unterschied —
+     load 0,0239 und extraK 42 bleiben. Saetze auf der gebeugten Sprosse
+     behalten ihre Last und tragen die Marke entfalleneSprosse, Saetze auf
+     dem gestreckten Arm zaehlen auf der neuen Sprosse weiter, siehe
+     SEITHEBEN_EINS. Nicht eingebaut: Haltewinkel 45, 60, 70 und 90 Grad als
+     eigene Sprossen, das entscheidet Luke noch. */
   seitheben: {
     name:"Seitheben in der Schulterblattebene", region:"Schulter", group:"armheben",
     nurAufWahl:"nur bei Schulterschmerzen",
     sides:["links","rechts"], seitenParallel:true,
     seitenRuf:{links:"LINKER ARM", rechts:"RECHTER ARM"},
     seitenKopf:{links:"linker Arm", rechts:"rechter Arm"},
-    extraAb:1, extraK:42,
+    extraAb:0, extraK:42,
     extraMin:0, extraMax:10, extraSchritt:0.5, extraReal:5,
-    extraLabel:"Flasche oder Kurzhantel",
-    extraHint:"Eine 1-Liter-Flasche, fest in der Faust: halb voll wiegt sie 0,5 kg, voll 1 kg. "
-             +"Danach eine 1,5-Liter-Flasche oder eine Kurzhantel. Es zählt, was sie wiegt.",
+    extraLabel:"Flasche oder Gewicht",
+    extraHint:"Zuerst ohne Gewicht. Dann eine Wasserflasche fest in der Faust: 0,5 l wiegt "
+             +"0,5 kg, 1 l 1 kg, 1,5 l 1,5 kg. Danach eine Gewichtsscheibe oder eine Kurzhantel. "
+             +"Es zählt, was sie wiegt.",
     hint:"»Links« heißt: Der LINKE Arm arbeitet. Stell dich aufrecht hin, die linke Seite zur "
-        +"Wand. Heb den gestreckten Arm schräg nach vorn, etwa eine Handbreit vor die Seite, bis "
-        +"auf Schulterhöhe. Der Daumen zeigt nach oben. Stell dich so weit weg, dass die "
+        +"Wand. Heb den Arm schräg nach vorn, etwa eine Handbreit vor die Seite, bis auf "
+        +"Schulterhöhe. Der Ellbogen bleibt leicht gebeugt, etwa 170°, nicht durchgestreckt. "
+        +"Dreh den Daumen leicht nach innen und zieh den Arm dabei aktiv in die Außenrotation. "
+        +"Ellbogen und Handrücken stehen gleich hoch. Stell dich so weit weg, dass die "
         +"Fingerspitzen die Wand fast berühren, und kleb dort eine Marke hin: Daran hältst du "
-        +"jedes Mal gleich hoch. Zieh die Schulter nicht zum Ohr. Halte genau dort, keine "
-        +"Wiederholungen. Auf der leichten Stufe ist der Ellbogen rechtwinklig gebeugt, der "
-        +"Unterarm zeigt nach vorn, und der Oberarm steht genauso hoch. Beide Seiten kommen "
-        +"direkt nacheinander dran, und beide werden gemessen.",
+        +"jedes Mal gleich hoch. Das Schulterblatt bleibt unten, zieh die Schulter nicht zum "
+        +"Ohr. Halte genau dort, keine Wiederholungen. Tut es auf Schulterhöhe weh, fang "
+        +"tiefer an. Beide Seiten kommen direkt nacheinander dran, und beide werden gemessen.",
     /* Punkte und Begruendung wie bei der Aussenrotation (Luke, 02.11.2026),
        nur Titel und erster Satz der Begruendung angepasst. */
     warnung:{
@@ -2083,11 +2366,103 @@ const DEFAULT_EX = {
            +"Schultersteife brauchen aber zuerst eine Diagnose, und die kann keine App stellen."
     },
     levels:[
-      {name:"Ellbogen rechtwinklig gebeugt", load:0.01733, platzhalter:true, ort:"boden"},
-      {name:"Arm gestreckt",                 load:0.0239,  platzhalter:true, ort:"boden"}
+      {name:"Arm leicht gebeugt (170°)", load:0.0239, platzhalter:true, ort:"boden"}
     ]
   },
 
+  /* Krabbe (Build 2026-11-12 a): neu, ausgelagert aus dem archivierten
+     Dip-Halt (siehe UEBUNG_ARCHIV). Luke, Handoff vom 12.11.2026: "Arme
+     gestreckt, Schulter in Extension – eine andere Übung als der Dip, eigene
+     Kraftkurve", "Einstieg exzentrisch von oben", und "Krabbe und Liegestütz
+     dürfen am selben Tag trainiert werden". Deshalb eine eigene Gruppe und
+     kein nichtMit. Die Leiter, ebenfalls Luke, 12.11.2026: "1–4 Knie 90°,
+     Gesäß abgelegt (Boden, Stepper 1/2/3 Stufen) · 5–8 Knie 90°, Gesäß
+     schwebt (Boden, Stepper 1/2/3) · 9–12 Beine gestreckt, Gesäß schwebt
+     knapp über Boden bzw. Stepper 1/2/3". Stepper 10, 15 und 20 cm wie bei
+     der Fersenbruecke. Kein Zusatzgewicht (sein Skript: "Kein
+     Zusatzgewicht"). Sicherheitsfrage wie beim Dip-Halt, nur der Titel neu.
+     Lasten: was die Haende tragen, in Anteilen des Koerpergewichts. Dasselbe
+     ebene Gleichgewicht wie beim Dip-Halt (de Leva 1996, Maenner, Haende 20
+     cm hinter dem Gesaess) ergibt:
+        1 abgelegt, Boden    0,387   5 schwebt, Boden    0,642   9 gestreckt, Boden    0,794
+        2 abgelegt, 1 Stufe  0,770   6 schwebt, 1 Stufe  0,803  10 gestreckt, 1 Stufe  0,855
+        3 abgelegt, 2 Stufen 0,886   7 schwebt, 2 Stufen 0,834  11 gestreckt, 2 Stufen 0,873
+        4 abgelegt, 3 Stufen 0,964   8 schwebt, 3 Stufen 0,853  12 gestreckt, 3 Stufen 0,885
+     Der Rumpf lehnt dabei 19° bis 67° zurueck. Das Modell folgt Lukes
+     Reihenfolge nicht: Mit dem Gesaess auf einem Stepper ist das
+     Gleichgewicht unbestimmt (wie viel traegt der Stepper?), und die
+     Hueftbeuger, die den Rumpf halten, fehlen ganz. Darum stehen bis zur
+     Messung Platzhalter in Lukes Reihenfolge: die Sprossen 1, 5 und 12 aus
+     dem Modell, dazwischen gleichmaessige Faktoren (1 -> 5 je 1,135-fach,
+     5 -> 12 je 1,048-fach). Spanne 2,29, jeder Schritt unter Tor 2.
+     ort:"boden" auf den drei Sprossen ohne Stepper.
+     VORLAEUFIG, bis Luke misst: alle Lasten, Hinweistext und
+     Sicherheitsfrage. */
+  krabbe: {
+    name:"Krabbe", region:"Vordere Schulter", group:"krabbe",
+    sides:null, ohneGewicht:true, startStufe:0,
+    hint:"Beide Arme arbeiten gleichzeitig, und sie bleiben gestreckt. Die Hände liegen eine "
+        +"Handlänge hinter dem Gesäß. Auf den Stufen mit Stepper steht er unter dem Gesäß. Geh von oben in den "
+        +"Halt: Drück die Hüfte hoch und lass sie langsam ab, bis das Gesäß aufliegt oder knapp "
+        +"darüber schwebt, so wie die Stufe sagt. Die Schultern sind nach hinten gestreckt, die "
+        +"Brust bleibt offen, und die Schultern ziehen nicht zu den Ohren. Halte genau dort, "
+        +"keine Wiederholungen. Erst liegt das Gesäß auf, die Knie 90° gebeugt, dann schwebt es, "
+        +"zuletzt mit gestreckten Beinen. Je höher der Stepper, desto weiter geht die Schulter "
+        +"nach hinten.",
+    /* Punkte und Begruendung wie beim Dip-Halt, nur der Titel angepasst. */
+    warnung:{
+      titel:"Bevor du die Krabbe zum ersten Mal machst",
+      frage:"Trifft eines davon auf dich zu?",
+      punkte:[
+        "Deine Schulter ist schon einmal ausgekugelt oder herausgesprungen",
+        "Seit einem Sturz kannst du den Arm nicht mehr aus eigener Kraft heben",
+        "Der Schmerz zieht vom Nacken bis in die Hand, mit Kribbeln",
+        "Die Schulter ist seit Wochen rundum steif, auch wenn jemand anderes deinen Arm bewegt"
+      ],
+      warum:"Dann lässt du das zuerst ärztlich abklären. Einer gereizten Schulter tut "
+           +"isometrisches Halten gut. Eine Schulter, die schon einmal ausgekugelt war, ein "
+           +"Sehnenriss nach einem Sturz, ein gereizter Nerv aus der Halswirbelsäule oder eine "
+           +"Schultersteife brauchen aber zuerst eine Diagnose, und die kann keine App stellen."
+    },
+    levels:[
+      {name:"Knie 90° · Gesäß liegt auf dem Boden",                     load:0.387, platzhalter:true, ort:"boden"},
+      {name:"Knie 90° · Gesäß liegt auf dem Stepper, 1 Stufe (10 cm)",  load:0.439, platzhalter:true},
+      {name:"Knie 90° · Gesäß liegt auf dem Stepper, 2 Stufen (15 cm)", load:0.499, platzhalter:true},
+      {name:"Knie 90° · Gesäß liegt auf dem Stepper, 3 Stufen (20 cm)", load:0.566, platzhalter:true},
+      {name:"Knie 90° · Gesäß schwebt über dem Boden",                  load:0.642, platzhalter:true, ort:"boden"},
+      {name:"Knie 90° · Gesäß schwebt über dem Stepper, 1 Stufe (10 cm)",  load:0.672, platzhalter:true},
+      {name:"Knie 90° · Gesäß schwebt über dem Stepper, 2 Stufen (15 cm)", load:0.704, platzhalter:true},
+      {name:"Knie 90° · Gesäß schwebt über dem Stepper, 3 Stufen (20 cm)", load:0.737, platzhalter:true},
+      {name:"Beine gestreckt · Gesäß schwebt knapp über dem Boden",     load:0.771, platzhalter:true, ort:"boden"},
+      {name:"Beine gestreckt · Gesäß schwebt über dem Stepper, 1 Stufe (10 cm)",  load:0.808, platzhalter:true},
+      {name:"Beine gestreckt · Gesäß schwebt über dem Stepper, 2 Stufen (15 cm)", load:0.845, platzhalter:true},
+      {name:"Beine gestreckt · Gesäß schwebt über dem Stepper, 3 Stufen (20 cm)", load:0.885, platzhalter:true}
+    ]
+  }
+};
+
+/* ─────────────────────────────────────────────────────────────────
+   UEBUNG_ARCHIV — Uebungen, die vorerst nicht in der App stehen.
+
+   Build 2026-11-12 a: der Dip-Halt. Luke, Handoff vom 12.11.2026: "Vorerst
+   aus der App nehmen, aber nicht löschen (auskommentiert oder hinter
+   Schalter), damit er später mit allen Stufen (Stuhl, Barren, Bänder,
+   Dipgürtel) wieder rein kann." Die ersten beiden Sprossen (Krabbe am Boden)
+   stehen seitdem als eigene Uebung "krabbe" in DEFAULT_EX.
+
+   Was hier steht, kennt die App nicht: keine Liste, kein Plan, keine Kurve.
+   normalize() nimmt die Uebung aus S.ex, aus der Tagesauswahl und aus einem
+   angefangenen Lauf. Messungen, Leiterstand und Gewicht bleiben gespeichert
+   und tragen weiter, sobald sie zurueckkommt. Der Export nennt alte
+   Messungen mit dem Namen von hier.
+
+   Zurueckholen: den Eintrag unveraendert zurueck in DEFAULT_EX setzen (vor
+   der schliessenden Klammer) und hier loeschen. Vorher pruefen, ob die
+   Krabbe dann doppelt laeuft (Sprosse 1 des Dip-Halts ist Krabbe-Sprosse 1,
+   die Tischposition gibt es in der Krabbe nicht) und ob die Baender in
+   GERAETE wieder aufwachen muessen (ruht). Messungen auf dem Dip-Halt
+   ziehen nicht in die Krabbe um: eigene Uebung, eigene Kurve. */
+const UEBUNG_ARCHIV = {
   /* Dip-Halt (Build 2026-11-05 b): die vordere Schulter in Streckung,
      Hauptlast lange Bizepssehne und vordere Kapsel. Luke, 02.11.2026: "den
      krabbenstand am Boden mit Hüft abgelegt, Hüft angehoben, Am stuhl mit
@@ -2191,6 +2566,24 @@ const DEFAULT_EX = {
     ]
   }
 };
+/* STUFEN_ARCHIV — einzelne Sprossen, die vorerst nicht in der Leiter stehen.
+   Wie UEBUNG_ARCHIV: Die App liest nichts davon. Zurueckholen: die Sprosse
+   wieder ans Ende von levels in DEFAULT_EX setzen und den Umzug in
+   UMBAU_37 pruefen, denn Saetze auf ihr tragen seitdem die Marke
+   entfalleneSprosse und stehen auf "Boden".
+
+   push, Build 2026-11-12 a. Luke, Handoff vom 12.11.2026: "Sprossen 8 und 9
+   vorläufig archivieren ... nicht löschen, wiederherstellbar halten. Leiter
+   endet bei Sprosse 7 ‚Boden', ab dort Gewichtsweste." Seine Nummern 8 und 9
+   sind in der App die Sprossen 7 und 8 (Index 6 und 7). Der Yogablock unter
+   der Brust gilt hier laut Luke vorlaeufig auch, und beide gingen auch mit
+   Gewichtsweste (Tutorial). */
+const STUFEN_ARCHIV = {
+  push: [
+    {name:"Boden, Füße auf einer Stufe (~20 cm)",            load:0.78},
+    {name:"Boden, Füße auf einem Stuhl (~45 cm)",            load:0.88}
+  ]
+};
 
 /* ─────────────────────────────────────────────────────────────────────────
    UEBUNGSBILDER — vorlaeufig, private Nutzung.
@@ -2259,7 +2652,7 @@ const UEBUNGSBILDER = {
     alt:"Vier Fotos: Vorfuss auf einer Erhoehung, Handtuchrolle unter den Zehen, Hand an der Stuhllehne; beidbeinig und einbeinig, Ferse unten und oben.",
     unterschriften:[
       ["",    "Handtuchrolle unter die Zehen, nur die Ballen tragen"],
-      ["bad", "Im Original steht der Vorfuß auf einer Erhöhung, und es sind Wiederholungen. Du stehst auf dem Boden, Yogablock unter der Ferse, das Knie leicht gebeugt — einmal hoch und oben bleiben."]
+      ["bad", "Im Original steht der Vorfuß auf einer Erhöhung, und es sind Wiederholungen. Du stehst auf dem Boden, Bücher oder ein Yogablock unter der Ferse, so hoch wie die Sprosse sagt, das Knie leicht gebeugt — einmal hoch und oben bleiben."]
     ],
     quelle:"Originalabbildung aus Rathleff u. a. 2015 — vorläufig, private Nutzung"
   }
@@ -2291,16 +2684,14 @@ const GERAETE = [
    +"auf der Seite des angehobenen Knies hältst: vorn an der Schulter (Front Rack) oder "
    +"seitlich in der Hand (Suitcase). Es zählt, was diese eine Kettlebell wiegt. Die App "
    +"rechnet in 2-kg-Schritten; hast du die vorgeschlagene nicht, stell auf der Karte "
-   +"die ein, die du hast. Für die Außenrotation reicht eine leichte Kurzhantel oder eine "
-   +"gefüllte Wasserflasche, dort in 0,5-kg-Schritten.",
-   fuer:"Aufrechter Läufer — Zusatzgewicht auf der Seite des freien Knies. Außenrotation im "
-       +"hohen Seitsitz — das Gewicht in der Faust"},
+   +"die ein, die du hast.",
+   fuer:"Aufrechter Läufer — Zusatzgewicht auf der Seite des freien Knies"},
   {id:"waage", name:"Personenwaage mit Zeiger (analog)", was:"Eine Waage, die du unter den "
    +"Vorfuß legen kannst. Sie ist hier kein Zubehör, sondern das Messgerät: die Zahl auf der "
    +"Anzeige IST die Stufe. Sie muss analog sein — eine Digitalwaage schaltet bei stehender "
    +"Last nach Sekunden ab oder friert die Anzeige ein, und ein Halt dauert 35 bis 150 s.",
    fuer:"Isometrisches Wadenheben: einbeinig mit Entlastung, sobald beidbeinig mehr als "
-       +"30 kg Rucksack bräuchte. Beim endgradigen Wadenheben dasselbe ab 40 kg."},
+       +"30 kg Rucksack bräuchte."},
   /* Seit Build 2026-10-23 d: die zwei leichten Sprossen der Hyperextension.
      Laenge aus der Testliste vom 16.10.: bei 1,80 m etwa 1,88 m Gurt, bei
      1,60 m etwa 1,99 m, dazu die Schlaufe. */
@@ -2308,12 +2699,13 @@ const GERAETE = [
    +"ein Stopper, den du oben in den Türspalt klemmst und mit der geschlossenen Tür hältst. Am "
    +"anderen Ende eine Schlaufe um die Hüfte. Verstellbar und 2,5 bis 3 m lang, dann passt er "
    +"für jede Körpergröße.",
-   fuer:"Hyperextension: die zwei leichten Stufen im Türrahmen. Ohne Gurt beginnt die Leiter am "
-       +"Stepper."},
+   fuer:"Hyperextension: Ohne Gurt steht sie nicht im Plan."},
   /* Seit Build 2026-11-05 b: die drei Band-Sprossen des Dip-Halts. Luke,
      05.11.2026: nur am echten Barren, zwischen zwei Stuhllehnen haelt das
-     Band nicht. Die Kilo je Farbe stehen beim Dip-Halt in DEFAULT_EX. */
-  {id:"baender", name:"Klimmzugbänder", was:"Lange Widerstandsbänder als Schlaufe (rund 2 m), "
+     Band nicht. Die Kilo je Farbe stehen beim Dip-Halt in UEBUNG_ARCHIV.
+     ruht seit Build 2026-11-12 a mit dem Dip-Halt: Keine Uebung in der App
+     braucht die Baender. Der Haken bleibt gespeichert. */
+  {id:"baender", ruht:true, name:"Klimmzugbänder", was:"Lange Widerstandsbänder als Schlaufe (rund 2 m), "
    +"in Grün, Violett und Rot. Das Band liegt quer über beiden Holmen eines echten Barrens, der "
    +"Fußspann liegt darin. Nur an einem echten Barren, nicht an zwei Stuhllehnen: Dort hält das "
    +"Band nicht.",
@@ -2338,7 +2730,7 @@ const RED_FLAGS = [
    einzige Moeglichkeit zu sehen, welche Fassung auf einem Geraet liegt —
    eine auf den Startbildschirm gelegte Seite haelt die alte sonst tagelang
    fest. Blieb sie einmal stehen, sagt sie nichts mehr. */
-const BUILD = "2026-11-07 b";
+const BUILD = "2026-11-12 a";
 const KEY = "isocoach.v1";
 const KEY_GERETTET = "isocoach.v1.gerettet";
 /* Laufende Sicherung (Build 2026-10-27 c, nach P100): der gespeicherte Stand,
@@ -2397,7 +2789,12 @@ const AW_V = 1;
 /* Kein Sprung fuer Build 2026-10-26 a (Suitcase als Standard beim
    Ausfallschritt): Den Hinweistext liest hintVon() immer aus DEFAULT_EX, und
    extraHint zeigt die App seit Build 2026-09-24 a nirgends mehr an. */
-const EX_VERSION = 36;
+/* 37 (12.11.2026, Build a): Lukes Handoff vom 12.11. — Fersenbruecke mit
+   Stepper statt Hocker und Kiste (24 Sprossen), Seitheben mit einer
+   Sprosse, Hip Hinge mit Gewicht im Sitzen, Handtuchrolle nach Fersenhoehe
+   ohne Waage, Krabbe statt Dip, Hyperextension nur am Gurt, Liegestuetz
+   ohne erhoehte Fuesse. Siehe UMBAU_37_AT. */
+const EX_VERSION = 37;
 /* Der Sprung auf 26 setzt die Pausen je Zone NICHT mehr zurueck: Sie sind
    Lukes Einstellung, keine mitgelieferte Uebungsdefinition. Zurueckgesetzt
    wird nur, wer von vor 25 kommt — so wie bisher bei jedem Sprung. */
@@ -2859,6 +3256,71 @@ function handtuchEinLauf(lauf, bw, e, waage){
   return Object.assign({}, lauf, {
     plan: Object.assign({}, lauf.plan, {blocks: (lauf.plan.blocks || []).map(offen)}),
     fertig: (lauf.fertig || []).map(handtuchEinObjekt)});
+}
+/* ── Archiv: die Waage beim endgradigen Wadenheben (Build 2026-09-25 d bis
+   2026-11-12 a) ──
+   Luke, 12.11.2026: "Waagen-Funktion aus der App nehmen. Einbeinig mit
+   Personenwaage unter dem Vorfuß ist zu aufwendig und nicht praktikabel",
+   und: "Code und Texte nicht ersatzlos löschen, sondern archivieren". Hier
+   steht alles, was die Waage an der Uebung ausgemacht hat. Zurueckholen
+   heisst: die Felder unter "felder" wieder in DEFAULT_EX.handtuch setzen
+   (extraSeiten ersetzt das dortige), die Saetze aus "texte" wieder in hint
+   und extraHint, die zwei Sprossen unter "levels" statt der Hoehenleiter —
+   und einen Umzug dafuer schreiben. Die Waage-Logik selbst (waageTiefe,
+   waageSpanne, die Karte) bleibt im Code, das Wadenheben ohne Handtuch
+   benutzt sie weiter.
+   Gleichzeitig ist das die eingefrorene Definition fuer die alten Umzuege
+   (HANDTUCH_WAAGE_AT): Die rechnen mit der Leiter von damals, nicht mit der
+   Hoehenleiter. */
+const HANDTUCH_ARCHIV_WAAGE = {
+  felder: {beidBis:40, extraMinGeraet:"waage",
+           extraSeiten:{plus:"Rucksack", minus:"entlastet", plusKurz:"Rucksack",
+                        minusKurz:"Waage", amStufenNamen:true, waage:true}},
+  texte: {
+    extraHint:"Mit Waage endet beidbeinig bei 40 kg — schwerer geht es einbeinig weiter.",
+    hint:"Hast du eine Waage, endet beidbeinig bei 40 kg, und es geht einbeinig weiter: Die "
+        +"Waage liegt unter dem Vorfuß des Standbeins, das Handtuch darauf. Unter den Block "
+        +"kommt etwas in der Höhe der Waage, ein Buch etwa, damit die Ferse dieselbe Grenze "
+        +"hat. Das andere Bein ist in der Luft, und du nimmst dir über die Hände auf einer "
+        +"Auflage so viel Gewicht ab, bis die Anzeige die Zahl zeigt, die auf der Karte steht.",
+    geraet:"Beim endgradigen Wadenheben dasselbe ab 40 kg."},
+  /* Fuer waageTiefe und wadeWaage in den alten Umzuegen. */
+  extraK:1, extraMax:60, extraAnteil:0.75, beidBis:40,
+  levels:[{name:"Beidbeinig", load:0.50, beid:true}, {name:"Einbeinig", load:1.00}]
+};
+/* ── Fassung 37 (12.11.2026): die Hoehenleiter ──
+   Alt: 0 = beidbeinig, 1 = einbeinig, beide auf dem Yogablock flach. Neu:
+   0-10 beidbeinig, 11-21 einbeinig, je 1 bis 10 cm. Beide alten Sprossen
+   ziehen auf 7,5 cm (7 und 18) — dieselbe Ausfuehrung, dieselbe Last. Der
+   Rucksack zieht mit: beidbeinig von "#0" auf "#7", einbeinig vom blanken
+   Schluessel (damals die oberste Sprosse) auf "#18" (siehe kgKey). Wer mit
+   Waage einbeinig entlastet stand, steht danach beidbeinig auf derselben
+   Last: Entlastung gibt es nicht mehr, und "die komplette Höhenleiter läuft
+   zuerst beidbeinig". Saetze ziehen nur mit der Nummer um (HANDTUCH_HOEHE in
+   UMBAU_37), ihre Last bleibt. Laeuft in normalize NACH den alten Umzuegen,
+   die noch die alten Nummern meinen. */
+const HANDTUCH_HOEHE = Object.assign(leiterUmzug("handtuch", {0:7, 1:18}, new Map()),
+                                     {levels: lv => lv});
+function handtuchHoehe(lv, extra, bw){
+  const L = Object.assign({}, lv || {}), E = Object.assign({}, extra || {});
+  const BEID = 7, EIN = 18;
+  const deckel = Math.min(60, Math.round(0.75 * bw / WADE_SCHRITT) * WADE_SCHRITT);
+  const seiten = new Set(Object.keys(L).concat(Object.keys(E))
+    .filter(k => String(k).indexOf("handtuch|") === 0).map(k => String(k).split("#")[0]));
+  for(const k of seiten){
+    const ein = E[k], beid = E[k + "#0"];
+    delete E[k]; delete E[k + "#0"];
+    if(Number.isFinite(beid)) E[k + "#" + BEID] = Math.max(0, Math.min(deckel, beid));
+    if(Number.isFinite(ein) && ein >= 0) E[k + "#" + EIN] = ein;
+    if(Number.isFinite(ein) && ein < 0 && L[k] === 1){
+      const y = Math.round(bw * (2 * (1 + ein / bw) - 1) / WADE_SCHRITT) * WADE_SCHRITT;
+      L[k] = 0;
+      E[k + "#" + BEID] = Math.max(0, Math.min(deckel, y));
+    }
+    if(L[k] === 0) L[k] = BEID;
+    else if(L[k] === 1) L[k] = EIN;
+  }
+  return {levels: L, extra: E};
 }
 function rowUmziehen(lv, tab){
   const out = {};
@@ -3533,6 +3995,119 @@ function hingeCamporiniVorwahl(vw){
   }
   return Object.assign({}, vw, {je});
 }
+/* ── Fassung 37 (12.11.2026): Leiterumbauten aus Lukes Handoff 12.11. ──────
+   Alle Umbauten dieser Fassung folgen demselben Muster wie HYPER_GURT_AT:
+   Eine Nummer zieht auf die Sprosse, deren Last der alten am naechsten
+   liegt. Saetze auf einer gestrichenen Sprosse tragen die Marke
+   entfalleneSprosse, behalten Last und alten Namen und bleiben in der Kurve
+   — Messpunkte verwirft nur Luke. Ein offener Block zieht nur mit der
+   Nummer um. leiterUmzug baut die vier Teile (Staende, Sitzung, Lauf,
+   Vorwahl) fuer eine Uebung; umzug: alte Nummer -> neue, entfallen: alte
+   Nummer -> [alter Name, alte Last]. Das Gewicht je Sprosse (kgJeSprosse)
+   zieht hier nicht mit, das macht, wo noetig, die Uebung selbst. */
+const UMBAU_37_AT = 37;
+function leiterUmzug(ex, umzug, entfallen){
+  const passt = k => (k === ex || String(k).indexOf(ex + "|") === 0);
+  const um = v => (umzug[v] != null ? umzug[v] : v);
+  function objekt(o, offen){
+    if(!o || o.exercise !== ex || !Number.isFinite(o.level)) return o;
+    const neu = {level: um(o.level)};
+    if(o.levelVorschlag != null) neu.levelVorschlag = um(o.levelVorschlag);
+    if(o.rohStufe != null) neu.rohStufe = um(o.rohStufe);
+    if(o.anker && o.anker.level != null) neu.anker = Object.assign({}, o.anker, {level: um(o.anker.level)});
+    if(offen) return Object.assign({}, o, neu);
+    if(entfallen.has(o.level)){
+      const [name, last] = entfallen.get(o.level);
+      neu.entfalleneSprosse = true;
+      if(!(o.load > 0)) neu.load = last;
+      if(!o.levelName) neu.levelName = name;
+    }
+    return Object.assign({}, o, neu);
+  }
+  return {
+    levels(lv){
+      const L = Object.assign({}, lv || {});
+      for(const k of Object.keys(L)) if(passt(k) && umzug[L[k]] != null) L[k] = umzug[L[k]];
+      return L;
+    },
+    objekt,
+    lauf(lauf){
+      if(!lauf || !lauf.plan) return lauf;
+      return Object.assign({}, lauf, {
+        plan: Object.assign({}, lauf.plan, {blocks: (lauf.plan.blocks || []).map(b => objekt(b, true))}),
+        fertig: (lauf.fertig || []).map(o => objekt(o))});
+    },
+    vorwahl(vw){
+      if(!vw || !vw.je) return vw;
+      const je = {};
+      for(const k of Object.keys(vw.je)){
+        const v = vw.je[k];
+        if(!passt(k) || !v){ je[k] = v; continue; }
+        const n = Object.assign({}, v);
+        if(umzug[v.level] != null) n.level = umzug[v.level];
+        if(v.kg && umzug[v.kg.level] != null)
+          n.kg = Object.assign({}, v.kg, {level: umzug[v.kg.level]});
+        je[k] = n;
+      }
+      return Object.assign({}, vw, {je});
+    }
+  };
+}
+/* Fersenbruecke: Stepper statt Hocker und Kiste (Luke, 11.11.2026). Alt
+   (0-19): je Unterlage 90 und 170 Grad auf Stuhl, Hocker, Kiste, Boden,
+   Rolle, erst beidbeinig (0-9), dann einbeinig (10-19). Neu (0-23): Stuhl,
+   Stepper 3, 2 und 1 Stufe, Boden, Rolle, beidbeinig 0-11, einbeinig 12-23.
+   Stuhl, Boden und Rolle ziehen auf dieselbe Unterlage. Hocker und Kiste
+   ziehen auf die Stepper-Sprosse mit der naechsten Last und tragen die Marke:
+   Der gemessene Wert "Knie 90° · Hocker" geht damit NICHT auf eine
+   Stepper-Stufe ueber, die bleibt rot (Handoff 12.11.: "Luke entscheidet").
+   Die Lasten von Stuhl 170, Boden und Rolle beidbeinig sind neu gerechnet;
+   die Saetze dort tragen ihre alte Last in der Sitzung und bleiben gueltig,
+   es ist dieselbe Ausfuehrung. */
+/* Hat dieser Stand schon Camporini benutzt? Sitzungen am Namen, gemerkte
+   Sprossen und Variantenwahl an der Nummer (seit Fassung 36 die Sprossen 5
+   bis 9, Index 4 bis 8; die Nummern sind hier schon umgezogen). */
+function camporiniBenutzt(d, levels){
+  const campo = i => Number.isInteger(i) && i >= 4 && i <= 8;
+  const nummernJetzt = (d.exVersion || 1) >= HINGE_CAMPORINI_AT;
+  if((d.sessions || []).some(o => o && o.exercise === "hinge"
+       && (/^Camporini/.test(o.levelName || "") || (nummernJetzt && campo(o.level))))) return true;
+  const hinge = o => Object.entries(o || {}).some(([k, v]) => k.startsWith("hinge|") && campo(v));
+  return hinge(levels) || hinge(d.variante);
+}
+const BRIDGE_STEPPER = leiterUmzug("bridge",
+  {0:0, 1:1, 2:2, 3:4, 4:5, 5:6, 6:8, 7:9, 8:10, 9:11,
+   10:12, 11:13, 12:13, 13:16, 14:17, 15:19, 16:20, 17:21, 18:22, 19:23},
+  new Map([
+    [2,  ["Beidbeinig · Knie 90° · Hocker (~30 cm)",          0.170]],
+    [3,  ["Beidbeinig · Langer Hebel 170° · Hocker (~30 cm)", 0.189]],
+    [4,  ["Beidbeinig · Knie 90° · Kiste (~20 cm)",           0.195]],
+    [5,  ["Beidbeinig · Langer Hebel 170° · Kiste (~20 cm)",  0.217]],
+    [12, ["Knie 90° · Hocker (~30 cm)",                       0.415]],
+    [13, ["Langer Hebel 170° · Hocker (~30 cm)",              0.474]],
+    [14, ["Knie 90° · Kiste (~20 cm)",                        0.496]],
+    [15, ["Langer Hebel 170° · Kiste (~20 cm)",               0.567]]]));
+/* Seitheben mit EINER Sprosse (Build 2026-11-12 a, Handoff Luke 12.11.2026):
+   "Ellbogen rechtwinklig gebeugt" faellt weg, es bleibt der leicht gebeugte
+   Arm (170°). Die Saetze der gebeugten Sprosse ziehen auf die neue Sprosse 1
+   und tragen die Marke entfalleneSprosse; ihre Last bleibt die der Sitzung. */
+const SEITHEBEN_EINS = leiterUmzug("seitheben", {0:0, 1:0},
+  new Map([[0, ["Ellbogen rechtwinklig gebeugt", 0.01733]]]));
+/* Hyperextension nur noch am Gurt (Build 2026-11-12 a, Handoff Luke
+   12.11.2026): "Stepper mit Kissen/Airex-Pad hat sich nicht bewährt." Die
+   beiden Stepper-Sprossen ziehen auf "Gurt · Oberkoerper waagerecht", die
+   schwerste, die bleibt, und tragen die Marke entfalleneSprosse. Das Gewicht
+   (ohne kgJeSprosse ein Wert je Haltung) bleibt stehen: Am Gurt ist es mit
+   demselben Gewicht leichter als vorher am Stepper. */
+const HYPER_NUR_GURT = leiterUmzug("hyper", {2:1, 3:1},
+  new Map([[2, ["Stepper · Hände in der Hüfte",  0.776]],
+           [3, ["Stepper · Hände vor der Brust", 0.847]]]));
+/* Liegestuetz ohne erhoehte Fuesse (Build 2026-11-12 a, siehe
+   STUFEN_ARCHIV): Beide ziehen auf "Boden", die schwerste, die bleibt. Ab
+   dort traegt die Gewichtsweste weiter. */
+const PUSH_OHNE_ERHOEHT = leiterUmzug("push", {6:5, 7:5},
+  new Map([[6, ["Boden, Füße auf einer Stufe (~20 cm)", 0.78]],
+           [7, ["Boden, Füße auf einem Stuhl (~45 cm)", 0.88]]]));
 /* Training ohne Geraete (Build 2026-10-01 b). Steht vor load(), weil
    normalize() den gespeicherten Modus damit prueft. Seit 2026-10-01 c heisst
    der Schalter "Volles Equipment" / "Nur Koerpergewicht", die Wand ist ein
@@ -3630,6 +4205,9 @@ function fresh(){
     /* Premium (Luke, 25.09.2026). Der Prototyp hat keine Anmeldung, deshalb
        ein Schalter unter Mehr — siehe premiumAn. */
     premium:true,
+    /* Camporini im Hip Hinge, je Nutzer von Hand freigeschaltet (Build
+       2026-11-12 a) — siehe coachingFrei. */
+    coachingFrei:false,
     /* Fersenbruecke: Probleme inneres Knie / Baker-Zyste, je Bein. Ein Haken
        schickt dieses Bein auf die eigene Leiter bridgeKnie (Luke, 15.10.2026).
        Seit Build 2026-11-06 e gibt es den Haken nicht mehr, er bleibt aus
@@ -3650,6 +4228,10 @@ function fresh(){
        plant, {"lunge|links": 4}. Siehe tiefePasst. */
     kniebeugung:null,
     lungeTiefe:{},
+    /* Handtuchrolle (Build 2026-11-12 a): die hoechste Hoehe unter der Ferse,
+       bis zu der die App plant, {"handtuch": 8}. Fehlt sie, gilt fersenZiel
+       (7,5 cm). Siehe fersePasst. */
+    fersenGrenze:{},
     /* Ohne Pause, je Gruppe (Luke, 16.10.2026) — siehe ohnePause(). */
     ohnePause:{},
     sessions:[], plan:null, redflag:false,
@@ -3684,6 +4266,12 @@ function normalize(d){
   const hyperGurt     = !leitersturz && (d.exVersion || 1) < HYPER_GURT_AT;
   const bridge170     = !leitersturz && (d.exVersion || 1) < BRIDGE_170_AT;
   const hingeCampo    = !leitersturz && (d.exVersion || 1) < HINGE_CAMPORINI_AT;
+  const umbau37       = !leitersturz && (d.exVersion || 1) < UMBAU_37_AT;
+  /* Alle Umzuege von Fassung 37, in dieser Reihenfolge. Jeder fasst nur
+     seine eigene Uebung an, die Reihenfolge untereinander ist also gleich;
+     zusammen stehen sie in den Ketten ganz aussen. */
+  const UMBAU_37 = umbau37 ? [BRIDGE_STEPPER, SEITHEBEN_EINS, HANDTUCH_HOEHE, HYPER_NUR_GURT,
+                                PUSH_OHNE_ERHOEHT] : [];
   /* Seitstuetz an der Wand: Die Vorwahl zieht nur hier um, Sitzungen und
      Lauf in den Ketten unten (innerste Zeile, der Umzug fasst nur plank an). */
   if(plankWand && d.vorwahl) d = Object.assign({}, d, {vorwahl: plankWandVorwahl(d.vorwahl)});
@@ -3697,8 +4285,12 @@ function normalize(d){
   if(hyperGurt && d.vorwahl) d = Object.assign({}, d, {vorwahl: hyperGurtVorwahl(d.vorwahl)});
   /* Hip Hinge mit Camporini-Varianten: ebenso, ganz aussen. */
   if(hingeCampo && d.vorwahl) d = Object.assign({}, d, {vorwahl: hingeCamporiniVorwahl(d.vorwahl)});
+  for(const u of UMBAU_37) if(d.vorwahl) d = Object.assign({}, d, {vorwahl: u.vorwahl(d.vorwahl)});
   const ex = stale ? structuredClone(DEFAULT_EX)
                    : Object.assign(structuredClone(DEFAULT_EX), d.ex || {});
+  /* Siehe UEBUNG_ARCHIV: Eine archivierte Uebung steht nicht in S.ex, auch
+     wenn sie gespeichert ist. Den Rest raeumt archivRaus() am Ende auf. */
+  for(const k of Object.keys(UEBUNG_ARCHIV)) delete ex[k];
   /* Name und Sicherheitsfrage kommen immer aus dem Build: Beide lassen sich
      in der App nicht bearbeiten, und ohne das truege eine gespeicherte Uebung
      nach einer Umbenennung den alten Namen weiter (Wadenheben mit
@@ -3747,6 +4339,7 @@ function normalize(d){
   if(lungeEng) roh.levels = lungeEngUmziehen(roh.levels);
   if(hyperGurt) roh.levels = hyperGurtUmziehen(roh.levels);
   if(hingeCampo) roh.levels = hingeCamporiniUmziehen(roh.levels);
+  for(const u of UMBAU_37) roh.levels = u.levels(roh.levels);
   const umzug  = beidUmzug(ex, roh.levels, roh.extra,
                            leitersturz ? {} : (d.streak || {}));
   /* Nach beidUmzug: Erst dann stehen alle Wadenschluessel je Seite. */
@@ -3762,7 +4355,13 @@ function normalize(d){
     umzug.levels = w.levels; umzug.extra = w.extra;
   }
   if(handtuchEin && ex.handtuch){
-    const h = handtuchEinbeinig(umzug.levels, umzug.extra, bwAlt, ex.handtuch, waageDa);
+    const h = handtuchEinbeinig(umzug.levels, umzug.extra, bwAlt, HANDTUCH_ARCHIV_WAAGE, waageDa);
+    umzug.levels = h.levels; umzug.extra = h.extra;
+  }
+  /* Die Hoehenleiter: nach den alten Handtuch-Umzuegen, die noch die alten
+     Nummern meinen (siehe handtuchHoehe). */
+  if(umbau37 && ex.handtuch){
+    const h = handtuchHoehe(umzug.levels, umzug.extra, bwAlt);
     umzug.levels = h.levels; umzug.extra = h.extra;
   }
   /* Zuletzt, nach allen anderen Umzuegen: Erst dann stehen die
@@ -3797,7 +4396,7 @@ function normalize(d){
         levels: sp.levels || {}, extra: sp.extra || {},
         modus:"normal", standMitGeraeten:null, lauf:null})))
     : null;
-  return Object.assign(fresh(), d, {ex, exVersion:EX_VERSION,
+  return archivRaus(Object.assign(fresh(), d, {ex, exVersion:EX_VERSION,
                                     modus, standMitGeraeten: park,
                                     rest: ((d.exVersion || 1) < REST_RESET_AT) ? {...DEFAULT_REST}
                                                 : Object.assign({...DEFAULT_REST}, d.rest||{}),
@@ -3810,7 +4409,8 @@ function normalize(d){
                                        einen Wand-Sitzung richtigstellen
                                        (LUNGE_WAND_MESS_AT) — sie laeuft auf
                                        der schon umgezogenen Nummer. */
-                                    sessions: (ses => hingeCampo ? ses.map(hingeCamporiniObjekt) : ses)(
+                                    sessions: (ses => UMBAU_37.reduce((a, u) => a.map(o => u.objekt(o)), ses))(
+                                              (ses => hingeCampo ? ses.map(hingeCamporiniObjekt) : ses)(
                                               (ses => bridge170 ? ses.map(bridge170Objekt) : ses)(
                                               (ses => hyperGurt ? ses.map(o => hyperGurtObjekt(o)) : ses)(
                                               (ses => lungeEng ? ses.map(o => lungeEngObjekt(o)) : ses)(
@@ -3827,7 +4427,7 @@ function normalize(d){
                                                 (ses => lungeUmzug ? lungeSessions(ses) : ses)(
                                                   (ses => plankWand ? ses.map(o => plankWandObjekt(o)) : ses)(
                                                   rowSkala ? rowSkalaVerwerfen(d.sessions)
-                                                           : (d.sessions || []))))))))))))))))),
+                                                           : (d.sessions || [])))))))))))))))))),
                                     sync: d.sync || {},
                                     /* Zugpunkt ist voreingestellt an — eine stabile
                                        Tischkante reicht und hat praktisch jeder. Rolle und
@@ -3848,7 +4448,8 @@ function normalize(d){
                                     gefragt: d.gefragt || {},
                                     /* Ein angefangener Lauf ueberlebt das Neuladen. */
                                     lauf: (d.lauf && d.lauf.plan)
-                                          ? (l => hingeCampo ? hingeCamporiniLauf(l) : l)(
+                                          ? (l => UMBAU_37.reduce((a, u) => u.lauf(a), l))(
+                                            (l => hingeCampo ? hingeCamporiniLauf(l) : l)(
                                             (l => bridge170 ? bridge170Lauf(l) : l)(
                                             (l => hyperGurt ? hyperGurtLauf(l) : l)(
                                             (l => lungeEng ? lungeEngLauf(l) : l)(
@@ -3859,12 +4460,12 @@ function normalize(d){
                                             (l => pushUmzug ? pushLauf(l) : l)(
                                             (l => bridgeUmzug ? bridgeLauf(l) : l)(
                                             (l => (knie && knie.um) ? laeuferKnieseiteLauf(l, knie.um) : l)(
-                                            (l => handtuchEin ? handtuchEinLauf(l, bwAlt, ex.handtuch, waageDa) : l)(
+                                            (l => handtuchEin ? handtuchEinLauf(l, bwAlt, HANDTUCH_ARCHIV_WAAGE, waageDa) : l)(
                                             (l => handtuchUmzug ? handtuchLauf(l, bwAlt) : l)(
                                             (l => waageUmzug ? wadeWaageLauf(l, bwAlt, ex.wade) : l)(
                                               (l => rucksackUmzug ? wadeRucksackLauf(l, waageLo) : l)(
                                               (l => plankWand ? plankWandLauf(l) : l)(
-                                              wadeUmzug ? wadeLauf(d.lauf, bwAlt) : d.lauf))))))))))))))))
+                                              wadeUmzug ? wadeLauf(d.lauf, bwAlt) : d.lauf)))))))))))))))))
                                           : null,
                                     lage: knie ? knie.lage : (d.lage || {}),
                                     haltung: (d.haltung && typeof d.haltung === "object")
@@ -3882,10 +4483,18 @@ function normalize(d){
                                             ? d.bankCm : {},
                                     variante: (d.variante && typeof d.variante === "object")
                                               ? d.variante : {},
+                                    /* Bis Fassung 36 hingen die Camporini-
+                                       Varianten an Premium. Wer schon eine
+                                       trainiert, gemerkt oder gewaehlt hat,
+                                       behaelt sie mit dem Umbau. */
+                                    coachingFrei: d.coachingFrei === true
+                                                  || (umbau37 && camporiniBenutzt(d, umzug.levels)),
                                     kniebeugung: KNIEBEUGUNG_ANTWORTEN.some(a => a.id === d.kniebeugung)
                                                  ? d.kniebeugung : null,
                                     lungeTiefe: (d.lungeTiefe && typeof d.lungeTiefe === "object")
                                                 ? d.lungeTiefe : {},
+                                    fersenGrenze: (d.fersenGrenze && typeof d.fersenGrenze === "object")
+                                                  ? d.fersenGrenze : {},
                                     /* Nach einem Leiterumbau zeigen die gemerkten
                                        Sprossen woandershin. */
                                     vorBlock: (d.vorBlock && d.vorBlock.ex === EX_VERSION
@@ -3895,7 +4504,19 @@ function normalize(d){
                                     levels: umzug.levels,
                                     streak: umzug.streak,
                                     reaction: (d.reaction == null ? REACTION_DEFAULT : d.reaction),
-                                    plan:null, planDay:null});
+                                    plan:null, planDay:null}));
+}
+/* Siehe UEBUNG_ARCHIV. Messungen, Leiterstand und Gewicht der archivierten
+   Uebung bleiben stehen. Weg muss nur, was die App sofort anfassen wuerde:
+   die gewaehlte Uebung, die Tagesauswahl und ein angefangener Lauf. Der Lauf
+   faellt ganz weg, weil seine Zeiger (b, i, fertig) auf die Bloecke zeigen;
+   fertige Bloecke stehen schon als Sitzung in S.sessions. */
+function archivRaus(n){
+  const weg = k => Object.prototype.hasOwnProperty.call(UEBUNG_ARCHIV, k);
+  if(weg(n.exercise)){ n.exercise = Object.keys(n.ex)[0]; n.side = null; }
+  if(Array.isArray(n.heute)) n.heute = n.heute.filter(k => !weg(k));
+  if(n.lauf && n.lauf.plan && (n.lauf.plan.blocks || []).some(b => b && weg(b.exercise))) n.lauf = null;
+  return n;
 }
 function load(){
   let raw = null;
@@ -4284,7 +4905,8 @@ function beidGemerkt(ex){
 function beidOben(ex){
   const L = (S.ex[ex] && S.ex[ex].levels) || [];
   let oben = null, da = null;
-  L.forEach((x, i) => { if(x && x.beid){ oben = i; if(stufeErlaubt(ex, i)) da = i; } });
+  /* Handtuchrolle: nur bis zur Hoehengrenze (fersePasst). */
+  L.forEach((x, i) => { if(x && x.beid && fersePasst(ex, i)){ oben = i; if(stufeErlaubt(ex, i)) da = i; } });
   return da != null ? da : oben;
 }
 /* Mehr als eine beidbeinige Sprosse: eine Rampe. Luke, 15.10.2026: „beidbeinig
@@ -4292,6 +4914,11 @@ function beidOben(ex){
    Rampe entscheidet der Leiterstand allein, ob beidbeinig gehalten wird — nicht
    die Messung auf der obersten Sprosse (beidZuLang, beidPerKurve): Wer dort zu
    lange haelt, steigt ueber die Regeln die Rampe hinauf. */
+/* Steht eine Seite beidbeinig auf der obersten freien beidbeinigen Sprosse? */
+function beidAmDeckel(ex){
+  const bi = beidOben(ex), L = S.levels || {};
+  return bi != null && standSeiten(ex).some(x => L[keyOf(ex, x)] === bi);
+}
 function beidRampe(ex){
   return ((S.ex[ex] && S.ex[ex].levels) || []).filter(x => x && x.beid).length > 1;
 }
@@ -4479,7 +5106,7 @@ function ausfWahlKarte(ex, zone, klasse, knapp){
      will wissen, warum die App das eine und nicht das andere vorschlaegt. */
   const grund = selbst
     ? `Von dir gesetzt. Nochmal auf denselben Knopf tippen heißt: zurück zur Automatik.`
-    : (kurve === false && z
+    : (kurve === false && z && !beid
        ? `${z.name} braucht mehr, als beidbeinig${voll} geht. Deshalb steht einbeinig vorn.`
        : zuLang
        ? `Beidbeinig hast du zuletzt <b>${fmt(t)}</b> gehalten${z ? ` — ${z.name} geht bis
@@ -4526,7 +5153,17 @@ function beidJetzt(ex){
   const w = ausfWaehlbar(ex) ? ausfWahlHeute(ex) : null;
   if(w) return w === "beid";
   /* Auf einer Rampe der Leiterstand allein — siehe beidRampe. */
-  if(beidRampe(ex)) return beidErlaubt(ex) && beidGemerkt(ex);
+  if(beidRampe(ex)){
+    if(!(beidErlaubt(ex) && beidGemerkt(ex))) return false;
+    /* Handtuchrolle (Luke, 12.11.2026): "Braucht die Kraftkurve einen Punkt
+       im Maximalkraftbereich (Halt ca. 40–50 Sek.) und ist der beidbeinig
+       nicht mehr erreichbar, schlägt die App einbeinig vor." Erst auf der
+       obersten Hoehe — darunter steigt beidbeinig ueber die Hoehe. Die Kurve
+       rechnet mit vollem Rucksack (beidPerKurve). */
+    if(hoeheZuerst(ex) && beidAmDeckel(ex)
+       && beidPerKurve(ex, vorgabeZone(groupOf(ex))) === false) return false;
+    return true;
+  }
   const zone = vorgabeZone(groupOf(ex));
   /* Traegt auch die beidbeinige Sprosse Gewicht, rechnet die Kurve — siehe
      beidPerKurve. Ohne Kurve gilt, was hier schon vorher galt. */
@@ -4824,20 +5461,34 @@ const VORLAEUFIG_KURZ = " · vorläufig";
 /* Gesperrte Premium-Sprosse in der Auswahlliste (Build 2026-10-25 a). Luke,
    25.10.2026: ausgeschrieben, ohne Kuerzel. */
 const PREMIUM_GESPERRT = " · im Medical Fitness System freigeschaltet";
+/* Die Camporini-Varianten im Hip Hinge (Build 2026-11-12 a, Handoff Luke
+   12.11.2026): kein oeffentliches Tutorial, nur im Coaching, je Nutzer von
+   Hand freigeschaltet. Nicht mehr Premium. Wie die Freischaltung ausgeloest
+   wird, ist offen; bis dahin ein Haken in den Einstellungen. */
+const COACHING_GESPERRT = " · nur nach persönlicher Freischaltung";
 /* Yogablock unter den Sitzbeinen, Fersenbruecke (Luke, 16.10.2026). Die
    Sprosse traegt nur die Stellung, der Satz steht hier: Block 22,5 x 12 x
    7,5 cm. Wie VORLAEUFIG_SATZ aus DEFAULT_EX, nie aus dem gespeicherten
-   S.ex. */
+   S.ex.
+   Seit Build 2026-11-12 a steht der Block unter dem Kreuzbein, nicht mehr
+   unter den Sitzbeinen (Luke, 11.11.2026). "hocker" braucht keine Sprosse
+   mehr, seit der Hocker weg ist; der Eintrag bleibt fuer alte Staende.
+   "flexbar": Am Boden mit langem Hebel passt kein Block mehr, dort liegt
+   eine Thera-Band FlexBar. Die Stepper-Sprossen tragen keine Stellung, bis
+   Luke sie festlegt (Handoff 12.11.2026). */
 const BLOCK_STELLUNG = {
   aufrecht: "aufrecht (etwa 22 cm)",
   hocker:   "hochkant auf einem 5 cm dicken Buch (etwa 17 cm)",
   hochkant: "hochkant (etwa 12 cm)",
-  flach:    "flach (etwa 7,5 cm)"
+  flach:    "flach (etwa 7,5 cm)",
+  flexbar:  ""
 };
 function blockSatz(ex, i){
   const L = DEFAULT_EX[ex] && DEFAULT_EX[ex].levels && DEFAULT_EX[ex].levels[i];
-  const st = L && BLOCK_STELLUNG[L.block];
-  return st ? `Yogablock unter den Sitzbeinen: ${st}` : "";
+  if(!L || !L.block) return "";
+  if(L.block === "flexbar") return "Unter dem Kreuzbein: Thera-Band FlexBar (etwa 5 cm) statt Yogablock";
+  const st = BLOCK_STELLUNG[L.block];
+  return st ? `Yogablock unter dem Kreuzbein: ${st}` : "";
 }
 function gemesseneSprossen(ex){
   const g = new Set();
@@ -5188,6 +5839,12 @@ function formAktiv(ex){ const s = formStand(ex); return !!(s && s.aktiv); }
    die Freigabe der Zonenruhe; Zahl, Zustand und Chart hat jeder. Ohne Premium
    gilt die Zonenruhe wie vor dem Formtrend (Luke: "ja wie du sagst"). */
 function premiumAn(){ return S.premium !== false; }
+function coachingFrei(){ return S.coachingFrei === true; }
+/* Ist diese Sprosse heute gesperrt, und mit welchem Satz? */
+function sprosseGesperrt(L){
+  return !!L && ((L.premium && !premiumAn()) || (L.coaching && !coachingFrei()));
+}
+function sperrText(L){ return (L && L.coaching) ? COACHING_GESPERRT : PREMIUM_GESPERRT; }
 /* Heute weist die App auf ein Tal hin — nur mit aktivem Trend, nur, wenn
    das Urteil frisch ist, und nur mit Premium. */
 function formTal(ex){
@@ -5261,6 +5918,9 @@ function stufeErlaubt(ex, i, mitPremium){
      nicht ausfuehrbar, in der Auswahlliste gesperrt sichtbar (mitPremium:
      waere sie es mit Premium?). */
   if(L.premium && !premiumAn() && !mitPremium) return false;
+  /* Persoenliche Freischaltung (Camporini, Build 2026-11-12 a): wie Premium
+     gesperrt, solange sie fehlt. */
+  if(L.coaching && !coachingFrei() && !mitPremium) return false;
   if(!ohneGeraete()) return geraetDa(L.geraet);
   if(L.geraet) return false;
   const o = stufeOrt(ex, i);
@@ -5376,6 +6036,71 @@ function lungeTiefeOf(ex, side){
   return Math.max(i, stellungPartner(ex, i));
 }
 function tiefePasst(ex, i, side){ return i <= lungeTiefeOf(ex, side); }
+/* ── Handtuchrolle: die Hoehe unter der Ferse hat eine Obergrenze ──────────
+   Luke, 12.11.2026: "7,5 cm ist für die meisten das Ziel; Obergrenze vorerst
+   10 cm". Die App plant deshalb bis 7,5 cm (fersenZiel) und bleibt dort
+   stehen; 8 bis 10 cm haengen an der Schuhgroesse, die kennt nur der Nutzer.
+   Waehlt er in der Liste eine hoehere Sprosse, wird ihre Hoehe die Grenze
+   (wahlMerken). Kommt er auf einer Hoehe nie hoch, sinkt die Grenze eine Hoehe
+   (fersenLernen). Je Uebung, nicht je Seite: Schuhgroesse und Grosszehe
+   gehoeren beiden Beinen, und beidbeinig steht ohnehin auf beiden. Gemerkt in
+   S.fersenGrenze, {"handtuch": 8}. Alle anderen Uebungen: keine Grenze. */
+function hoeheZuerst(ex){ return !!(DEFAULT_EX[ex] || {}).hoeheZuerst; }
+function fersenGrenzeOf(ex){
+  if(!hoeheZuerst(ex)) return Infinity;
+  const v = S.fersenGrenze && S.fersenGrenze[ex];
+  return Number.isFinite(v) ? v : DEFAULT_EX[ex].fersenZiel;
+}
+function hoeheVon(ex, i){
+  const L = S.ex[ex] && S.ex[ex].levels[i];
+  return (L && Number.isFinite(L.hoehe)) ? L.hoehe : null;
+}
+function fersePasst(ex, i){
+  const g = fersenGrenzeOf(ex), h = hoeheVon(ex, i);
+  return g === Infinity || h == null || h <= g + 1e-9;
+}
+/* Die hoechste Hoehe, auf der diese Uebung je messbar gehalten wurde —
+   beidbeinig oder einbeinig, links oder rechts. */
+function fersenGeschafft(ex){
+  let m = -Infinity;
+  for(const x of S.sessions){
+    if(x.exercise !== ex || !(x.sets && x.sets[0] && x.sets[0].time >= MESS_MIN)) continue;
+    const h = hoeheVon(ex, x.level);
+    if(h != null && h > m) m = h;
+  }
+  return m;
+}
+/* Unter einer Hoehe nicht hochgekommen, die noch nie geschafft war: Die
+   Grenze geht auf die naechste Hoehe darunter und bleibt dort ("geht die App
+   eine Höhe zurück und bleibt dort", Hinweistext). Nie unter das, was schon
+   einmal messbar ging. Gibt die neue Grenze zurueck, sonst null. */
+function fersenLernen(ex, level){
+  const h = hoeheVon(ex, level);
+  if(!hoeheZuerst(ex) || h == null || h <= fersenGeschafft(ex)) return null;
+  const lv = S.ex[ex].levels;
+  const tiefer = lv.map(L => L.hoehe).filter(x => Number.isFinite(x) && x < h - 1e-9);
+  if(!tiefer.length) return null;
+  const g = Math.max(Math.max(...tiefer), fersenGeschafft(ex));
+  if(!(g < fersenGrenzeOf(ex))) return null;
+  if(!S.fersenGrenze) S.fersenGrenze = {};
+  S.fersenGrenze[ex] = g;
+  return g;
+}
+/* Wo einbeinig beginnt: Luke, 12.11.2026, "Start etwa 3–4 cm unter der
+   zuletzt beidbeinig geschafften Höhe". von = die beidbeinige Sprosse, auf
+   der die Seite zuletzt stand. Die hoechste freie einbeinige Sprosse, die
+   mindestens einbeinigTiefer (3 cm) darunter liegt — bei 7,5 cm also 4 cm,
+   bei 10 cm 7 cm. Ohne Hoehen die leichteste einbeinige wie bisher. */
+function einEinstieg(ex, von, side){
+  const st = verfuegbareStufen(ex, side).filter(x => !beidStufe(ex, x.i));
+  if(!st.length) return null;
+  const v = (von != null && beidStufe(ex, von)) ? von : beidOben(ex);
+  const h = v != null ? hoeheVon(ex, v) : null;
+  if(!hoeheZuerst(ex) || h == null) return st[0].i;
+  const tief = (DEFAULT_EX[ex].einbeinigTiefer || 0);
+  const passt = st.filter(x => Number.isFinite(x.hoehe) && x.hoehe <= h - tief + 1e-9);
+  return passt.length ? passt[passt.length - 1].i : st[0].i;
+}
 /* Schmerz hat die Seite auf Sprosse i zurueckgesetzt: Liegt i in einer
    Stellung (Kniestand, nicht Wand), wird sie die neue Grenze. Die Grenze
    sinkt nur. */
@@ -5505,7 +6230,8 @@ function geraetName(id){ const g = GERAETE.find(x => x.id === id); return g ? g.
 function verfuegbareStufen(ex, side){
   const lv = (S.ex[ex] && S.ex[ex].levels) || [];
   return lv.map((L, i) => Object.assign({i}, L))
-           .filter(L => stufeErlaubt(ex, L.i) && stellungPasst(ex, L.i, side) && tiefePasst(ex, L.i, side));
+           .filter(L => stufeErlaubt(ex, L.i) && stellungPasst(ex, L.i, side) && tiefePasst(ex, L.i, side)
+                        && fersePasst(ex, L.i));
 }
 /* Die Auswahlliste einer Seite: die Sprossen, die der Planer nimmt, dazu
    beim Ausfallschritt mit eingeschraenkter Kniebeugung die tieferen (wer eine
@@ -5517,6 +6243,12 @@ function stufenZurWahl(ex, side){
   const grenze = lungeTiefeOf(ex, side);
   if(grenze < Infinity) lv.forEach((L, i) => {
     if(i > grenze && stufeErlaubt(ex, i) && stellungPasst(ex, i, side)) liste.push(Object.assign({i}, L));
+  });
+  /* Handtuchrolle: die Hoehen ueber der Grenze, je nach Schuhgroesse —
+     beidbeinig im beidbeinigen Halt, einbeinig auf einer Seite. */
+  if(fersenGrenzeOf(ex) < Infinity) lv.forEach((L, i) => {
+    if(!fersePasst(ex, i) && stufeErlaubt(ex, i) && !!L.beid === (side == null))
+      liste.push(Object.assign({i}, L));
   });
   const aus = [];
   for(const x of liste){
@@ -5532,6 +6264,11 @@ function stufenZurWahl(ex, side){
    Gruppe und beim Ausfallschritt die neue Tiefengrenze. Danach stufeSetzen. */
 function wahlMerken(q, k){
   const L = S.ex[q.exercise] && S.ex[q.exercise].levels[k];
+  /* Handtuchrolle: eine Hoehe ueber der Grenze gewaehlt — sie wird die Grenze. */
+  if(L && !fersePasst(q.exercise, k)){
+    if(!S.fersenGrenze) S.fersenGrenze = {};
+    S.fersenGrenze[q.exercise] = L.hoehe;
+  }
   if(!L || q.side == null) return;
   const key = keyOf(q.exercise, q.side);
   if(L.gruppe && stufeErlaubt(q.exercise, k)){
@@ -6438,6 +7175,15 @@ function extraBereich(ex, level){
     if(level === w.bi) hi = Math.min(hi, e.beidBis);
     else if(level == null || level > w.bi) lo = Math.min(lo, w.lo);
   }
+  /* Eigene Spanne einer Sprosse (kgSpanne, Build 2026-11-12 a): Hip Hinge
+     im Sitzen 1 bis 20 kg in 1-kg-Schritten, "Stehend · Koerpergewicht"
+     ganz ohne (max 0) — dort heisst Gewicht die naechste Sprosse. */
+  let schrittHier = schritt;
+  const sp = (level != null && e.levels && e.levels[level] || {}).kgSpanne;
+  if(sp){
+    if(sp.max != null) hi = Math.min(hi, sp.max);
+    if(sp.schritt != null) schrittHier = sp.schritt;
+  }
   /* Gewicht vor der Brust (Hyperextension): Unter extraAb gibt es keins, auch
      kein gemerktes — sonst hiesse die Huefte nach dem Abstieg "Stepper ·
      Haende in der Huefte + 7,5 kg" (bis Fassung 34 stand dort Y),
@@ -6445,10 +7191,10 @@ function extraBereich(ex, level){
      zurueckzugehen. Auf der Brust-Sprosse beginnt die Spanne beim
      Mindestgewicht; damit klemmen Regeln, Stepper und Ziel von selbst. */
   if(level != null && (DEFAULT_EX[ex] || {}).gewichtMindestens){
-    if(level < extraAbOf(ex)) return {lo:0, hi:0, schritt};
+    if(level < extraAbOf(ex)) return {lo:0, hi:0, schritt:schrittHier};
     lo = Math.max(lo, Math.min(kgMindest(ex, level), hi));
   }
-  return {lo, hi, schritt};
+  return {lo, hi, schritt:schrittHier};
 }
 /* ── Mindestgewicht (Build 2026-10-09 a) ──────────────────────────────
    Bis Fassung 34 war die Brust-Sprosse der Hyperextension ohne Gewicht
@@ -6483,6 +7229,10 @@ function kgMindest(ex, level){
 function kgWirksam(ex, level, kg){
   if(!(DEFAULT_EX[ex] || {}).gewichtMindestens || level == null) return kg;
   if(level < extraAbOf(ex)) return 0;
+  /* Eine Sprosse ohne Gewicht (kgSpanne max 0) rechnet auch ein noch
+     gemerktes nicht mit. */
+  const sp = ((S.ex[ex] && S.ex[ex].levels || [])[level] || {}).kgSpanne;
+  if(sp && sp.max === 0) return 0;
   return Math.max(+kg || 0, kgMindest(ex, level));
 }
 /* Last einer Sprosse fuer Kurvenachse, Marken und die Stufentabelle: mit dem
@@ -6762,7 +7512,12 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
   if(luecke){ zone = luecke.z; target = luecke.t; }
   const f   = curFit(ex, side);
   const lv  = S.ex[ex].levels;
-  const stufen = stufenFuerSeite(ex, side);
+  /* Handtuchrolle: Steht die Seite noch beidbeinig und laeuft heute
+     einbeinig (beidJetzt), beginnt sie 3 bis 4 cm tiefer (einEinstieg) —
+     nicht auf der vollen Hoehe. */
+  const einAb = (side && hoeheZuerst(ex) && beidStufe(ex, standOf(leiterKey(ex, side))))
+    ? einEinstieg(ex, standOf(leiterKey(ex, side)), side) : null;
+  const stufen = stufenFuerSeite(ex, side).filter(st => einAb == null || st.i <= einAb);
   /* Erst auf die Stellung dieser Seite: Vom normalen Kniestand 20 cm (2)
      waeren 1 und 3 gleich weit, die enge Partnerin ist 3. */
   const nahe = i => { i = aufStellung(ex, i, side); return stufen.length
@@ -6785,7 +7540,7 @@ function mkBlock(ex, side, zone, target, fresh, workoutOnb, fest){
      hoechstens 30 kg, auch wenn von frueher mehr gemerkt ist. */
   const kgAuf = i => extraKlemm(ex, kgAufStufe(ex, quelle(i), i), i);
   const folgt = i => !extraSelbstGesetzt(kgKey(ex, quelle(i), i)) && gewichtFolgt(ex, side, i);
-  let level = standOf(key), best = Infinity;
+  let level = einAb != null ? einAb : standOf(key), best = Infinity;
   let herkunft = "stand", anker = null, roh = null;
   let ausserhalb = false, erweitert = false;
   if(f){
@@ -7425,7 +8180,7 @@ function applyRules(session, etikett){
                         !== beidStufe(session.exercise, lvNow());
   const kgSchluessel = () => kgKey(session.exercise, key, lvNow());
   const kgNow = () => extraKlemm(session.exercise, extraOf(kgSchluessel()), lvNow());
-  const schrittNow = () => extraBereich(session.exercise).schritt;
+  const schrittNow = () => extraBereich(session.exercise, lvNow()).schritt;
   const wieJetzt = () => stufenName(session.exercise, lvNow(), kgNow(), session.side);
   /* Sprossenwechsel. Tragen beide Sprossen Gewicht, zieht die LAST mit um,
      nicht die Zahl: beidbeinig + 60 kg wird einbeinig ohne Gewicht, und
@@ -7447,6 +8202,9 @@ function applyRules(session, etikett){
       if(hoch ? nachher <= vorher + 1e-9 : nachher >= vorher - 1e-9)
         k2 = Math.max(b.lo, Math.min(b.hi,
                Math.round((k2 + (hoch ? b.schritt : -b.schritt)) * 10) / 10));
+      /* Handtuchrolle: Der Rucksack gehoert nur auf die oberste Hoehe einer
+         Ausfuehrung — darunter wird es ueber die Hoehe schwerer und leichter. */
+      if(hoeheZuerst(session.exercise) && !artOben(neu)) k2 = 0;
       S.extra[kgSchluessel()] = k2;
     }
   };
@@ -7455,6 +8213,13 @@ function applyRules(session, etikett){
      vorher stoppte die Rueckstufung an Sprosse 0 und die Hochstufung an der
      obersten Sprosse, und dann tat die App gar nichts mehr. Bei Schmerz ist
      eine stille Nichtreaktion das Schlechteste von allem. */
+  /* Die oberste freie Sprosse derselben Ausfuehrung (beidbeinig oder
+     einbeinig) — bei der Handtuchrolle die Hoehengrenze. */
+  const artOben = i => {
+    const gl = verfuegbareStufen(session.exercise, session.side)
+      .filter(st => beidStufe(session.exercise, st.i) === beidStufe(session.exercise, i));
+    return !gl.length || gl[gl.length - 1].i === i;
+  };
   const erleichtern = () => {
     const b = extraBereich(session.exercise, lvNow());
     /* Die Untergrenze ist nicht zwangslaeufig null: beim Wadenheben mit Waage
@@ -7474,6 +8239,30 @@ function applyRules(session, etikett){
     const stufen = verfuegbareStufen(session.exercise, session.side);
     const hoeher = stufen.filter(st => st.i > lvNow());
     const b = extraBereich(session.exercise, lvNow());
+    /* Handtuchrolle (Luke, 12.11.2026): "Die komplette Höhenleiter läuft
+       zuerst beidbeinig, Zusatzgewicht über den Rucksack. Danach einbeinig
+       weiter." Erst die naechste Hoehe derselben Ausfuehrung, auf der
+       obersten der Rucksack bis zum Deckel (drei Viertel des
+       Koerpergewichts), dann einbeinig 3 bis 4 cm tiefer (einEinstieg) und
+       ohne Rucksack. Einbeinig oben geht es unten weiter wie bei allen. */
+    if(hoeheZuerst(session.exercise)){
+      const art = beidStufe(session.exercise, lvNow());
+      const gleich = hoeher.filter(st => beidStufe(session.exercise, st.i) === art);
+      if(gleich.length){ stufeWechseln(gleich[0].i); return "stufe"; }
+      if(art && hoeher.length){
+        if(kgNow() < kgDeckel(session.exercise, lvNow())){
+          S.extra[kgSchluessel()] = Math.min(kgDeckel(session.exercise, lvNow()),
+                                             Math.round((kgNow() + b.schritt) * 10) / 10);
+          return "gewicht";
+        }
+        const e1 = einEinstieg(session.exercise, lvNow(), session.side);
+        if(e1 != null){
+          S.levels[key] = e1;
+          S.extra[kgSchluessel()] = 0;
+          return "stufe";
+        }
+      }
+    }
     /* Hat die jetzige Sprosse ihr eigenes Gewicht (kgJeSprosse), wird erst
        sie voll beladen — beidbeinig bis zum Deckel, dann einbeinig. Sonst
        waere der Rucksack an der beidbeinigen nie mehr als ein
@@ -7635,7 +8424,7 @@ function applyRules(session, etikett){
       }
     };
 
-    let wie = null, stufenAuf = 0, umgerechnet = false;
+    let wie = null, stufenAuf = 0, umgerechnet = false, fersenNeu = null;
     for(let k = 0; k < MAX_SPRUNG; k++){
       if(k > 0){
         const jetzt = lastVon(session.exercise, lvNow(), kgNow(), session.side);
@@ -7657,6 +8446,17 @@ function applyRules(session, etikett){
          einbeinig: Der Umstieg ist ein eigener Schritt, gemessen wird danach. */
       if(rampe && w === "stufe" && beidStufe(session.exercise, stufeVor)
                                    !== beidStufe(session.exercise, lvNow())) break;
+      /* Handtuchrolle: Auf einer Hoehe, die noch nie ging, nicht hochgekommen
+         — das ist die Beweglichkeit, nicht die Kraft. Eine Hoehe zurueck, und
+         die Grenze bleibt dort (fersenLernen). */
+      if(!zuLeicht && w === "stufe" && hoeheZuerst(session.exercise)
+         && hoeheVon(session.exercise, stufeVor) > fersenGeschafft(session.exercise)){
+        /* Beim beidbeinigen Halt laufen die Regeln je Seite: Die erste setzt
+           die Grenze, die zweite findet sie schon gesetzt — und geht trotzdem
+           nur eine Hoehe zurueck. */
+        fersenNeu = fersenLernen(session.exercise, stufeVor);
+        break;
+      }
     }
     /* Nach einem umgerechneten Sprossenwechsel vergleicht die Differenz das
        Gewicht zweier verschiedener Sprossen — die Meldung nennt dann nur die
@@ -7674,6 +8474,9 @@ function applyRules(session, etikett){
       if(kgDelta) teile.push(`${komma(kgDelta, 1)} kg`);
       msgs.push({t:"ok", x:`${teile.join(" und ")} ${zuLeicht ? "schwerer" : "leichter"} — `
         + `jetzt „${wieJetzt()}".`});
+      if(fersenNeu != null)
+        msgs.push({t:"warn", x:`Die App plant ab jetzt bis ${String(fersenNeu).replace(".", ",")} cm unter der `
+          + `Ferse und bleibt dort. Höher wählst du in der Liste selbst, wenn du es probieren willst.`});
     } else msgs.push({t:"bad", x: zuLeicht
       ? `Und schwerer geht diese Position nicht. Für die Kurve gibt sie nichts mehr her — `
         + `als Kontrollposition bleibt sie brauchbar.`
@@ -8660,7 +9463,91 @@ function startBlock(){
    Fuer den aufrechten Laeufer gibt es keins, weil es die Uebung so noch nicht
    gibt; fuer das Wadenheben keins, weil die Waage als Dosierung nirgends
    abgebildet ist. Die Fussnote sagt jeweils, was man vor sich hat. */
-function uebungsbild(key, level){
+/* Clips je Sprosse (Build 2026-11-12 a). Luke dreht jede Sprosse als kurzen
+   Clip ohne Ton; die Datei heisst clips/<uebung>-NN.mp4, NN ist die Sprosse
+   ab 1, zweistellig (clips/bridge-01.mp4 bis bridge-24.mp4). Eine Sprosse
+   kann mit clip:<Index> auf den Clip einer anderen zeigen — die einbeinige
+   Handtuchrolle zeigt den beidbeinigen Clip derselben Fersenhoehe. Gibt es
+   keinen Clip der Sprosse, versucht die App clips/<uebung>.mp4, den einen
+   Clip je Uebung aus den Uebungsdateien (clip-datei).
+
+   Es gibt keine Liste, welche Clips schon gedreht sind: Die App versucht
+   den Clip, und erst wenn er laedt, steht er da und ersetzt das Foto. Laedt
+   keiner, verschwindet die Flaeche ersatzlos, wie bei den Fotos — kein
+   Platzhalter, keine Fehlermeldung. Ein neuer Clip im Ordner reicht also,
+   am Code aendert sich dafuer nichts.
+
+   Erklaervideos liegen auf YouTube (video-url in den Uebungsdateien). Eine
+   Uebung hat eins (erklaerUrl als Text) oder eins je Sprossenblock
+   (erklaerUrl als Objekt, die Sprosse sagt mit erklaer:"<block>", welches).
+   Leer heisst noch nicht gedreht, dann steht nichts da. Der Link steht nur
+   beim Einstellen vor dem Satz, nicht im Vorlauf. */
+function clipSprosse(key, level){
+  const L = DEFAULT_EX[key] && DEFAULT_EX[key].levels && DEFAULT_EX[key].levels[level];
+  return (L && Number.isInteger(L.clip)) ? L.clip : level;
+}
+/* clipVon an der Uebung leiht die Clips einer anderen, clip an der Sprosse
+   zaehlt dann in deren Leiter (Fersenbruecke fuers innere Knie). */
+function clipKey(key){ return (DEFAULT_EX[key] && DEFAULT_EX[key].clipVon) || key; }
+function clipDatei(key, level){
+  return `clips/${clipKey(key)}-${String(clipSprosse(key, level) + 1).padStart(2, "0")}.mp4`;
+}
+function erklaerUrl(key, level){
+  const d = DEFAULT_EX[key];
+  if(!d || !d.erklaerUrl) return "";
+  if(typeof d.erklaerUrl === "string") return d.erklaerUrl;
+  const L = d.levels && d.levels[level];
+  return (L && L.erklaer && d.erklaerUrl[L.erklaer]) || "";
+}
+const FIGUR_STIL = `margin:11px 0 0;padding:12px 12px 10px;background:var(--panel2);
+    border:1px solid var(--line);border-radius:10px`;
+function uebungsclip(key, level){
+  if(!Number.isInteger(level) || !(DEFAULT_EX[key] && DEFAULT_EX[key].levels)) return "";
+  return `<figure class="uebClip" hidden style="${FIGUR_STIL}">
+    <div style="max-width:330px;margin:0 auto"><video src="${clipDatei(key, level)}"
+      data-weiter="clips/${clipKey(key)}.mp4" muted loop playsinline autoplay preload="auto"
+      aria-label="Clip der Übung" onloadeddata="clipDa(this)" onerror="clipFehler(this)"
+      style="width:100%;display:block;border-radius:7px"></video></div></figure>`;
+}
+function erklaerLink(key, level){
+  const u = erklaerUrl(key, level);
+  if(!u) return "";
+  return `<p style="margin:11px 0 0;text-align:center"><a class="tiny" href="${u}"
+    target="_blank" rel="noopener">Erklärvideo ansehen</a></p>`;
+}
+/* Ein geladener Clip verdraengt das Foto daneben. Laedt der Clip der Sprosse
+   nicht, kommt einmal der Clip der Uebung dran; laedt auch der nicht, faellt
+   die Flaeche weg. */
+function clipDa(v){
+  const f = v.closest("figure");
+  if(!f) return;
+  f.hidden = false;
+  const foto = f.parentElement && f.parentElement.querySelector(".uebBild");
+  if(foto) foto.hidden = true;
+}
+function clipFehler(v){
+  const w = v.dataset.weiter;
+  if(w){ delete v.dataset.weiter; v.src = w; return; }
+  const f = v.closest("figure");
+  if(f) f.remove();
+}
+/* Produktempfehlung mit Affiliate-Link (Luke, 12.11.2026): beim
+   endgradigen Wadenheben der Fasciitis Fighter als Alternative zur
+   Handtuchrolle. Als Werbung gekennzeichnet, der Link exakt so, wie Luke ihn
+   geliefert hat. Steht beim Einstellen, unter dem Erklaervideo. */
+function anzeigeLink(key){
+  const a = DEFAULT_EX[key] && DEFAULT_EX[key].anzeige;
+  if(!a) return "";
+  return `<p class="tiny" style="margin:11px 0 0;text-align:center"><span
+    style="border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-right:4px">Anzeige</span>${
+    a.vor} <a href="${a.url}" target="_blank" rel="sponsored noopener">${a.name}</a>*<br>
+    *Affiliate-Link: Ich bekomme eine kleine Provision, für dich ändert sich der Preis nicht.</p>`;
+}
+function uebungsbild(key, level, mitErklaer){
+  return uebungsclip(key, level) + uebungsfoto(key, level)
+       + (mitErklaer ? erklaerLink(key, level) + anzeigeLink(key) : "");
+}
+function uebungsfoto(key, level){
   const b = UEBUNGSBILDER[key];
   if(!b) return "";
   /* Zwei Bauarten. Die meisten Uebungen haben EIN Bild; der Schraegzug hat
@@ -8687,8 +9574,7 @@ function uebungsbild(key, level){
     : q.svg;
   const fussnote = q.quelle || b.quelle
                 || "Zeichnung, vorläufig — wird durch eigene Fotos ersetzt";
-  return `<figure style="margin:11px 0 0;padding:12px 12px 10px;background:var(--panel2);
-    border:1px solid var(--line);border-radius:10px">
+  return `<figure class="uebBild" style="${FIGUR_STIL}">
     <div style="max-width:330px;margin:0 auto">${inhalt}</div>
     <figcaption style="margin-top:8px;text-align:center">${zeilen}
     <div class="tiny" style="margin-top:7px;color:var(--tx3);opacity:.7">${fussnote}</div>
@@ -9013,7 +9899,7 @@ function teilHTML(q, t, mitKurve, knie){
       STELLUNG_ENG_TEXT}</span></label>` : ""}
     ${kl ? knieListeHTML(q, t) : stufen.length < 2 ? "" : `<select data-t="${t}" data-a="stufe" aria-label="Variante">${
       stufen.map(st => `<option value="${st.i}"${st.i === q.level ? " selected" : ""}${
-        st.gesperrt ? " disabled" : ""}>${st.name}${st.gesperrt ? PREMIUM_GESPERRT
+        st.gesperrt ? " disabled" : ""}>${st.name}${st.gesperrt ? sperrText(st)
         : (sprosseVorlaeufig(q.exercise, st.i) ? VORLAEUFIG_KURZ : "")}</option>`).join("")}</select>`}
     ${sprosseVorlaeufig(q.exercise, q.level)
       ? `<p class="tiny vorl" style="margin:5px 0 0">${VORLAEUFIG_SATZ}</p>` : ""}
@@ -9245,7 +10131,7 @@ function blockIntro(i, sofort){
   tWeiter = () => { beep(660,60,.05); los(); };
   el("tEinstellen").innerHTML = (awZeigen ? ausfWahlKarte(exKey, bl.zone, "", true) : "")
     + teile.map((q, t) => teilHTML(q, t, false, knieZeigen)).join("");
-  el("tBild").innerHTML = uebungsbild(bl.exercise, bl.level);
+  el("tBild").innerHTML = uebungsbild(bl.exercise, bl.level, true);
 
   /* Jede Aenderung wird sofort gesichert und der Timer an derselben Stelle
      neu gezeichnet. Er scrollt fuer sich, amOrt greift hier nicht. */
@@ -9827,7 +10713,7 @@ function gewichtAchse(ex, side){
 /* Warum eine Sprosse ausgegraut ist. Vorher stand dort die rohe Kennung
    ("zug fehlt"). */
 function fehltText(l, i){
-  if(l.premium && !premiumAn()) return PREMIUM_GESPERRT.replace(" · ", "");
+  if(sprosseGesperrt(l)) return sperrText(l).replace(" · ", "");
   if(ohneGeraete()) return (!l.geraet && stufeOrt(S.exercise, i) === "wand")
     ? "nur mit Wand" : "nicht bei Nur Körpergewicht";
   return `${geraetName(geraetId(l.geraet))} fehlt`;
@@ -10370,7 +11256,7 @@ function messreihen(){
         datum: ses.date,
         workout: ses.workout || "",
         uebung: ses.exercise,
-        uebung_name: e ? e.name : ses.exercise,
+        uebung_name: e ? e.name : (UEBUNG_ARCHIV[ses.exercise] || {}).name || ses.exercise,
         /* Ein beidbeiniger Halt hat keine Seite und zaehlt trotzdem fuer beide.
            Bliebe die Spalte leer, waere er im Export von echten Altdaten ohne
            Seite nicht zu unterscheiden. */
@@ -10496,7 +11382,8 @@ function messreihenJSON(){
                + "Last der Sprosse ist ein Platzhalter und noch nicht aus Messungen "
                + "abgeleitet. entfallen=1 an einer Messung: Ihre Sprosse gibt es nicht "
                + "mehr; stufe_nr ist die Sprosse, auf die sie umgezogen ist. premium=true: "
-               + "Sprosse nur im Medical Fitness System waehlbar. gleichlast_gruppe: Sprossen "
+               + "Sprosse nur im Medical Fitness System waehlbar. persoenliche_freischaltung="
+               + "true: Sprosse nur nach persoenlicher Freischaltung waehlbar. gleichlast_gruppe: Sprossen "
                + "derselben Last, von denen die App je Seite eine fuehrt.",
     spalten: EXPORT_SPALTEN,
     zonen: ZONES.map(z=>({id:z.id, name:z.name, von_s:z.lo, bis_s:z.hi})),
@@ -10532,6 +11419,7 @@ function messreihenJSON(){
         /* Enger Kniestand: vorerst mit der Last der normalen Sprosse darueber. */
         L.stellung ? {eng: L.stellung === "eng"} : {},
         L.premium ? {premium: true} : {},
+        L.coaching ? {persoenliche_freischaltung: true} : {},
         L.gruppe ? {gleichlast_gruppe: L.gruppe} : {},
         L.bank ? {last_aus_hoehe: {basis: L.bank.basis, anteil: L.bank.anteil,
                                    bezug_cm: L.bank.cm}} : {},
@@ -11125,7 +12013,7 @@ function sprossenKarte(ex){
       <td><span class="tiny" style="opacity:.6">${i+1}</span> ${l.name}${
         i===curLevel()?' <span class="tiny">· aktuell</span>':""}${
         gem.has(i)?"":`<span class="tiny vorl">${VORLAEUFIG_KURZ}</span>`}${
-        l.premium && !premiumAn() ? `<span class="tiny">${PREMIUM_GESPERRT}</span>` : ""}</td></tr>`).join("")}
+        sprosseGesperrt(l) ? `<span class="tiny">${sperrText(l)}</span>` : ""}</td></tr>`).join("")}
     </tbody></table>
     ${vorlLegende(ex, gem)}
   </div>`;
@@ -11582,7 +12470,8 @@ function verzoegerungNotiz(v){
    gewechselt —, rechnet blockZurueck den Stand aus dem Block selbst. */
 function standKopie(){
   return structuredClone({levels: S.levels || {}, extra: S.extra || {}, streak: S.streak || {},
-    lungeTiefe: S.lungeTiefe || {}, standMitGeraeten: S.standMitGeraeten || null});
+    lungeTiefe: S.lungeTiefe || {}, fersenGrenze: S.fersenGrenze || {},
+    standMitGeraeten: S.standMitGeraeten || null});
 }
 function letzterBlock(){
   const ss = S.sessions; if(!ss.length) return null;
@@ -11694,8 +12583,10 @@ function renderSetup(){
     </div>
     <div class="card">
       <h3 style="margin-top:0">Geräte</h3>
+      <!-- Seit Build 2026-11-12 a ohne Hocker, Kiste und Kissen: Keine Sprosse
+           braucht sie mehr, der Stepper hat sie abgeloest. -->
       <p class="tiny" style="margin-top:0">Möbel setzt die App voraus — Arbeitsplatte, Tisch,
-      Stuhl, Hocker, Kiste, Kissen. Alles darüber hinaus hakst du hier an. <b>Varianten, die ein
+      Stuhl, Bank — und einen Stepper mit drei Stufen. Alles darüber hinaus hakst du hier an. <b>Varianten, die ein
       nicht angehaktes Gerät brauchen, tauchen gar nicht erst auf.</b></p>
       ${GERAETE.filter(g => !g.ruht).map(g => `<label class="chk" for="ger_${g.id}">
         <input type="checkbox" id="ger_${g.id}" data-ger="${g.id}"
@@ -11753,8 +12644,12 @@ function renderSetup(){
       <label class="chk" for="premChk" style="margin-bottom:0">
         <input type="checkbox" id="premChk" ${premiumAn() ? "checked" : ""}>
         <span><b>Premium freigeschaltet</b><br><span class="tiny">Empfehlung aus dem Formtrend.
-        Läuft der Trend, ersetzt er die Zonenruhe. Dazu die Camporini-Varianten im Hip
-        Hinge.</span></span>
+        Läuft der Trend, ersetzt er die Zonenruhe.</span></span>
+      </label>
+      <label class="chk" for="coachChk" style="margin:10px 0 0">
+        <input type="checkbox" id="coachChk" ${coachingFrei() ? "checked" : ""}>
+        <span><b>Camporini freigeschaltet</b><br><span class="tiny">Die fünf Camporini-Varianten
+        im Hip Hinge, nur nach persönlicher Freischaltung.</span></span>
       </label>
     </div>
     <div class="card">
@@ -11894,8 +12789,8 @@ function renderSetup(){
     /* Premium-Sprossen auch hier gesperrt sichtbar wie in "Dein Workout"
        (Build 2026-10-25 a), sonst liessen sie sich ohne Premium nachtragen. */
     el("nLvl").innerHTML = e.levels.map((L,i)=>{
-      const zu = L.premium && !premiumAn();
-      return `<option value="${i}"${zu ? " disabled" : ""}>${i+1}. ${L.name}${zu ? PREMIUM_GESPERRT : ""}</option>`;
+      const zu = sprosseGesperrt(L);
+      return `<option value="${i}"${zu ? " disabled" : ""}>${i+1}. ${L.name}${zu ? sperrText(L) : ""}</option>`;
     }).join("");
     nSeite();
     /* Bei der Hyperextension heisst die zweite Wahl Haltung, nicht Seite. */
@@ -12006,6 +12901,13 @@ function renderSetup(){
     /* Die Zonenruhe haengt daran — ein geplantes Workout kann sich aendern. */
     S.plan = null; S.planDay = null; save();
     renderAmOrt("premChk");
+  };
+  if(el("coachChk")) el("coachChk").onchange = e => {
+    S.coachingFrei = e.target.checked;
+    /* Ohne Freischaltung geht die Leiter von "Stehend · Gewicht in beiden
+       Haenden" direkt auf den B-Stance — das Workout kann sich aendern. */
+    S.plan = null; S.planDay = null; save();
+    renderAmOrt("coachChk");
   };
   GERAETE.forEach(g => {
     const b = el("ger_" + g.id);
